@@ -6,38 +6,50 @@
     Copyright Relic Entertainment, Inc.  All rights reserved.
 =============================================================================*/
 
-
+#ifdef _WIN32
 #include <windows.h>
+#else
+#define _GNU_SOURCE   /* Get to wcscasecmp() */
+#endif
+
 #include <stdio.h>
+#include <strings.h>
+#include <wchar.h>
+#include <stdlib.h>
 #include "MultiplayerLANGame.h"
 #include "MultiplayerGame.h"
-#include "feflow.h"
+#include "FEFlow.h"
 #include "utility.h"
-#include "scenpick.h"
-#include "uicontrols.h"
-#include "region.h"
+#include "ScenPick.h"
+#include "UIControls.h"
+#include "Region.h"
 #include "mouse.h"
-#include "fontreg.h"
-#include "scroller.h"
-#include "linkedlist.h"
+#include "FontReg.h"
+#include "Scroller.h"
+#include "LinkedList.h"
 #include "prim2d.h"
-#include "randy.h"
-#include "chatting.h"
-#include "commandnetwork.h"
-#include "globals.h"
-#include "msg\serverstatus.h"
+#include "Randy.h"
+#include "Chatting.h"
+#include "CommandNetwork.h"
+#include "Globals.h"
+/*#include "msg\serverstatus.h"*/
 #include "ChannelFSM.h"
-#include "colpick.h"
+#include "ColPick.h"
 #include "mainswitches.h"
-#include "chatting.h"
-#include "strings.h"
-#include "queue.h"
-#include "file.h"
-#include "statscript.h"
+#include "Chatting.h"
+#include "Strings.h"
+#include "Queue.h"
+#include "File.h"
+#include "StatScript.h"
 #include "TimeoutTimer.h"
-#include "Titan.h"
-#include "Titannet.h"
-#include "gamechat.h"
+#include "Titan.h"*/
+#include "TitanNet.h"
+#include "GameChat.h"
+
+#ifdef _WIN32
+#define strncasecmp _strnicmp
+#define wcscasecmp  _wcsicmp
+#endif
 
 /*=============================================================================
     Defines:
@@ -498,7 +510,7 @@ void *lgParseChatEntry(char *messageorig, bool preGameChat)
                 {
                     user = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, user->userName);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         matched = user;
@@ -521,7 +533,7 @@ void *lgParseChatEntry(char *messageorig, bool preGameChat)
                 {
                     guser = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, guser->name);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         gmatched = guser;
@@ -715,7 +727,7 @@ void lgLanProtocalButton(char *name, featom *atom)
     }
     else
     {
-        LanProtocalButton = (ubyte)atom->pData;
+        LanProtocalButton = (ubyte)(size_t)atom->pData;
     }
 }
 
@@ -1170,7 +1182,7 @@ bool lgListOfGamesCompare(void *firststruct,void *secondstruct)
     switch (lgListOfGamesWindow->sorttype)
     {
         case LG_SortByGameName:
-            if ((i=wcsicmp( one->game.Name,two->game.Name)) > 0)
+            if ((i=wcscasecmp( one->game.Name,two->game.Name)) > 0)
                 return (lgListOfGamesWindow->sortOrder);
             else
             {
@@ -1195,7 +1207,7 @@ bool lgListOfGamesCompare(void *firststruct,void *secondstruct)
             wchar_t *onemapname = one->game.directoryCustomInfo.stringdata + 1+wcslen(one->game.directoryCustomInfo.stringdata);
             wchar_t *twomapname = two->game.directoryCustomInfo.stringdata + 1+wcslen(two->game.directoryCustomInfo.stringdata);
 
-            if ((i=wcsicmp( onemapname,twomapname)) > 0)
+            if ((i=wcscasecmp( onemapname,twomapname)) > 0)
                 return (lgListOfGamesWindow->sortOrder);
             else
             {
@@ -1206,6 +1218,8 @@ bool lgListOfGamesCompare(void *firststruct,void *secondstruct)
             }
         }
     }
+
+    return FALSE;
 }
 
 // callback if the title is clicked on
@@ -2823,8 +2837,8 @@ void lgStartup(void)
 
     TTimerDisable(&lgAdvertiseMyselfTimer);
 
-    lgchangescreenmutex       = (void *)CreateMutex(NULL,FALSE,NULL);
-    gamestartedmutex        = (void *)CreateMutex(NULL,FALSE,NULL);
+    lgchangescreenmutex = SDL_CreateMutex();
+    gamestartedmutex    = SDL_CreateMutex();
 
     lgProccessCallback = taskStart(lgProcessCallBacksTask, LG_TaskServicePeriod, 0);
     taskPause(lgProccessCallback);
@@ -2837,7 +2851,7 @@ void lgShutdown(void)
 {
     CloseQueue(&lgThreadTransfer);
 
-    CloseHandle((HANDLE)lgchangescreenmutex);
+    SDL_DestroyMutex(lgchangescreenmutex);
 }
 
 

@@ -8,20 +8,20 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include "types.h"
-#include "Objtypes.h"
+#include "Types.h"
+#include "ObjTypes.h"
 #include "AIPlayer.h"
-#include "file.h"
-#include "universe.h"
-#include "select.h"
+#include "File.h"
+#include "Universe.h"
+#include "Select.h"
 #include "AIFleetMan.h"
 #include "AIAttackMan.h"
 #include "AIDefenseMan.h"
 #include "AIUtilities.h"
 #include "AITeam.h"
-#include "stats.h"
-#include "randy.h"
-#include "nis.h"
+#include "Stats.h"
+#include "Randy.h"
+#include "NIS.h"
 #include "SaveGame.h"
 #include "SinglePlayer.h"
 

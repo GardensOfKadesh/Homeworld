@@ -9,11 +9,11 @@
 #ifndef ___TRADEMGR_H
 #define ___TRADEMGR_H
 
-#include "types.h"
-#include "region.h"
+#include "Types.h"
+#include "Region.h"
 
 #include "texreg.h"
-#include "researchapi.h"
+#include "ResearchAPI.h"
 
 /*=============================================================================
     Switches:

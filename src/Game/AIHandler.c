@@ -12,11 +12,11 @@
 #include "AIHandler.h"
 #include "AIOrders.h"
 #include "CommandWrap.h"
-#include "select.h"
-#include "shipselect.h"
+#include "Select.h"
+#include "ShipSelect.h"
 #include "GravWellGenerator.h"
-#include "randy.h"
-#include "univupdate.h"
+#include "Randy.h"
+#include "UnivUpdate.h"
 
 aieHandlerSimple handlerTable[] =
 {

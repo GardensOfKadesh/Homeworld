@@ -7,22 +7,22 @@
 =============================================================================*/
 
 #include <math.h>
-#include "types.h"
-#include "spaceobj.h"
+#include "Types.h"
+#include "SpaceObj.h"
 #include "ResearchShip.h"
-#include "univupdate.h"
+#include "UnivUpdate.h"
 #include "SoundEvent.h"
-#include "statscript.h"
-#include "aitrack.h"
-#include "matrix.h"
-#include "aiship.h"
-#include "debug.h"
-#include "fastmath.h"
-#include "select.h"
-#include "universe.h"
-#include "linkedlist.h"
+#include "StatScript.h"
+#include "AITrack.h"
+#include "Matrix.h"
+#include "AIShip.h"
+#include "Debug.h"
+#include "FastMath.h"
+#include "Select.h"
+#include "Universe.h"
+#include "LinkedList.h"
 #include "SaveGame.h"
-#include "dock.h"
+#include "Dock.h"
 
 #define ROTATE_WAIT 0
 #define ROTATE_DO   1

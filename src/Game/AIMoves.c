@@ -4,11 +4,11 @@
 #include "AIEvents.h"
 #include "AIVar.h"
 #include "AIMoves.h"
-#include "memory.h"
+#include "Memory.h"
 #include "AIPlayer.h"
 #include "AIFleetMan.h"
 #include "CommandWrap.h"
-#include "randy.h"
+#include "Randy.h"
 #include "AIUtilities.h"
 #include "SaveGame.h"
 
@@ -440,6 +440,6 @@ void aimFix_VarDestroy(AITeamMove *move)
 //
 //  temporary contention relief
 //
-#include "AIMoves1.c"  // Falko
-#include "AIMoves2.c"  // Gary
+#include "AIMoves1.c.h"  // Falko
+#include "AIMoves2.c.h"  // Gary
 

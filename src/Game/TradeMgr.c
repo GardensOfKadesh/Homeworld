@@ -6,51 +6,54 @@
     Copyright Relic Entertainment, Inc.  All rights reserved.
 =============================================================================*/
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <math.h>
-#include "fastmath.h"
+#include "FastMath.h"
 
-#include "types.h"
-#include "linkedlist.h"
-#include "universe.h"
-#include "region.h"
-#include "uicontrols.h"
-#include "feflow.h"
+#include "Types.h"
+#include "LinkedList.h"
+#include "Universe.h"
+#include "Region.h"
+#include "UIControls.h"
+#include "FEFlow.h"
 #include "font.h"
-#include "fontreg.h"
-#include "objtypes.h"
-#include "task.h"
+#include "FontReg.h"
+#include "ObjTypes.h"
+#include "Task.h"
 #include "mouse.h"
 #include "CommandLayer.h"
-#include "piePlate.h"
+#include "PiePlate.h"
 #include "ConsMgr.h"
 #include "TradeMgr.h"
-#include "globals.h"
+#include "Globals.h"
 #include "CommandWrap.h"
-#include "soundevent.h"
-#include "randy.h"
-#include "strings.h"
-#include "researchapi.h"
+#include "SoundEvent.h"
+#include "Randy.h"
+#include "Strings.h"
+#include "ResearchAPI.h"
 #include "mainrgn.h"
-#include "taskbar.h"
-#include "shipview.h"
+#include "TaskBar.h"
+#include "ShipView.h"
 #include "glinc.h"
 #include "glcaps.h"
 #include "render.h"
-#include "sensors.h"
-#include "singleplayer.h"
-#include "ping.h"
+#include "Sensors.h"
+#include "SinglePlayer.h"
+#include "Ping.h"
 #include "texreg.h"
-#include "fereg.h"
-#include "shipdefs.h"
-#include "nis.h"
-#include "researchgui.h"
-#include "select.h"
-#include "matrix.h"
-#include "vector.h"
-#include "key.h"
+#include "FEReg.h"
+#include "ShipDefs.h"
+#include "NIS.h"
+#include "ResearchGUI.h"
+#include "Select.h"
+#include "Matrix.h"
+#include "Vector.h"
+#include "Key.h"
 #include "CameraCommand.h"
 #include "SaveGame.h"
 #include "InfoOverlay.h"
@@ -63,7 +66,11 @@ extern char TM_TechListFont[64];
 extern char TM_Font[64];
 
 
+#ifdef _WIN32
 #define TM_FIBFile              "FEMan\\Trader_Interface.fib"
+#else
+#define TM_FIBFile              "FEMan/Trader_Interface.fib"
+#endif
 #define TM_TradeScreen          "Trader_Interface"
 #define TM_FontNameLength       64
 #define TM_HeadingColorFactor   1.5f

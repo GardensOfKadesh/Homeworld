@@ -6,40 +6,49 @@
     Copyright Relic Entertainment, Inc.  All rights reserved.
 =============================================================================*/
 
-#include <windows.h>
+#define _GNU_SOURCE   /* Get to wcscasecmp() */
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <wchar.h>
 #include "MultiplayerGame.h"
 #include "MultiplayerLANGame.h"
-#include "feflow.h"
+#include "FEFlow.h"
 #include "utility.h"
-#include "scenpick.h"
-#include "uicontrols.h"
+#include "ScenPick.h"
+#include "UIControls.h"
 #include "TitanInterfaceC.h"
-#include "titannet.h"
-#include "region.h"
+#include "TitanNet.h"
+#include "Region.h"
 #include "mouse.h"
-#include "fontreg.h"
-#include "scroller.h"
-#include "linkedlist.h"
+#include "FontReg.h"
+#include "Scroller.h"
+#include "LinkedList.h"
 #include "prim2d.h"
-#include "randy.h"
-#include "chatting.h"
-#include "commandnetwork.h"
-#include "globals.h"
-#include "msg\serverstatus.h"
+#include "Randy.h"
+#include "Chatting.h"
+#include "CommandNetwork.h"
+#include "Globals.h"
+#include "msg/ServerStatus.h"
 #include "ChannelFSM.h"
-#include "colpick.h"
+#include "ColPick.h"
 #include "mainswitches.h"
-#include "chatting.h"
-#include "strings.h"
-#include "queue.h"
-#include "titan.h"
-#include "file.h"
-#include "statscript.h"
-#include "titannet.h"
-#include "universe.h"
-#include "gamechat.h"
+#include "Chatting.h"
+#include "Strings.h"
+#include "Queue.h"
+#include "Titan.h"
+#include "File.h"
+#include "StatScript.h"
+#include "TitanNet.h"
+#include "Universe.h"
+#include "GameChat.h"
 #include "SaveGame.h" // for ConvertNumToPointerInList
+
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define wcscasecmp wcsicmp
+#endif
 
 #ifdef HW_Debug
 #ifdef gshaw
@@ -51,7 +60,11 @@
     Defines:
 =============================================================================*/
 
+#ifdef _WIN32
 #define MG_FIBFile_SERVERS      "FEMan\\Choose_Server.FIB"
+#else
+#define MG_FIBFile_SERVERS      "FEMan/Choose_Server.FIB"
+#endif
 
 #define MG_FontNameLength       64
 
@@ -193,12 +206,13 @@ bool            mgCreatingNetworkGame = FALSE;
 
 // structures and variables for creating a game.
 CaptainGameInfo tpGameCreated=
-// N    P   M   D   u   p      nc  sf  bs  sr   ii    ia     lt    la   ad  ab  p     f
- {L"", L"", "", "", 0,  0,0,0,  0,  1,  3,   1, 1440, 2000, 19200, 2000, 50, 50, 0, 22058};
+// N    P   M   D   u   p        nc  sf  bs  sr   ii    ia     lt    la   ad  ab  p     f
+ {L"", L"", "", "", 0,  {0,0,0},  0,  1,  3,   1, 1440, 2000, 19200, 2000, 50, 50, 0, 22058};
 
 CaptainGameInfo BackupGameCreated;
 sdword          spCurrentSelectedBack;
-char            scenPickBack[];
+/*char            scenPickBack[]*/
+char           *scenPickBack;
 Address myAddress;
 
 // tweakable fonthandles.
@@ -990,7 +1004,7 @@ void *mgParseChatEntry(char *messageorig, bool preGameChat)
                 {
                     user = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, user->userName);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         matched = user;
@@ -1013,7 +1027,7 @@ void *mgParseChatEntry(char *messageorig, bool preGameChat)
                 {
                     guser = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, guser->name);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         gmatched = guser;
@@ -1089,7 +1103,7 @@ void *mgCompleteRoomPlayerName(char *message, char *compname, bool preGameChat)
                 {
                     user = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, user->userName);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         matched = user;
@@ -1112,7 +1126,7 @@ void *mgCompleteRoomPlayerName(char *message, char *compname, bool preGameChat)
                 {
                     guser = listGetStructOfNode(walk);
                     gcRemoveAmpersands(ampremoved, guser->name);
-                    if (strnicmp(ampremoved,toname,i)==0)
+                    if (strncasecmp(ampremoved,toname,i)==0)
                     {
                         // found a match so far
                         gmatched = guser;
@@ -1163,7 +1177,7 @@ Node *mgIsUserInList(LinkedList *list, char *name)
     {
         namestruct = (mgUserNameList *)listGetStructOfNode(search);
 
-        if (strnicmp(name, namestruct->name, MAX_PERSONAL_NAME_LEN)==0)
+        if (strncasecmp(name, namestruct->name, MAX_PERSONAL_NAME_LEN)==0)
         {
             return(search);
         }
@@ -1292,7 +1306,7 @@ sdword mgCommandEntered(char *text, bool preGameChat)
 
         while (mgCommandInfoPtr[i].callback != NULL)
         {
-            if ((strnicmp(parse, mgCommandInfoPtr[i].Command, max(strlen(mgCommandInfoPtr[i].Command),space-text-1))==0) &&
+            if ((strncasecmp(parse, mgCommandInfoPtr[i].Command, max(strlen(mgCommandInfoPtr[i].Command),space-text-1))==0) &&
                 (space[0] == ' ') &&
                 (  ((GameCreator) && (mgCommandInfoPtr[i].captainonly)) ||
                    ((preGameChat)&&(mgCommandInfoPtr[i].pregamechat)) ||
@@ -1366,7 +1380,7 @@ sdword mgCommandComplete(char *text, char *commandstr, bool preGameChat)
 
                 for (j=0;mgCommandInfoPtr[j].callback != NULL;j++)
                 {
-                    if ((strnicmp(toname, mgCommandInfoPtr[j].Command, strlen(toname))==0) &&
+                    if ((strncasecmp(toname, mgCommandInfoPtr[j].Command, strlen(toname))==0) &&
                         (  ((GameCreator) && (mgCommandInfoPtr[j].captainonly)) ||
                            ((preGameChat)&&(mgCommandInfoPtr[j].pregamechat)) ||
                            ((!preGameChat)&&(mgCommandInfoPtr[j].roomchat))) )
@@ -1615,8 +1629,8 @@ void mgShowScreen(sdword screennum, bool disappear)
 ----------------------------------------------------------------------------*/
 void LockMutex(void *mutex)
 {
-    DWORD result = WaitForSingleObject((HANDLE)mutex, INFINITE);
-    dbgAssert(result != WAIT_FAILED);
+    int result = SDL_mutexP(mutex);
+    dbgAssert(result != -1);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1628,8 +1642,8 @@ void LockMutex(void *mutex)
 ----------------------------------------------------------------------------*/
 void UnLockMutex(void *mutex)
 {
-    BOOL result = ReleaseMutex((HANDLE)mutex);
-    dbgAssert(result);
+    int result = SDL_mutexV(mutex);
+    dbgAssert(result != -1);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1641,7 +1655,7 @@ void UnLockMutex(void *mutex)
 ----------------------------------------------------------------------------*/
 void *gameCreateMutex()
 {
-    return (void *)CreateMutex(NULL,FALSE,NULL);
+    return SDL_CreateMutex();
 }
 
 /*-----------------------------------------------------------------------------
@@ -1653,7 +1667,7 @@ void *gameCreateMutex()
 ----------------------------------------------------------------------------*/
 void gameCloseMutex(void *mutex)
 {
-    CloseHandle((HANDLE)mutex);
+    SDL_DestroyMutex(mutex);
 }
 
 /*=============================================================================
@@ -1910,7 +1924,7 @@ void mgFirewallButton(char *name, featom *atom)
     }
     else
     {
-        firewallButton = (ubyte)atom->pData;
+        firewallButton = (ubyte)(size_t)atom->pData;
     }
 }
 
@@ -3257,7 +3271,7 @@ bool mgListOfGamesCompare(void *firststruct,void *secondstruct)
     switch (mgListOfGamesWindow->sorttype)
     {
         case MG_SortByGameName:
-            if ((i=wcsicmp( one->game.Name,two->game.Name)) > 0)
+            if ((i=wcscasecmp( one->game.Name,two->game.Name)) > 0)
                 return (mgListOfGamesWindow->sortOrder);
             else
             {
@@ -3294,7 +3308,7 @@ bool mgListOfGamesCompare(void *firststruct,void *secondstruct)
             wchar_t *onemapname = one->game.directoryCustomInfo.stringdata + 1+wcslen(one->game.directoryCustomInfo.stringdata);
             wchar_t *twomapname = two->game.directoryCustomInfo.stringdata + 1+wcslen(two->game.directoryCustomInfo.stringdata);
 
-            if ((i=wcsicmp( onemapname,twomapname)) > 0)
+            if ((i=wcscasecmp( onemapname,twomapname)) > 0)
                 return (mgListOfGamesWindow->sortOrder);
             else
             {
@@ -3306,6 +3320,8 @@ bool mgListOfGamesCompare(void *firststruct,void *secondstruct)
 
         }
     }
+
+    return FALSE;
 }
 
 // callback if the title is clicked on
@@ -4336,11 +4352,13 @@ bool mgAccelerator(void)
 }
 
 
-/*void mgAcceleratorRelease(void)
+#if 0
+void mgAcceleratorRelease(void)
 {
-/*    mgAccRate = MG_START_ACC_RATE;
+/*    mgAccRate = MG_START_ACC_RATE;*/
     mgAccCount = 1;
-}*/
+}
+#endif
 
 sdword mgSelectOpponentType(regionhandle region, sdword yClicked)
 {
@@ -4384,7 +4402,8 @@ sdword mgRemoveCPUProcess(regionhandle region, sdword ID, udword event, udword d
             mgRemoveCPUOpp();
         mgCPULeftArrowActive = TRUE;
 
-/*        if ( TRUE ) // max  )
+#if 0
+        if ( TRUE ) // max  )
         {
             mgCPULeftArrowActive = TRUE;
             if (mgAccelerator())
@@ -4392,8 +4411,9 @@ sdword mgRemoveCPUProcess(regionhandle region, sdword ID, udword event, udword d
         }
         else
         {
-            /*    Put sound effect HERE
-        }*/
+            /*    Put sound effect HERE */
+        }
+#endif
     }
     region->status |= RSF_DrawThisFrame;
     return(0);
@@ -4422,7 +4442,8 @@ sdword mgAddCPUProcess(regionhandle region, sdword ID, udword event, udword data
         if (mgAccelerator())
             mgAddCPUOpp();
         mgCPURightArrowActive = TRUE;
-/*        if ( TRUE /* max  )
+#if 0
+        if ( TRUE /* max */ )
         {
             mgCPURightArrowActive = TRUE;
             if (mgAccelerator())
@@ -4434,7 +4455,8 @@ sdword mgAddCPUProcess(regionhandle region, sdword ID, udword event, udword data
         else
         {
             //    Put sound effect HERE
-        }*/
+        }
+#endif
     }
     region->status |= RSF_DrawThisFrame;
     return(0);
@@ -4627,7 +4649,7 @@ void mgStartingFleet(char *name, featom *atom)
     }
     else
     {
-        tpGameCreated.startingFleet = (ubyte)atom->pData;
+        tpGameCreated.startingFleet = (ubyte)(size_t)atom->pData;
     }
     mgGameTypesOtherButtonPressed();
 }
@@ -4669,7 +4691,7 @@ void mgGameType(char *name, featom *atom)
     }
     else
     {
-        gameNum = (ubyte)atom->pData;
+        gameNum = (ubyte)(size_t)atom->pData;
         mgSetGameTypeByNum(gameNum);
         //regRecursiveSetReallyDirty(feStack[feStackIndex].baseRegion);
         feAllCallOnCreate(feStack[feStackIndex].screen);
@@ -4843,7 +4865,7 @@ void mgBountySize(char *name, featom *atom)
     }
     else
     {
-        tpGameCreated.bountySize = (ubyte)atom->pData;
+        tpGameCreated.bountySize = (ubyte)(size_t)atom->pData;
     }
     mgGameTypesOtherButtonPressed();
 #endif
@@ -5019,7 +5041,7 @@ void mgStartingResources(char *name, featom *atom)
     }
     else
     {
-        tpGameCreated.startingResources = (ubyte)atom->pData;
+        tpGameCreated.startingResources = (ubyte)(size_t)atom->pData;
     }
     mgGameTypesOtherButtonPressed();
 }
@@ -5098,7 +5120,7 @@ void mgResourceInjectionAmount(char *name, featom *atom)
     {
         // initialize button here
         mgResourceInjectionAmountEntryBox = (textentryhandle)atom->pData;
-        sprintf(temp,"%d",tpGameCreated.resourceInjectionsAmount);
+        sprintf(temp,"%ld",tpGameCreated.resourceInjectionsAmount);
         uicTextEntrySet(mgResourceInjectionAmountEntryBox,temp,strlen(temp)+1);
         uicTextBufferResize(mgResourceInjectionAmountEntryBox,MAX_NUM_LENGTH-6);
         uicTextEntryInit(mgResourceInjectionAmountEntryBox,UICTE_NumberEntry);
@@ -5110,7 +5132,7 @@ void mgResourceInjectionAmount(char *name, featom *atom)
     {
         case CM_LoseFocus :
         case CM_AcceptText :
-            sscanf(mgResourceInjectionAmountEntryBox->textBuffer,"%d",&tpGameCreated.resourceInjectionsAmount);
+            sscanf(mgResourceInjectionAmountEntryBox->textBuffer,"%ld",&tpGameCreated.resourceInjectionsAmount);
             if (uicTextEntryMessage(atom)==CM_AcceptText) feToggleButtonSet("MG_ResourceInjections", TRUE);
         break;
         case CM_GainFocus :
@@ -5193,7 +5215,7 @@ void mgResourceLumpSumAmount(char *name, featom *atom)
     {
         // initialize button here
         mgResourceLumpSumAmountEntryBox = (textentryhandle)atom->pData;
-        sprintf(temp,"%d",tpGameCreated.resourceLumpSumAmount);
+        sprintf(temp,"%ld",tpGameCreated.resourceLumpSumAmount);
         uicTextEntrySet(mgResourceLumpSumAmountEntryBox,temp,strlen(temp)+1);
         uicTextBufferResize(mgResourceLumpSumAmountEntryBox,MAX_NUM_LENGTH-6);
         uicTextEntryInit(mgResourceLumpSumAmountEntryBox,UICTE_NumberEntry);
@@ -5205,7 +5227,7 @@ void mgResourceLumpSumAmount(char *name, featom *atom)
     {
         case CM_LoseFocus :
         case CM_AcceptText :
-            sscanf(mgResourceLumpSumAmountEntryBox->textBuffer,"%d",&tpGameCreated.resourceLumpSumAmount);
+            sscanf(mgResourceLumpSumAmountEntryBox->textBuffer,"%ld",&tpGameCreated.resourceLumpSumAmount);
             if (uicTextEntryMessage(atom)==CM_AcceptText) feToggleButtonSet("MG_ResourceLumpSum", TRUE);
         break;
         case CM_GainFocus :
@@ -6531,9 +6553,9 @@ void mgStartup(void)
 
     GameWereInterestedIn[0] = 0;
 
-    changescreenmutex       = (void *)CreateMutex(NULL,FALSE,NULL);
-    gamestartedmutex        = (void *)CreateMutex(NULL,FALSE,NULL);
-    GameWereInterestedInMutex = (void *)CreateMutex(NULL,FALSE,NULL);
+    changescreenmutex       = SDL_CreateMutex();
+    gamestartedmutex        = SDL_CreateMutex();
+    GameWereInterestedInMutex = SDL_CreateMutex();
 
     ProccessCallback = taskStart(mgProcessCallBacksTask, MG_TaskServicePeriod, 0);
     taskPause(ProccessCallback);
@@ -6569,9 +6591,9 @@ void mgShutdown(void)
 {
     CloseQueue(&mgThreadTransfer);
 
-    CloseHandle((HANDLE)changescreenmutex);
-    CloseHandle((HANDLE)gamestartedmutex);
-    CloseHandle((HANDLE)GameWereInterestedInMutex);
+    SDL_DestroyMutex(changescreenmutex);
+    SDL_DestroyMutex(gamestartedmutex);
+    SDL_DestroyMutex(GameWereInterestedInMutex);
 
     titanGameShutdown();
 }
@@ -7647,7 +7669,7 @@ bool mgListOfServersCompare(void *firststruct,void *secondstruct)
     switch (mgListOfServersWindow->sorttype)
     {
         case MG_ServerSortByName:
-            if ((i=wcsicmp( one->ServerName,two->ServerName)) > 0)
+            if ((i=wcscasecmp( one->ServerName,two->ServerName)) > 0)
                 return (mgListOfServersWindow->sortOrder);
             else
             {
@@ -7658,7 +7680,7 @@ bool mgListOfServersCompare(void *firststruct,void *secondstruct)
             }
 
         case MG_ServerSortByDescription:
-            if ((i=wcsicmp( one->ServerDescription,two->ServerDescription)) > 0)
+            if ((i=wcscasecmp( one->ServerDescription,two->ServerDescription)) > 0)
                 return (mgListOfServersWindow->sortOrder);
             else
             {

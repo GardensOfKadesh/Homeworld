@@ -9,11 +9,11 @@
 #ifndef ___PROXIMITYSENSOR_H
 #define ___PROXIMITYSENSOR_H
 
-#include "types.h"
-#include "spaceobj.h"
-#include "select.h"
+#include "Types.h"
+#include "SpaceObj.h"
+#include "Select.h"
 #ifndef STATVIEWER_PROGRAM
-#include "universe.h"
+#include "Universe.h"
 #endif
 
 

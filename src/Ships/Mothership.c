@@ -6,21 +6,21 @@
     Copyright Relic Entertainment, Inc.  All rights reserved.
 =============================================================================*/
 
-#include "types.h"
-#include "debug.h"
-#include "spaceobj.h"
+#include "Types.h"
+#include "Debug.h"
+#include "SpaceObj.h"
 #include "Mothership.h"
-#include "statscript.h"
-#include "gun.h"
-#include "attack.h"
+#include "StatScript.h"
+#include "Gun.h"
+#include "Attack.h"
 #include "DefaultShip.h"
-#include "madLinkin.h"
-#include "savegame.h"
-#include "universe.h"
-#include "aitrack.h"
-#include "salcapcorvette.h"
-#include "madlinkindefs.h"
-#include "commandlayer.h"
+#include "MadLinkIn.h"
+#include "SaveGame.h"
+#include "Universe.h"
+#include "AITrack.h"
+#include "SalCapCorvette.h"
+#include "MadLinkInDefs.h"
+#include "CommandLayer.h"
 
 extern sdword R1MOTHERSHIP_Big;
 extern sdword R2MOTHERSHIP_Big;

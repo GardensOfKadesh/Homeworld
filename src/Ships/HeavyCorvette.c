@@ -7,22 +7,22 @@
 =============================================================================*/
 
 #include <string.h>
-#include "types.h"
-#include "debug.h"
-#include "spaceobj.h"
+#include "Types.h"
+#include "Debug.h"
+#include "SpaceObj.h"
 #include "HeavyCorvette.h"
-#include "statscript.h"
-#include "gun.h"
-#include "attack.h"
+#include "StatScript.h"
+#include "Gun.h"
+#include "Attack.h"
 #include "DefaultShip.h"
-#include "shipselect.h"
-#include "aiship.h"
-#include "aitrack.h"
-#include "tactics.h"
-#include "fastmath.h"
-#include "universe.h"
-#include "soundevent.h"
-#include "battle.h"
+#include "ShipSelect.h"
+#include "AIShip.h"
+#include "AITrack.h"
+#include "Tactics.h"
+#include "FastMath.h"
+#include "Universe.h"
+#include "SoundEvent.h"
+#include "Battle.h"
 
 //#define DEBUG_HEAVYCORVETTE
 

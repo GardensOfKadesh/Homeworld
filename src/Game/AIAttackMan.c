@@ -7,18 +7,18 @@
 =============================================================================*/
 
 #include <string.h>
-#include "types.h"
-#include "spaceobj.h"
+#include "Types.h"
+#include "SpaceObj.h"
 #include "AIPlayer.h"
 #include "AIFleetMan.h"
 #include "AITeam.h"
 #include "AIOrders.h"
 #include "AIMoves.h"
 #include "AIHandler.h"
-#include "select.h"
-#include "stats.h"
+#include "Select.h"
+#include "Stats.h"
 #include "AIUtilities.h"
-#include "randy.h"
+#include "Randy.h"
 #include "MultiplayerGame.h"
 
 #define MAX_NUM_HARASS_TEAMS    2

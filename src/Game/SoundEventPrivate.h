@@ -9,22 +9,20 @@
 #ifndef ___SOUND_PRIV_H
 #define ___SOUND_PRIV_H
 
-#include <windows.h>
-#include <windowsx.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
 #include "soundlow.h"
-#include "types.h"
-#include "switches.h"
-#include "memory.h"
-#include "file.h"
-#include "universe.h"
-#include "univupdate.h"
-#include "fastmath.h"
-#include "randy.h"
+#include "Types.h"
+#include "Switches.h"
+#include "Memory.h"
+#include "File.h"
+#include "Universe.h"
+#include "UnivUpdate.h"
+#include "FastMath.h"
+#include "Randy.h"
 #include "main.h"
 #include "fqeffect.h"
 
@@ -47,7 +45,11 @@
 #define EXPLOSION_OFFSET	58
 #define HIT_OFFSET			65
 
+#ifdef _WIN32
 #define SOUNDFXDIR "SoundFX\\"
+#else
+#define SOUNDFXDIR "SoundFX/"
+#endif
 
 #define CGW1 0
 #if defined(Downloadable) || defined(DLPublicBeta)

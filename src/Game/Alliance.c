@@ -8,15 +8,15 @@
 
 #include <stdio.h>
 #include "Alliance.h"
-#include "gamechat.h"
-#include "chatting.h"
+#include "GameChat.h"
+#include "Chatting.h"
 #include "utility.h"
-#include "universe.h"
-#include "commandnetwork.h"
-#include "commandlayer.h"
-#include "commandwrap.h"
-#include "strings.h"
-#include "soundevent.h"
+#include "Universe.h"
+#include "CommandNetwork.h"
+#include "CommandLayer.h"
+#include "CommandWrap.h"
+#include "Strings.h"
+#include "SoundEvent.h"
 
 /*=============================================================================
     Data:

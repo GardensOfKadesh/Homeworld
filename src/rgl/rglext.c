@@ -372,13 +372,20 @@ DLL void rglSmoothTexturedTriangle(GLint iPoly)
     VB->Count += 3;
 }
 
-#define S(x)   dword ptr [esi + 4*x]
-#define D(x)   dword ptr [edi + 4*x]
-#define M(n)   dword ptr [edx + 4*n]
+#if defined (_MSC_VER)
+    #define S(x)   dword ptr [esi + 4*x]
+    #define D(x)   dword ptr [edi + 4*x]
+    #define M(n)   dword ptr [edx + 4*n]
+#elif defined (__GNUC__) && defined (__i386__)
+    #define S(x)   "4*" #x "(%%esi)"
+    #define D(x)   "4*" #x "(%%edi)"
+    #define M(n)   "4*" #n "(%%edx)"
+#endif
 
 static void affine_transform(
     GLuint n, GLfloat* d, GLfloat m[16], GLfloat* s)
 {
+#if defined (_MSC_VER)
     _asm
     {
         push esi
@@ -450,10 +457,76 @@ static void affine_transform(
         pop edi
         pop esi
     }
+#elif defined (__GNUC__) && defined (__i386__)
+    __asm__ (
+        "    testl %%ecx, %%ecx\n"
+        "    jz afft_two\n"
+        "\n"
+        "    movl $0x3f800000, %%eax\n"
+        "\n"
+        "afft_one:\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(0) "\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(1) "\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(2) "\n"
+        "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(4) "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(5) "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(6) "\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    faddp %%st, %%st(5)\n"
+        "    faddp %%st, %%st(3)\n"
+        "    faddp %%st, %%st(1)\n"
+        "\n"
+        "    flds " S(2) "\n"
+        "    fmuls " M(8) "\n"
+        "    flds " S(2) "\n"
+        "    fmuls " M(9) "\n"
+        "    flds " S(2) "\n"
+        "    fmul " M(10) "\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    faddp %%st, %%st(5)\n"
+        "    faddp %%st, %%st(3)\n"
+        "    faddp %%st, %%st(1)\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    fadd " M(12) "\n"
+        "    fxch %%st(1)\n"
+        "    fadd " M(13) "\n"
+        "    fxch %%st(2)\n"
+        "    fadd " M(14) "\n"
+        "\n"
+        "    fxch %%st(1)\n"
+        "    fstps " D(0) "\n"
+        "    fstps " D(2) "\n"
+        "    fstps " D(1) "\n"
+        "    movl %%eax, " D(3) "\n"
+        "\n"
+        "    leal " S(4) ", %%esi\n"
+        "    decl %%ecx\n"
+        "\n"
+        "    leal " D(4) ", %%edi\n"
+        "\n"
+        "    jnz afft_one\n"
+        "\n"
+        "afft_two:\n"
+        :
+        : "c" (n), "D" (d), "d" (m), "S" (s) );
+#else
+#error affine_transform(): Not yet implemented on this platform.
+#endif
 }
 
 static void normal_transform(GLfloat* d, GLfloat* s, GLfloat* m, GLuint n)
 {
+#if defined (_MSC_VER)
     _asm
     {
         push esi
@@ -514,6 +587,60 @@ static void normal_transform(GLfloat* d, GLfloat* s, GLfloat* m, GLuint n)
         pop edi
         pop esi
     }
+#elif defined (__GNUC__) && defined (__i386__)
+    __asm__ (
+        "    testl %%ecx, %%ecx\n"
+        "    jz normt_two\n"
+        "\n"
+        "normt_one:\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(0) "\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(4) "\n"
+        "    flds " S(0) "\n"
+        "    fmuls " M(8) "\n"
+        "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(1) "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(5) "\n"
+        "    flds " S(1) "\n"
+        "    fmuls " M(9) "\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    faddp %%st, %%st(5)\n"
+        "    faddp %%st, %%st(3)\n"
+        "    faddp %%st, %%st(1)\n"
+        "\n"
+        "    flds " S(2) "\n"
+        "    fmuls " M(2) "\n"
+        "    flds " S(2) "\n"
+        "    fmuls " M(6) "\n"
+        "    flds " S(2) "\n"
+        "    fmuls " M(10) "\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    faddp %%st, %%st(5)\n"
+        "    faddp %%st, %%st(3)\n"
+        "    faddp %%st, %%st(1)\n"
+        "\n"
+        "    fxch %%st(2)\n"
+        "    fstps " D(0) "\n"
+        "    fstps " D(1) "\n"
+        "    fstps " D(2) "\n"
+        "\n"
+        "    leal " S(4) ", %%esi\n"
+        "    decl %%ecx\n"
+        "\n"
+        "    leal " D(3) ", %%edi\n"
+        "    jnz normt_one\n"
+        "\n"
+        "normt_two:\n"
+        :
+        : "c" (n), "D" (d), "d" (m), "S" (s) );
+#else
+#error normal_transform(): Not yet implemented on this platform.
+#endif
 }
 
 DLL void rglMeshRender(

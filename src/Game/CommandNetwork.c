@@ -9,31 +9,31 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "switches.h"
-#include "types.h"
-#include "debug.h"
-#include "memory.h"
-#include "task.h"
-#include "queue.h"
-#include "universe.h"
-#include "univupdate.h"
+#include "Switches.h"
+#include "Types.h"
+#include "Debug.h"
+#include "Memory.h"
+#include "Task.h"
+#include "Queue.h"
+#include "Universe.h"
+#include "UnivUpdate.h"
 #include "CommandLayer.h"
-#include "netcheck.h"
-#include "globals.h"
+#include "NetCheck.h"
+#include "Globals.h"
 #include "utility.h"
 #include "CommandNetwork.h"
 #include "TitanInterfaceC.h"
 #include "HorseRace.h"
-#include "chatting.h"
+#include "Chatting.h"
 #include "mainswitches.h"
 #include "Captaincy.h"
-#include "titan.h"
+#include "Titan.h"
 #include "TimeoutTimer.h"
-#include "titannet.h"
-#include "multiplayergame.h"        // for mutex stuff
-#include "autodownloadmap.h"
+#include "TitanNet.h"
+#include "MultiplayerGame.h"        // for mutex stuff
+#include "AutoDownloadMap.h"
 #include "LagPrint.h"
-#include "sensors.h"
+#include "Sensors.h"
 
 /*=============================================================================
     Private Defines:

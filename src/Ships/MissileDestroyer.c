@@ -6,20 +6,20 @@
     Copyright Relic Entertainment, Inc.  All rights reserved.
 =============================================================================*/
 
-#include "types.h"
-#include "debug.h"
-#include "spaceobj.h"
+#include "Types.h"
+#include "Debug.h"
+#include "SpaceObj.h"
 #include "MissileDestroyer.h"
-#include "statscript.h"
-#include "gun.h"
-#include "attack.h"
+#include "StatScript.h"
+#include "Gun.h"
+#include "Attack.h"
 #include "DefaultShip.h"
-#include "universe.h"
-#include "soundevent.h"
-#include "battle.h"
-#include "aiship.h"
-#include "aitrack.h"
-#include "collision.h"
+#include "Universe.h"
+#include "SoundEvent.h"
+#include "Battle.h"
+#include "AIShip.h"
+#include "AITrack.h"
+#include "Collision.h"
 
 typedef struct
 {

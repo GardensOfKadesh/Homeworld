@@ -1,12 +1,12 @@
 #include <string.h>
-#include "types.h"
+#include "Types.h"
 #include "TitanInterfaceC.h"
 #include "ChannelFSM.h"
-#include "msg\ServerStatus.h"
-#include "debug.h"
-#include "multiplayergame.h"
-#include "strings.h"
-#include "titannet.h"
+#include "msg/ServerStatus.h"
+#include "Debug.h"
+#include "MultiplayerGame.h"
+#include "Strings.h"
+#include "TitanNet.h"
 
 // defines for the state of the connection to the chat server
 #define CS_Idle                 -1
