@@ -11,7 +11,7 @@ We need to convert [?]s to one of [Y] or [N] and [Y]s to [A]s. Then get the [A]s
 
 [A] Biggie           .BIG file extractor utility
 [N] BigTree          Windows equivalent of: `find <path> -not -type d`
-[Y] BTG              .BTG background editor
+[A] BTG              .BTG background editor
 [Y] builder          .BIG file creator from directory tree?
 [N] CDKeyer          CD registration key checker/registration?
 [Y] FEMan            Front End manager; interface editor for menus etc
@@ -28,7 +28,6 @@ We need to convert [?]s to one of [Y] or [N] and [Y]s to [A]s. Then get the [A]s
 [?] LWExport         converts <something> to LightWave?
 [?] Mission          Mission(Man) editor but doesn't look like it's complete...
 [?] NetLogView       network debugging tool?
-[?] OpenBTG          .BTG viewer?
 [?] Paco             something to do with .LiFs
 [N] Patcher          applies patch to homeworld installation's data files
 [N] PktView          another network debugging tool?
