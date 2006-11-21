@@ -1,4 +1,4 @@
-Homeworld © 1999-2000 Sierra On-Line, Inc.  All Rights Reserved.
+Homeworld ï¿½ 1999-2000 Sierra On-Line, Inc.  All Rights Reserved.
 Homeworld is a registered trademark, and Sierra and Sierra Studios are
 registered trademarks of Sierra On-Line, Inc.  Relic is a trademark of Relic
 Entertainment, Inc.
@@ -21,11 +21,6 @@ and LGPL).  Copies of these licenses have been included in additional
 
 Simple DirectMedia Layer (SDL) is licensed under the LGPL.  The source code to
 SDL is available at http://www.libsdl.org/
-
-Headers for Glide 2 have also been thrown into the source package.  They are
-taken from the open-source Glide 2 library, which is licensed under the 3dfx
-Glide General Public License.  A copy of the license is included in the
-"include/glide2" directory in the source package.
 
 ------------------------------------------------------------------------------
 
