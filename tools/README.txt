@@ -32,7 +32,6 @@ We need to convert [?]s to one of [Y] or [N] and [Y]s to [A]s. Then get the [A]s
 [N] Patcher          applies patch to homeworld installation's data files
 [N] PktView          another network debugging tool?
 [N] Plumber          used to determine source of leaked pre-release game discs
-[Y] polycount        counts number of polygons in mesh file
 [N] Roofer           generates file with random garbage in it (e.g. Extra.big)
 [?] Scaly            scales .LWO files
 [?] SetLang          allows you to edit language strings in some config file
