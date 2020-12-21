@@ -68,6 +68,7 @@ void gunTuneGun(Ship *ship);
 =============================================================================*/
 // only valid for GUN_MissileLauncher
 #define gunHasMissiles(gun) ((gun)->numMissiles > 0)
+#define gunHasAmmunition(gun) ((gun)->numMissiles > 0)
 
 /*=============================================================================
     Variables:

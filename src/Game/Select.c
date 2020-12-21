@@ -1243,7 +1243,7 @@ void selFontPrintAmmoAtLod(
 )
 {
     ShipStaticInfo *stat = (ShipStaticInfo *)ship->staticinfo;
-    if (!stat->hasAmmo) 
+    if (!stat->hasAmmunition)
     {
         return;
     }
