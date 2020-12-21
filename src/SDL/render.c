@@ -856,7 +856,7 @@ bool setupPixelFormat()
 	static Uint32 lastHeight = 0;
 	static Uint32 lastDepth  = 0;
 	static bool   lastFull   = FALSE;
-	int FSAA = 0; //os_config_read_uint( NULL, "FSAA", 1 )
+	int FSAA = 8; //os_config_read_uint( NULL, "FSAA", 1 )
 #ifdef HW_ENABLE_GLES
     SDL_SysWMinfo info;
     EGLint num_config = 1;
@@ -894,7 +894,7 @@ bool setupPixelFormat()
 
     /* Create OpenGL window. */
     flags = SDL_WINDOW_OPENGL;
-    
+
 #ifndef HW_ENABLE_GLES
     /* Set attributes. */
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,  MAIN_WindowDepth);
@@ -944,7 +944,7 @@ bool setupPixelFormat()
         fprintf(stderr, "EGL failed to create context: code 0x%x\n", eglGetError());
         return FALSE;
     }
-    
+
     new_surface = eglCreateWindowSurface(egl_display, egl_config, (EGLNativeWindowType)info.info.x11.window, NULL);
     if (new_surface == EGL_NO_SURFACE) {
         fprintf(stderr, "EGL failed to create a window surface: 0x%x\n", eglGetError());
@@ -2252,7 +2252,7 @@ void rndPostRenderDebug2DStuff(Camera *camera)
 
 #if DEBUG_FONT_CHECK_SPECIAL
     fontMakeCurrent(testing);
-    fontPrint(10,50,colWhite,"ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ");
+    fontPrint(10,50,colWhite,"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 
     if ((keyIsStuck(CONTROLKEY)) && (keyIsHit(SHIFTKEY)))
     {
@@ -3941,9 +3941,9 @@ DEFINE_TASK(rndRenderTask)
         // set the cursor type, reset the variables then draw the mouse cursor
         mouseSelectCursorSetting();
         mouseSetCursorSetting();
-        
+
         mouseDraw();                                        //draw mouse atop everything
-      
+
         if (universePause)
         {
             rndShamelessPlug();
@@ -3969,7 +3969,7 @@ DEFINE_TASK(rndRenderTask)
         {
             keyClearSticky(PAUSEKEY);
         }
-        
+
         if (rndTakeScreenshot)
         {
             rndTakeScreenshot = FALSE;
@@ -4127,13 +4127,13 @@ sdword rndTextureEnable(sdword bEnable)
 udword rndTextureEnvironment(udword textureMode)
 {
     udword oldMode = rndTextureEnviron;
-    
+
     if (rndTextureEnviron != textureMode)
     {
         rndTextureEnviron = textureMode;
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, rndTextureEnviron);
     }
-    
+
     return oldMode;
 }
 
