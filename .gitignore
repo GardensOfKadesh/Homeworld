@@ -2,6 +2,7 @@
 *.wxd
 *.vce
 
+*.gch
 .vscode
 
 Mac/build
