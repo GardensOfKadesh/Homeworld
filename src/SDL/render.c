@@ -2649,7 +2649,7 @@ dontdraw2:;
                                         real32 scaleFactor;
                                         glEnable(GL_RESCALE_NORMAL);
                                         rndNormalization = TRUE;
-                                        scaleFactor = 1.0f - selCameraSpace.z * shipStaticInfo->scaleCap;
+                                        scaleFactor = 1.0f - 0.5 * selCameraSpace.z * shipStaticInfo->scaleCap;
 #if RND_VERBOSE_LEVEL >= 1
                                         if (isnan((double)scaleFactor))
                                         {
