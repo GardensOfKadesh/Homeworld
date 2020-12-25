@@ -4174,7 +4174,7 @@ void CheckPlayerWin(void)
             // This statement does nothing but presumably was meant to do something. I'm leaving it
             // here in case someone debugging this code realises it forms part of the solution...
             //universe.players[sigsPlayerIndex].Allies;
-            
+
             for (i=0; ((i<universe.numPlayers) && alliedvictory); i++)
             {
                 if (universe.players[i].playerState == PLAYER_ALIVE)
@@ -5574,7 +5574,7 @@ void univSetupShipForControl(Ship *ship)
     //vecZeroVector(ship->posinfo.force);
     //vecZeroVector(ship->rotinfo.torque);
 
-    if((universe.univUpdateCounter & TW_ProximitySensorSearchRate) == TW_ProximitySensorSearchFrame)
+    if((universe.univUpdateCounter % (TW_ProximitySensorSearchRate * UNIVERSE_UPDATE_RATE_FACTOR)) == TW_ProximitySensorSearchFrame)
     {
         //this univupdate, proximity sensors will search again for
         //ships nearby, lets make all ships 'invisible' and then let
@@ -5943,7 +5943,7 @@ void univCheckShipState(Ship *ship)
     if(!bitTest(ship->flags, SOF_Disabled))
     {
         tacticsUpdate(ship);    //perform tactical processes for ship
-        if ((universe.univUpdateCounter & CHECK_SHIP_OUTOFWORLD_RATE) == (ship->shipID.shipNumber & CHECK_SHIP_OUTOFWORLD_RATE))
+        if ((universe.univUpdateCounter % (CHECK_SHIP_OUTOFWORLD_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == (ship->shipID.shipNumber % (CHECK_SHIP_OUTOFWORLD_RATE * UNIVERSE_UPDATE_RATE_FACTOR)))
         {
             if (!(singlePlayerGame && (ship->playerowner->playerIndex == 1)))        // don't apply to KAS ships in single player game
             {
@@ -6072,7 +6072,7 @@ DONT_MOVE_ME_YET:
                     }
                     memFree(attack);
                 }
-                else if (((universe.univUpdateCounter & CHECK_PASSIVE_ATTACK_RATE) == (ship->shipID.shipNumber & CHECK_PASSIVE_ATTACK_RATE)) && (ship->staticinfo->passiveRetaliateZone != 0.0f))
+                else if (((universe.univUpdateCounter % (CHECK_PASSIVE_ATTACK_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == (ship->shipID.shipNumber % (CHECK_PASSIVE_ATTACK_RATE * UNIVERSE_UPDATE_RATE_FACTOR))) && (ship->staticinfo->passiveRetaliateZone != 0.0f))
                 {
                     if(bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
                     {   //if a ship is cloaked or it is cloaking, don't passive attack because we
@@ -6143,7 +6143,7 @@ DONT_MOVE_ME_YET:
         //ship should attempt passive attacking
         if(!bitTest(ship->flags, SOF_Disabled))
         {
-            if (((universe.univUpdateCounter & CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE) == (ship->shipID.shipNumber & CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE)) && (ship->staticinfo->passiveRetaliateZone != 0.0f) && (isCapitalShip(ship)))
+            if (((universe.univUpdateCounter % (CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == (ship->shipID.shipNumber % (CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE * UNIVERSE_UPDATE_RATE_FACTOR))) && (ship->staticinfo->passiveRetaliateZone != 0.0f) && (isCapitalShip(ship)))
             {
 
                 command = getShipAndItsCommand(&universe.mainCommandLayer,ship);
@@ -7269,7 +7269,7 @@ bool univUpdate(real32 phystimeelapsed)
 #define TMP_SAVEDGAMES_PATH "SavedGames/"
 #endif
 
-    if ((autoSaveDebug) && ((universe.univUpdateCounter & 31) == 0))    // every 2s
+    if ((autoSaveDebug) && ((universe.univUpdateCounter % (31 * UNIVERSE_UPDATE_RATE_FACTOR)) == 0))    // every 2s
     {
         char savegamename[200];
         static sdword savenumber = 0;
@@ -7282,7 +7282,7 @@ bool univUpdate(real32 phystimeelapsed)
         }
         else
         {
-            if ((universe.univUpdateCounter & 255) == 0)        // only save every 16s
+            if ((universe.univUpdateCounter % (255 * UNIVERSE_UPDATE_RATE_FACTOR)) == 0)        // only save every 16s
             {
                 if (((singlePlayerGame) && (singlePlayerGameInfo.hyperspaceState)) ||
                     (nisIsRunning))
@@ -7374,7 +7374,7 @@ bool univUpdate(real32 phystimeelapsed)
 #ifdef OPTIMIZE_VERBOSE
     vecNormalizeCounter=0;
 #endif
-    if ((!singlePlayerGame) && ((universe.univUpdateCounter & regenerateRUrate) == 0))
+    if ((!singlePlayerGame) && ((universe.univUpdateCounter % (regenerateRUrate * UNIVERSE_UPDATE_RATE_FACTOR)) == 0))
     {
         sdword i;
         Player *player;
@@ -7407,13 +7407,13 @@ bool univUpdate(real32 phystimeelapsed)
 
     PTSLAB(1,"collblobs");
 
-    if (firstTime || ((universe.univUpdateCounter & REFRESH_COLLBLOB_RATE) == REFRESH_COLLBLOB_FRAME))
+    if (firstTime || ((universe.univUpdateCounter % (REFRESH_COLLBLOB_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REFRESH_COLLBLOB_FRAME))
     {
         collUpdateCollBlobs();
     }
     else
     {
-        if ((universe.univUpdateCounter & REFRESH_COLLBLOB_RATE) == REFRESH_COLLBLOB_BATTLEPING_FRAME)
+        if ((universe.univUpdateCounter % (REFRESH_COLLBLOB_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REFRESH_COLLBLOB_BATTLEPING_FRAME)
         {
             pingBattlePingsCreate(&universe.collBlobList);
         }
@@ -7431,7 +7431,7 @@ bool univUpdate(real32 phystimeelapsed)
     // crappy fucking construction manager, no longer a task
     cmBuildTaskFunction();
 
-    if ((universe.univUpdateCounter & REFRESH_RESEARCH_RATE) == REFRESH_RESEARCH_FRAME)
+    if ((universe.univUpdateCounter % (REFRESH_RESEARCH_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REFRESH_RESEARCH_FRAME)
     {
         rmUpdateResearch();
     }
@@ -7550,7 +7550,7 @@ bool univUpdate(real32 phystimeelapsed)
     univDeleteDeadDerelicts();
     univDeleteDeadMissiles();
 
-    if ((universe.univUpdateCounter & REGROW_RESOURCES_CHECK_RATE) == REGROW_RESOURCES_CHECK_FRAME)
+    if ((universe.univUpdateCounter % (REGROW_RESOURCES_CHECK_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REGROW_RESOURCES_CHECK_FRAME)
     {
         univCheckRegrowResources();
     }
@@ -7568,7 +7568,7 @@ bool univUpdate(real32 phystimeelapsed)
         }
     }
 
-    if(!universe.bounties || (universe.univUpdateCounter & CHECK_BOUNTIES_RATE) == CHECK_BOUNTIES_FRAME)
+    if(!universe.bounties || (universe.univUpdateCounter % (CHECK_BOUNTIES_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == CHECK_BOUNTIES_FRAME)
     {
         universe.bounties = TRUE;
         calculatePlayerBounties();
@@ -7632,4 +7632,3 @@ void univKillPlayer(sdword i,sdword playerdeathtype)
     strcat(filename,strGetString(strStatsDiedStats));
     writeGameStatsToFile(filename);
 }
-

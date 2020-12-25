@@ -838,7 +838,7 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         case TRAIL_EXPANDED:
         case TRAIL_EXPANDING:
             trail->state = TRAIL_CONTRACTING;
-            trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);
+            trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR;
             break;
         }
     }
@@ -919,11 +919,11 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         z = trail->width * trail->ribbonadjust;
         if (trail->state == TRAIL_EXPANDING)
         {
-            scalar = 1.0f - ((real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG)));
+            scalar = 1.0f - ((real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR));
         }
         else
         {
-            scalar = (real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG));
+            scalar = (real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR);
         }
         z *= scalar;
         if (z == 0.0f)
@@ -1887,7 +1887,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
             case TRAIL_EXPANDED:
             case TRAIL_EXPANDING:
                 trail->state = TRAIL_CONTRACTING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG) - trail->counter;
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR - trail->counter;
                 break;
 
             case TRAIL_CONTRACTED:
@@ -1901,7 +1901,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
             {
             case TRAIL_CONTRACTED:
                 trail->state = TRAIL_EXPANDING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR;
                 break;
 
             case TRAIL_EXPANDED:
@@ -1910,7 +1910,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
 
             case TRAIL_CONTRACTING:
                 trail->state = TRAIL_EXPANDING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG) - trail->counter;
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * UNIVERSE_UPDATE_RATE_FACTOR - trail->counter;
                 break;
             }
         }
@@ -2169,7 +2169,7 @@ trailstatic *trailStaticInfoParse(char *directory, char *fileName)
     dbgAssertOrIgnore(tpNSegments > 1 && tpGranularity < 1000);
 
     newStatic = memAlloc(trailStaticSize(tpNSegments), "Trail Static Info", NonVolatile);
-    newStatic->granularity = tpGranularity * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);                 //init basic info
+    newStatic->granularity = tpGranularity * UNIVERSE_UPDATE_RATE_FACTOR;                 //init basic info
     newStatic->nSegments = tpNSegments;
 
     //now build the interpolated color table
