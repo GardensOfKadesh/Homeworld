@@ -130,7 +130,7 @@ scriptEntry TrailTweaks[] =
     makeEntry(TRAIL_GLOW_2_GREEN, scriptSetSdwordCB),
     makeEntry(TRAIL_GLOW_2_BLUE, scriptSetSdwordCB),
     makeEntry(TRAIL_EXPANSION_TICKS, scriptSetSdwordCB),
-
+    
     END_SCRIPT_ENTRY
 };
 
@@ -1656,7 +1656,7 @@ color trailSurpriseColorAdjust(sdword index, sdword max, color c)
         g = MAX2(g-randval,0);
         b = MAX2(b-randval,0);
     }
-
+	
     return colRGB(r,g,b);
 }
 
@@ -2112,7 +2112,7 @@ static void trailSegmentsRead(char *directory,char *field,void *dataToFillIn)
     nScanned = sscanf(field, "%d", &tpNSegments);
     dbgAssertOrIgnore(nScanned == 1);
     dbgAssertOrIgnore(tpNSegments > 1 && tpNSegments < 1000);
-
+    
     for (teamIndex = 0; teamIndex < MAX_MULTIPLAYER_PLAYERS; teamIndex++)
     {
         tpColorArray[teamIndex] = memAlloc(sizeof(color) * tpNSegments, "Temp. Color Array", 0);
@@ -2169,7 +2169,7 @@ trailstatic *trailStaticInfoParse(char *directory, char *fileName)
     dbgAssertOrIgnore(tpNSegments > 1 && tpGranularity < 1000);
 
     newStatic = memAlloc(trailStaticSize(tpNSegments), "Trail Static Info", NonVolatile);
-    newStatic->granularity = tpGranularity * 4;                 //init basic info
+    newStatic->granularity = tpGranularity;                 //init basic info
     newStatic->nSegments = tpNSegments;
 
     //now build the interpolated color table
@@ -2252,7 +2252,7 @@ void trailRecolorize(trailstatic *trailStatic)
                          teColorSchemes[teamIndex].trailColors[cpIndex] & TP_KeyColor;
                 cpIndex++;                                  //update control point index
                 dbgAssertOrIgnore(cpIndex <= TE_NumberTrailColors);
-
+                
                 for (j = lastIndex + 1; j < index; j++)
                 {                                           //between last valid color to this one
                     red = (colRed(trailStatic->segmentColor[teamIndex][lastIndex]) * (index - j) +
@@ -2263,7 +2263,7 @@ void trailRecolorize(trailstatic *trailStatic)
                         colBlue(trailStatic->segmentColor[teamIndex][index]) * (j - lastIndex)) / (index - lastIndex);
                     trailStatic->segmentColor[teamIndex][j] = colRGB(red, green, blue);//interpolate the colors
                 }
-
+				
                 lastIndex = index;
             }
         }
@@ -2359,3 +2359,4 @@ void trailMove(shiptrail* trail, vector *delta)
         segment->position[2] += delta->z;
     }
 }
+
