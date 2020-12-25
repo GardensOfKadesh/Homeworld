@@ -2169,7 +2169,7 @@ trailstatic *trailStaticInfoParse(char *directory, char *fileName)
     dbgAssertOrIgnore(tpNSegments > 1 && tpGranularity < 1000);
 
     newStatic = memAlloc(trailStaticSize(tpNSegments), "Trail Static Info", NonVolatile);
-    newStatic->granularity = tpGranularity * 4;                 //init basic info
+    newStatic->granularity = tpGranularity * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);                 //init basic info
     newStatic->nSegments = tpNSegments;
 
     //now build the interpolated color table
