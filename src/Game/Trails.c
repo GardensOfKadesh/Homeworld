@@ -838,7 +838,7 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         case TRAIL_EXPANDED:
         case TRAIL_EXPANDING:
             trail->state = TRAIL_CONTRACTING;
-            trail->counter = (ubyte)TRAIL_EXPANSION_TICKS;
+            trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);
             break;
         }
     }
@@ -919,11 +919,11 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         z = trail->width * trail->ribbonadjust;
         if (trail->state == TRAIL_EXPANDING)
         {
-            scalar = 1.0f - ((real32)trail->counter / (real32)TRAIL_EXPANSION_TICKS);
+            scalar = 1.0f - ((real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG)));
         }
         else
         {
-            scalar = (real32)trail->counter / (real32)TRAIL_EXPANSION_TICKS;
+            scalar = (real32)trail->counter / ((real32)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG));
         }
         z *= scalar;
         if (z == 0.0f)
@@ -1887,7 +1887,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
             case TRAIL_EXPANDED:
             case TRAIL_EXPANDING:
                 trail->state = TRAIL_CONTRACTING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS - trail->counter;
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG) - trail->counter;
                 break;
 
             case TRAIL_CONTRACTED:
@@ -1901,7 +1901,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
             {
             case TRAIL_CONTRACTED:
                 trail->state = TRAIL_EXPANDING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS;
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG);
                 break;
 
             case TRAIL_EXPANDED:
@@ -1910,7 +1910,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
 
             case TRAIL_CONTRACTING:
                 trail->state = TRAIL_EXPANDING;
-                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS - trail->counter;
+                trail->counter = (ubyte)TRAIL_EXPANSION_TICKS * ((real32)UNIVERSE_UPDATE_RATE/(real32)UNIVERSE_UPDATE_RATE_ORIG) - trail->counter;
                 break;
             }
         }
