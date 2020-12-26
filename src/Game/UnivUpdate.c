@@ -7422,14 +7422,20 @@ bool univUpdate(real32 phystimeelapsed)
 
     PTEND(1);
 
-    cloudSetFog();      //dust/gas cloud think
-    nebSetFog();        //nebula think
+    // wrap every tick functions to support increased tick rate
+    if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
+    {
+        cloudSetFog();      //dust/gas cloud think
+        nebSetFog();        //nebula think
 
-    //construction manager deterministic think
-    cmDeterministicBuildProcess();
+        //construction manager deterministic think
+        cmDeterministicBuildProcess();
 
-    // crappy fucking construction manager, no longer a task
-    cmBuildTaskFunction();
+        // crappy fucking construction manager, no longer a task
+        cmBuildTaskFunction();
+
+    }
+
 
     if ((universe.univUpdateCounter % (REFRESH_RESEARCH_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REFRESH_RESEARCH_FRAME)
     {
@@ -7439,7 +7445,7 @@ bool univUpdate(real32 phystimeelapsed)
     if (!singlePlayerGame)
     {
         if ( (bitTest(tpGameCreated.flag,MG_ResourceInjections)) &&
-             ((universe.univUpdateCounter-universe.lasttimeadded) == tpGameCreated.resourceInjectionInterval) )
+             ((universe.univUpdateCounter-universe.lasttimeadded) == (tpGameCreated.resourceInjectionInterval * UNIVERSE_UPDATE_RATE_FACTOR)) )
         {
             universe.lasttimeadded = universe.univUpdateCounter;
             resourceInjectionTask();
@@ -7479,7 +7485,11 @@ bool univUpdate(real32 phystimeelapsed)
 
     if (wkTradeStuffActive)
     {
-        wkTradeUpdate();
+        // this seems to update some velocities/angles -> update with correct rate
+        if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
+        {
+            wkTradeUpdate();
+        }
     }
 
     if (singlePlayerGame)
@@ -7488,7 +7498,10 @@ bool univUpdate(real32 phystimeelapsed)
         UpdateMidLevelHyperspacingShips();
 
     PTSLAB(3,"collbulmis");
-    collCheckAllBulletMissileCollisions();
+    if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
+    {
+        collCheckAllBulletMissileCollisions();
+    }
     PTEND(3);
 
     PTSLAB(4,"compplayer");

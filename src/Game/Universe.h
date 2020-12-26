@@ -42,7 +42,7 @@
 =============================================================================*/
 
 #define UNIVERSE_UPDATE_RATE_ORIG   16          // original update rate
-#define UNIVERSE_UPDATE_RATE_FACTOR  4
+#define UNIVERSE_UPDATE_RATE_FACTOR  6
 #define UNIVERSE_UPDATE_RATE        (UNIVERSE_UPDATE_RATE_ORIG*UNIVERSE_UPDATE_RATE_FACTOR)
 #define UNIVERSE_UPDATE_PERIOD      (1.0f/(real32)UNIVERSE_UPDATE_RATE)
 #define UNIVERSE_UPDATE_STACK_SIZE  100000

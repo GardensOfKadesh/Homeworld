@@ -843,7 +843,7 @@ void aiplayerUpdateAll(void)
             {
                 aiCurrentAIPlayer = universe.players[1].aiPlayer;
                 dbgAssertOrIgnore(aiCurrentAIPlayer);
-                if ((universe.univUpdateCounter & aiCurrentAIPlayer->aiplayerUpdateRate) == (SP_KAS_UPDATE_FRAME & aiCurrentAIPlayer->aiplayerUpdateRate))
+                if ((universe.univUpdateCounter % (aiCurrentAIPlayer->aiplayerUpdateRate * UNIVERSE_UPDATE_RATE_FACTOR)) == (SP_KAS_UPDATE_FRAME & aiCurrentAIPlayer->aiplayerUpdateRate))
                 {
                     universe.aiplayerProcessing = TRUE;
                     kasExecute();
@@ -858,7 +858,7 @@ void aiplayerUpdateAll(void)
             {
                 if ((aiplayer = universe.players[i].aiPlayer) != NULL)
                 {
-                    if (((universe.univUpdateCounter & aiplayer->aiplayerUpdateRate) == (i & aiplayer->aiplayerUpdateRate)) &&
+                    if (((universe.univUpdateCounter % (aiplayer->aiplayerUpdateRate * UNIVERSE_UPDATE_RATE_FACTOR)) == (i & aiplayer->aiplayerUpdateRate)) &&
                         (aiplayer->player->playerState != PLAYER_DEAD) &&
                         (!mrNoAI))
                     {
@@ -871,7 +871,7 @@ void aiplayerUpdateAll(void)
         if(tutorial==TUTORIAL_ONLY)
         {
             // In the tutorial, execute Kas script every other frame - we want REALTIME Kas.
-            if( (universe.univUpdateCounter & TUTORIAL_KAS_UPDATE_MASK) == TUTORIAL_KAS_UPDATE_FRAME)
+            if( (universe.univUpdateCounter % (TUTORIAL_KAS_UPDATE_MASK * UNIVERSE_UPDATE_RATE_FACTOR)) == TUTORIAL_KAS_UPDATE_FRAME)
                 kasExecute();
         }
     }
@@ -1871,5 +1871,3 @@ void aiplayerLoad(void)
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
 #endif
-
-

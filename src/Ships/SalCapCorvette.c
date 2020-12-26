@@ -1337,7 +1337,7 @@ sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
             desiredUp = dockwithUp;
         }
     }
-    
+
     matMultiplyMatByVec(&coneheadingInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->conenormal);
     matMultiplyMatByVec(&conepositionInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->position);
     vecAddTo(conepositionInWorldCoordSys,spec->dockwith->posinfo.position);
@@ -3337,4 +3337,3 @@ bool salCapAreEnoughSalvagersTargettingThisTarget(Ship *ship,SpaceObjRotImpTargG
     }
     return FALSE;
 }
-

@@ -461,7 +461,7 @@ void netcheckIndustrialChecksum()
 
     //And with a bit mask so our 'num' cycles around a fixed number
     //GOD_NUMBER_CHECKSUMS_REMEMBERED 1024
-    num = universe.univUpdateCounter & GOD_NUMBER_CHECKSUMS_REMEMBERED_MASK;
+    num = universe.univUpdateCounter % (GOD_NUMBER_CHECKSUMS_REMEMBERED_MASK * UNIVERSE_UPDATE_RATE_FACTOR);
 
     godnetsyncchecksums[num].randcheck=gamerand();
     godnetsyncchecksums[num].univcheck=univGetChecksum(&numShipsInChecksum);
@@ -983,5 +983,3 @@ void netcheckShow(HWPacketHeader *packet)
             fprintf(netlogfile,"Packet:%d Rand:%d Checksum:%f %d CDET:%d\n",packetnum,randcheck,univcheck,numShipsInChecksum,blobcheck);
     }
 }
-
-
