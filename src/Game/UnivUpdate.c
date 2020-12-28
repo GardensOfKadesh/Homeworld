@@ -7498,10 +7498,7 @@ bool univUpdate(real32 phystimeelapsed)
         UpdateMidLevelHyperspacingShips();
 
     PTSLAB(3,"collbulmis");
-    if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
-    {
-        collCheckAllBulletMissileCollisions();
-    }
+    collCheckAllBulletMissileCollisions();
     PTEND(3);
 
     PTSLAB(4,"compplayer");
