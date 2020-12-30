@@ -1118,6 +1118,10 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     intDamage = Real32ToUdword(floatDamage);
     intVelocity = Real32ToUdword(bulletspeed);
     intLength = Real32ToUdword(gunstatic->bulletlength);
+
+    // set initial beam length to zero and let it be updated to correct length by the collision detection code
+    if (bullet->bulletType == BULLET_Beam) intLength = Real32ToUdword(0.0);
+
     //create an effect for bullet, if applicable
     if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
     {
@@ -1845,4 +1849,3 @@ void gunTuneGun(Ship *ship)
     }
 }
 #endif
-
