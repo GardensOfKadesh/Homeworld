@@ -1,6 +1,7 @@
 *.big
 *.wxd
 *.vce
+*.bik
 
 *.gch
 .vscode
