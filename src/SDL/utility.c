@@ -134,7 +134,7 @@
 	#define stat _stat
 	#define S_ISDIR(mode) ((mode) & _S_IFDIR)
 	#define mkdir(p) _mkdir(p)
-    
+
     #include <direct.h>  // for _mkdir
 #else
     #include <strings.h>
@@ -261,7 +261,7 @@ bool onlygetfirstcrc = FALSE;
 scriptEntry WonStuffSet[] =
 {
     makeEntry(HomeworldCRC,scriptSetHomeworldCRC),
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -965,7 +965,7 @@ void utyOptionsFileWrite(void)
                 *((bool *)utyOptionsList[index].dataPtr) ? "TRUE" : "FALSE");
         }
     }
-    
+
     fclose(f);
 
 }
@@ -1457,7 +1457,7 @@ udword utyCloseOK(regionhandle region, sdword ID, udword event, udword data)
 //quit hangs otherwise, so we just exit.
     exit(0);
 #endif //_MACOSX
-  
+
     return 0;
 }
 
@@ -2011,7 +2011,7 @@ abortloading:
     {
         rndSetClearColor(universe.backgroundColor|0xff000000);
     }
-    
+
     /* restore sound engine */
     soundEventPause(FALSE);
 
@@ -2019,7 +2019,7 @@ abortloading:
     {
         soundEventPlayMusic(SongNumber);
     }
-    
+
     // reset any spurious joystick motion that's been recorded
     cameraJoystickReset();
 
@@ -2545,7 +2545,7 @@ void utySinglePlayerOptions(char *name, featom *atom)
 #endif
         return;
     }
-    
+
     feScreenDisappear(NULL,NULL);
     feScreenStart(ghMainRegion, "Create_new_game");
 }
@@ -3350,7 +3350,7 @@ void scriptSetHomeworldCRC(char *directory,char *field,void *dataToFillIn)
         HomeworldCRC[2] = crc[2];
         HomeworldCRC[3] = crc[3];
     }
-    
+
     onlygetfirstcrc = TRUE;
 }
 
@@ -3593,8 +3593,8 @@ char* utyGameSystemsPreInit(void)
     {
         // HW_Data is set. overwrite current setting.
         // But make sure that there isn't a trailing slash
-        
-        if (dataPath[(strlen(dataPath) - 1 )] == '/') 
+
+        if (dataPath[(strlen(dataPath) - 1 )] == '/')
         {
             dataPath[(strlen(dataPath) - 1 )] = '\0';
         }
@@ -3614,7 +3614,7 @@ char* utyGameSystemsPreInit(void)
         // directory, not a real .big file)
         strcpy(filePathTempBuffer, fileHomeworldDataPath);
         strcat(filePathTempBuffer, "/Override.big");
-        
+
         overrideBigPath = filePathTempBuffer;
 #else
         // in absence of environment vars (like in a retail install), assume
@@ -3644,7 +3644,7 @@ char* utyGameSystemsPreInit(void)
 		// Use the user's own Homeworld configuration dir if possible or
 		// else use the Homeworld data directory itself.
         char *homeDir = getenv("HOME");
-        
+
 		if (homeDir != NULL)
 		{
 			snprintf(filePathTempBuffer, PATH_MAX, "%s/" CONFIGDIR, homeDir);
@@ -3809,7 +3809,7 @@ char* utyGameSystemsPreInit(void)
             MemoryHeapSize = min(newSize, MEM_HeapDefaultMax);
         }
     }
-    
+
 #ifdef _WIN32
     utyMemoryHeap = (void *)VirtualAlloc(NULL, MemoryHeapSize + sizeof(memcookie) * 4, MEM_COMMIT, PAGE_READWRITE);
 #else
@@ -3904,17 +3904,17 @@ char *utyGameSystemsInit(void)
 
     dbgMessagef(
         "Homeworld CRCs:\n"
-        "%22s = 0x%x\n"    
-        "%22s = 0x%x\n"    
-        "%22s = 0x%x\n"    
-        "%22s = 0x%x"    
+        "%22s = 0x%x\n"
+        "%22s = 0x%x\n"
+        "%22s = 0x%x\n"
+        "%22s = 0x%x"
         ,
         "HomeworldSDL.big TOC", HomeworldCRC[0], // was CRC for code block (WON hacked client check)
         "Update.big TOC",       HomeworldCRC[1],
         "Homeworld.big TOC",    HomeworldCRC[2],
         "(not used)",           HomeworldCRC[3]  // never been used
     );
-    
+
     // startup any SDL systems we want that haven't already been kicked off
     sdlSubsystemFlags = SDL_WasInit(SDL_INIT_EVERYTHING);
 
@@ -3925,7 +3925,7 @@ char *utyGameSystemsInit(void)
             return "Unable to initialize SDL Timer.";
         }
     }
-    
+
 #if 0
     // Joystick used for controlling the 3D camera view. It can be any old
     // joystick but this is primarily intended to support devices used for
@@ -3935,27 +3935,27 @@ char *utyGameSystemsInit(void)
     if (!(sdlSubsystemFlags & SDL_INIT_JOYSTICK))
     {
         int joystick_i = 0;
-        
+
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1)
         {
             return "Unable to initialize SDL Joystick.";
         }
-        
+
         for (joystick_i = 0; joystick_i < SDL_NumJoysticks(); ++joystick_i)
         {
             if (strcmp(SDL_JoystickName(joystick_i), "SpaceNavigator") == 0)
             {
                 SDL_Joystick *joystick;
-                
+
                 SDL_JoystickEventState(SDL_ENABLE);
                 joystick = SDL_JoystickOpen(joystick_i);
-                
+
                 dbgMessagef("SpaceNavigator found at index %d", joystick_i);
             }
         }
     }
 #endif
-    
+
     utyTimerDivisor = 1000 / UTY_TimerResolutionMax;
     utySet(SSA_Timer);
                                                             //start the task manager
@@ -4728,10 +4728,16 @@ void utyTasksDispatch(void)
 
     timer = SDL_GetTicks();                                 //get counter, let's assume it works
     difference = timer - utyTimerLast;                      //get difference of this frame to last frame
-    utyNFrameTicks = (udword)(difference / utyTimerDivisor);
-    remainder = difference % utyTimerDivisor;               //get remainder of the division
-    taskExecuteAllPending(utyNFrameTicks);                  //execute tasks for the correct number of ticks
-    utyTimerLast = timer - remainder;                       //save timer for differencing next frame
+    if (difference > utyTimerDivisor) {
+        utyNFrameTicks = (udword)(difference / utyTimerDivisor);
+        remainder = difference % utyTimerDivisor;               //get remainder of the division
+        taskExecuteAllPending(utyNFrameTicks);                  //execute tasks for the correct number of ticks
+        utyTimerLast = timer - remainder;                       //save timer for differencing next frame
+    }
+    else
+    {
+        SDL_Delay(1);
+    }
 }
 
 /*-----------------------------------------------------------------------------
@@ -5123,5 +5129,3 @@ void utyDrawDroppedPlayer(featom *atom, regionhandle region)
         fontMakeCurrent(fhsave);
     }
 }
-
-
