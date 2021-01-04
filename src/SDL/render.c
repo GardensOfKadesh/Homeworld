@@ -1004,6 +1004,9 @@ bool setupPixelFormat()
 
     SDL_GL_MakeCurrent(sdlwindow, glcontext);
 
+    // disable VSYNC
+    SDL_GL_SetSwapInterval(0);
+
 	SDL_ShowCursor(SDL_DISABLE);
 
 #ifdef _MACOSX_FIX_GL
@@ -4699,5 +4702,4 @@ void rndFlush(void)
 #else
     SDL_GL_SwapWindow(sdlwindow);
 #endif
-    SDL_Delay(1);
 }
