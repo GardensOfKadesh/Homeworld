@@ -7423,8 +7423,8 @@ bool univUpdate(real32 phystimeelapsed)
     PTEND(1);
 
     // wrap every tick functions to support increased tick rate
-    if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
-    {
+    //if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
+    //{
         cloudSetFog();      //dust/gas cloud think
         nebSetFog();        //nebula think
 
@@ -7434,7 +7434,7 @@ bool univUpdate(real32 phystimeelapsed)
         // crappy fucking construction manager, no longer a task
         cmBuildTaskFunction();
 
-    }
+    //}
 
 
     if ((universe.univUpdateCounter % (REFRESH_RESEARCH_RATE * UNIVERSE_UPDATE_RATE_FACTOR)) == REFRESH_RESEARCH_FRAME)
@@ -7492,10 +7492,13 @@ bool univUpdate(real32 phystimeelapsed)
         }
     }
 
-    if (singlePlayerGame)
-        singlePlayerGameUpdate();
-    else if (bitTest(tpGameCreated.flag,MG_Hyperspace))
-        UpdateMidLevelHyperspacingShips();
+    if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
+    {
+        if (singlePlayerGame)
+            singlePlayerGameUpdate();
+        else if (bitTest(tpGameCreated.flag,MG_Hyperspace))
+            UpdateMidLevelHyperspacingShips();
+    }
 
     PTSLAB(3,"collbulmis");
     collCheckAllBulletMissileCollisions();
