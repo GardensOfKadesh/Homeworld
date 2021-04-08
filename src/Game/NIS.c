@@ -436,7 +436,7 @@ DEFINE_TASK(nisUpdateTask)
         //code for playing in-game NIS's
         if (nisScissorFadeOut != 0)
         {                                                   //if fading the scissor window out
-            nisScissorFadeTime += (real32)UNIVERSE_UPDATE_PERIOD;
+            nisScissorFadeTime += (real32)UNIVERSE_UPDATE_PERIOD_ORIG;
             nisFullyScissored = FALSE;                      //window no longer fully scissored
             if (nisScissorFadeTime >= nisScissorFadeOut)
             {                                               //if at the end of the fade
@@ -455,14 +455,14 @@ DEFINE_TASK(nisUpdateTask)
         //fade to/from black
         if (nisBlackFade != nisBlackFadeDest)
         {
-            if (ABS(nisBlackFade - nisBlackFadeDest) <= UNIVERSE_UPDATE_PERIOD)
+            if (ABS(nisBlackFade - nisBlackFadeDest) <= UNIVERSE_UPDATE_PERIOD_ORIG)
             {                                           //if the end of the fade
                 nisBlackFade = nisBlackFadeDest;
                 nisBlackFadeRate = 0.0f;
             }
             else
             {
-                nisBlackFade += nisBlackFadeRate * UNIVERSE_UPDATE_PERIOD;
+                nisBlackFade += nisBlackFadeRate * UNIVERSE_UPDATE_PERIOD_ORIG;
             }
 
 #if NIS_VERBOSE_LEVEL >= 1
@@ -481,7 +481,7 @@ DEFINE_TASK(nisUpdateTask)
                 nisScissorFadeIn = nisScissorFadeTime = 0.0f;//don't do any more fading
                 nisScissorFade = 0.0f;
             }
-            nisScissorFadeTime += UNIVERSE_UPDATE_PERIOD;
+            nisScissorFadeTime += UNIVERSE_UPDATE_PERIOD_ORIG;
         }
 
         if (thisNisPlaying)
@@ -492,7 +492,7 @@ DEFINE_TASK(nisUpdateTask)
             }
             //if (!nisPaused)
             {                                               //actually update NIS if NIS unpaused
-                newTime = nisUpdate(thisNisPlaying, UNIVERSE_UPDATE_PERIOD);
+                newTime = nisUpdate(thisNisPlaying, UNIVERSE_UPDATE_PERIOD_ORIG);
                 if (newTime == REALlyBig)
                 {
                     nisStop(thisNisPlaying);
@@ -514,7 +514,7 @@ DEFINE_TASK(nisUpdateTask)
             //fly the camera in
             if (nisCameraCutTime != 0.0f)
             {
-                timeElapsed = UNIVERSE_UPDATE_PERIOD;  //!!! cap camera velocity?
+                timeElapsed = UNIVERSE_UPDATE_PERIOD_ORIG;  //!!! cap camera velocity?
                 nisCameraFlyCompute(timeElapsed);
             }
 
@@ -523,7 +523,7 @@ DEFINE_TASK(nisUpdateTask)
 #if NIS_TEST
         if (testPlaying)
         {
-            newTime = nisUpdate(testPlaying, UNIVERSE_UPDATE_PERIOD);
+            newTime = nisUpdate(testPlaying, UNIVERSE_UPDATE_PERIOD_ORIG);
             if (newTime == REALlyBig || keyIsStuck(NUMPAD1))
             {
                 keyClearSticky(NUMPAD1);
@@ -578,7 +578,7 @@ DEFINE_TASK(nisUpdateTask)
 ----------------------------------------------------------------------------*/
 void nisStartup(void)
 {
-    nisTaskHandle = taskStart(nisUpdateTask, UNIVERSE_UPDATE_PERIOD, 0);
+    nisTaskHandle = taskStart(nisUpdateTask, UNIVERSE_UPDATE_PERIOD_ORIG, 0);
     taskPause(nisTaskHandle);
 }
 
@@ -1610,7 +1610,7 @@ void nisSeek(nisplaying *NIS, real32 seekTime)
 ----------------------------------------------------------------------------*/
 void nisGoToEnd(nisplaying *NIS)
 {
-    nisSeek(NIS,NIS->header->length - UNIVERSE_UPDATE_PERIOD);
+    nisSeek(NIS,NIS->header->length - UNIVERSE_UPDATE_PERIOD_ORIG);
 }
 
 /*-----------------------------------------------------------------------------
@@ -2655,7 +2655,7 @@ void nisDamageLevel(nisplaying *NIS, nisevent *event)
 
 #ifdef _WIN32_FIX_ME
  #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif 
+#endif
 void nisRemainAtEnd(nisplaying *NIS, nisevent *event)
 {
     bitSet(NIS->objectsInMotion[event->shipID].flags, OMF_RemainAtEnd);
@@ -2677,7 +2677,7 @@ void nisRemainAtEnd(nisplaying *NIS, nisevent *event)
 }
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif 
+#endif
 
 void nisCameraFOV(nisplaying *NIS, nisevent *event)
 {
@@ -3523,11 +3523,11 @@ void nisSpeechEventSet(char *directory,char *field,void *dataToFillIn)
     {
         sscanf(actorString + strlen("ACTOR "), "%d", &actor);
         dbgAssertOrIgnore(actor > 0 && actor <= 3);
-        event->param[1] |= actor << NIS_ActorShiftBits;
+        event->param[1] = actor << NIS_ActorShiftBits;
     }
     else
     {
-        event->param[1] |= NIS_ActorMask;
+        event->param[1] = NIS_ActorMask;
     }
 }
 void nisFleetSpeechEventSet(char *directory,char *field,void *dataToFillIn)
@@ -4306,7 +4306,7 @@ void nisNewNISSet(char *directory, char *field, void *dataToFillIn)
     char fileName[80];
     sdword nScanned;
 
-    event->time -= UNIVERSE_UPDATE_PERIOD;                  //this is to make sure that hitting ESCAPE will seek over this event
+    event->time -= UNIVERSE_UPDATE_PERIOD_ORIG;                  //this is to make sure that hitting ESCAPE will seek over this event
     nScanned = sscanf(field, "%s %s", nisName, scriptName);
     dbgAssertOrIgnore(nScanned == 2);
     dbgAssertOrIgnore(strlen(nisName) > 0);
@@ -4657,7 +4657,7 @@ nisheader *nisLoad(char *fileName, char *scriptName)
 			objPath->parameters[j].tension    = FIX_ENDIAN_FLOAT_32( objPath->parameters[j].tension );
 			objPath->parameters[j].continuity = FIX_ENDIAN_FLOAT_32( objPath->parameters[j].continuity );
 			objPath->parameters[j].bias       = FIX_ENDIAN_FLOAT_32( objPath->parameters[j].bias );
-			
+
 			for( k = 0; k < 6; k++ )
 			{
 				objPath->curve[k][j] = FIX_ENDIAN_FLOAT_32( objPath->curve[k][j] );
@@ -4818,7 +4818,7 @@ foundOne:;
 			camPath->parameters[j].tension    = FIX_ENDIAN_FLOAT_32( camPath->parameters[j].tension );
 			camPath->parameters[j].continuity = FIX_ENDIAN_FLOAT_32( camPath->parameters[j].continuity );
 			camPath->parameters[j].bias       = FIX_ENDIAN_FLOAT_32( camPath->parameters[j].bias );
-			
+
 			for( k = 0; k < 6; k++ )
 			{
 				camPath->curve[k][j] = FIX_ENDIAN_FLOAT_32( camPath->curve[k][j] );
@@ -5221,7 +5221,8 @@ void nisStaticDraw(nisstatic *snow)
             glEnable(GL_BLEND);
         }
         rndGLStateLog("Textured Static");
-        glBegin(GL_QUADS);
+        //glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLES);
         while (nLines)
         {
             y0 = frandyrandombetween(RANDOM_STATIC, top, bottom);
@@ -5237,11 +5238,17 @@ void nisStaticDraw(nisstatic *snow)
 
             glTexCoord2f(s0, t0);
             glVertex2f(x0, y1);
+            glTexCoord2f(s0, t0);
             glVertex2f(x0, y0);
+            glTexCoord2f(s1, t0);
+            glVertex2f(x1, y1);
 
             glTexCoord2f(s1, t0);
-            glVertex2f(x1, y0);
             glVertex2f(x1, y1);
+            glTexCoord2f(s0, t0);
+            glVertex2f(x0, y0);
+            glTexCoord2f(s1, t0);
+            glVertex2f(x1, y0);
 
         }
     }
@@ -5275,6 +5282,7 @@ void nisStaticDraw(nisstatic *snow)
             nLines--;
             glColor4f(red, green, blue, alpha);
             glVertex2f(x0, y0);
+            glColor4f(red, green, blue, alpha);
             glVertex2f(x1, y0);
         }
     }
@@ -5282,4 +5290,3 @@ void nisStaticDraw(nisstatic *snow)
     glDisable(GL_BLEND);
     rndTextureEnable(FALSE);
 }
-
