@@ -242,5 +242,6 @@ sword soundstreamgetvol(sdword handle);
 real32 soundusage(void);
 sdword soundstreamfading(sdword streamhandle);
 
-#endif
+int isoundstreamupdate_manual(void *dummy);
 
+#endif

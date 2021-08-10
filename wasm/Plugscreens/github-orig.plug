@@ -1,0 +1,34 @@
+Image       r1mothership.jpg
+GameLink    664,454,Buttons\on_Next.lif,Buttons\off_next.lif
+WebLink     304,486,button-fig-on.jpg,button-fig-off.jpg,https://www.fig.co/campaigns/homeworld3
+WebLink     336,486,button-steam-on.jpg,button-steam-off.jpg,https://store.steampowered.com/app/244160/Homeworld_Remastered_Collection/
+WebLink     368,486,button-discord-on.jpg,button-discord-off.jpg,https://discord.gg/drrKWR3Bxq
+WebLink     400,486,button-github-on.jpg,button-github-off.jpg,https://github.com/rbrune/HomeworldSDL
+TimeOut     3600,gameon
+Mouse       TRUE
+
+StaticText  228,36,1,Thank you for playing Homeworld SDL
+StaticText  228,64,0,This WebAssembly build of Homeworld is based on the SDL port
+StaticText  228,78,0,of the Homeworld source code that was released in 2003 by
+StaticText  228,92,0,Relic Entertainment.
+StaticText  228,106,0,It only uses the assets provided in the original freely available
+StaticText  228,120,0,downloadable demo and as such is limited in scope to the
+StaticText  228,134,0,first two single player missions.
+
+StaticText  228,172,1,Dear Embracer Group, Gearbox Software,
+StaticText  228,190,1,Blackbird Interactive, Relic Entertainment,
+StaticText  228,218,0,unfortunately the Homeworld source code was released under
+StaticText  228,232,0,an unfavorable Relic Developer Network License. The disappearance
+StaticText  228,246,0,of the Relic Developer Network and the Homeworld IP having
+StaticText  228,260,0,changed hands leaves the license state of the Homeworld source
+StaticText  228,274,0,code in a dubious state that hinders development.
+StaticText  228,288,0,Please reach out and consider re-releasing the Homeworld source
+StaticText  228,302,0,code under GPL3 or re-licensing the current Homeworld SDL code
+StaticText  228,316,0,under GPL3.
+
+StaticText  228,364,0,If you enjoyed playing Homeworld please support the developers
+StaticText  228,378,0,and follow the links below to check out the Homeworld 3 fig
+StaticText  228,392,0,campaign and the Homeworld Remastered collection.
+
+StaticText  228,428,0,To get involved with the development of Homeworld SDL feel
+StaticText  228,442,0,free to join our discord and checkout the github repository.

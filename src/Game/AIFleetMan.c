@@ -6,6 +6,8 @@
 //  Created 1998/05/28 by gshaw
 // =============================================================================
 
+#include <string.h>
+
 #include "AIFleetMan.h"
 
 #include "AIAttackMan.h"
@@ -54,7 +56,7 @@ void aifInit(AIPlayer *aiplayer)
 /*-----------------------------------------------------------------------------
     Name        : airClose
     Description : Closes resource manager stuff in aiplayer
-    Inputs      : 
+    Inputs      :
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
@@ -160,7 +162,7 @@ bool aifShipDied(AIPlayer *aiplayer,ShipPtr ship)
 
 void BuildShip(ShipStaticInfo *shipstatic,Player *player,sdword *incRUs,sdword *decRUs, ShipPtr creator)
 {
-#if(0)	
+#if(0)
 	Node *shipnode;
 	Ship *ship;
 	sdword shipcount,classcount;
@@ -171,7 +173,7 @@ void BuildShip(ShipStaticInfo *shipstatic,Player *player,sdword *incRUs,sdword *
     aiplayerLog((player->playerIndex,"Building ship %s; Total %i",ShipTypeToStr(shipstatic->shiptype),player->shiptotals[shipstatic->shiptype]));
 
 	// unit caps checking code
-#if(0)	
+#if(0)
 	shipnode = universe.ShipList.head;
 	shipcount = 0;
 	classcount = 0;
@@ -191,16 +193,16 @@ void BuildShip(ShipStaticInfo *shipstatic,Player *player,sdword *incRUs,sdword *
 				classcount++;
 			}
 		}
-		
+
 		shipnode = shipnode->next;
 	}
 
 	shipnode = universe.mainCommandLayer.todolist.head;
 	while(shipnode != NULL)
 	{
-	
+
 		command = (CommandToDo *)listGetStructOfNode(shipnode);
-	
+
 		if(command->ordertype.order == COMMAND_BUILDING_SHIP)
 		{
 			if(command->buildingship.playerIndex == player->playerIndex)
@@ -223,7 +225,7 @@ void BuildShip(ShipStaticInfo *shipstatic,Player *player,sdword *incRUs,sdword *
 	{
 		_asm nop;
 	}
-	if(classcount+1 > cdClassCaps[shipstatic->shipclass])	
+	if(classcount+1 > cdClassCaps[shipstatic->shipclass])
 	{
 		_asm nop;
 	}
@@ -484,10 +486,10 @@ void aifBuildRequestedShips(RequestShips *scriptrequest,RequestShips *attrequest
         if (defnumships == 0) defmanbudgetoverflow = REALlyBig;
         if (resourcenumships == 0) resourcemanbudgetoverflow = REALlyBig;
 
-//#define buildscriptships  
-//#define buildattships     
-//#define builddefships     
-//#define buildresships     
+//#define buildscriptships
+//#define buildattships
+//#define builddefships
+//#define buildresships
 
         if (scriptnumships)
         {
@@ -1312,7 +1314,3 @@ void aifFleetCommand(void)
 
     aiuDeleteBlobArrays();
 }
-
-
-
-

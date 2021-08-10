@@ -319,12 +319,12 @@ void hrDrawPlayersProgress(featom *atom, regionhandle region)
             hrBackgroundDirty = 3;  // 1 - nothing happens as decremented before rendered
                                     // 2 - background is cleared but not redrawn
                                     // 3 - 3's the charm
-            
-            // hyperspace destination circled in first-person view  
+
+            // hyperspace destination circled in first-person view
             #define SP_LOADING_HYPERSPACE_DEST_CIRCLE_X  115
             #define SP_LOADING_HYPERSPACE_DEST_CIRCLE_Y  342
-            
-            // hyperspace destination arrowed in "as the bird flies" view 
+
+            // hyperspace destination arrowed in "as the bird flies" view
             #define SP_LOADING_HYPERSPACE_DEST_ARROWS_X  195
             #define SP_LOADING_HYPERSPACE_DEST_ARROWS_Y  134
 
@@ -452,19 +452,19 @@ void hrChooseSinglePlayerBitmap(char* pFilenameBuffer)
     x      = hrScaleMissionLoadingScreens
            ? feResRepositionScaledX (SP_LOADING_IMAGE_PROGRESS_BAR_X)
            : feResRepositionCentredX(SP_LOADING_IMAGE_PROGRESS_BAR_X);
-      
+
     y      = hrScaleMissionLoadingScreens
            ? feResRepositionScaledY (SP_LOADING_IMAGE_PROGRESS_BAR_Y)
            : feResRepositionCentredY(SP_LOADING_IMAGE_PROGRESS_BAR_Y);
-    
+
     width  = hrScaleMissionLoadingScreens
            ? (SP_LOADING_IMAGE_PROGRESS_BAR_WIDTH  * FE_SCALE_TO_FIT_FACTOR_RELIC_SCREEN)
            :  SP_LOADING_IMAGE_PROGRESS_BAR_WIDTH;
-    
+
     height = hrScaleMissionLoadingScreens
            ? (SP_LOADING_IMAGE_PROGRESS_BAR_HEIGHT * FE_SCALE_TO_FIT_FACTOR_RELIC_SCREEN)
            :  SP_LOADING_IMAGE_PROGRESS_BAR_HEIGHT;
-    
+
     hrSinglePlayerPos.x0 = x;
     hrSinglePlayerPos.y0 = y;
     hrSinglePlayerPos.x1 = x + width;
@@ -492,7 +492,7 @@ void hrChooseRandomBitmap(char *pFilenameBuffer)
     NewDir[0] = 0;
     strcpy(NewDir, filePathPrepend("ScreenShots", FF_UserSettingsPath));
 
-    // Prefer user screenshots over pre-saved ones; they're more likely to be 
+    // Prefer user screenshots over pre-saved ones; they're more likely to be
     // at a higher resolution, not to mention more interesting...
 
     // Switch to the screenshots directory and count the ones in there
@@ -589,7 +589,7 @@ void hrChooseRandomBitmap(char *pFilenameBuffer)
 
                 strcat(pFilenameBuffer, filePathPrepend("ScreenShots/", FF_UserSettingsPath));
                 strcat(pFilenameBuffer, dir_entry->d_name);
-                
+
                 break;
             }
 
@@ -598,7 +598,7 @@ void hrChooseRandomBitmap(char *pFilenameBuffer)
 #endif
     }
     else // look in the big file for fallback images
-    {   
+    {
         // First, find screen shots listed in the BigFile
 #ifdef _WIN32
         handle = fileOpen("ScreenShots\\ShotList.script", FF_ReturnNULLOnFail | FF_TextMode);
@@ -617,7 +617,7 @@ void hrChooseRandomBitmap(char *pFilenameBuffer)
 
             fileClose(handle);
         }
-        
+
         if (BigFileCount > 0)
         {
             chosenFileIndex = (utyTimerLast % 32777) % BigFileCount;
@@ -780,7 +780,7 @@ void hrInitBackground(void)
         {
             return;
         }
-        
+
         JpegRead(&jp);
         fileClose(handle);
 
@@ -801,10 +801,10 @@ void hrInitBackground(void)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, hrBackXSize, hrBackYSize,
                     0, GL_RGB, GL_UNSIGNED_BYTE, pTempImage);
-        
+
         memFree(jp.ptr);
         memFree(pTempImage);
-        
+
         hrBackXFrac = (GLfloat)jp.width / (GLfloat)hrBackXSize;
         hrBackYFrac = (GLfloat)jp.height / (GLfloat)hrBackYSize;
         hrBackXSize = jp.width;
@@ -858,16 +858,16 @@ void hrDrawFile(char* filename, sdword x, sdword y)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lif->width, lif->height,
                  0, GL_RGBA, GL_UNSIGNED_BYTE, lif->data);
-    
+
     // FIXME: there's no LiF scaling here, just translation of the image
     x = hrScaleMissionLoadingScreens
       ? feResRepositionScaledX(x)
       : feResRepositionCentredX(x);
-      
+
     y = hrScaleMissionLoadingScreens
       ? feResRepositionScaledY(y)
       : feResRepositionCentredY(y);
-    
+
     x -= lif->width  >> 1;
     y -= lif->height >> 1;
     rect.x0 = x;
@@ -1155,7 +1155,7 @@ void horseRaceShutdown()
 
     hrShutdownBackground();
     hrProgressCounter = 0;
-    
+
     hrBaseRegion = NULL;
     hrProgressRegion = NULL;
     hrChatBoxRegion = NULL;
@@ -1629,4 +1629,3 @@ void recievedHorsePacketCB(ubyte *packet,udword sizeofpacket)
     horseracestatus.barnum[i] = hp->barnum;
     horseracestatus.percent[i] = hp->percent;
 }
-

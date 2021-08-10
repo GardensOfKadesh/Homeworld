@@ -336,4 +336,3 @@ SelectCommand *selectMemDupSelection(SelectCommand *selection, char *str, udword
 #define ShipCanHyperspace(ship) (isCapitalShip(ship) && (ship->shiptype != CryoTray) && (ship->shiptype != Probe))
 
 #endif
-

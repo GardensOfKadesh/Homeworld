@@ -132,7 +132,7 @@ scriptEntry NebulaeTweaks[] =
     makeEntry(NEB_VEL_BASE, scriptSetReal32CB),
     makeEntry(NEB_TENDRIL_RADIUS_BASE, scriptSetReal32CB),
     makeEntry(NEB_TENDRIL_RADIUS_RANGE, scriptSetReal32CB),
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -1305,7 +1305,7 @@ void nebDrawChunk2(nebChunk* chunk, sdword lod)
         nebGetTendrilNormal(ta, ia1, lod, &norma1);
         nebGetTendrilNormal(tb, ib1, lod, &normb1);
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
 
         COLOUR(cola);
         glNormal3f(norma0.x, norma0.y, norma0.z);
@@ -1317,15 +1317,15 @@ void nebDrawChunk2(nebChunk* chunk, sdword lod)
         nebColourAdjust(&vertb0, &normb0, m, minv);
         glVertex3fv((GLfloat*)&vertb0);
 
-        COLOUR(colb);
-        glNormal3f(normb1.x, normb1.y, normb1.z);
-        nebColourAdjust(&vertb1, &normb1, m, minv);
-        glVertex3fv((GLfloat*)&vertb1);
-
         COLOUR(cola);
         glNormal3f(norma1.x, norma1.y, norma1.z);
         nebColourAdjust(&verta1, &norma1, m, minv);
         glVertex3fv((GLfloat*)&verta1);
+
+        COLOUR(colb);
+        glNormal3f(normb1.x, normb1.y, normb1.z);
+        nebColourAdjust(&vertb1, &normb1, m, minv);
+        glVertex3fv((GLfloat*)&vertb1);
 
         glEnd();
     }
@@ -2601,4 +2601,3 @@ void nebLoad_Nebula(void)
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
 #endif
-

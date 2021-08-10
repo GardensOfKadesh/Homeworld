@@ -4,6 +4,9 @@
 //  Copyright Relic Entertainment, Inc. All rights reserved.
 // =============================================================================
 
+#include <stdio.h>
+#include <string.h>
+
 #include "AIVar.h"
 
 #include "Debug.h"
@@ -50,7 +53,7 @@ void aivarShutdown(void)
         sdword i;
         for (i=0;i<varsUsed;i++)
         {
-#if AI_VERBOSE_LOGGING 
+#if AI_VERBOSE_LOGGING
             dbgMessagef("WARNING: vars[%d] %s not closed", i, vars[i]->label);
 #endif
             memFree(vars[i]);
@@ -316,4 +319,3 @@ void aivarLoad(void)
     if (!aivRenderMainScreen)
         aivRenderMainScreen = aivarCreate("RenderMainScreen");
 }
-

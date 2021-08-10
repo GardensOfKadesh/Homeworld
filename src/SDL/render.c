@@ -147,14 +147,16 @@ static EGLSurface egl_surface = EGL_NO_SURFACE;
 static EGLContext egl_context = EGL_NO_CONTEXT;
 static EGLConfig egl_config;
 #else
+/*
 PFNGLBINDBUFFERPROC glBindBuffer = 0;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers = 0;
 PFNGLGENBUFFERSPROC glGenBuffers = 0;
 PFNGLBUFFERDATAPROC glBufferData = 0;
 PFNGLBUFFERSUBDATAPROC glBufferSubData = 0;
+*/
 #endif
 
-PFNGLDRAWTEXIOESPROC glDrawTexiOES = 0;
+//PFNGLDRAWTEXIOESPROC glDrawTexiOES = 0;
 
 static const char *gl_extensions = 0;
 
@@ -894,6 +896,7 @@ bool setupPixelFormat()
 
     /* Create OpenGL window. */
     flags = SDL_WINDOW_OPENGL;
+    flags |= SDL_WINDOW_RESIZABLE;
 
 #ifndef HW_ENABLE_GLES
     /* Set attributes. */
@@ -903,8 +906,8 @@ bool setupPixelFormat()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #endif
 
-    if (/* main */ fullScreen)
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    //if (/* main */ fullScreen)
+    //    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 #ifdef HW_ENABLE_GLES
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -1024,17 +1027,21 @@ bool setupPixelFormat()
 #ifdef HW_ENABLE_GLES
     glDrawTexiOES = eglGetProcAddress("glDrawTexiOES");
 #else
+/*
     glBindBuffer = SDL_GL_GetProcAddress("glBindBuffer");
     glDeleteBuffers = SDL_GL_GetProcAddress("glDeleteBuffers");
     glGenBuffers = SDL_GL_GetProcAddress("glGenBuffers");
     glBufferData = SDL_GL_GetProcAddress("glBufferData");
     glBufferSubData = SDL_GL_GetProcAddress("glBufferSubData");
+*/
+    GLenum err = glewInit();
+
 #endif
 
     gl_extensions = glGetString(GL_EXTENSIONS);
     printf("GL Extensions:\n%s\n", gl_extensions);
 
-    useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
+    //useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
 
 	return TRUE;
 }
@@ -1049,7 +1056,7 @@ int glCheckExtension(const char *ext) {
         return gotext && glBindBuffer && glDeleteBuffers && glGenBuffers && glBufferData && glBufferSubData;
 #endif
     } else if (strcmp(ext, "GL_OES_draw_texture") == 0) {
-        return gotext && glDrawTexiOES;
+        return gotext;// && glDrawTexiOES;
     }
     return gotext;
 }
@@ -3952,6 +3959,14 @@ DEFINE_TASK(rndRenderTask)
             rndShamelessPlug();
         }
 
+#ifdef GIT_VERSION
+        if (universePause || !gameIsRunning)
+        {
+            fontMakeCurrent(selGroupFont2);
+        	  fontPrint(MAIN_WindowWidth - fontWidth(GIT_VERSION) - 32, MAIN_WindowHeight - fontHeight(" ") - 2, colWhite, GIT_VERSION);
+        }
+#endif
+
         //take a screenshot or sequence thereof
         if (keyIsStuck(SS_SCREENSHOT_KEY)
 #ifdef _MACOSX
@@ -4155,12 +4170,12 @@ sdword rndPerspectiveCorrection(sdword bEnable)
     {
         if (rndHint == 1)
         {
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+            //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
             rndPerspectiveCorrect = TRUE;
         }
         else
         {
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+            //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
             rndPerspectiveCorrect = FALSE;
         }
         return(oldStatus);
@@ -4174,7 +4189,7 @@ sdword rndPerspectiveCorrection(sdword bEnable)
     {
         if (!rndPerspectiveCorrect)
         {
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+            //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
             rndPerspectiveCorrect = TRUE;
         }
     }
@@ -4182,7 +4197,7 @@ sdword rndPerspectiveCorrection(sdword bEnable)
     {
         if (rndPerspectiveCorrect)
         {
-            glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+            //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
             rndPerspectiveCorrect = FALSE;
         }
     }
@@ -4476,6 +4491,7 @@ void rndResetGLState(void)
     }
     rndNormalizeEnable(rndNormalization);
 
+		/*
     if (rndPerspectiveCorrect)
     {
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
@@ -4484,6 +4500,7 @@ void rndResetGLState(void)
     {
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     }
+		*/
     rndPerspectiveCorrection(rndPerspectiveCorrect);
 
     rndTextureEnvironment(RTE_Modulate);

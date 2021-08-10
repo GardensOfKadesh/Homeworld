@@ -290,11 +290,11 @@ void hsContinue(Ship* ship, bool displayEffect)
                 hmatrix coordMatrixForGL, prevModelview;
                 real32 nliphak;
                 hsGetEquation(host, equation);
-                        
+
                 glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat*)&prevModelview);
                 glPopMatrix();
                 glPushMatrix();
-                
+
                 //put glstack info similar state as before
                 hmatMakeHMatFromMat(&coordMatrixForGL,&host->rotinfo.coordsys);
                 hmatPutVectIntoHMatrixCol4(host->posinfo.position,coordMatrixForGL);
@@ -364,11 +364,11 @@ void hsContinue(Ship* ship, bool displayEffect)
         vecToRotate.x = 0.0f;
         vecToRotate.y = 0.0f;
         vecToRotate.z = -equation[2] * equation[3];
-        
+
         {
             vecToRotate.z *= ship->magnitudeSquared;
         }
-        
+
         vecToRotate.z -= sinfo->collsphereoffset.z;
 
         matMultiplyMatByVec(&vecRotated, &ship->rotinfo.coordsys, &vecToRotate);
@@ -415,12 +415,32 @@ void hsRectangle(vector* origin, real32 rightlength, real32 uplength, ubyte alph
                      origin->x + rlen, origin->y + ulen, origin->z,
                      origin->x - rlen, origin->y - ulen, origin->z,
                      origin->x + rlen, origin->y - ulen, origin->z };
+
+    real32 v2[12] = {origin->x - rlen, origin->y + ulen, origin->z,
+                     origin->x + rlen, origin->y + ulen, origin->z,
+                     origin->x + rlen, origin->y - ulen, origin->z,
+                     origin->x - rlen, origin->y - ulen, origin->z};
+
     ubyte red = colRed(c);
     ubyte green = colGreen(c);
     ubyte blue = colBlue(c);
 
+    ubyte ca[16] = {red, green, blue, alpha,
+                     red, green, blue, alpha,
+                     red, green, blue, alpha,
+                     red, green, blue, alpha};
+
+    ubyte ca2[16] = {red + 40, green + 40, blue, alpha,
+                    red + 40, green + 40, blue, alpha,
+                    red + 40, green + 40, blue, alpha,
+                    red + 40, green + 40, blue, alpha};
+
+
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
     glVertexPointer(3, GL_FLOAT, 0, v);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, ca);
 
     glColor4ub(red, green, blue, alpha);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -428,11 +448,15 @@ void hsRectangle(vector* origin, real32 rightlength, real32 uplength, ubyte alph
     if (outline) {
         ubyte l[4] = { 0, 1, 3, 2 };
         glLineWidth(2.0f);
-        glColor4ub((ubyte)(red + 40), (ubyte)(green + 40), blue, alpha);
-        glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_BYTE, l);
+        //glColor4ub((ubyte)(red + 40), (ubyte)(green + 40), blue, alpha);
+        glVertexPointer(3, GL_FLOAT, 0, v2);
+        glColorPointer(4, GL_UNSIGNED_BYTE, 0, ca2);
+        glDrawArrays(GL_LINE_LOOP, 0, 4);
+        //glDrawElements(GL_LINE_LOOP, 4, GL_UNSIGNED_BYTE, l);
         glLineWidth(1.0f);
     }
 
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -1115,5 +1139,3 @@ void LoadHyperspaceGates()
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
 #endif
-
-

@@ -422,7 +422,7 @@ sdword opSaveDetailThresholdVal;
 udword opDetailThresholdVal = 100;
 sdword opSaveBrightnessVal;
 sdword opBrightnessVal = 30;
-sdword opNoLODVal = 0;
+sdword opNoLODVal = 1;
 sdword opSaveNoLODVal;
 
 sdword opSaveMAIN_WindowWidth;
@@ -2511,14 +2511,14 @@ void opResListSet(rdevice* dev)
     fonthandle oldfont;
 
     mode = dev->modes;
-	
+
     nModes = 0;
     while (mode != NULL)
     {
         nModes++;
         mode = mode->next;
     }
-	
+
     opResNumber = nModes;
     opResCurrentSelected = 0;
 

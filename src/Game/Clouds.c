@@ -134,7 +134,7 @@ scriptEntry CloudTweaks[] =
     makeEntry(CLOUD_LIGHTNING_MAIN_GREEN, scriptSetReal32CB),
     makeEntry(CLOUD_LIGHTNING_MAIN_BLUE, scriptSetReal32CB),
     makeEntry(CLOUD_LIGHTNING_MAIN_ALPHA, scriptSetReal32CB),
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -779,7 +779,8 @@ real32 cloudRealDist(real32 n, real32 d)
 ----------------------------------------------------------------------------*/
 void cloudStartup()
 {
-    useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
+    //useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
+    useVBO = 0;
 
     fogColor[0] = DUSTCLOUD_FOG_RED;
     fogColor[1] = DUSTCLOUD_FOG_GREEN;
@@ -1144,6 +1145,7 @@ void cloudRenderSystem(cloudSystem* system, sdword lod)
     glDepthMask(GL_TRUE);
     rndLightingEnable(TRUE);
     rndAdditiveBlends(FALSE);
+    glDisable(GL_BLEND);
     if (fogOn) glEnable(GL_FOG);
 }
 

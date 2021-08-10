@@ -1280,6 +1280,13 @@ void trailLineInit(shiptrail* trail, sdword n)
 #define PYRAMID_ALPHA_MID 79
 #define PYRAMID_ALPHA_HI  143
 
+
+
+static GLfloat vertex_buffer[3 * 2048];
+static GLfloat color_buffer[4 * 2048];
+static unsigned int vertex_count;
+
+
 /*-----------------------------------------------------------------------------
     Name        : trailLinePyramid
     Description : draws a translucent pyramid, the outer sheath of engine trails at
@@ -1397,9 +1404,11 @@ void trailLinePyramid(
 
     //render
 
-    glEnable(GL_BLEND);
-    glDepthMask(GL_FALSE);
+    //glEnable(GL_BLEND);
+    //glDepthMask(GL_FALSE);
 
+
+		/*
     glBegin(GL_QUADS);
     //a
     COLx(c,PYRAMID_ALPHA_LO);
@@ -1411,6 +1420,7 @@ void trailLinePyramid(
     COLx(c,PYRAMID_ALPHA_HI);
     VERT(a0hi);
     //b
+    COLx(c,PYRAMID_ALPHA_HI);
     VERT(a0hi);
     COLx(cb,PYRAMID_ALPHA_HI);
     VERT(b0hi);
@@ -1419,6 +1429,7 @@ void trailLinePyramid(
     COLx(c,PYRAMID_ALPHA_LO);
     VERT(a2);
     //c
+    COLx(c,PYRAMID_ALPHA_LO);
     VERT(a2);
     COLx(cb,PYRAMID_ALPHA_LO);
     VERT(b2);
@@ -1427,6 +1438,7 @@ void trailLinePyramid(
     COLx(c,PYRAMID_ALPHA_HI);
     VERT(a0lo);
     //d
+    COLx(c,PYRAMID_ALPHA_HI);
     VERT(a0lo);
     COLx(cb,PYRAMID_ALPHA_HI);
     VERT(b0lo);
@@ -1435,9 +1447,278 @@ void trailLinePyramid(
     COLx(c,PYRAMID_ALPHA_LO);
     VERT(a1);
     glEnd();
+		*/
 
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+		/*
+		glBegin(GL_TRIANGLE_STRIP);
+		COLx(c,PYRAMID_ALPHA_LO);
+    VERT(a1);
+    COLx(cb,PYRAMID_ALPHA_LO);
+    VERT(b1);
+		COLx(c,PYRAMID_ALPHA_HI);
+    VERT(a0hi);
+		COLx(cb,PYRAMID_ALPHA_HI);
+    VERT(b0hi);
+
+		COLx(c,PYRAMID_ALPHA_LO);
+    VERT(a2);
+		COLx(cb,PYRAMID_ALPHA_LO);
+    VERT(b2);
+
+		COLx(c,PYRAMID_ALPHA_HI);
+    VERT(a0lo);
+		COLx(cb,PYRAMID_ALPHA_HI);
+    VERT(b0lo);
+
+		COLx(c,PYRAMID_ALPHA_LO);
+    VERT(a1);
+		COLx(cb,PYRAMID_ALPHA_LO);
+    VERT(b1);
+
+		glEnd();
+		*/
+
+
+		//static GLfloat vertex_buffer[3*10];
+		//static GLfloat color_buffer[4*10];
+		//static unsigned int vertex_count;
+
+		//vertex_count = 0;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a1.x;
+		vertex_buffer[vertex_count*3 + 1] = a1.y;
+		vertex_buffer[vertex_count*3 + 2] = a1.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = a0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = a0hi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b1.x;
+		vertex_buffer[vertex_count*3 + 1] = b1.y;
+		vertex_buffer[vertex_count*3 + 2] = b1.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b1.x;
+		vertex_buffer[vertex_count*3 + 1] = b1.y;
+		vertex_buffer[vertex_count*3 + 2] = b1.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = a0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = a0hi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = b0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = b0hi.z;
+		vertex_count += 1;
+
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = a0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = a0hi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a2.x;
+		vertex_buffer[vertex_count*3 + 1] = a2.y;
+		vertex_buffer[vertex_count*3 + 2] = a2.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = b0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = b0hi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0hi.x;
+		vertex_buffer[vertex_count*3 + 1] = b0hi.y;
+		vertex_buffer[vertex_count*3 + 2] = b0hi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a2.x;
+		vertex_buffer[vertex_count*3 + 1] = a2.y;
+		vertex_buffer[vertex_count*3 + 2] = a2.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b2.x;
+		vertex_buffer[vertex_count*3 + 1] = b2.y;
+		vertex_buffer[vertex_count*3 + 2] = b2.z;
+		vertex_count += 1;
+
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a2.x;
+		vertex_buffer[vertex_count*3 + 1] = a2.y;
+		vertex_buffer[vertex_count*3 + 2] = a2.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = a0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = a0lo.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b2.x;
+		vertex_buffer[vertex_count*3 + 1] = b2.y;
+		vertex_buffer[vertex_count*3 + 2] = b2.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b2.x;
+		vertex_buffer[vertex_count*3 + 1] = b2.y;
+		vertex_buffer[vertex_count*3 + 2] = b2.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = a0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = a0lo.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = b0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = b0lo.z;
+		vertex_count += 1;
+
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = a0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = a0lo.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a1.x;
+		vertex_buffer[vertex_count*3 + 1] = a1.y;
+		vertex_buffer[vertex_count*3 + 2] = a1.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = b0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = b0lo.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_HI/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b0lo.x;
+		vertex_buffer[vertex_count*3 + 1] = b0lo.y;
+		vertex_buffer[vertex_count*3 + 2] = b0lo.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = a1.x;
+		vertex_buffer[vertex_count*3 + 1] = a1.y;
+		vertex_buffer[vertex_count*3 + 2] = a1.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = PYRAMID_ALPHA_LO/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = b1.x;
+		vertex_buffer[vertex_count*3 + 1] = b1.y;
+		vertex_buffer[vertex_count*3 + 2] = b1.z;
+		vertex_count += 1;
+
+		/*
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vertex_buffer);
+
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_FLOAT, 0, color_buffer);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_count);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		*/
+
+    //glDepthMask(GL_TRUE);
+    //glDisable(GL_BLEND);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1522,6 +1803,7 @@ void trailLineFuzzySheath(sdword LOD, sdword i, vector* vectora, vector* vectorb
     VERT(a1);
     COLx(cb, PYRAMID_ALPHA_MID);
     VERT(b1);
+    COLx(cb, PYRAMID_ALPHA_MID);
     VERT(b2);
     COLx(c, PYRAMID_ALPHA_MID);
     VERT(a2);
@@ -1580,13 +1862,15 @@ void trailLineBillboard(
 
     //render
 
-    glEnable(GL_BLEND);
-    glDisable(GL_CULL_FACE);
-    glDepthMask(GL_FALSE);
+    //glEnable(GL_BLEND);
+    //glDisable(GL_CULL_FACE);
+    //glDepthMask(GL_FALSE);
 
     alpha = (ubyte)(127.0f * meshFadeAlpha);
 
-    glBegin(GL_QUADS);
+    //glBegin(GL_QUADS);
+		//glBegin(GL_TRIANGLE_STRIP);
+
     if (i == 0)
     {
         cb = c;
@@ -1596,17 +1880,98 @@ void trailLineBillboard(
         VECCOPY(&from, &lastTo);
         VECCOPY(&fromHi, &lastToHi);
     }
+
+		/*
     COLx(cb,alpha);
     VERT(from);
+    COLx(cb,alpha);
     VERT(fromHi);
+		COLx(c,alpha);
+    VERT(to);
     COLx(c,alpha);
     VERT(toHi);
-    VERT(to);
     glEnd();
+		*/
 
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+		//static GLfloat vertex_buffer[3*4];
+		//static GLfloat color_buffer[4*4];
+		//static unsigned int vertex_count;
+
+		//vertex_count = 0;
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = from.x;
+		vertex_buffer[vertex_count*3 + 1] = from.y;
+		vertex_buffer[vertex_count*3 + 2] = from.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = to.x;
+		vertex_buffer[vertex_count*3 + 1] = to.y;
+		vertex_buffer[vertex_count*3 + 2] = to.z;
+		vertex_count += 1;
+
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = fromHi.x;
+		vertex_buffer[vertex_count*3 + 1] = fromHi.y;
+		vertex_buffer[vertex_count*3 + 2] = fromHi.z;
+		vertex_count += 1;
+
+
+
+		color_buffer[vertex_count*4 + 0] = colRed(cb)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(cb)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(cb)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = fromHi.x;
+		vertex_buffer[vertex_count*3 + 1] = fromHi.y;
+		vertex_buffer[vertex_count*3 + 2] = fromHi.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = to.x;
+		vertex_buffer[vertex_count*3 + 1] = to.y;
+		vertex_buffer[vertex_count*3 + 2] = to.z;
+		vertex_count += 1;
+
+		color_buffer[vertex_count*4 + 0] = colRed(c)/255.0f;
+		color_buffer[vertex_count*4 + 1] = colGreen(c)/255.0f;
+		color_buffer[vertex_count*4 + 2] = colBlue(c)/255.0f;
+		color_buffer[vertex_count*4 + 3] = alpha/255.0f;
+		vertex_buffer[vertex_count*3 + 0] = toHi.x;
+		vertex_buffer[vertex_count*3 + 1] = toHi.y;
+		vertex_buffer[vertex_count*3 + 2] = toHi.z;
+		vertex_count += 1;
+
+		/*
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vertex_buffer);
+
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(4, GL_FLOAT, 0, color_buffer);
+
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, vertex_count);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		*/
+
+    //glEnable(GL_CULL_FACE);
+    //glDisable(GL_BLEND);
+    //glDepthMask(GL_TRUE);
 
     VECCOPY(&lastTo, &to);
     VECCOPY(&lastToHi, &toHi);
@@ -2042,6 +2407,8 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
             }
             else
             {
+								vertex_count = 0;
+
                 //complex trail
                 for (i = 0; i < (n-1); i++)
                 {
@@ -2056,6 +2423,27 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
                         _HALFHEIGHT -= trailHeightScalar(activeTrail)*HALFWIDTH_FALLOFF;
                     }
                 }
+
+								glEnable(GL_BLEND);
+								glDisable(GL_CULL_FACE);
+								glDepthMask(GL_FALSE);
+
+								glEnableClientState(GL_VERTEX_ARRAY);
+								glVertexPointer(3, GL_FLOAT, 0, vertex_buffer);
+
+								glEnableClientState(GL_COLOR_ARRAY);
+								glColorPointer(4, GL_FLOAT, 0, color_buffer);
+
+								glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+
+								glDisableClientState(GL_VERTEX_ARRAY);
+								glDisableClientState(GL_COLOR_ARRAY);
+
+								glEnable(GL_CULL_FACE);
+								glDisable(GL_BLEND);
+								glDepthMask(GL_TRUE);
+
+
             }
 
             rndLightingEnable(TRUE);

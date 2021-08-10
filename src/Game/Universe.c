@@ -489,7 +489,7 @@ scriptEntry ShipStaticCapLimits[] =
     { "MaxJobsPerClass[Fighter]",       scriptSetSdwordCB, &cmMaxJobsPerClass[CLASS_Fighter]},
     { "MaxJobsPerClass[Resource]",      scriptSetSdwordCB, &cmMaxJobsPerClass[CLASS_Resource]},
     { "MaxJobsPerClass[NonCombat]",     scriptSetSdwordCB, &cmMaxJobsPerClass[CLASS_NonCombat]},
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -2023,6 +2023,15 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
 
     strcpy(fullshipname,directory);
     strcat(fullshipname,shipname);
+
+    //printf("shipname: %s \n", shipname);
+#ifdef HW_GAME_DEMO
+    if ( (strcmp(shipname, "CloakedFighter.shp") == 0) || (strcmp(shipname, "MinelayerCorvette.shp") == 0) ) {
+      SetInfoNeededForShipAndRelatedStaticInfo(type,race,FALSE);
+      rmEnableShip(race, type, FALSE);
+      return;
+    }
+#endif
 
     if (!fileExists(fullshipname,0) || universeForceDefaultShip)
     {

@@ -6,6 +6,14 @@
 *.gch
 .vscode
 
+*.em.d
+*.em.o
+*.o
+*.Po
+
+big.contents/
+assets_oem/
+
 Mac/build
 Mac/Homeworld.xcodeproj/*.mode*
 Mac/Homeworld.xcodeproj/*.pbxuser

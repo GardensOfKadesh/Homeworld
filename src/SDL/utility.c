@@ -144,6 +144,16 @@
     #include "debugwnd.h"
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+
+EM_JS(void, em_open_url, (char *x), {
+  console.log("Printing from C++:", x);
+});
+
+#endif
+
 // #define REG_MAGIC_STR  "D657E436967616D4"   // used for CD-checking code
 
 #define CD_VALIDATION_ENABLED  0            // toggle checking CD is in drive and anti-piracy checks
@@ -168,6 +178,16 @@ udword loadedDevcaps2 = 0xFFFFFFFF;
 ----------------------------------------------------------------------------*/
 bool utyBrowserExec(char *URL)
 {
+
+#ifdef __EMSCRIPTEN__
+    //em_open_url(URL);
+    char script[128];
+    //window.open(url, '_blank').focus();
+    strcpy(script, "window.open('");
+    strcat(script, URL);
+    strcat(script, "', '_blank').focus();");
+    emscripten_run_script(script);
+#endif
     return FALSE;
 }
 
@@ -3058,8 +3078,9 @@ void utyGameQuit(char *name, featom *atom)
 #if defined(HW_GAME_DEMO) || defined(HW_GAME_RAIDER_RETREAT)
     if (enableAVI)
     {
-        psModeBegin("Plugscreens\\", PMF_CanSkip);
-        psScreenStart("BuyHomeworld0.plug");
+        psModeBegin("Plugscreens/", PMF_CanSkip);
+        //psScreenStart("BuyHomeworld0.plug");
+        psScreenStart("github.plug");
     }
     else
     {
@@ -3092,11 +3113,12 @@ void utyGameQuitToMain(char *name, featom *atom)
 #if defined (HW_GAME_DEMO) || defined(HW_GAME_RAIDER_RETREAT)
     if (utyPlugScreens && enableAVI)
     {
-        psModeBegin("Plugscreens\\", PMF_CanSkip);
-        psScreenStart("BuyHomeworld0.plug");
+        psModeBegin("Plugscreens/", PMF_CanSkip);
+        //psScreenStart("BuyHomeworld0.plug");
+        psScreenStart("github.plug");
         soundEventPlayMusic(SOUND_FRONTEND_TRACK);
         utyPlugScreens = FALSE;
-        return;
+        //return;
     }
     else
     {
@@ -4252,8 +4274,11 @@ DONE_INTROS:
     if (enableAVI)
     {
         primModeSetFunction2();
-        psModeBegin("Plugscreens\\", PMF_CanSkip);
-        psScreenStart("SierraIntro.plug");
+        //psModeBegin("Plugscreens\\", PMF_CanSkip);
+        //psScreenStart("SierraIntro.plug");
+        psModeBegin("Plugscreens/", PMF_CanSkip);
+        psScreenStart("github.plug");
+
     }
 #endif
     if (demDemoRecording)
@@ -4736,7 +4761,7 @@ void utyTasksDispatch(void)
     }
     else
     {
-        SDL_Delay(1);
+        //SDL_Delay(1);
     }
 }
 
@@ -4924,6 +4949,10 @@ bool utyChangeResolution(sdword width, sdword height, sdword depth)
         return FALSE;
     }
 
+    rndAspectRatio = (GLfloat)width/(GLfloat)height;
+    //printf("%f \n", rndAspectRatio);
+    glViewport(0, 0, width, height);
+
     ghMainRegion->rect.x1 = width;
     ghMainRegion->rect.y1 = height;
 
@@ -4967,6 +4996,8 @@ void utyToggleKeyStatesSave(void)
 ----------------------------------------------------------------------------*/
 void utyToggleKeyStatesRestore(void)
 {
+    return;
+    /*
     SDL_Keymod target = 0;
     const Uint8* state = SDL_GetKeyboardState(NULL);
 #if !defined(_WIN32) && !defined(_MACOSX)
@@ -5055,14 +5086,15 @@ void utyToggleKeyStatesRestore(void)
 #endif
         target |= KMOD_NUM;
     }
-    /* Modifying internal keystate array.  Original HW source code did this
-       using the Windows API SetKeyboardState() function, so hopefully we get
-       the same result here ("state" already points to the internal array used
-       by SDL). */
+    // Modifying internal keystate array.  Original HW source code did this
+    //   using the Windows API SetKeyboardState() function, so hopefully we get
+    //   the same result here ("state" already points to the internal array used
+    //   by SDL).
     //state[SDL_SCANCODE_CAPSLOCK]  = (state[SDL_SCANCODE_CAPSLOCK]  & 0xfe) | (utyCapsLockState);
     //state[SDL_SCANCODE_NUMLOCKCLEAR]   = (state[SDL_SCANCODE_NUMLOCKCLEAR]   & 0xfe) | (utyNumLockState);
     //state[SDL_SCANCODE_SCROLLLOCK] = (state[SDL_SCANCODE_SCROLLLOCK] & 0xfe) | (utyScrollLockState);
     SDL_SetModState(target);
+    */
 }
 
 /*-----------------------------------------------------------------------------

@@ -44,6 +44,10 @@
 #include "UnivUpdate.h"
 #include "utility.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 void SaveConsMgr();
 void LoadConsMgr();
 
@@ -152,7 +156,7 @@ sdword SpaceObjRegistryGetID(SpaceObj *obj)
     {
         return SpaceObjRegistryObjPresent(obj);
     }
-    
+
     return -1;
 }
 
@@ -179,7 +183,7 @@ Ship *SpaceObjRegistryGetShip(sdword id)
         dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
         return ship;
     }
-    
+
     return NULL;
 }
 
@@ -194,7 +198,7 @@ Resource *SpaceObjRegistryGetResource(sdword id)
         dbgAssertOrIgnore(resource->flags & SOF_Resource);
         return resource;
     }
-    
+
     return NULL;
 }
 
@@ -209,7 +213,7 @@ Bullet *SpaceObjRegistryGetBullet(sdword id)
         dbgAssertOrIgnore(bullet->objtype == OBJ_BulletType);
         return bullet;
     }
-    
+
     return NULL;
 }
 
@@ -224,7 +228,7 @@ TargetPtr SpaceObjRegistryGetTarget(sdword id)
         dbgAssertOrIgnore(target->flags & SOF_Targetable);
         return target;
     }
-    
+
     return NULL;
 }
 
@@ -265,15 +269,15 @@ sdword BlobRegistryGetIDWrapper(blob *tblob, bool check_valid_id)
     if (tblob != NULL)
     {
         sdword id = BlobRegistryBlobPresent(tblob);
-        
+
         if (check_valid_id)
         {
             dbgAssertOrIgnore(id != -1);
         }
-        
+
         return id;
     }
-    
+
     return -1;
 }
 
@@ -452,7 +456,7 @@ void LoadMissionNumber()
 {
     MissionEnum saveGameMissionEnum = MISSION_ENUM_NOT_INITIALISED;
     sdword saveGameMissionReference = LoadInfoNumber();
-    
+
     switch (saveGameVersionNumber)
     {
         case SAVE_VERSION_NUMBER_ORIGINAL:
@@ -483,17 +487,17 @@ void LoadMissionNumber()
                 case 14:  saveGameMissionEnum = MISSION_14_BRIDGE_OF_SIGHS;            break;
                 case 15:  saveGameMissionEnum = MISSION_15_CHAPEL_PERILOUS;            break;
                 case 16:  saveGameMissionEnum = MISSION_16_HIIGARA;                    break;
-                
+
                 default:  break;
             }
-            
+
             break;
-        
+
         case SAVE_VERSION_NUMBER_HWSDL_2:
             // use mission value as-is; it's a MissionEnum
             saveGameMissionEnum = (MissionEnum) saveGameMissionReference;
             break;
-        
+
         default:
             break;
     }
@@ -677,6 +681,8 @@ bool SaveGame(char *filename)
 {
     sdword i;
 
+    printf("SaveGame: %s \n", filename);
+
     savefile = fileOpen(filename, FF_WriteMode | FF_ReturnNULLOnFail | FF_UserSettingsPath);
     if (savefile == (filehandle)NULL)
     {
@@ -739,13 +745,22 @@ bool SaveGame(char *filename)
     fileClose(savefile);
     savefile = 0;
 
+    #ifdef __EMSCRIPTEN__
+        EM_ASM(
+            FS.syncfs(function (err) {
+                // Error
+            });
+        );
+    #endif
+
+
     if (savefilestatus)
     {
         fileDelete(filename);
         savefilestatus = 0;
         return FALSE;
     }
-    
+
     return TRUE;        // save successful
 }
 
@@ -837,7 +852,7 @@ void LoadGame(char *filename)
     {
         tutLoadTutorialGame();
     }
-    
+
     LoadMaxSelectionAndFix(&selSelected);
     for (i=0;i<SEL_NumberHotKeyGroups;i++)
     {
@@ -4234,4 +4249,3 @@ void LoadUniverse()
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
 #endif
-

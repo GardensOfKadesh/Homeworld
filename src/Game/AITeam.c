@@ -5,6 +5,9 @@
 //  Created 5/31/1998 by dstone
 // =============================================================================
 
+#include <stdio.h>
+#include <string.h>
+
 #include "AITeam.h"
 
 #include "AIFeatures.h"
@@ -2602,4 +2605,3 @@ void aitFix(struct AIPlayer *aiplayer)
 #ifdef _WIN32_FIX_ME
  #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
 #endif
-

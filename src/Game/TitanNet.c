@@ -158,7 +158,7 @@ scriptEntry NetTweaks[] =
     makeEntry(ROOM_MIN_THRESHOLD,scriptSetUdwordCB),
     makeEntry(ROOM_MAX_THRESHOLD,scriptSetUdwordCB),
     makeEntry(WAIT_SHUTDOWN_MS,scriptSetUdwordCB),
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -294,11 +294,11 @@ void titanGameStartup(void)
     tpChannelList.numChannels = 0;
     tpChannelList.newDataArrived = FALSE;
     tpChannelList.mutex = SDL_CreateMutex();
-    dbgAssertOrIgnore(tpChannelList.mutex != NULL);
+    //dbgAssertOrIgnore(tpChannelList.mutex != NULL);
     tpServerList.numServers = 0;
     tpServerList.newDataArrived = FALSE;
     tpServerList.mutex = SDL_CreateMutex();
-    dbgAssertOrIgnore(tpServerList.mutex != NULL);
+    //dbgAssertOrIgnore(tpServerList.mutex != NULL);
 
     titanResetGameCreated();
 }

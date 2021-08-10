@@ -34,7 +34,7 @@ void ResetQueue(Queue *queue)
 void InitQueue(Queue *queue,udword buffersize)
 {
     queue->mutex = SDL_CreateMutex();
-    dbgAssertOrIgnore(queue->mutex != NULL);
+    //dbgAssertOrIgnore(queue->mutex != NULL);
     queue->buffer = memAlloc(buffersize,"qbuffer",NonVolatile);
     queue->buffersize = buffersize;
     ResetQueue(queue);
@@ -124,7 +124,7 @@ void HWEnqueue(Queue *queue,ubyte *packet,udword sizeofPacket)
     queue->totaltotalsize += sizeinQ;
 
     memcpy(writeto,packet,sizeofPacket);
-    
+
     queue->num++;
 }
 
@@ -199,4 +199,3 @@ udword Peekqueue(Queue *queue,ubyte **packet)
 
     return sizeofPacket;
 }
-

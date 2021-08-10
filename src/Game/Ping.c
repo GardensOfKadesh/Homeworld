@@ -117,7 +117,7 @@ scriptEntry pingTweaks[] =
 //    { "pingBobDoingCollisionBobs", scriptSetBool, &pingBattleBlobProperties.bobDoingCollisionBobs },
 
     { "pingTOLingerTime",       scriptSetReal32CB, &pingTOLingerTime },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -156,7 +156,7 @@ DEFINE_TASK(pingUpdateTask)
     taskBegin;
 
     taskYield(0);
-    
+
     while (1)
     {
         thisNode = pingList.head;
@@ -538,7 +538,7 @@ void pingListDraw(Camera *camera, hmatrix *modelView, hmatrix *projection, recta
             col = teColorSchemes[universe.curPlayerIndex].tacticalColor;
 #endif
             col = colRGB(colRed(col)/TO_IconColorFade, colGreen(col)/TO_IconColorFade, colBlue(col)/TO_IconColorFade);
-            primLineLoopStart2(1, col);
+            primLineLoopStart2(1.3f, col);
 
             for (index = icon->nPoints - 1; index >= 0; index--)
             {
@@ -1170,4 +1170,3 @@ void pingLoad(void)
 /*=============================================================================
     End of Save Game Stuff
 =============================================================================*/
-

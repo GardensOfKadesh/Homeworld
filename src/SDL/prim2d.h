@@ -128,7 +128,7 @@ void primLine2(sdword x0, sdword y0, sdword x1, sdword y1, color c);
 void primNonAALine2(sdword x0, sdword y0, sdword x1, sdword y1, color c);
 void primLineThick2(sdword x0, sdword y0, sdword x1, sdword y1, sdword thickness, color c);
 //draw a line loop
-void primLineLoopStart2(sdword thickness, color c);
+void primLineLoopStart2(real32 thickness, color c);
 void primLineLoopPoint3F(real32 x, real32 y);
 void primLineLoopEnd2(void);
 //draw solid circular things

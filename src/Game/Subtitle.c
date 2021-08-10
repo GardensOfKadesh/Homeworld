@@ -572,7 +572,7 @@ void subStartup(void)
     subMissedSubtitles = 0;
 #endif
     subSemaphore = SDL_CreateSemaphore(1);
-    dbgAssertOrIgnore(subSemaphore != NULL);
+    //dbgAssertOrIgnore(subSemaphore != NULL);
 
     memset(&subRegion, 0, sizeof(subRegion));               //clear out the themes and printing regions
     memset(&subTheme, 0, sizeof(subTheme));
@@ -1273,12 +1273,12 @@ void subTitlesDraw(subregion *region)
     {                                                       //if some full screen gui is up
         rndTextureEnable(FALSE);
         glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_STRIP);
         //top scissor part
         glVertex2f(primScreenToGLX(-1), primScreenToGLY(0));
         glVertex2f(primScreenToGLX(-1), primScreenToGLY(NIS_LetterHeight));
-        glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(NIS_LetterHeight));
         glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(0));
+        glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(NIS_LetterHeight));
         glEnd();
         //ferDrawBoxRegion(region->rect, ferMediumTextures, ferInternalGlow, NULL, FALSE);
     }
@@ -1430,4 +1430,3 @@ void subTitlesFadeOut(subregion *region, real32 fadeTime)
     }
     region->bAborted = TRUE;
 }
-

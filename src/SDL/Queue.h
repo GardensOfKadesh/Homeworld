@@ -44,4 +44,3 @@ void UnLockQueue(Queue *queue);
 #define queueNumberOverruns(q) ((q).overruns)
 
 #endif
-

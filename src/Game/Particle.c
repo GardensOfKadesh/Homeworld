@@ -345,7 +345,7 @@ color  partEffectColor;
 real32 partNLips;
 
 //box helper
-static void drawBox(GLfloat size, GLenum type)
+static void drawBox(GLfloat size, GLenum type, particle *p, bool alpha)
 {
     static GLfloat n[6][3] =
     {
@@ -378,11 +378,43 @@ static void drawBox(GLfloat size, GLenum type)
     for (i = 0; i < 6; i++)
     {
         glBegin(type);
-        glNormal3fv(&n[i][0]);
-        glVertex3fv(&v[faces[i][0]][0]);
-        glVertex3fv(&v[faces[i][1]][0]);
-        glVertex3fv(&v[faces[i][2]][0]);
-        glVertex3fv(&v[faces[i][3]][0]);
+        //glNormal3fv(&n[i][0]);
+        if (alpha)
+        {
+            glNormal3fv(&n[i][0]);
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3fv(&v[faces[i][0]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3fv(&v[faces[i][1]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3fv(&v[faces[i][3]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3fv(&v[faces[i][2]][0]);
+        }
+        else
+        {
+            glNormal3fv(&n[i][0]);
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3fv(&v[faces[i][0]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3fv(&v[faces[i][1]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3fv(&v[faces[i][3]][0]);
+
+            glNormal3fv(&n[i][0]);
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3fv(&v[faces[i][2]][0]);
+        }
         glEnd();
     }
 }
@@ -394,21 +426,24 @@ void partCircleSolid3(vector *centre, real32 radius, sdword nSlices, color c)
     GLfloat v[3];
     double theta;
 
-    glColor4ub(colRed(c), colGreen(c), colBlue(c), colAlpha(c));
+    //glColor4ub(colRed(c), colGreen(c), colBlue(c), colAlpha(c));
     v[0] = centre->x;
     v[1] = centre->y;
     v[2] = centre->z;
     glBegin(GL_TRIANGLE_FAN);
+    glColor4ub(colRed(c), colGreen(c), colBlue(c), colAlpha(c));
     glVertex3fv(v);
     for (index = 0, theta = 0.0; index < nSlices; index++)
     {
         v[0] = centre->x + (real32)(sin(theta)) * radius;
         v[1] = centre->y + (real32)(cos(theta)) * radius;
         theta += 2.0 * PI / (double)nSlices;
+        glColor4ub(colRed(c), colGreen(c), colBlue(c), colAlpha(c));
         glVertex3fv(v);
     }
     v[0] = centre->x;
     v[1] = centre->y + radius;
+    glColor4ub(colRed(c), colGreen(c), colBlue(c), colAlpha(c));
     glVertex3fv(v);
     glEnd();
 }
@@ -627,7 +662,23 @@ void partBindAlternate(trhandle tex)
 
     // ... from the data of the old texture (ASSERT: currently bound)
     data = (ubyte*)memAlloc(4*reg->scaledWidth*reg->scaledHeight, "temp part alternate", Pyrophoric);
+
+#ifndef __EMSCRIPTEN__
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#else
+    // webgl does not support glgetteximage so we have to use read pixels via framebuffer attachements
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reg->handle, 0);
+
+    glReadPixels(0, 0, reg->scaledWidth, reg->scaledHeight, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
+#endif
+
     for (i = 0; i < 4*reg->scaledWidth*reg->scaledHeight; i += 4)
     {
         data[i+0] = data[i+1] = data[i+2] = 200;
@@ -677,6 +728,7 @@ udword partRenderBillSystem(udword n, particle* p, udword flags,
     matrix* partMat;
     trhandle tex;
     real32 saturatedBias[3] = {0.0, 0.0, 0.0};
+    real32 tmpColors[4] = {0.0, 0.0, 0.0};
     sdword blended;
 
     slices = bpart->slices;
@@ -718,6 +770,7 @@ udword partRenderBillSystem(udword n, particle* p, udword flags,
             hits++;
         if (p->waitspan > 0.0f)
             continue;
+
         pos = p->position;
         if (!isWorldspace)
         {
@@ -748,14 +801,18 @@ udword partRenderBillSystem(udword n, particle* p, udword flags,
 
         if (p->icolor[3] == 1.0f)
         {
-            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            //glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
             glDisable(GL_BLEND);
         }
         else
         {
-            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            //glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
             glEnable(GL_BLEND);
         }
+        tmpColors[0] = p->icolor[0];
+        tmpColors[1] = p->icolor[1];
+        tmpColors[2] = p->icolor[2];
+        tmpColors[3] = p->icolor[3];
 
         if (currentTex == TR_Invalid)
         {
@@ -794,21 +851,33 @@ udword partRenderBillSystem(udword n, particle* p, udword flags,
             if (p->rot == 0.0f)
             {
 AGAIN0:
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_STRIP);
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[0][0]), TEXY(uv[0][1]));
                 glVertex3f(-sx, -sy, 0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[0][1]));
                 glVertex3f(sx, -sy, 0.0f);
-                glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[1][1]));
-                glVertex3f(sx, sy, 0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[0][0]), TEXY(uv[1][1]));
                 glVertex3f(-sx, sy, 0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
+                glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[1][1]));
+                glVertex3f(sx, sy, 0.0f);
+
                 glEnd();
                 if (blended)
                 {
                     blended--;
                     rndAdditiveBlends(TRUE);
-                    glColor4f(saturatedBias[0], saturatedBias[1], saturatedBias[2], p->icolor[3]);
+                    //glColor4f(saturatedBias[0], saturatedBias[1], saturatedBias[2], p->icolor[3]);
+                    tmpColors[0] = saturatedBias[0];
+                    tmpColors[1] = saturatedBias[1];
+                    tmpColors[2] = saturatedBias[2];
+                    tmpColors[3] = saturatedBias[3];
                     //render this guy again, additively blending over the last
                     partBindAlternate(currentTex);
                     partFilter(TRUE);
@@ -818,29 +887,43 @@ AGAIN0:
             else
             {
 AGAIN1:
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_STRIP);
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[0][0]), TEXY(uv[0][1]));
                 glVertex3f((-sx*cosTheta) - (-sy*sinTheta),
                            (-sx*sinTheta) + (-sy*cosTheta),
                            0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[0][1]));
                 glVertex3f((sx*cosTheta) - (-sy*sinTheta),
                            (sx*sinTheta) + (-sy*cosTheta),
                            0.0f);
-                glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[1][1]));
-                glVertex3f((sx*cosTheta) - (sy*sinTheta),
-                           (sx*sinTheta) + (sy*cosTheta),
-                           0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
                 glTexCoord2f(TEXX(uv[0][0]), TEXY(uv[1][1]));
                 glVertex3f((-sx*cosTheta) - (sy*sinTheta),
                            (-sx*sinTheta) + (sy*cosTheta),
                            0.0f);
+
+                glColor4f(tmpColors[0], tmpColors[1], tmpColors[2], tmpColors[3]);
+                glTexCoord2f(TEXX(uv[1][0]), TEXY(uv[1][1]));
+                glVertex3f((sx*cosTheta) - (sy*sinTheta),
+                           (sx*sinTheta) + (sy*cosTheta),
+                           0.0f);
+
                 glEnd();
                 if (blended)
                 {
                     blended--;
                     rndAdditiveBlends(TRUE);
-                    glColor4f(saturatedBias[0], saturatedBias[1], saturatedBias[2], p->icolor[3]);
+                    //glColor4f(saturatedBias[0], saturatedBias[1], saturatedBias[2], p->icolor[3]);
+
+                    tmpColors[0] = saturatedBias[0];
+                    tmpColors[1] = saturatedBias[1];
+                    tmpColors[2] = saturatedBias[2];
+                    tmpColors[3] = saturatedBias[3];
+
                     //render again, additively blending over previous
                     partBindAlternate(currentTex);
                     partFilter(TRUE);
@@ -1265,7 +1348,7 @@ udword partRenderMeshSystem(udword n, particle *p, udword flags, trhandle tex, m
       }
 #if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME)
         if ((mesh != NULL) && (mesh != (meshdata*) 0x7fffffff))
-#else   
+#else
         if ((mesh != NULL) && (mesh != (meshdata*) 0xffffffff))
 #endif
         {
@@ -1444,7 +1527,7 @@ udword partRenderLineSystem(udword n, particle *p, udword flags)
     bool alpha = FALSE;
     GLfloat linewidth;
 
-    glGetFloatv(GL_LINE_WIDTH, &linewidth);
+    //glGetFloatv(GL_LINE_WIDTH, &linewidth);
     if (bitTest(flags, PART_ALPHA))
     {
         alpha = TRUE;
@@ -1477,14 +1560,7 @@ udword partRenderLineSystem(udword n, particle *p, udword flags)
 
         glLineWidth(p->scale);
         glBegin(GL_LINES);
-        if (alpha)
-        {
-            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
-        }
-        else
-        {
-            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
-        }
+
         pos = p->position;
         if (bitTest(flags, PART_WORLDSPACE))
         {
@@ -1514,8 +1590,22 @@ udword partRenderLineSystem(udword n, particle *p, udword flags)
             vecMultiplyByScalar(rv, p->length);
             vecAddTo(pos, rv);
         }
-        glVertex3f(p->position.x, p->position.y, p->position.z);
-        glVertex3f(pos.x, pos.y, pos.z);
+
+        if (alpha)
+        {
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3f(p->position.x, p->position.y, p->position.z);
+            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+            glVertex3f(pos.x, pos.y, pos.z);
+        }
+        else
+        {
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3f(p->position.x, p->position.y, p->position.z);
+            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+            glVertex3f(pos.x, pos.y, pos.z);
+        }
+
         glEnd();
     }
 
@@ -1528,7 +1618,7 @@ udword partRenderLineSystem(udword n, particle *p, udword flags)
     rndTextureEnable(texEnabled);
     rndLightingEnable(lightEnabled);
 
-    glLineWidth(linewidth);
+    //glLineWidth(linewidth);
     return hits;
 }
 
@@ -1563,12 +1653,12 @@ udword partRenderCubeSystem(udword n, particle *p, udword flags)
             continue;
         glPushMatrix();
         glTranslatef(p->position.x, p->position.y, p->position.z);
-        if (alpha)
-            glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
-        else
-            glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
+        //if (alpha)
+        //    glColor4f(p->icolor[0], p->icolor[1], p->icolor[2], p->icolor[3]);
+        //else
+        //    glColor3f(p->icolor[0], p->icolor[1], p->icolor[2]);
         handleIllum(p);
-        drawBox(p->scale * 0.5f, GL_QUADS);
+        drawBox(p->scale * 0.5f, GL_TRIANGLE_STRIP, p, alpha);
         glPopMatrix();
     }
 
@@ -1598,7 +1688,7 @@ udword partRenderPointSystem(udword n, particle *p, udword flags)
     texEnabled = rndTextureEnable(FALSE);
     lightEnabled = rndLightingEnable(FALSE);
 
-    glGetFloatv(GL_POINT_SIZE, &pointsize);
+    //glGetFloatv(GL_POINT_SIZE, &pointsize);
     if (bitTest(flags, PART_ALPHA))
     {
         alpha = TRUE;
@@ -1642,7 +1732,7 @@ udword partRenderPointSystem(udword n, particle *p, udword flags)
     rndTextureEnable(texEnabled);
     rndLightingEnable(lightEnabled);
 
-    glPointSize(pointsize);
+    //glPointSize(pointsize);
     rndAdditiveBlends(FALSE);
     return hits;
 }
@@ -1866,7 +1956,7 @@ meshdata* partMeshNextMesh(meshSystem* psys, particle* p)
     sdword    frameNo   = partAdvanceMeshMorph(psys, p);
     meshAnim* animblock = (meshAnim*)p->mstruct;
     meshAnim* frame     = animblock + frameNo;
-    
+
     return frame->mesh;
 }
 
@@ -1924,7 +2014,7 @@ sdword partAdvanceMeshMorph(meshSystem* psys, particle* p)
 // MeshMorphedObjectRender crash fixme part 2
 #if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME)
     if (next->mesh == NULL || next->mesh == (meshdata*) 0x7fffffff)
-#else    
+#else
     if (next->mesh == NULL || next->mesh == (meshdata*) 0xffffffff)
 #endif
     {
@@ -2010,6 +2100,8 @@ void partUpdateMeshAnimation(meshSystem* psys, particle* part, real32 dt)
  */
 int is_final_tex(trhandle tex)
 {
+    //printf("%08x \n", tex);
+    if (tex == 0xffffffff) return 1;
 #ifdef _MACOSX_FIX_86
     if (tex == 0xffffffff) return 1;
 #else
@@ -2020,14 +2112,14 @@ int is_final_tex(trhandle tex)
     if (tex == 0xffffffff) {
       return 1;
     }
-    if (0x7fffffff == (tex & 0x7fffffff)) { 
+    if (0x7fffffff == (tex & 0x7fffffff)) {
       /* it will catch stuff like 0x9cce2641ffffffff on 64-bit... but source of 32/64 should really be found and fixed */
       dbgWarningf("Particle.c",2149, "is_final_tex got invalid tex pointer 0x%lx - trying to work around", tex);
       return 1;
     }
     if (tex >= TR_RegistrySize) { dbgFatalf(DBG_Loc, "tex handle 0x%lx is broken in is_final_tex, unable to continue", tex); }
 #endif
-        
+
     return 0;
 }
 
@@ -3920,4 +4012,3 @@ void partCreateCallbackSet(void (*function)(sdword userValue, ubyte *userData), 
     partCreateUserValue = userValue;
     partCreateUserData  = userData;
 }
-

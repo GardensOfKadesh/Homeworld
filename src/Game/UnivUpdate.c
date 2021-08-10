@@ -5121,7 +5121,7 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                     bnm.info[5] = ship->cuedAnimationIndex;
                     bnm.info[6] = ship->cuedAnimationType;
                     bnm.info[7] = 0;
-                    bnm.info[8] = 0;
+                    //bnm.info[8] = 0;
                     fwrite(&bnm, sizeof(bnm), 1 ,netlogfile);
 #else
                     //                  flags,guns,wings,dock,special,index,type

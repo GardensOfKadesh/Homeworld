@@ -80,7 +80,7 @@ typedef enum
 {
     MISSION_ENUM_NOT_INITIALISED = 0,
 
-    // these preserve the original mission numbers 
+    // these preserve the original mission numbers
     MISSION_1_KHARAK_SYSTEM,
     MISSION_2_OUTSKIRTS_OF_KHARAK_SYSTEM,
     MISSION_3_RETURN_TO_KHARAK,
@@ -97,7 +97,7 @@ typedef enum
     MISSION_14_BRIDGE_OF_SIGHS,
     MISSION_15_CHAPEL_PERILOUS,
     MISSION_16_HIIGARA,
-    
+
     // whilst these are out of sequence
     MISSION_5B_TURANIC_RAIDER_PLANETOID,
     MISSION_TUTORIAL,

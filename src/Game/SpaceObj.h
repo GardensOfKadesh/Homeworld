@@ -232,7 +232,7 @@ typedef struct
     vector conenormal;
     real32 coneangle;
     char name[20];
-}SalvageStaticPoint;
+} SalvageStaticPoint;
 
 typedef struct
 {
@@ -348,7 +348,7 @@ typedef struct
     struct SpaceObjRotImpTarg *host;
     matrix clampCoordsys;
     vector clampOffset;
-}ClampInfo;
+} ClampInfo;
 
 /*=============================================================================
     Object Static Types
@@ -1288,7 +1288,7 @@ typedef struct ShipID
 #define SPECIAL_2_DontPlowThroughEnemyShips         BIT5
 #define SPECIAL_2_BusiedDockPoint                   BIT6
 #define SPECIAL_2_DisabledForever                   BIT7
-				
+
 
 struct Resource;
 
@@ -1949,4 +1949,3 @@ extern GodWritePacketHeader *godUniverseSnapShotHeader;
 =============================================================================*/
 
 #endif //___SPACEOBJ
-

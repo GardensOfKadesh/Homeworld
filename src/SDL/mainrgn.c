@@ -1335,14 +1335,20 @@ void mrCameraMotion(void)
     }
     else
     {
-        if (mouseCursorX() != MAIN_WindowWidth / 2 ||
-        mouseCursorY() != MAIN_WindowHeight / 2)
+        sdword mouseCursorXshifted = mrOldMouseX - mouseCursorX();
+        sdword mouseCursorYshifted = mrOldMouseY - mouseCursorY();
+        if (mouseCursorXshifted != 0 || mouseCursorYshifted != 0)
         {
-            mrMouseHasMoved += abs(mouseCursorX() - MAIN_WindowWidth / 2);
-            mrMouseHasMoved += abs(mouseCursorY() - MAIN_WindowHeight / 2);
-            camMouseX = MAIN_WindowWidth / 2 - mouseCursorX();
-            camMouseY = MAIN_WindowHeight / 2 - mouseCursorY();
-            mousePositionSet(MAIN_WindowWidth / 2, MAIN_WindowHeight / 2);
+            //mrMouseHasMoved += abs(mouseCursorXshifted - MAIN_WindowWidth / 2);
+            //mrMouseHasMoved += abs(mouseCursorYshifted - MAIN_WindowHeight / 2);
+            //camMouseX = MAIN_WindowWidth / 2 - mouseCursorXshifted;
+            //camMouseY = MAIN_WindowHeight / 2 - mouseCursorYshifted;
+            //mousePositionSet(MAIN_WindowWidth / 2, MAIN_WindowHeight / 2);
+            mrMouseHasMoved += abs(mouseCursorXshifted) + abs(mouseCursorYshifted);
+            camMouseX = mouseCursorXshifted;
+            camMouseY = mouseCursorYshifted;
+            mrOldMouseX = mouseCursorX();
+            mrOldMouseY = mouseCursorY();
         }
 
     }
@@ -1598,14 +1604,14 @@ void mrKeyPress(sdword ID)
 // handler code unless we explicitly skip that lookup. Of course having checked for it
 // here we could also put the handler code here too but for consistency that's been left
 // in the switch().
-#ifdef _MACOSX                  
+#ifdef _MACOSX
     if (ID != QKEY)
 #endif
     {
         // Drew's keybinding
         ID = (sdword)kbCheckBindings(ID);
     }
-    
+
     if (ID == CAPSLOCKKEY)
     {
         goto docapslock;        // TO always on
@@ -2117,7 +2123,7 @@ cancelfocus:
                 soundEvent(NULL, UI_Click);
             }
             break;
-			
+
         case MMOUSE_BUTTON:
         case MMOUSE_DOUBLE:
             if (keyIsHit(ALTKEY))
@@ -2127,7 +2133,7 @@ cancelfocus:
                 break;
             }
             // fallthrough to FKEY
-			
+
         case FKEY:
 			if (selSelected.numShips != 0)
             {
@@ -4022,7 +4028,7 @@ udword mrRegionProcess(regionhandle reg, sdword ID, udword event, udword data)
                                 {                           //band-selecting no ships disabled if tutorial's cancel select disabled
                                     selRectSelect(&(universe.mainCameraCommand.actualcamera),
                                                   &mrSelectionRect);
-                                    if ((selSelected.numShips > 0) && (!playPackets) && (!universePause && opPauseOrders) )  
+                                    if ((selSelected.numShips > 0) && (!playPackets) && (!universePause && opPauseOrders) )
                                     {
                                         if (selShipInSelection(selSelected.ShipPtr, selSelected.numShips, universe.curPlayerPtr->PlayerMothership)
                                             && (universe.curPlayerPtr->PlayerMothership->shiptype == Mothership))
@@ -4055,7 +4061,7 @@ plainOldClickAction:
                         if (ship != NULL)
                         {                                       //if mouse over a ship
 #ifndef _MACOSX_FIX_MISC
-// Mac OS X: the [ALT] + [left mouse button] hack does not work 
+// Mac OS X: the [ALT] + [left mouse button] hack does not work
 // in the tutorial unless we ignore this check
                             if((!(tutorial==TUTORIAL_ONLY)) || tutEnable.bClickSelect)
 #endif
@@ -4409,7 +4415,9 @@ bool toDrawPulsedLine(vector linestart, vector lineend, real32 pulsesize, color 
             //draw the fadein
             if (draw_fadein)
             {
+                glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
                 glVertex3fv((GLfloat *)&fadestart);
+                glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
                 glVertex3fv((GLfloat *)&fadestart);
             }
             glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
@@ -4420,27 +4428,34 @@ bool toDrawPulsedLine(vector linestart, vector lineend, real32 pulsesize, color 
         {
             glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
             glVertex3fv((GLfloat *)&linestart);
+            glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
             glVertex3fv((GLfloat *)&pulsestart);
         }
 
         //draw the pulse
+        glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
         glVertex3fv((GLfloat *)&pulsestart);
 
         if (!pulse_at_end)
         {
+            glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
             glVertex3fv((GLfloat *)&pulseend);
 
             //draw the line from the pulse to the end of the line
+            glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
             glVertex3fv((GLfloat *)&pulseend);
-            glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
+            //glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
 
             //draw the fadeout
             if (draw_fadeout)
             {
+                glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
                 glVertex3fv((GLfloat *)&fadeend);
+                glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
                 glVertex3fv((GLfloat *)&fadeend);
             }
         }
+        glColor3ub(colRed(linecolor), colGreen(linecolor), colBlue(linecolor));
         glVertex3fv((GLfloat *)&lineend);
     }
     glEnd();
@@ -4563,6 +4578,7 @@ void toDrawMoveFromLine(ShipPtr ship)
         //draw the line from the ship to the pulse
         glColor3ub(colRed(TO_MOVE_LINE_COLOR), colGreen(TO_MOVE_LINE_COLOR), colBlue(TO_MOVE_LINE_COLOR));
         glVertex3fv((GLfloat *)&shipback);
+        glColor3ub(colRed(TO_MOVE_LINE_COLOR), colGreen(TO_MOVE_LINE_COLOR), colBlue(TO_MOVE_LINE_COLOR));
         glVertex3fv((GLfloat *)&ship->moveFrom);
     }
     glEnd();
@@ -4995,6 +5011,7 @@ void toPulse1(vector linestart, vector lineend, real32 pulsesize, color pulsecol
     {
         glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
         glVertex3fv((GLfloat *)&pulsestart);
+        glColor3ub(colRed(pulsecolor), colGreen(pulsecolor), colBlue(pulsecolor));
         glVertex3fv((GLfloat *)&pulseend);
 
     }
@@ -5709,12 +5726,15 @@ void mrRegionDraw(regionhandle reg)
             y = NIS_LetterHeight;
         }
         glEnable(GL_BLEND);
+        glBegin(GL_TRIANGLE_STRIP);
         glColor4f(0.0f, 0.0f, 0.0f, nisBlackFade);
-        glBegin(GL_QUADS);
         glVertex2f(primScreenToGLX(-1), primScreenToGLY(y - NIS_EXCESSSCISSORMARGIN));
+        glColor4f(0.0f, 0.0f, 0.0f, nisBlackFade);
         glVertex2f(primScreenToGLX(-1), primScreenToGLY(MAIN_WindowHeight - y + NIS_EXCESSSCISSORMARGIN));
-        glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(MAIN_WindowHeight - y + NIS_EXCESSSCISSORMARGIN));
+        glColor4f(0.0f, 0.0f, 0.0f, nisBlackFade);
         glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(y - NIS_EXCESSSCISSORMARGIN));
+        glColor4f(0.0f, 0.0f, 0.0f, nisBlackFade);
+        glVertex2f(primScreenToGLX(MAIN_WindowWidth), primScreenToGLY(MAIN_WindowHeight - y + NIS_EXCESSSCISSORMARGIN));
         glEnd();
         glDisable(GL_BLEND);
     }

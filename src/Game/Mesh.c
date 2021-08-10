@@ -1177,7 +1177,7 @@ void meshFree(meshdata *mesh)
                     {
                         if (((trhandle *)mesh->localMaterial[index].texture)[j] < TR_RegistrySize ) {
 #endif
-                
+
                     trTextureUnregister(((trhandle *)mesh->localMaterial[index].texture)[j]);
 
 #ifdef _X86_64
@@ -1561,7 +1561,7 @@ void meshObjectPoints(polygonobject* object, materialentry* materials, sdword iC
     rndLightingEnable(lightOn);
     rndTextureEnable(texOn);
 }
-void meshObjectRender(polygonobject *object, materialentry *materials, sdword iColorScheme)
+void meshObjectRender_original(polygonobject *object, materialentry *materials, sdword iColorScheme)
 {
     sdword iPoly;
     vertexentry *vertexList;
@@ -1692,9 +1692,12 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
                 dbgAssertOrIgnore(polygon->iFaceNormal != UWORD_Max);
                 normal = &normalList[polygon->iFaceNormal];
                 glNormal3f(normal->x, normal->y, normal->z);
-
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
+
+                glNormal3f(normal->x, normal->y, normal->z);
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
+
+                glNormal3f(normal->x, normal->y, normal->z);
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
 
 #if RND_POLY_STATS
@@ -1705,13 +1708,14 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
                 dbgAssertOrIgnore(polygon->iFaceNormal != UWORD_Max);
                 normal = &normalList[polygon->iFaceNormal];
                 glNormal3f(normal->x, normal->y, normal->z);
-
                 glTexCoord2f(polygon->s0, polygon->t0);
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
 
+                glNormal3f(normal->x, normal->y, normal->z);
                 glTexCoord2f(polygon->s1, polygon->t1);
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
 
+                glNormal3f(normal->x, normal->y, normal->z);
                 glTexCoord2f(polygon->s2, polygon->t2);
                 glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
 
@@ -1783,6 +1787,307 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
         polygon++;
     }
     glEnd();                                            //done drawing these triangles
+
+    glShadeModel(GL_SMOOTH);
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+
+    if (enableBlend)
+    {
+        glDisable(GL_BLEND);
+    }
+
+    if (g_WireframeHack)
+    {
+        rndLightingEnable(lightOn);
+        if (enableBlend)
+        {
+            glDisable(GL_LINE_SMOOTH);
+        }
+    }
+}
+void meshObjectRender(polygonobject *object, materialentry *materials, sdword iColorScheme)
+{
+    sdword iPoly;
+    vertexentry *vertexList;
+    polyentry *polygon;
+    normalentry *normal, *normalList;
+    sdword currentMaterial = -1;
+    GLenum mode = GL_SMOOTH;
+    sdword lightOn = FALSE;
+    bool enableBlend;
+
+    glShadeModel(mode);
+
+    enableBlend = bFade;
+
+    if (g_WireframeHack)
+    {
+        lightOn = rndLightingEnable(FALSE);
+        glColor3ub(200,200,200);
+        enableBlend = TRUE;
+        if (enableBlend)
+        {
+            glEnable(GL_LINE_SMOOTH);
+            glEnable(GL_BLEND);
+            rndAdditiveBlends(FALSE);
+        }
+        if (!g_HiddenRemoval)
+        {
+            glDisable(GL_CULL_FACE);
+        }
+    }
+
+    alodIncPolys(object->nPolygons);
+
+    vertexList = object->pVertexList;                       //get base of vertex list
+    normalList = object->pNormalList;                       //get base of normal list
+    polygon = object->pPolygonList;                         //get first polygon list entry
+
+
+    static GLfloat vertex_buffer[4096];
+    static GLfloat texcoord_buffer[4096];
+    //static GLfloat color_buffer[4096];
+    static GLfloat normal_buffer[4096];
+    static unsigned int vertex_count;
+    static GLenum gl_mode;
+
+    //glBegin(g_WireframeHack ? GL_LINE_LOOP : GL_TRIANGLES);                                  //prepare to draw triangles
+    gl_mode = g_WireframeHack ? GL_LINE_LOOP : GL_TRIANGLES;
+
+    vertex_count = 0;
+    //for (iPoly = 0; iPoly < object->nPolygons; iPoly++)
+    iPoly = 0;
+    while (iPoly < object->nPolygons)
+    {
+      if (polygon->iMaterial == currentMaterial) {
+
+        switch (meshPolyMode)
+        {
+            case MPM_Flat:
+                normal = &normalList[polygon->iFaceNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV0].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV0].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV0].z;
+                vertex_count += 1;
+
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV1].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV1].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV1].z;
+                vertex_count += 1;
+
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV2].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV2].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV2].z;
+                vertex_count += 1;
+
+                break;
+
+            case MPM_Texture:
+                normal = &normalList[polygon->iFaceNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s0, polygon->t0);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s0;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t0;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV0].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV0].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV0].z;
+                vertex_count += 1;
+
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s1, polygon->t1);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s1;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t1;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV1].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV1].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV1].z;
+                vertex_count += 1;
+
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s2, polygon->t2);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s2;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t2;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV2].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV2].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV2].z;
+                vertex_count += 1;
+
+                break;
+
+            case MPM_Smooth:
+
+                normal = &normalList[vertexList[polygon->iV0].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV0].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV0].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV0].z;
+                vertex_count += 1;
+
+                normal = &normalList[vertexList[polygon->iV1].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV1].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV1].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV1].z;
+                vertex_count += 1;
+
+                normal = &normalList[vertexList[polygon->iV2].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV2].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV2].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV2].z;
+                vertex_count += 1;
+
+                break;
+
+            case MPM_SmoothTexture:
+
+                normal = &normalList[vertexList[polygon->iV0].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s0, polygon->t0);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV0].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s0;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t0;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV0].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV0].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV0].z;
+                vertex_count += 1;
+
+
+                normal = &normalList[vertexList[polygon->iV1].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s1, polygon->t1);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV1].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s1;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t1;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV1].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV1].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV1].z;
+                vertex_count += 1;
+
+
+                normal = &normalList[vertexList[polygon->iV2].iVertexNormal];
+                //glNormal3f(normal->x, normal->y, normal->z);
+                //glTexCoord2f(polygon->s2, polygon->t2);
+                //glVertex3fv((GLfloat*)&vertexList[polygon->iV2].x);
+                normal_buffer[vertex_count*3 + 0] = normal->x;
+                normal_buffer[vertex_count*3 + 1] = normal->y;
+                normal_buffer[vertex_count*3 + 2] = normal->z;
+                texcoord_buffer[vertex_count*2 + 0] = polygon->s2;
+                texcoord_buffer[vertex_count*2 + 1] = polygon->t2;
+                vertex_buffer[vertex_count*3 + 0] = vertexList[polygon->iV2].x;
+                vertex_buffer[vertex_count*3 + 1] = vertexList[polygon->iV2].y;
+                vertex_buffer[vertex_count*3 + 2] = vertexList[polygon->iV2].z;
+                vertex_count += 1;
+
+
+                break;
+            default:
+                break;
+        }
+        polygon++;
+        iPoly++;
+      }
+
+        if ((polygon->iMaterial != currentMaterial) || (iPoly >= object->nPolygons))
+        {                                                   //if a new material
+            //glEnd();                                        //end current polygon run
+            if (vertex_count > 0) {
+              switch (meshPolyMode)
+              {
+                  case MPM_Flat:
+                  case MPM_Smooth:
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glVertexPointer(3, GL_FLOAT, 0, vertex_buffer);
+
+                    glEnableClientState(GL_NORMAL_ARRAY);
+                    glNormalPointer(GL_FLOAT, 0, normal_buffer);
+
+
+                    break;
+                  case MPM_Texture:
+                  case MPM_SmoothTexture:
+                    glEnableClientState(GL_VERTEX_ARRAY);
+                    glVertexPointer(3, GL_FLOAT, 0, vertex_buffer);
+
+                    glEnableClientState(GL_NORMAL_ARRAY);
+                    glNormalPointer(GL_FLOAT, 0, normal_buffer);
+
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glTexCoordPointer(2, GL_FLOAT, 0, texcoord_buffer);
+
+                    break;
+                  default:
+                    break;
+              }
+              glDrawArrays(gl_mode, 0, vertex_count);
+
+              vertex_count = 0;
+            }
+
+            if (iPoly < object->nPolygons) {
+              currentMaterial = polygon->iMaterial;           //remember current material
+              meshCurrentMaterial(&materials[currentMaterial], iColorScheme);//set new material
+            }
+            if (enableBlend)
+            {
+                glEnable(GL_BLEND);
+            }
+            //glBegin(g_WireframeHack ? GL_LINE_LOOP : GL_TRIANGLES);                          //start new run
+        }
+
+
+    }
+    //glEnd();                                            //done drawing these triangles
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glShadeModel(GL_SMOOTH);
     glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
@@ -2173,9 +2478,12 @@ void meshMorphedObjectRender(
                 meshLerpNormal(&normal, &normalList1[polygon->iFaceNormal], &normalList2[polygon->iFaceNormal], frac);
                 if (g_SpecHack) meshMorphedSpecColour(&normal, modelview, modelviewInv);
                 glNormal3f(normal.x, normal.y, normal.z);
-
                 glVertex3fv((GLfloat*)&vert0);
+
+                glNormal3f(normal.x, normal.y, normal.z);
                 glVertex3fv((GLfloat*)&vert1);
+
+                glNormal3f(normal.x, normal.y, normal.z);
                 glVertex3fv((GLfloat*)&vert2);
 #if RND_POLY_STATS
                 rndNumberPolys++;
@@ -2191,12 +2499,16 @@ void meshMorphedObjectRender(
 
                 meshLerpNormal(&normal, &normalList1[polygon->iFaceNormal], &normalList2[polygon->iFaceNormal], frac);
                 if (g_SpecHack) meshMorphedSpecColour(&normal, modelview, modelviewInv);
-                glNormal3f(normal.x, normal.y, normal.z);
 
+                glNormal3f(normal.x, normal.y, normal.z);
                 glTexCoord2f(uvPolygon->s0, uvPolygon->t0);
                 glVertex3fv((GLfloat*)&vert0);
+
+                glNormal3f(normal.x, normal.y, normal.z);
                 glTexCoord2f(uvPolygon->s1, uvPolygon->t1);
                 glVertex3fv((GLfloat*)&vert1);
+
+                glNormal3f(normal.x, normal.y, normal.z);
                 glTexCoord2f(uvPolygon->s2, uvPolygon->t2);
                 glVertex3fv((GLfloat*)&vert2);
 #if RND_POLY_STATS

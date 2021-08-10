@@ -150,7 +150,7 @@ void trStartup(void)
     trNoPalStartup();                                       //must come before trReset
     trReset();                                              //reset the newly-allocated texture registry
 
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1187,16 +1187,7 @@ udword trPalettedTextureCreate(ubyte *data, color *palette, sdword width, sdword
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    if (texLinearFiltering)
-    {                                                       //set min/mag filters to point samplingor linear
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    else
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
+
     primErrorMessagePrint();
     //first see if this texture can fit in RAM.  It should because we've already packed the textures
 #if TR_ASPECT_CHECKING
@@ -1220,6 +1211,20 @@ udword trPalettedTextureCreate(ubyte *data, color *palette, sdword width, sdword
 #endif //TR_ASPECT_CHECKING
 
     trCreateUnpalettedTexture((ubyte*)palette, data, width, height);
+
+    if (texLinearFiltering)
+    {                                                       //set min/mag filters to point samplingor linear
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+
 
     if (tempData != NULL)
     {
@@ -1257,7 +1262,8 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
     }
     else
     {
-        destType = TR_RGBType;
+        //destType = TR_RGBType; // webgl requires same internal and source format
+        destType = TR_RGBAType;
     }
     glGenTextures(1, (GLuint*)&newHandle);                           //create a texture name
     primErrorMessagePrint();
@@ -1267,16 +1273,7 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    if (texLinearFiltering)
-    {                                                       //set min/mag filters to point samplingor linear
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    else
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
+
     //first see if this texture can fit in RAM.  It should because we've already packed the textures
 #if TR_ASPECT_CHECKING
     if (width / height > 8 || height / width > 8)
@@ -1299,6 +1296,25 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
 #endif //TR_ASPECT_CHECKING
     glTexImage2D(GL_TEXTURE_2D, 0, destType, width,       //create the GL texture object
                  height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    if (texLinearFiltering)
+    {                                                       //set min/mag filters to point samplingor linear
+        if (useAlpha) {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);          
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+
     if (tempData != NULL)
     {
         memFree(tempData);
@@ -1320,7 +1336,7 @@ void trRGBTextureUpdate(udword handle, color *data, sdword width, sdword height)
     trClearCurrent();
     glBindTexture(GL_TEXTURE_2D, handle);                   //bind texture for modification
     primErrorMessagePrint();
-    glTexImage2D(GL_TEXTURE_2D, 0, TR_RGBType, width,       //create the GL texture object
+    glTexImage2D(GL_TEXTURE_2D, 0, TR_RGBAType, width,       //create the GL texture object
                  height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 }
 /*-----------------------------------------------------------------------------
@@ -1499,7 +1515,7 @@ lifheader* tr64LifAdjustLoad(lifheader_disk *oldHeader, sdword oldLength)
 
     lenDiff =  sizeof(lifheader) - sizeof(lifheader_disk);
     newLength = oldLength + lenDiff;
-    
+
     newHeader =  (lifheader *)memAlloc (newLength,"",0);
 
 
@@ -3681,16 +3697,6 @@ void trNoPalTexImage(ubyte* data, ubyte* palette, sdword width, sdword height)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    if (texLinearFiltering)
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    else
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    }
 
     rgba = memAlloc(4 * width * height, "temp rgba", Pyrophoric);
 
@@ -3706,6 +3712,20 @@ void trNoPalTexImage(ubyte* data, ubyte* palette, sdword width, sdword height)
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+
+    if (texLinearFiltering)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+
 
     memFree(rgba);
 
@@ -4107,4 +4127,3 @@ void trTextureUsageList(char *fileName)
     fclose(fp);
 }
 #endif //TR_TEXTURE_USAGE
-

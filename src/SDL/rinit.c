@@ -19,6 +19,7 @@
 #include "rinit.h"
 #include "devstats.h"
 #include "Types.h"
+#include "Debug.h"
 
 
 extern unsigned int mainSoftwareDirectDraw;
@@ -193,7 +194,7 @@ static bool rinModeAccepted(rdevice* dev, int width, int height, int depth)
             }
         }
     }
-	
+
     //check for specifically disabled display modes
     for (index = 0; index < RIN_MODESINDEVSTATLIST; index++)
     {
@@ -479,7 +480,7 @@ bool rinEnumeratePrimary(rdevice* dev)
 			rinAddMode(dev, mode.w, mode.h, SDL_BITSPERPIXEL(mode.format));
 		}
 	}
-	
+
 	return (dev->modes != 0);
 }
 
@@ -496,7 +497,7 @@ int rinEnumerateDevices(void)
     rdevice* gldev;
     rdevice  primaryDev;
     bool primaryVal;
-    
+
 #ifndef _MACOSX_FIX_GL
     int maxWidth;
 #endif

@@ -23,7 +23,7 @@
 #ifdef _WIN32
 #define SDL_BUFFERSIZE  4*FQ_SIZE
 #else
-#define SDL_BUFFERSIZE  FQ_SIZE
+#define SDL_BUFFERSIZE  4*FQ_SIZE
 #endif
 
 typedef struct
@@ -33,7 +33,7 @@ typedef struct
 } BANKPOINTERS;
 
 /* function in speechevent.c that needs to be called when shutting down */
-void musicEventUpdateVolume(void);
+sdword musicEventUpdateVolume(void);
 
 /* internal functions */
 sdword SNDgetchannel(sword patchnum, sdword priority);
@@ -173,7 +173,7 @@ void sounddeactivate(bool bDeactivate)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 real32 soundusage(void)
 {
 	return ((real32)channelsinuse / SOUND_MAX_VOICES);
@@ -243,7 +243,6 @@ sdword soundinit(bool mode)
 
 	/* extra buffer added to smixer, not necessary anymore */
 	/* dbgAssertOrIgnore(aspec.samples == SDL_BUFFERSIZE); */
-
 	return result;
 }
 
@@ -277,12 +276,15 @@ void soundrestore(void)
 	soundpause(TRUE);
 
 	soundinited = FALSE;
+
+#ifndef __EMSCRIPTEN__
 #ifndef _MACOSX_FIX_86
 #ifndef _WIN32_FIXME
 	while (!((streamer.status == SOUND_FREE) && (mixer.status == SOUND_FREE)))
 	{
 		SDL_Delay(0);
 	}
+#endif
 #endif
 #endif
 
@@ -310,6 +312,11 @@ void soundpause(bool bPause)
 		{
 			int timeout=SOUND_PAUSE_BREAKOUT;
 			soundstopall(SOUND_FADE_STOPALL);
+
+#ifdef __EMSCRIPTEN__
+            musicEventUpdateVolume();
+            return;
+#endif
 
 			while ((mixer.status != SOUND_STOPPED) && (--timeout))
 			{
@@ -385,7 +392,7 @@ sword soundloadpatch(char *pszFileName, sword looped)
 
 	return (nRetVal);
 
-	
+
 	if ((ret = WaveOpenFile(pszFileName, &hmmioIn, &newpatch->pwfx, &ckInRiff)) != 0)
 	{
 		dbgMessagef("WaveOpenFile failed %d", ret);
@@ -410,10 +417,10 @@ sword soundloadpatch(char *pszFileName, sword looped)
 		dbgMessagef("WaveReadFile failed");
 		goto ERROR_LOADING;
 	}
-	
+
 	newpatch->cbSize = cbActualRead;
 	nRetVal = numpatches++;
-	
+
 	goto DONE_LOADING;
 
 ERROR_LOADING:
@@ -427,7 +434,7 @@ ERROR_LOADING:
 		GlobalFree(newpatch->pwfx);
 		newpatch->pwfx = NULL;
 	}
-			
+
 DONE_LOADING:
 	// Close the wave file.
 	if (hmmioIn != NULL)
@@ -446,7 +453,7 @@ DONE_LOADING:
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 udword soundbankadd(void *bankaddress)
 {
 	sword i;
@@ -484,7 +491,7 @@ udword soundbankadd(void *bankaddress)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 bool soundover(sdword handle)
 {
 	CHANNEL *pchan;
@@ -502,15 +509,15 @@ bool soundover(sdword handle)
 		{
 			return (TRUE);
 		}
-	
+
 		if (pchan->status <= SOUND_STOPPED)
 		{
 			return (TRUE);
 		}
-		
+
 		return (FALSE);
 	}
-	
+
 	return (TRUE);
 }
 
@@ -521,7 +528,7 @@ bool soundover(sdword handle)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundplayFPRVL(sword patnum, real32 freq, sword pan, sdword priority, sword vol, bool startatloop)
 {
 	PATCH	*ppatch;
@@ -536,7 +543,7 @@ sdword soundplayFPRVL(sword patnum, real32 freq, sword pan, sdword priority, swo
 	{
 		return (handle);
 	}
-	
+
 	if (patnum < 0)
 	{
 		return (handle);
@@ -588,7 +595,7 @@ sdword soundplayFPRVL(sword patnum, real32 freq, sword pan, sdword priority, swo
 	pchan->pitch = freq;
 	pchan->heading = 0;
 	pchan->usecardiod = FALSE;
-	
+
 	for (i = 0; i < SOUND_EQ_SIZE; i++)
 	{
 		pchan->filter[i] = 1.0f;
@@ -654,14 +661,14 @@ sdword soundstop(sdword handle, real32 fadetime)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	channel = SNDchannel(handle);
 
 	if (channel < SOUND_OK)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	pchan = &channels[channel];
 
 	if (pchan->handle != handle)
@@ -683,12 +690,12 @@ sdword soundstop(sdword handle, real32 fadetime)
 		else
 		{
 			fadeblocks = (sdword)(fadetime * SOUND_FADE_TIMETOBLOCKS);
-			
+
 			if (fadeblocks < NUM_FADE_BLOCKS)
 			{
 				fadeblocks = NUM_FADE_BLOCKS;
 			}
-		
+
 			pchan->status = SOUND_STOPPING;
 			pchan->voltarget = -1;
 			pchan->volticksleft = fadeblocks;
@@ -717,7 +724,8 @@ sdword soundstop(sdword handle, real32 fadetime)
 	Inputs		: handle - the handle to a sound returned by soundplay
 	Outputs		:
 	Return		: SOUND_OK if successful, SOUND_ERR on error
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
+/*
 sdword soundrestart(sdword handle)
 {
 	CHANNEL *pchan;
@@ -737,18 +745,21 @@ sdword soundrestart(sdword handle)
 					return (SOUND_ERR);
 				}
 
-				if ((pchan->looping == TRUE) && (pchan->status == SOUND_PLAYING))
+                //pchan->status = SOUND_RESTART;
+				//if ((pchan->looping == TRUE) && (pchan->status == SOUND_PLAYING))
+                if (1)
 				{
-					pchan->status = SOUND_RESTART;
+					//pchan->status = SOUND_RESTART;
 					return (SOUND_OK);
 				}
+
 			}
 		}
 	}
 
 	return (SOUND_ERR);
 }
-
+*/
 
 /*-----------------------------------------------------------------------------
 	Name		: soundvolume
@@ -757,7 +768,7 @@ sdword soundrestart(sdword handle)
 				  vol - the volume to set this sound to (range of SOUND_MIN_VOL - SOUND_MAX_VOL)
 	Outputs		:
 	Return		: SOUND_OK if successful, SOUND_ERR on error
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundvolumeF(sdword handle, sword vol, real32 fadetime)
 {
 	CHANNEL *pchan;
@@ -768,7 +779,7 @@ sdword soundvolumeF(sdword handle, sword vol, real32 fadetime)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	if (vol > SOUND_VOL_MAX)
 	{
 		vol = SOUND_VOL_MAX;
@@ -839,7 +850,7 @@ dbgAssertOrIgnore(pchan->volticksleft != 0);
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundpanF(sdword handle, sword pan, real32 fadetime)
 {
 	CHANNEL *pchan;
@@ -850,14 +861,14 @@ sdword soundpanF(sdword handle, sword pan, real32 fadetime)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	channel = SNDchannel(handle);
 
 	if (channel < SOUND_OK)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	pchan = &channels[channel];
 
 	if (pchan != NULL)
@@ -916,7 +927,7 @@ sdword soundpanF(sdword handle, sword pan, real32 fadetime)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundfrequency(sdword handle, real32 freq)
 {
 	CHANNEL *pchan;
@@ -926,7 +937,7 @@ sdword soundfrequency(sdword handle, real32 freq)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	channel = SNDchannel(handle);
 
 	if (channel < SOUND_OK)
@@ -971,7 +982,7 @@ sdword soundfrequency(sdword handle, real32 freq)
 				  eq - array[SOUND_EQ_SIZE] of floats range of 0.0 to 1.0
 	Outputs		:
 	Return		: SOUND_OK if successful, SOUND_ERR on error
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundequalize(sdword handle, real32 *eq)
 {
 	CHANNEL *pchan;
@@ -981,7 +992,7 @@ sdword soundequalize(sdword handle, real32 *eq)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	if (eq == NULL)
 	{
 		return (SOUND_ERR);
@@ -1019,7 +1030,7 @@ sdword soundequalize(sdword handle, real32 *eq)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword soundshipheading(sdword handle, sword heading, sdword highband, sdword lowband, real32 velfactor, real32 shipfactor)
 {
 	CHANNEL *pchan;
@@ -1033,7 +1044,7 @@ sdword soundshipheading(sdword handle, sword heading, sdword highband, sdword lo
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	channel = SNDchannel(handle);
 
 	if (channel < SOUND_OK)
@@ -1089,7 +1100,7 @@ sdword soundshipheading(sdword handle, sword heading, sdword highband, sdword lo
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword SNDresetchannel(CHANNEL *pchan)
 {
 
@@ -1100,7 +1111,7 @@ sdword SNDresetchannel(CHANNEL *pchan)
 	pchan->numchannels = SOUND_MONO;
 	pchan->volfactorL = 1.0f;
 	pchan->volfactorR = 1.0f;
-	
+
 	memset(pchan->filter, 1, SOUND_EQ_SIZE);
 	memset(pchan->cardiodfilter, 1, SOUND_EQ_SIZE);
 	pchan->usecardiod = FALSE;
@@ -1115,7 +1126,7 @@ sdword SNDresetchannel(CHANNEL *pchan)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword SNDreleasebuffer(CHANNEL *pchan)
 {
 	sdword i;
@@ -1129,7 +1140,7 @@ sdword SNDreleasebuffer(CHANNEL *pchan)
 			break;
 		}
 	}
-	
+
 	pchan->handle = SOUND_DEFAULT;
 	pchan->ppatch = NULL;
 	pchan->status = SOUND_FREE;
@@ -1147,7 +1158,7 @@ sdword SNDreleasebuffer(CHANNEL *pchan)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword SNDgetchannel(sword patchnum, sdword priority)
 {
 	CHANNEL *pchan;
@@ -1174,7 +1185,7 @@ sdword SNDgetchannel(sword patchnum, sdword priority)
 			}
 		}
 	}
-	
+
 	if (channel == SOUND_DEFAULT)
 	{
 		if (lowpriority < SOUND_PRIORITY_LOW)
@@ -1209,7 +1220,7 @@ sdword SNDgetchannel(sword patchnum, sdword priority)
 		{
 			/* stop the sound with the lowest priority */
 			soundstop(channels[lowchannel].handle, SOUND_FADE_STOPNOW);
-			
+
 			/* find an empty channel */
 			for (i = 0; i < soundnumvoices; i++)
 			{
@@ -1225,7 +1236,7 @@ sdword SNDgetchannel(sword patchnum, sdword priority)
 			}
 		}
 	}
-	
+
 	return (channel);
 }
 
@@ -1254,7 +1265,7 @@ sdword SNDchannel(sdword handle)
 	{
 		return (SOUND_ERR);
 	}
-	
+
 	return (channel);
 }
 
@@ -1262,7 +1273,7 @@ sdword SNDchannel(sdword handle)
 void SNDcalcvolpan(CHANNEL *pchan)
 {
 	pchan->volfactorL = pchan->volfactorR = pchan->volume / (real32)SOUND_VOL_MAX;
-	
+
 	if (pchan->pan < SOUND_PAN_CENTER)
 	{
 		/* panned left so attenuate right */
@@ -1310,7 +1321,7 @@ void SNDcalcvolpan(CHANNEL *pchan)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword splayFPRVL(void *bankaddress, sdword patnum, real32 *eq, real32 freq, sword pan, sdword priority, sword vol, bool startatloop, bool fadein, bool mute)
 {
 	PATCH	*ppatch;
@@ -1403,7 +1414,7 @@ sdword splayFPRVL(void *bankaddress, sdword patnum, real32 *eq, real32 freq, swo
 			pchan->filter[i] = (real32)1.0;
 		}
 	}
-	
+
 	for (i = 0; i < SOUND_EQ_SIZE; i++)
 	{
 		pchan->cardiodfilter[i] = 1.0f;
@@ -1417,13 +1428,13 @@ sdword splayFPRVL(void *bankaddress, sdword patnum, real32 *eq, real32 freq, swo
 	}
 
 	soundvolume(handle, vol);
-	
+
 	soundpan(handle, pan);
 
 	SNDcalcvolpan(pchan);
 
 	soundfrequency(handle, freq);
-	
+
 // NEWLOOP
 	if (startatloop)
 	{
@@ -1433,7 +1444,7 @@ sdword splayFPRVL(void *bankaddress, sdword patnum, real32 *eq, real32 freq, swo
 	{
 		pchan->currentpos = (sbyte *)ppatch->dataoffset;
 	}
-	
+
 	if (ppatch->waveformat.frequency < FQ_RATE)
 	{
 		pchan->fqsize = FQ_QSIZE;

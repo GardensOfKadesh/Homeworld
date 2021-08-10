@@ -502,8 +502,8 @@ void mousePositionSet(sdword x, sdword y)
     SetCursorPos(mousePoint.x, mousePoint.y);               //set Windows mouse location
     */
 
-    if (!mouseClip)
-        SDL_WarpMouseInWindow(NULL, x, y);
+    //if (!mouseClip)
+    //    SDL_WarpMouseInWindow(NULL, x, y);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1077,24 +1077,24 @@ void mouseDraw(void)
 
             glColor3ub(255,255,255);
 
-            glBegin(GL_QUADS);
+            glBegin(GL_TRIANGLE_STRIP);
             glTexCoord2f(0.0f, 0.0f);
             glVertex2f(SX(mouseCursorXPosition), SY(mouseCursorYPosition));
             glTexCoord2f(0.0f, 1.0f);
             glVertex2f(SX(mouseCursorXPosition), SY(mouseCursorYPosition + texture->height));
-            glTexCoord2f(1.0f, 1.0f);
-            glVertex2f(SX(mouseCursorXPosition + texture->width), SY(mouseCursorYPosition + texture->height));
             glTexCoord2f(1.0f, 0.0f);
             glVertex2f(SX(mouseCursorXPosition + texture->width), SY(mouseCursorYPosition));
+            glTexCoord2f(1.0f, 1.0f);
+            glVertex2f(SX(mouseCursorXPosition + texture->width), SY(mouseCursorYPosition + texture->height));
             glEnd();
 
             rndTextureEnable(texOn);
         }
         else
         {
-            glRasterPos2f(primScreenToGLX(mouseCursorXPosition),
-                          primScreenToGLY(mouseCursorYPosition + texture->height));
-            glDrawPixels(texture->width, texture->height, GL_RGBA, GL_UNSIGNED_BYTE, texture->data);
+            //glRasterPos2f(primScreenToGLX(mouseCursorXPosition),
+            //              primScreenToGLY(mouseCursorYPosition + texture->height));
+            //glDrawPixels(texture->width, texture->height, GL_RGBA, GL_UNSIGNED_BYTE, texture->data);
         }
     }
     else
@@ -1904,5 +1904,3 @@ void mouseEnable(void)
     mouseCursorShow();
     mouseDisabled = FALSE;
 }
-
-

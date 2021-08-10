@@ -124,7 +124,7 @@ void kasfMissionCompleted(void)
         // if you want to finish a level without hyperspacing, you put the stuff that happens here
         speechEventCleanup();
         singlePlayerMissionCompleteCB();
-        
+
         animAviPlay(spGetCurrentMission(), spGetNextMission());
     }
 }
@@ -3635,6 +3635,10 @@ sdword kasfRenderedShips(GrowSelection *ships, sdword LOD)
         LODmask <<= 1;
     }
 
+    // with the original implementation the mask has no bit set for LOD 0 regardless of parameter
+    // hence with LOD fixed to 0 it will never pass this check and some KAS stuff won't work correctly
+    LODmask |= 1;
+
     if (ships == NULL || ships->selection == NULL)
         return 0;
 
@@ -4290,4 +4294,3 @@ void kasfSpawnEffect(GrowSelection *ships, char *effectName, sdword parameter)
         etgEffectCreate(lastEffect, *shipPtr, NULL, NULL, NULL, 0.0f, EAF_Full, 2, SCALECAST(intSize), SCALECAST(intParameter));
     }
 }
-

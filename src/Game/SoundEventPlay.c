@@ -113,7 +113,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 	if (event & SFX_Flag_Mask)
 	{
 		eventflag = event & SFX_Flag_Mask;
-	
+
 		// new stuff
 		switch (eventflag)
 		{
@@ -132,25 +132,25 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 										NULL, (real32)SOUND_DEFAULT, SOUND_PAN_CENTER, SOUND_PRIORITY_MAX,
 										(sword)(SOUND_VOL_MAX * volSFX), FALSE, FALSE, FALSE);
 				}
-	
+
 				break;
-			
+
 			case Gun_Flag:
 				if (smSensorsActive || !mrRenderMainScreen)
 				{
 					// don't want to play this sound from the manager screens
 					break;
 				}
-				
+
 				ship = (Ship *)object;
-	
+
 				dbgAssertOrIgnore(gun != NULL);
 				dbgAssertOrIgnore(gun->gunstatic != NULL);
 				if (gun->gunstatic->gunsoundtype >= GunEventsLUT->numobjects)
 				{
 					break;
 				}
-				
+
 				if (event == Gun_WeaponFireLooped)
 				{
 					if ((!SEinrange(gun->gunstatic->gunsoundtype + GUNSHOT_OFFSET, dist)) || // is it in range
@@ -159,13 +159,13 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					{
 						break;
 					}
-					
+
 					ship->soundevent.burstfiring = TRUE;
 					priority = SOUND_PRIORITY_MAX;
 					vol = (sdword)(SEequalize(gun->gunstatic->gunsoundtype + GUNSHOT_OFFSET, dist, tempEQ)
 								   * (1.0f - (ship->soundevent.coverage * 0.5)));
 					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
-					
+
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 					ship->soundevent.burstHandle = handle;
 				}
@@ -181,7 +181,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					vol = (sdword)(SEequalize(gun->gunstatic->gunsoundtype + GUNSHOT_OFFSET, dist, tempEQ)
 								   * (1.0f - ship->soundevent.coverage));
 					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
-					
+
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 					ship->soundevent.gunHandle = handle;
 				}
@@ -199,7 +199,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 				}
 				break;
-	
+
 			case ShipCmn_Flag:
 				if (smSensorsActive || !mrRenderMainScreen)
 				{
@@ -210,7 +210,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 				{
 					break;
 				}
-				
+
 				ship = (Ship *)object;
 				shipclass = ship->staticinfo->shipclass;
 
@@ -222,7 +222,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						{
 							break;
 						}
-	
+
 						ship->soundevent.engineState = SOUND_STARTING;
 						if (shipclass == CLASS_Corvette)
 						{
@@ -236,9 +236,9 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						{
 							priority = SOUND_PRIORITY_MAX;
 						}
-						
+
 						vol = SEequalize(shipclass, dist, tempEQ);
-					
+
 						if ((shipclass == CLASS_Fighter) ||
 							(shipclass == CLASS_Corvette))
 						{
@@ -250,14 +250,14 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						vol = SEequalize(shipclass + AMBIENT_OFFSET, dist, tempEQ);
 						vol = (sword)(vol * (1.0f - ship->soundevent.coverage));
 					}
-	
+
 					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
-	
+
 					if (ship->shiptype < ShipCmnEventsLUT->numobjects)
 					{
 						handle = splayEPRV(ShipBank, ShipCmnEventsLUT->lookup[GetPatch(ShipCmnEventsLUT, ship->shiptype, event)], tempEQ, pan, priority, vol);
 					}
-					
+
 					if (event == ShipCmn_Engine)
 					{
 						ship->soundevent.engineHandle = handle;
@@ -267,9 +267,9 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						}
 					}
 				}
-					
+
 				break;
-	
+
 			case Ship_Flag:
 				if (smSensorsActive || !mrRenderMainScreen)
 				{
@@ -281,9 +281,9 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					// can't do ship events if its not a ship
 					break;
 				}
-				
+
 				ship = (Ship *)object;
-	
+
 				if (!SEinrange(ship->staticinfo->shipclass, dist) && (event != Ship_SelectProbe) && (event != Ship_SinglePlayerHyperspace))
 				{
 					// the Ship_SelectProbe event doesn't have a range limit on it,
@@ -291,7 +291,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					// so only break if its out of range and its not that event.
 					break;
 				}
-				
+
 				if ((event != Ship_SelectProbe) && (event != Ship_SinglePlayerHyperspace))
 				{
 					// calculate the volume and EQ
@@ -306,7 +306,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						tempEQ[i] = 1.0f;
 					}
 				}
-				
+
 				pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
 				priority = SOUND_PRIORITY_NORMAL;
 
@@ -324,11 +324,11 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					handle = splayEPRV(ShipBank, ShipEventsLUT->lookup[GetPatch(ShipEventsLUT, 0, event)], tempEQ, pan, SOUND_PRIORITY_NORMAL, vol);
 				}
 				break;
-			
+
 			case Derelict_Flag:
 				dbgMessagef("SoundEventPlay: Derelict event %d", event);
 				break;
-	
+
 			case Exp_Flag:
 				if (smSensorsActive || !mrRenderMainScreen)
 				{
@@ -342,11 +342,11 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 				{
 					vol = SEequalize((event - Exp_Flag) + EXPLOSION_OFFSET, dist, tempEQ);
 					pan = getPanAngle(effect->posinfo.position, EFFECT_SIZE, dist);
-	
+
 					handle = splayEPRV(SpecialEffectBank, SpecExpEventsLUT->lookup[GetPatch(SpecExpEventsLUT, 0, event)], tempEQ, pan, SOUND_PRIORITY_MAX + 1, vol);
 				}
 				break;
-	
+
 			case Hit_Flag:
 				if (smSensorsActive || !mrRenderMainScreen)
 				{
@@ -364,7 +364,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 							dist = (real32)fsqrt(effect->cameraDistanceSquared);
 							vol = SEequalize((event - Hit_Flag) + HIT_OFFSET, dist, tempEQ);
 							pan = getPanAngle(effect->posinfo.position, EFFECT_SIZE, dist);
-		
+
 							handle = splayEPRV(SpecialEffectBank, SpecHitEventsLUT->lookup[GetPatch(SpecHitEventsLUT, 0, event)], tempEQ, pan, SOUND_PRIORITY_HIGH, vol);
 							effectHandle[event & SFX_Event_Mask].handle[i] = handle;
 							break;
@@ -372,7 +372,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					}
 				}
 				break;
-			
+
 			default:
 				dbgMessagef("soundEventPlaySound: %d event", event);
 				break;

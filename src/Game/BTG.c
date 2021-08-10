@@ -144,6 +144,12 @@ typedef struct tagTGAFileHeader
    [0, 1] range.
 
 */
+char *dither_vertex_shader = "void main(void)"
+                             "{"
+                             "   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;"
+                             "   gl_FrontColor = gl_Color;"
+                             "}";
+
 char *dither_fragment_shader = "uniform sampler2D sampler;"
                                "void main()"
                                "{"
@@ -181,7 +187,8 @@ static const char dither_pattern[] = {
 void btgStartup()
 {
     btgReset();
-    useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
+    //useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
+    useVBO = FALSE;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1315,7 +1322,8 @@ void btgRender()
 #else
     glShadeModel(GL_SMOOTH);
 #endif
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, _bgColor);
+    // TODO: not sure what it uses the color for but the query forces a flush and pipeline sync so I commented it out for now
+    //glGetFloatv(GL_COLOR_CLEAR_VALUE, _bgColor);
     for (index = 0; index < 4; index++)
     {
         _bgByte[index] = (GLubyte)(_bgColor[index] * 255.0f);
@@ -1355,10 +1363,21 @@ void btgRender()
     //glUseProgram(0);
 
     if (!dither_program)
+    //if (0)
     {
         dbgMessagef("Setting up BTG dithering shader");
         int success;
         char infoLog[512];
+
+        GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &dither_vertex_shader, NULL);
+        glCompileShader(vertex);
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+            dbgMessagef("Dither vertex compile: %s", infoLog);
+        }
 
         GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &dither_fragment_shader, NULL);
@@ -1367,10 +1386,11 @@ void btgRender()
         if (!success)
         {
             glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-            dbgMessagef("Dither compile: %s", infoLog);
+            dbgMessagef("Dither fragment compile: %s", infoLog);
         }
 
         dither_program = glCreateProgram();
+        glAttachShader(dither_program, vertex);
         glAttachShader(dither_program, fragment);
         glLinkProgram(dither_program);
         glGetProgramiv(dither_program, GL_LINK_STATUS, &success);
@@ -1381,6 +1401,7 @@ void btgRender()
             dither_program = 0;
         }
 
+        glDeleteShader(vertex);
         glDeleteShader(fragment);
 
         glGenTextures(1, &dither_texture);
@@ -1389,7 +1410,7 @@ void btgRender()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE, dither_pattern);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 8, 8, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, dither_pattern);
     }
 
     glUseProgram(dither_program);

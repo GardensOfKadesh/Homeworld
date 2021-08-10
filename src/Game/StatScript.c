@@ -1998,4 +1998,3 @@ void mgGameTypeScriptInit()
         break;
     }
 }
-

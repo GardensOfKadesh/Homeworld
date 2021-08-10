@@ -12,6 +12,12 @@
 #ifndef ___TYPES_H
 #define ___TYPES_H
 
+#include <SDL.h>
+#include <string.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+
 #include "SDL_stdinc.h"
 #include "SDL_endian.h"
 
@@ -63,8 +69,8 @@ typedef float   real32;
 typedef double  real64;
 
 #ifdef _X86_64
-typedef uqword	memsize;	
-typedef sqword	smemsize;	
+typedef uqword	memsize;
+typedef sqword	smemsize;
 typedef real64  memrealsize;
 #else
 typedef udword	memsize;

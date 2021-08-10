@@ -10,6 +10,8 @@
 //  Created 6/26/1997 by gshaw
 // =============================================================================
 
+#include <stdio.h>
+
 #include "AIShip.h"
 
 #include "AITrack.h"

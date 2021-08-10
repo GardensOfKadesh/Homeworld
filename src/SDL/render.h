@@ -101,7 +101,7 @@ extern hmatrix rndCameraMatrix;
 extern hmatrix rndProjectionMatrix;
 extern bool rndNormalization;
 extern bool rndTakeScreenshot;
-extern udword rndLightingEnabled;
+extern bool rndLightingEnabled;
 extern bool rndScissorEnabled;
 
 #if RND_POLY_STATS

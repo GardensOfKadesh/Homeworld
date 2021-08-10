@@ -67,6 +67,9 @@
     #include "debugwnd.h"
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 /*=============================================================================
     Data:
@@ -106,8 +109,8 @@ static char windowTitle[] = "Homeworld";//name of window
 char ersWindowInit[] = "Error creating window";
 
 //screen width, height
-int MAIN_WindowWidth = 640;
-int MAIN_WindowHeight = 480;
+int MAIN_WindowWidth = 1280;
+int MAIN_WindowHeight = 960;
 int MAIN_WindowDepth = 16;
 
 sdword mainWidthAdd = 0;
@@ -169,7 +172,7 @@ bool GLOBAL_NO_TEXTURES = FALSE;
 
 // turn fullscreen off when debugging so that if the debugger kicks in
 // after a crash you don't find yourself locked out and have to reboot...
-#if defined(_MACOSX) && defined(HW_BUILD_FOR_DEBUGGING) 
+#if defined(_MACOSX) && defined(HW_BUILD_FOR_DEBUGGING)
 bool fullScreen = TRUE;
 #else
 bool fullScreen = TRUE;
@@ -1863,13 +1866,13 @@ sdword HandleEvent (const SDL_Event* pEvent)
         case SDL_MOUSEWHEEL:
             if (!mouseDisabled)
             {
-                if(pEvent->wheel.y == 1)
+                if(pEvent->wheel.y > 0)
                     keyPressDown(FLYWHEEL_UP);
-                else if(pEvent->wheel.y == -1)
+                else if(pEvent->wheel.y < 0)
                     keyPressDown(FLYWHEEL_DOWN);
                 break;
             }
- 
+
         case SDL_MOUSEBUTTONUP:
             if (!mouseDisabled)
             {
@@ -1892,7 +1895,7 @@ sdword HandleEvent (const SDL_Event* pEvent)
                 }
             }
             break;
-            
+
         // Currently written with use of SpaceNavigator in mind (since that's
         // what I've got). Needs to be rewritten to be a little more generic
         // using mappings of registered joystick axes to functionality.
@@ -1905,28 +1908,28 @@ sdword HandleEvent (const SDL_Event* pEvent)
             {
                 break;
             }
-            
-            switch (pEvent->jaxis.axis) 
+
+            switch (pEvent->jaxis.axis)
             {
                 // zoom: +ve multiplier = zoom out
-                
-                case 1: // translation (+/-) forwards-backwards 
+
+                case 1: // translation (+/-) forwards-backwards
                     // camJoyZoom = -1 * pEvent->jaxis.value;
                     break;
-                    
+
                 case 2: // translation (+/-) up-down
                     camJoyZoom = -1 * pEvent->jaxis.value;
                     break;
 
                 // declination: +ve multiplier = move toward north pole
-                
+
                 case 3: // pitch (+/-) back-forward  - declination
                     camJoyDeclination = +1 * pEvent->jaxis.value;
                     break;
 
                 // right ascension: +ve multiplier = anti clockwise about z-axis
 
-                case 0: // translation (+/-) left-right 
+                case 0: // translation (+/-) left-right
                     // camJoyRightAscension = -1 * pEvent->jaxis.value;
                     break;
 
@@ -1938,16 +1941,16 @@ sdword HandleEvent (const SDL_Event* pEvent)
                     camJoyRightAscension = -1 * pEvent->jaxis.value;
                     break;
 
-                default: 
-                    break; 
+                default:
+                    break;
             }
 
-#if DEBUG_JOYSTICK_CAMERA            
+#if DEBUG_JOYSTICK_CAMERA
             dbgMessagef("joystick: dec(%6d) asc(%6d) zoom(%6d)", camJoyDeclination, camJoyRightAscension, camJoyZoom);
 #endif
-            break; 
-    
-    
+            break;
+
+
         case SDL_QUIT:
             if (mainActuallyQuit)
             {
@@ -2094,9 +2097,72 @@ void mainCleanupAfterVideo(void)
 int PASCAL WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
                         LPSTR commandLine, int nCmdShow)
 */
+
+void main_loop()
+{
+    SDL_Event e;
+    int event_res = 0;
+
+    //isoundstreamupdate_manual(NULL);
+
+    if (SDL_PollEvent(&e))
+    {
+        event_res = HandleEvent(&e);
+
+
+        //printf("Windowevent: %d\n", e.type);
+        if (e.type == SDL_WINDOWEVENT) {
+            if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                //printf("Resolution change: %d %d\n", e.window.data1, e.window.data2);
+                if ((e.window.data1 > 320) && (e.window.data2 > 240))
+                {
+                    MAIN_WindowWidth = e.window.data1;
+                    MAIN_WindowHeight = e.window.data2;
+                    (void)utyChangeResolution(MAIN_WindowWidth, MAIN_WindowHeight, MAIN_WindowDepth);
+                }
+            }
+        }
+    }
+    //else
+    //{
+        utyTasksDispatch();                         //execute all tasks
+        isoundstreamupdate_manual(NULL);
+    //}
+
+    if (opTimerActive)
+    {
+        if (taskTimeElapsed > (opTimerStart + opTimerLength))
+        {
+            opTimerExpired();
+        }
+    }
+
+}
+
+
 int main (int argc, char* argv[])
 {
     static char *errorString = NULL;
+
+#ifdef __EMSCRIPTEN__
+        // create persisten storage
+        EM_ASM(
+            // Make a directory other than '/'
+            FS.mkdir('/home/web_user/.homeworld/');
+            FS.mkdir('/home/web_user/.homeworld/SavedGames/');
+            FS.mkdir('/home/web_user/.homeworldDownloadable/');
+            FS.mkdir('/home/web_user/.homeworldDownloadable/SavedGames/');
+
+            // Then mount with IDBFS type
+            FS.mount(IDBFS, {}, '/home/web_user/.homeworld/SavedGames/');
+            FS.mount(IDBFS, {}, '/home/web_user/.homeworldDownloadable/SavedGames/');
+
+            // Then sync
+            FS.syncfs(true, function (err) {
+                // Error
+            });
+        );
+#endif
 
 #ifdef _MACOSX
   //set working directory to load resources (.bigs etc)
@@ -2238,32 +2304,50 @@ int main (int argc, char* argv[])
     {
         preInit = FALSE;
 
-        while (TRUE)
-        {
-            // Give sound a break :)
-            SDL_Delay(0);
-
-            if (SDL_PollEvent(&e))
+        #ifdef __EMSCRIPTEN__
+            // 0 fps means to use requestAnimationFrame; non-0 means to use setTimeout.
+            emscripten_set_main_loop(main_loop, 0, 1);
+        #else
+            while (TRUE)
             {
-                event_res = HandleEvent(&e);
+                // Give sound a break :)
+                SDL_Delay(0);
 
-                if (e.type == SDL_QUIT) {
-                    break;
-                }
-            }
-            else
-            {
-                utyTasksDispatch();                         //execute all tasks
-            }
-
-            if (opTimerActive)
-            {
-                if (taskTimeElapsed > (opTimerStart + opTimerLength))
+                if (SDL_PollEvent(&e))
                 {
-                    opTimerExpired();
+                    event_res = HandleEvent(&e);
+
+                    if (e.type == SDL_WINDOWEVENT) {
+                        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+                            //printf("Resolution change: %d %d\n", e.window.data1, e.window.data2);
+                            if ((e.window.data1 > 320) && (e.window.data2 > 240))
+                            {
+                                MAIN_WindowWidth = e.window.data1;
+                                MAIN_WindowHeight = e.window.data2;
+                                (void)utyChangeResolution(MAIN_WindowWidth, MAIN_WindowHeight, MAIN_WindowDepth);
+                            }
+                        }
+                    }
+
+                    if (e.type == SDL_QUIT) {
+                        break;
+                    }
+                }
+                //else
+                //{
+                    utyTasksDispatch();                         //execute all tasks
+                    isoundstreamupdate_manual(NULL);
+                //}
+
+                if (opTimerActive)
+                {
+                    if (taskTimeElapsed > (opTimerStart + opTimerLength))
+                    {
+                        opTimerExpired();
+                    }
                 }
             }
-        }
+        #endif
     }
     else
     {                                                       //some error on startup, either from preInit or Init()

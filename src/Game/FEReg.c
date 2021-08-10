@@ -1113,7 +1113,7 @@ void ferDraw(sdword x, sdword y, lifheader *texture)
     if (useDrawTex) {
         int crop[4] = { 0, 0, texture->width, texture->height };
         glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, crop);
-        glDrawTexiOES(x, MAIN_WindowHeight - y, 0, texture->width, texture->height);
+        //glDrawTexiOES(x, MAIN_WindowHeight - y, 0, texture->width, texture->height);
     } else {
         GLfloat t[8] = { 0.0f, heightFrac, widthFrac, heightFrac, 0.0f, 0.0f, widthFrac, 0.0f };
         GLfloat v[8] = { primScreenToGLX(x), primScreenToGLY(y),
@@ -1715,9 +1715,9 @@ textype ferDrawCutout(rectangle dimensions, rectangle cutDimensions,
 
         return left;
     }
-    
+
     // NB: should never get here; this is just to keep the compiler happy
-    return none; 
+    return none;
 }
 
 /*-----------------------------------------------------------------------------

@@ -187,7 +187,7 @@ real32 HYPERSPACE_BASE_ARRIVETIME               =      2.0f;
 real32 HYPERSPACE_BASE_MOTHERSHIPARRIVETIME     =      1.0f;
 real32 HYPERSPACE_BASE_WAITTIME                 =      3.0f;
 real32 HYPERSPACE_DECELERATE_DIST               =      0.0f;
-real32 HYPERSPACE_DECELERATE_INITIAL_VEL        =      0.0f; 
+real32 HYPERSPACE_DECELERATE_INITIAL_VEL        =      0.0f;
 real32 HYPERSPACE_DECELERATE_TIME               =      3.0f;
 real32 HYPERSPACE_DECELERATION                  =  10000.0f;
 real32 HYPERSPACE_FARCLIPPLANE                  = 100000.0f;
@@ -275,7 +275,7 @@ scriptEntry SinglePlayerTweaks[] =
     makeEntry( SUBMESSAGE_SAFETY_TIMEOUT,                   scriptSetReal32CB    ),
 
     { "BaseFleetStrengthForLevel", SetBaseFleetStrCB, NULL },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -283,7 +283,7 @@ scriptEntry WarpScriptTable[] =
 {
     { "WarpStartRU", scriptSetSdwordCB, &universe.players[0].resourceUnits },
     { "WarpFleet",   SetWarpFleetCB,    NULL                               },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -291,14 +291,14 @@ scriptEntry WarpCalcFleetStrengthTable[] =
 {
     { "WarpStartRU", WarpFleetRUStrengthCB, NULL },
     { "WarpFleet",   WarpFleetStrengthCB,   NULL },
-    
+
     END_SCRIPT_ENTRY
 };
 
 scriptEntry WarpPreLoadTable[] =
 {
     { "WarpFleet", WarpPreLoadCB, NULL },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -309,7 +309,7 @@ scriptEntry SinglePlayerScriptTable[] =
     { "MissionStartEnemyRUs",  scriptSetSdwordCB,        &universe.players[1].resourceUnits      },
     { "MissionStartEnemyRace", scriptSetShipRaceCB,      &universe.players[1].race               },
     { "Asteroid0sCanMove",     scriptSetBool,            &singlePlayerGameInfo.asteroid0sCanMove },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -317,7 +317,7 @@ fecallback spHyperspaceCallback[] =
 {
     { spAbortHyperspaceCB, "AbortHyperspace" },
     { spGoNowHyperspaceCB, "GoNowHyperspace" },
-    
+
     { NULL,                NULL              },
 };
 
@@ -325,7 +325,7 @@ fedrawcallback spHyperspaceDrawCallback[] =
 {
     { spShipsRemainingDrawCB, "ShipsRemainingDraw" },
     { spShipsDockedDrawCB,    "ShipsDockedDraw"    },
-    
+
     { NULL,                   NULL                 },
 };
 
@@ -333,7 +333,7 @@ fedrawcallback spHyperspaceDrawCallback[] =
 udword convertMissionToSequenceIndex(MissionEnum mission)
 {
     udword index = 0;
-    
+
     for (index = 0; index < NUMBER_MISSIONS_IN_SEQUENCE; index++)
     {
         if (mission == missionSequence[index])
@@ -341,26 +341,26 @@ udword convertMissionToSequenceIndex(MissionEnum mission)
             return index;
         }
     }
-    
+
     // getting here is seriously bad and I don't see how to recover from it
     // other than to lie about the index which will probably crash things anyway
     // so let's die at the point of failure not somewhere else down the line
     dbgFatalf(DBG_Loc, "unknown MissionEnum enum: %u", mission);
-    
+
     return 0;  // this will never be called but keeps the compiler quiet
 }
 
 void spResetMissionSequenceToBeginning(void)
 {
     singlePlayerCurrentMissionIndex = 0;
-    
+
     spSetCurrentMission(missionSequence[singlePlayerCurrentMissionIndex]);
 }
 
 void spSetCurrentMission(MissionEnum mission)
 {
     singlePlayerGameInfo.currentMission = mission;
-    
+
     singlePlayerCurrentMissionIndex
         = convertMissionToSequenceIndex(mission);
 }
@@ -385,13 +385,13 @@ MissionEnum spGetAdjacentMission(sbyte direction)
     sdword adjacentMissionIndex
         = convertMissionToSequenceIndex(spGetCurrentMission())
         + (direction < 0 ? -1 : +1);
-    
+
     if (adjacentMissionIndex < 0
     ||  adjacentMissionIndex >= NUMBER_MISSIONS_IN_SEQUENCE)
     {
         return MISSION_ENUM_NOT_INITIALISED;
     }
-    
+
     return missionSequence[adjacentMissionIndex];
 }
 
@@ -1607,7 +1607,7 @@ bool UpdateArrivingShip(Ship *ship,hvector *topoint,bool midLevel)
     noupdateonincomminghs:;
                     }
                     break;
-                    
+
                 case HS_COLLAPSE_OUTOF:
                     if (ship->soundevent.hyperspaceHandle != SOUND_NOTINITED)
                     {
@@ -1635,14 +1635,14 @@ bool UpdateArrivingShip(Ship *ship,hvector *topoint,bool midLevel)
     noupdateHSMP:;
                     }
                     break;
-                    
+
                 case HS_INACTIVE:
                     if (universe.totaltimeelapsed > shipSinglePlayerGameInfo->timeToHyperspace)
                     {
                         thisShipArrived = TRUE;
                     }
                     break;
-                    
+
                 default:
                     hsUpdate(ship);
                     break;
@@ -2082,7 +2082,7 @@ void spHyperspaceButtonPushed(void)
                 if (resourcesLeft > 0) {
                     char *resources_collected_strings[] = {
                         "Resources collected",
-                        "Ressources collectées",
+                        "Ressources collectï¿½es",
                         "Ressourcen gesammelt",
                         "Los recursos recaudados",
                         "Le risorse raccolte",
@@ -2171,7 +2171,7 @@ void singlePlayerLevelLoaded(void)
     // need to fix up the mission sequence index to match the currentMission
     singlePlayerCurrentMissionIndex
         = convertMissionToSequenceIndex(spGetCurrentMission());
-    
+
     if (spGetCurrentMission() == MISSION_10_SUPER_NOVA_STATION)
     {
         Node *objnode;
@@ -2563,11 +2563,11 @@ void singlePlayerGameUpdate()
                     {
                         animAviPlay(spGetCurrentMission(), spGetNextMission());
                     }
-                    
+
 // was: HW_COMPUTER_GAMING_WORLD_DEMO but the standard demo
 // had a short single player campaign surely? If not get rid of this
 #ifdef HW_GAME_DEMO
-                    if (spGetCurrentMission() == MISSION_2_OUTSKIRTS_OF_KHARAK)
+                    if (spGetCurrentMission() == MISSION_2_OUTSKIRTS_OF_KHARAK_SYSTEM)
                     {
                         universe.quittime = universe.totaltimeelapsed;
                         utyPlugScreens = TRUE;
@@ -2679,7 +2679,7 @@ hyperspacefailed:
                 singlePlayerGameInfo.hyperspaceFails = FALSE;
             }
             break;
-            
+
         default:
             break;
     }
@@ -2901,9 +2901,9 @@ udword spOldMissionNumber(MissionEnum missionEnum)
 
     if (missionEnum == MISSION_5B_TURANIC_RAIDER_PLANETOID)
     {
-        oldMissionValue = (udword) MISSION_5_GREAT_WASTELANDS_REVENGE;  
+        oldMissionValue = (udword) MISSION_5_GREAT_WASTELANDS_REVENGE;
     }
-    
+
     return oldMissionValue;
 }
 
@@ -2957,7 +2957,7 @@ void *WatchFunctionAddress(MissionEnum mission)
         case MISSION_15_CHAPEL_PERILOUS:           return &Watch_Mission15;
         case MISSION_16_HIIGARA:                   return &Watch_Mission16;
         case MISSION_TUTORIAL:                     return &Watch_Tutorial1;
-        
+
         default:
             break;
     }
@@ -2988,7 +2988,7 @@ const void **FunctionListAddress(MissionEnum mission)
         case MISSION_15_CHAPEL_PERILOUS:           return Mission15_FunctionPointers;
         case MISSION_16_HIIGARA:                   return Mission16_FunctionPointers;
         case MISSION_TUTORIAL:                     return Tutorial1_FunctionPointers;
-        
+
         default:
             break;
     }
@@ -3019,7 +3019,7 @@ udword FunctionListSize(MissionEnum mission)
         case MISSION_15_CHAPEL_PERILOUS:           return Mission15_FunctionPointerCount;
         case MISSION_16_HIIGARA:                   return Mission16_FunctionPointerCount;
         case MISSION_TUTORIAL:                     return Tutorial1_FunctionPointerCount;
-        
+
         default:
             break;
     }
@@ -3045,7 +3045,7 @@ KASWatchFunction MissionEnumToWatchFunction(MissionEnum mission)
 {
     dbgAssertOrIgnore(mission >= MISSION_ENUM_NOT_INITIALISED);
     dbgAssertOrIgnore(mission <  NUMBER_SINGLEPLAYER_MISSIONS);
-    
+
     return WatchFunctionAddress(mission);
 }
 
@@ -3053,7 +3053,7 @@ const void** MissionEnumToFunctionList(MissionEnum mission)
 {
     dbgAssertOrIgnore(mission >= MISSION_ENUM_NOT_INITIALISED);
     dbgAssertOrIgnore(mission <  NUMBER_SINGLEPLAYER_MISSIONS);
-    
+
     return FunctionListAddress(mission);
 }
 
@@ -3144,7 +3144,7 @@ nisletnames nisletNames[NUMBER_SINGLEPLAYER_MISSIONS] =
     { { NIS_PATH"m15a", NIS_PATH"m15b", NULL           }, { FALSE, FALSE, FALSE } },
     { { NIS_PATH"m14a", NULL,           NULL           }, { TRUE,  FALSE, FALSE } },
     { { NIS_PATH"m16a", NIS_PATH"m16a", NIS_PATH"m16a" }, { FALSE, FALSE, TRUE  } },
-    
+
     { { NULL,           NULL,           NULL           }, { FALSE, FALSE, FALSE } },
 };
 
@@ -3153,15 +3153,15 @@ bool8 nisPlayRelativeToMothership[NUMBER_SINGLEPLAYER_NIS] =
     FALSE,
     TRUE,
     TRUE,
-    
+
     TRUE,
     TRUE,
     TRUE,
-    
+
     TRUE,
     TRUE,
     TRUE,
-    
+
     TRUE,
     TRUE,
     TRUE
@@ -3734,62 +3734,62 @@ void singleHackResearchWarp(void)
         case MISSION_16_HIIGARA:
         case MISSION_15_CHAPEL_PERILOUS:
             PlayerAcquiredTechnology("HeavyGuns");
-        
+
         case MISSION_14_BRIDGE_OF_SIGHS:
             AllowPlayerToResearch("HeavyGuns");
             PlayerAcquiredTechnology("CloakDefenseFighter");
-        
+
         case MISSION_13_THE_KAROS_GRAVEYARD:
             PlayerAcquiredTechnology("MissileWeapons");
             AllowPlayerToResearch("CloakDefenseFighter");
-        
+
         case MISSION_12_GALACTIC_CORE:
             PlayerAcquiredTechnology("GravityWellGeneratorTech");
-        
+
         case MISSION_11_TENHAUSER_GATE:
             AllowPlayerToResearch("GravityWellGeneratorTech");
             PlayerAcquiredTechnology("ProximityDetector");
             PlayerAcquiredTechnology("RepairTech");
-        
+
         case MISSION_10_SUPER_NOVA_STATION:
             AllowPlayerToResearch("RepairTech");
             AllowPlayerToResearch("MissileWeapons");
-        
+
         case MISSION_9_SEA_OF_LOST_SOULS:
             PlayerAcquiredTechnology("DDDFDFGFTech");
             PlayerAcquiredTechnology("TargetingSystems");
-        
+
         case MISSION_8_THE_CATHEDRAL_OF_KADESH:
             AllowPlayerToResearch("TargetingSystems");
-        
+
         case MISSION_7_THE_GARDENS_OF_KADESH:
             AllowPlayerToResearch("DDDFDFGFTech");
             PlayerAcquiredTechnology("MassDrive1Mt");
             PlayerAcquiredTechnology("FireControl");
-            
+
         case MISSION_6_DIAMOND_SHOALS:
             PlayerAcquiredTechnology("PlasmaWeapons");
             AllowPlayerToResearch("MassDrive1Mt");
             AllowPlayerToResearch("FireControl");
-            
+
         case MISSION_5_GREAT_WASTELANDS_REVENGE:
         case MISSION_5B_TURANIC_RAIDER_PLANETOID:
             AllowPlayerToResearch("PlasmaWeapons");
             PlayerAcquiredTechnology("Chassis3");
             PlayerAcquiredTechnology("IonWeapons");
-            
+
         case MISSION_4_GREAT_WASTELANDS_TRADERS:
             PlayerAcquiredTechnology("MassDrive100Kt");
             AllowPlayerToResearch("Chassis3");
-            
+
         case MISSION_3_RETURN_TO_KHARAK:
             PlayerAcquiredTechnology("Chassis2");
             PlayerAcquiredTechnology("MediumGuns");
-            
+
         case MISSION_2_OUTSKIRTS_OF_KHARAK_SYSTEM:
             PlayerAcquiredTechnology("Chassis1");
             PlayerAcquiredTechnology("MassDrive10Kt");
-            
+
         case MISSION_1_KHARAK_SYSTEM:
             PlayerAcquiredTechnology("MassDrive1Kt");
             AllowPlayerToResearch("Chassis1");
@@ -3848,7 +3848,7 @@ void singlePlayerStartGame(void)
     singlePlayerLevelLoaded();
     singlePlayerKasMissionStart(spGetCurrentMission());
     GetStartPointPlayer(&startPoint);
-    
+
     singlePlayerNISNamesGet(&nis, &script, &centre, spOldMissionNumber(spGetCurrentMission()));
     singlePlayerStartNis(nis, script, centre, &startPoint);
 }
@@ -4068,4 +4068,3 @@ void LoadSinglePlayerGame(void)
 
     LoadGrowSelectionAndFix(&singlePlayerGameInfo.ShipsToHyperspace);
 }
-

@@ -23,7 +23,7 @@
 #ifdef HW_BUILD_FOR_DEBUGGING
 
 #define SE_ERROR_CHECKING          1           //general error checking
-#define SE_VERBOSE_LEVEL           1           //control specific output code
+#define SE_VERBOSE_LEVEL           2           //control specific output code
 #define SE_DEBUG                   1           //switch for command line options
 
 #else

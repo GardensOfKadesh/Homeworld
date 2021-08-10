@@ -73,7 +73,7 @@
 
 //located in mainrg.c
 //falko's fault...not mine..long story
-void toFieldSphereDraw(ShipPtr ship,real32 radius, real32 scale);
+void toFieldSphereDraw(ShipPtr ship,real32 radius, real32 scale, color passedColour);
 
 void (*smHoldLeft)(void);
 void (*smHoldRight)(void);
@@ -515,7 +515,7 @@ scriptEntry smTweaks[] =
     { "FOW_DustGasK3",              scriptSetReal32CB, &smFOW_DustGasK3 },
     { "FOW_DustGasK4",              scriptSetReal32CB, &smFOW_DustGasK4 },
     { "smFOWBlobUpdateTime",        scriptSetReal32CB, &smFOWBlobUpdateTime },
-    
+
     END_SCRIPT_ENTRY
 };
 
@@ -897,7 +897,7 @@ void smBlobDrawClear(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatrix
                         {
                             if (((GravWellGeneratorSpec *)((Ship *)obj)->ShipSpecifics)->GravFieldOn)
                             {
-                                toFieldSphereDraw(((Ship *)obj),((GravWellGeneratorStatics *) ((ShipStaticInfo *)(((Ship *)obj)->staticinfo))->custstatinfo)->GravWellRadius, 1.0f);
+                                toFieldSphereDraw(((Ship *)obj),((GravWellGeneratorStatics *) ((ShipStaticInfo *)(((Ship *)obj)->staticinfo))->custstatinfo)->GravWellRadius, 1.0f, TW_CLOAKGENERATOR_SPHERE_COLOUR);
                             }
                         }
                     }
@@ -1176,6 +1176,7 @@ renderDerelictAsDot:
             color c = neb->tendrilTable[t].colour;
             glColor4ub(colRed(c), colGreen(c), colBlue(c), 192);
             glVertex3fv((GLfloat*)&neb->tendrilTable[t].a->position);
+            glColor4ub(colRed(c), colGreen(c), colBlue(c), 192);
             glVertex3fv((GLfloat*)&neb->tendrilTable[t].b->position);
         }
         glEnd();
@@ -1203,7 +1204,7 @@ renderDerelictAsDot:
             {
                 radius = max(shipTO[index].radius, smTORadius);
                 col = shipTO[index].c;
-                primLineLoopStart2(1, col);
+                primLineLoopStart2(1.3f, col);
 
                 for (i = icon->nPoints - 1; i >= 0; i--)
                 {
@@ -3426,7 +3427,7 @@ udword smViewportProcess(regionhandle region, sdword ID, udword event, udword da
             break;
         case RPE_PressRight:
 #ifdef _LINUX_FIX_ME
-            mouseClipToRect(&smViewRectangle);
+            //mouseClipToRect(&smViewRectangle);
 #endif
             smHoldLeft = smNULL;
             smHoldRight = mrCameraMotion;
@@ -4332,4 +4333,3 @@ void smLoad(void)
 
     smUpdateParameters();
 }
-

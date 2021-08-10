@@ -53,10 +53,18 @@ pluglink *psFadeLink = NULL;
 real32 psFadeStartTime;
 real32 psFadeTime = PS_FadeTime;
 
+char psFont0[] = "Arial_12.hff";
+char psFont1[] = "scrollingtext.hff";
+char psFont2[] = "to_2.hff";
+fonthandle psTextFont0=0;
+fonthandle psTextFont1=0;
+fonthandle psTextFont2=0;
+
 void psImageSet(char *directory,char *field,void *dataToFillIn);
 void psPlugLinkSet(char *directory,char *field,void *dataToFillIn);
 void psTimeoutSet(char *directory,char *field,void *dataToFillIn);
 void psCrossFadeLinkSet(char *directory,char *field,void *dataToFillIn);
+void psStaticTextSet(char *directory, char *field, void *dataToFillIn);
 
 //for timing out a screen
 real32 psScreenCreationTime;
@@ -76,13 +84,51 @@ scriptEntry psScreenTweaks[] =
     { "GameLink",        psPlugLinkSet, (void *)PLT_GameOn },
     { "TimeOut",         psTimeoutSet,  NULL },
     { "Mouse",           scriptSetBool, &psMouseFlag },
-    
+    { "StaticText",      psStaticTextSet, NULL},
+
     END_SCRIPT_ENTRY
 };
 
 /*=============================================================================
     Private functions:
 =============================================================================*/
+
+void psStaticTextDraw(regionhandle region)
+{
+    pluglink *link = (pluglink *)region;
+
+    if (link->onTexture == 0) fontMakeCurrent(psTextFont0);
+    if (link->onTexture == 1) fontMakeCurrent(psTextFont1);
+
+    fontPrint(link->reg.rect.x0, link->reg.rect.y0, colWhite, link->linkName);
+}
+
+void psStaticTextSet(char *directory, char *field, void *dataToFillIn)
+{
+    char textContent[256];
+    sdword x, y, fontSize, nScanned;
+    pluglink *text;
+
+    nScanned = sscanf(field, "%d,%d,%d,%[^\n]s", &x, &y, &fontSize, textContent);
+
+    text = (pluglink *)regChildAlloc(psBaseRegion->child, (sdword)dataToFillIn, //create the region
+            plugXMargin + x, plugYMargin + y, 8, 8, plugLinkExtra(textContent),
+            RPE_Enter | RPE_Exit | RPE_EnterHoldLeft | RPE_ExitHoldLeft | RPE_PressLeft);
+
+
+    strcpy(text->linkName, textContent); // store text in linkfield
+    text->onTexture = fontSize; // store selected font in on texture
+    //printf("%s \n", field);
+    //printf("%d %d %s \n", x, y, textContent);
+
+    regDrawFunctionSet(&text->reg, psStaticTextDraw);
+
+    if (psTextFont0 == 0) psTextFont0 = frFontRegister(psFont0);
+    if (psTextFont1 == 0) psTextFont1 = frFontRegister(psFont1);
+}
+
+
+
 /*-----------------------------------------------------------------------------
     Name        : psImageDraw
     Description : Draw a plugscreen image
@@ -93,22 +139,22 @@ scriptEntry psScreenTweaks[] =
 ----------------------------------------------------------------------------*/
 void psImageDraw(psimage *image, color c)
 {
-    sdword x, y, xStart, yStart;
+    sdword x, y; //, xStart, yStart;
     udword *quiltTexture = image->imageQuilt;
     rectangle rect;
 
     dbgAssertOrIgnore(image->width != 0);
     dbgAssertOrIgnore(image->imageQuilt != NULL);
-    xStart = (MAIN_WindowWidth - image->width) / 2;
-    yStart = (MAIN_WindowHeight - image->height) / 2;
+    //xStart = (MAIN_WindowWidth - image->width) / 2;
+    //yStart = (MAIN_WindowHeight - image->height) / 2;
 
     for (y = 0; y < image->height / PS_QuiltPieceHeight; y++)
     {
-        rect.y0 = yStart + y * PS_QuiltPieceHeight;
+        rect.y0 = image->yStart + y * PS_QuiltPieceHeight;
         rect.y1 = rect.y0 + PS_QuiltPieceHeight;
         for (x = 0; x < image->width / PS_QuiltPieceWidth; x++, quiltTexture++)
         {
-            rect.x0 = xStart + x * PS_QuiltPieceWidth;
+            rect.x0 = image->xStart + x * PS_QuiltPieceWidth;
             rect.x1 = rect.x0 + PS_QuiltPieceWidth;
             trRGBTextureMakeCurrent(*quiltTexture);
             primRectSolidTexturedFullRectC2(&rect, c);
@@ -128,11 +174,37 @@ void psLinkDraw(regionhandle region)
     pluglink *link = (pluglink *)region;
     udword handle = (bitTest(region->status, RSF_MouseInside)) ? link->onTexture : link->offTexture;
     lifheader *header = (bitTest(region->status, RSF_MouseInside)) ? link->onImage : link->offImage;
-    rectangle screenRect = {plugXMargin-1, plugYMargin, plugXMargin + max(psScreenImage.width, region->rect.x1), plugYMargin + max(psScreenImage.height, region->rect.y1)};
+    //rectangle screenRect = {(MAIN_WindowWidth - psScreenImage.width) / 2 -1, (MAIN_WindowHeight - psScreenImage.height) / 2, plugXMargin + max(psScreenImage.width, region->rect.x1), plugYMargin + max(psScreenImage.height, region->rect.y1)};
+    rectangle screenRect = {0, 0, MAIN_WindowWidth, MAIN_WindowHeight};
     char linkName[80];
+    sdword width;
 
-    trPalettedTextureMakeCurrent(handle, header->palette);
+    if (header != NULL)
+    {
+      trPalettedTextureMakeCurrent(handle, header->palette);
+    }
+    else
+    {
+      trRGBTextureMakeCurrent(handle);
+    }
+
+    // blend add the jpg button on top since we don't have an alpha channel in button images
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
     primRectSolidTextured2(&region->rect);
+    glDisable(GL_BLEND);
+    // reset blend function to what the rest of homeworld code expects
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // draw link url only for new jpg based buttons
+    if ((header == NULL) && (bitTest(region->status, RSF_MouseInside)))
+    {
+        if (psTextFont2 == 0) psTextFont2 = frFontRegister(psFont2);
+        fontMakeCurrent(psTextFont2);
+        width = fontWidth(link->linkName);
+        fontPrint(link->reg.rect.x0 + (link->reg.rect.x1 - link->reg.rect.x0) - width/2, link->reg.rect.y1 + 4, colWhite, link->linkName);
+    }
+
 
     if (bitTest(region->userID, PLF_FadeRegion))
     {                                                       //if this is the fader region
@@ -356,6 +428,9 @@ void psImageLoad(psimage *destImage, char *directory, char *imageName)
     JpegRead(&jp);
     fileClose(jp.input_file);                               //close the file
 
+    destImage->xStart = (MAIN_WindowWidth - destImage->width) / 2;
+    destImage->yStart = (MAIN_WindowHeight - destImage->height) / 2;
+
     bFilterSave = texLinearFiltering;
     texLinearFiltering = FALSE;
     //create a 'quilt' of textures from the single big buffer
@@ -474,6 +549,14 @@ void psPlugLinkSet(char *directory,char *field,void *dataToFillIn)
     lifheader *header;
     pluglink *link;
 
+    JPEGDATA    jp;
+    ubyte *imageBuffer, *imageBuffer2, *pSource;
+    color *pDest;
+    sdword bFilterSave;
+
+    bFilterSave = texLinearFiltering;
+    texLinearFiltering = FALSE;
+
     //format is <x>,<y>,<onTexture>,<offTexture>,[<linkName>]
     RemoveCommasButNotQuestionMarksFromString(field);
     nScanned = sscanf(field, "%d %d %s %s %s", &x, &y, onName, offName, linkName);
@@ -486,27 +569,99 @@ void psPlugLinkSet(char *directory,char *field,void *dataToFillIn)
     //create the "on" texture
     strcpy(fileName, directory);                            //prepare file name for on button
     strcat(fileName, onName);
-    header = trLIFFileLoad(fileName, NonVolatile);
-    dbgAssertOrIgnore(bitTest(header->flags, TRF_Paletted));
+    if (strcmp(strrchr(fileName, '.'), ".jpg") != 0)
+    {
+      header = trLIFFileLoad(fileName, NonVolatile);
+      dbgAssertOrIgnore(bitTest(header->flags, TRF_Paletted));
 
-    link = (pluglink *)regChildAlloc(psBaseRegion->child, (sdword)dataToFillIn, //create the region
-            plugXMargin + x, plugYMargin + y, header->width, header->height, plugLinkExtra(linkName),
-            RPE_Enter | RPE_Exit | RPE_EnterHoldLeft | RPE_ExitHoldLeft | RPE_PressLeft);
-    regFunctionSet(&link->reg, (regionfunction) psLinkProcess);
-    regDrawFunctionSet(&link->reg, psLinkDraw);
+      link = (pluglink *)regChildAlloc(psBaseRegion->child, (sdword)dataToFillIn, //create the region
+              plugXMargin + x, plugYMargin + y, header->width, header->height, plugLinkExtra(linkName),
+              RPE_Enter | RPE_Exit | RPE_EnterHoldLeft | RPE_ExitHoldLeft | RPE_PressLeft);
 
-    link->onTexture = trPalettedTextureCreate(header->data, header->palette, header->width, header->height);
-    link->onImage = header;
+      strcpy(link->linkName, linkName);                       //store the link name
+
+      regFunctionSet(&link->reg, (regionfunction) psLinkProcess);
+      regDrawFunctionSet(&link->reg, psLinkDraw);
+
+      link->onTexture = trPalettedTextureCreate(header->data, header->palette, header->width, header->height);
+      link->onImage = header;
+    }
+    else
+    {
+      memset(&jp, 0, sizeof(jp));
+      jp.input_file = fileOpen(fileName, 0);                  //open the file
+      JpegInfo(&jp);                                          //get info on the file
+      fileSeek(jp.input_file, 0, SEEK_SET);                   //reset file pointer
+                                                              //alloc a buffer to load the image to
+      imageBuffer = memAlloc(jp.width * jp.height * sizeof(color), "PlugScreenButton", 0);
+      imageBuffer2 = memAlloc(jp.width * jp.height * sizeof(udword), "PlugScreenButton2", 0);
+      jp.ptr = (ubyte *)imageBuffer;                          //load in the image
+      JpegRead(&jp);
+      fileClose(jp.input_file);                               //close the file
+
+      link = (pluglink *)regChildAlloc(psBaseRegion->child, (sdword)dataToFillIn, //create the region
+              plugXMargin + x, plugYMargin + y, jp.width, jp.height, plugLinkExtra(linkName),
+              RPE_Enter | RPE_Exit | RPE_EnterHoldLeft | RPE_ExitHoldLeft | RPE_PressLeft);
+
+      strcpy(link->linkName, linkName);                       //store the link name
+
+      regFunctionSet(&link->reg, (regionfunction) psLinkProcess);
+      regDrawFunctionSet(&link->reg, psLinkDraw);
+
+      pSource = imageBuffer;
+      pDest = imageBuffer2;
+      if (jp.components == 3)
+          for(x = 0; x < (jp.height * jp.width); x++, pSource += 3, pDest++) *pDest = colRGB(pSource[0], pSource[1], pSource[2]);
+      else
+          for(x = 0; x < (jp.height * jp.width); x++, pSource += 1, pDest++) *pDest = colRGB(pSource[0], pSource[0], pSource[0]);
+
+      link->onTexture = trRGBTextureCreate(imageBuffer2, jp.width, jp.height, FALSE);
+      memFree(imageBuffer);
+      memFree(imageBuffer2);
+      link->onImage = NULL;
+    }
+
     //memFree(header);                                        //don't need to keep this image around
     //create the "off" texture
     strcpy(fileName, directory);                            //prepare file name for on button
     strcat(fileName, offName);
-    header = trLIFFileLoad(fileName, NonVolatile);
-    dbgAssertOrIgnore(bitTest(header->flags, TRF_Paletted));
-    link->offTexture = trPalettedTextureCreate(header->data, header->palette, header->width, header->height);
-    //memFree(header);
-    link->offImage = header;
-    strcpy(link->linkName, linkName);                       //store the link name
+    if (strcmp(strrchr(fileName, '.'), ".jpg") != 0)
+    {
+
+      header = trLIFFileLoad(fileName, NonVolatile);
+      dbgAssertOrIgnore(bitTest(header->flags, TRF_Paletted));
+      link->offTexture = trPalettedTextureCreate(header->data, header->palette, header->width, header->height);
+      //memFree(header);
+      link->offImage = header;
+    }
+    else
+    {
+      memset(&jp, 0, sizeof(jp));
+      jp.input_file = fileOpen(fileName, 0);                  //open the file
+      JpegInfo(&jp);                                          //get info on the file
+      fileSeek(jp.input_file, 0, SEEK_SET);                   //reset file pointer
+                                                              //alloc a buffer to load the image to
+      imageBuffer = memAlloc(jp.width * jp.height * sizeof(color), "PlugScreenButton", 0);
+      imageBuffer2 = memAlloc(jp.width * jp.height * sizeof(udword), "PlugScreenButton2", 0);
+      jp.ptr = (ubyte *)imageBuffer;                          //load in the image
+      JpegRead(&jp);
+      fileClose(jp.input_file);                               //close the file
+
+      pSource = imageBuffer;
+      pDest = imageBuffer2;
+      if (jp.components == 3)
+          for(x = 0; x < (jp.height * jp.width); x++, pSource += 3, pDest++) *pDest = colRGB(pSource[0], pSource[1], pSource[2]);
+      else
+          for(x = 0; x < (jp.height * jp.width); x++, pSource += 1, pDest++) *pDest = colRGB(pSource[0], pSource[0], pSource[0]);
+
+      link->offTexture = trRGBTextureCreate(imageBuffer2, jp.width, jp.height, FALSE);
+      memFree(imageBuffer);
+      memFree(imageBuffer2);
+      link->offImage = NULL;
+    }
+
+    texLinearFiltering = bFilterSave;
+
 }
 
 /*-----------------------------------------------------------------------------
@@ -583,7 +738,7 @@ DEFINE_TASK(psRenderTaskFunction)
     taskBegin;
 
     taskYield(0);
-    
+
     while (1)
     {
         primErrorMessagePrint();
@@ -662,6 +817,10 @@ DEFINE_TASK(psRenderTaskFunction)
         /* need to update audio event layer */
         soundEventUpdate();
 
+        if (psTextFont2 == 0) psTextFont2 = frFontRegister(psFont2);
+        fontMakeCurrent(psTextFont2);
+        fontPrint(MAIN_WindowWidth - fontWidth(GIT_VERSION) - 32, MAIN_WindowHeight - fontHeight(" ") - 2, colWhite, GIT_VERSION);
+
         mouseDraw();                                        //draw mouse atop everything
 
         if (!feDontFlush)
@@ -690,7 +849,7 @@ void psModeBegin(char *directory, udword modeFlags)
 {
     psGlobalFlags = modeFlags;
     psGLCompat = FALSE;
-    
+
     psStartup();
     strcpy(psDirectory, directory);
     psFadeState = PFS_ToBlack;
@@ -709,7 +868,7 @@ void psModeBegin(char *directory, udword modeFlags)
 void psModeEnd(void)
 {
     psDirectory[0] = 0;
-    //taskStop(psRenderTask);
+    taskPause(psRenderTask);
     taskResume(utyRenderTask);
     psCurrentScreenDelete();
     mouseEnable();
@@ -795,8 +954,8 @@ void psCurrentScreenDelete(void)
     {                                                       //delete the textures from each of the links
         if (reg->drawFunction == psLinkDraw)
         {
-            memFree(((pluglink *)reg)->onImage);
-            memFree(((pluglink *)reg)->offImage);
+            if (((pluglink *)reg)->onImage) memFree(((pluglink *)reg)->onImage);
+            if (((pluglink *)reg)->offImage) memFree(((pluglink *)reg)->offImage);
             trRGBTextureDelete(((pluglink *)reg)->onTexture);
             trRGBTextureDelete(((pluglink *)reg)->offTexture);
         }
@@ -815,5 +974,3 @@ void psCurrentScreenDelete(void)
     psScreenImage.width = 0;
     psScreenImage.height = 0;
 }
-
-

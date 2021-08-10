@@ -1854,9 +1854,11 @@ void kasFunctionStart(char *funcName)
     callStack[curFuncDepth].paramsSoFar = 0;
 
     if (functions[funcNum].returnsNumber)
-        fprintf(yyout, "(sdword)");   // to avoid type-casting warnings during later compilation
+        //fprintf(yyout, "(sdword)");   // to avoid type-casting warnings during later compilation
+        fprintf(yyout, "");   // to avoid type-casting warnings during later compilation
     else
-        fprintf(yyout, "(sdword)(");  // start the (xxx, 0) expression
+        //fprintf(yyout, "(sdword)(");  // start the (xxx, 0) expression
+        fprintf(yyout, "(");  // start the (xxx, 0) expression
 
     fprintf(yyout, "%s(", functions[funcNum].realName);
 

@@ -5,6 +5,8 @@
 //  Created 6/1/1998 by fpoiker
 // =============================================================================
 
+#include <string.h>
+
 #include "AIUtilities.h"
 
 #include "AIFeatures.h"
@@ -687,7 +689,7 @@ bool aiuShipNotGoodAgainstFighters(Ship *ship)
         case HeavyCruiser:
             return TRUE;
             break;
-            
+
         default:
             break;
     }
@@ -3783,7 +3785,7 @@ void aiuFindPriorityTarget(SelectCommand *attackers, SelectCommand *targets)
 {
     MaxSelection tempsel;	//temporary selection
 	bool capship = FALSE;
-	
+
 	// split depending on the attacker type to select specific targets
 	switch (attackers->ShipPtr[0]->shiptype)
 	{
@@ -3805,7 +3807,7 @@ void aiuFindPriorityTarget(SelectCommand *attackers, SelectCommand *targets)
 			}
 
 			// no break - the above ships fall through and try to eliminate SalCaps as well
-		
+
 		// anti-corvette
 		case MissileDestroyer:
 		case StandardFrigate:
@@ -3816,13 +3818,13 @@ void aiuFindPriorityTarget(SelectCommand *attackers, SelectCommand *targets)
 				selSelectionCopy((MaxAnySelection *)targets, (MaxAnySelection *)&tempsel);
 				break;
 			}
-			
+
 			// anti-capital ships break out here
 			if (capship)
 			{
 				break;
 			}
-		
+
 		// anti-fighter
 		case CloakedFighter:
 		case DDDFrigate:
@@ -3840,12 +3842,12 @@ void aiuFindPriorityTarget(SelectCommand *attackers, SelectCommand *targets)
 				selSelectionCopy((MaxAnySelection *)targets, (MaxAnySelection *)&tempsel);
 				break;
 			}
-		
+
 		// minor firepower ships
 		case AdvanceSupportFrigate:
 		case RepairCorvette:
 		case Carrier:
-		
+
 		default:
 			// guarantee attacking mothership 1 out of 4 times.
 			if (!randyrandom(RANDOM_AI_PLAYER, 4) &&
@@ -4810,7 +4812,3 @@ void aiuDeleteBlobArrays(void)
 
     aiumemFree(myMothershipBlob);
 }
-
-
-
-

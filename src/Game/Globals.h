@@ -164,4 +164,3 @@ void globalsResetFunc(bool firstTime);
 void globalsClose();
 
 #endif
-

@@ -206,7 +206,7 @@ if test "x$network" = "xyes" ; then
 	AC_CHECK_HEADER([SDL2/SDL_net.h],[
 		AC_CHECK_LIB([SDL2_net], [SDLNet_Init], [
 		        echo "* Including Network Game code for Homeworld (HW_ENABLE_NETWORK) *"
-			HWGAME_CFLAGS="$HWGAME_CFLAGS -DHW_ENABLE_NETWORK"	
+			HWGAME_CFLAGS="$HWGAME_CFLAGS -DHW_ENABLE_NETWORK"
 			NET_LIBS="-lSDL2_net -lm"
 		], [])
 	],[])
@@ -219,7 +219,7 @@ AM_CONDITIONAL(OLD_SOUND, test "$oldsound" = "yes")
 
 AC_CHECK_LIB([GL], [glBegin], [
     echo "* Using OpenGL for Homeworld *"
-    GL_LIBS="-lGL -lm"
+    GL_LIBS="-lGL -lm -lGLEW"
 ], [
     AC_CHECK_LIB([GLES_CM], [glEnableClientState], [
             echo "* Using OpenGL ES for Homeworld (HW_ENABLE_GLES) *"

@@ -8,7 +8,6 @@
 #define ___MAIN_H
 
 #include <SDL.h>
-
 #include "mainswitches.h"
 #include "Types.h"
 

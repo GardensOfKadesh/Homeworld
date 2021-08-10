@@ -21,7 +21,6 @@
 #include "Subtitle.h"
 #include "Universe.h"
 
-
 sdword animaticJustPlayed = 0;  // actually a decremented counter for delaying purposes
 
 static sdword g_frame;
@@ -182,7 +181,7 @@ void animBinkDisplay()
     yOfs = (MAIN_WindowHeight - 480) / 2;
 
     animBinkSetup(TRUE);
-    glRasterPos2f((real32)xOfs, (real32)yOfs);
+    //glRasterPos2f((real32)xOfs, (real32)yOfs);
 
 #ifndef _MACOSX_FIX_ANIM
     switch (RGLtype)
@@ -191,7 +190,7 @@ void animBinkDisplay()
         glcDisplayRGBABackgroundScaled(binkSurface);
         break;
     case SWtype:
-        glDrawPixels(640, 480, GL_RGBA16, GL_UNSIGNED_BYTE, binkSurface);
+        //glDrawPixels(640, 480, GL_RGBA16, GL_UNSIGNED_BYTE, binkSurface);
         break;
     default:
         dbgFatalf(DBG_Loc, "what's this RGLtype: %d [binkSimpleDisplayProc]", RGLtype);
@@ -516,7 +515,7 @@ void animAviDisplay()
         glcDisplayRGBABackgroundScaled(binkSurface);
         break;
     case SWtype:
-        glDrawPixels(640, 480, GL_RGBA16, GL_UNSIGNED_BYTE, binkSurface);
+        //glDrawPixels(640, 480, GL_RGBA16, GL_UNSIGNED_BYTE, binkSurface);
         break;
     default:
         dbgFatalf(DBG_Loc, "what's this RGLtype: %d [binkSimpleDisplayProc]", RGLtype);
@@ -844,4 +843,3 @@ bool animAviPlay(sdword a, sdword b)
 
     return rval;
 }
-

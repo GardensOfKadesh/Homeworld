@@ -544,7 +544,7 @@ bool glfontDisplayCharacter(fontheader* font, char ch, sdword x, sdword y, color
         glBindTexture(GL_TEXTURE_2D, page->glhandle);
     }
     glColor3ub(colRed(c), colGreen(c), colBlue(c));
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_STRIP);
 
     VERT(sBegin, tEnd,
          x + fcharacter->offsetX,
@@ -552,12 +552,12 @@ bool glfontDisplayCharacter(fontheader* font, char ch, sdword x, sdword y, color
     VERT(sBegin, tBegin,
          x + fcharacter->offsetX,
          y + fcharacter->offsetY + fcharacter->height);
-    VERT(sEnd, tBegin,
-         x + fcharacter->offsetX + fcharacter->width,
-         y + fcharacter->offsetY + fcharacter->height);
     VERT(sEnd, tEnd,
          x + fcharacter->offsetX + fcharacter->width,
          y + fcharacter->offsetY);
+    VERT(sEnd, tBegin,
+         x + fcharacter->offsetX + fcharacter->width,
+         y + fcharacter->offsetY + fcharacter->height);
 
     glEnd();
 
@@ -1167,10 +1167,10 @@ sdword fontPrintN(sdword x, sdword y, color c, char *string, sdword maxCharacter
             goto noDraw;
         }
 
-        glRasterPos2f(primScreenToGLX(x + character->offsetX),
-                      primScreenToGLY(y + fontCurrentFont->fullHeight + character->offsetY - clip));
+        //glRasterPos2f(primScreenToGLX(x + character->offsetX),
+        //              primScreenToGLY(y + fontCurrentFont->fullHeight + character->offsetY - clip));
 
-        glDrawPixels(character->width, character->height - clip, GL_RGB8, GL_UNSIGNED_BYTE, character->bitmap);
+        //glDrawPixels(character->width, character->height - clip, GL_RGB8, GL_UNSIGNED_BYTE, character->bitmap);
 
 noDraw:
         x += character->width + fontCurrentFont->spacing;   //update screen location
@@ -1296,4 +1296,3 @@ sdword fontHeightf(char *format, ...)
 {
     return(fontCurrentFont->fullHeight);
 }
-

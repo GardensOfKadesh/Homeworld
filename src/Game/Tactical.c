@@ -278,7 +278,7 @@ void toAllShipsDraw(void)
 
                 icon = toClassIcon[NUM_CLASSES];    // NUM_CLASSES indicates Mine
 
-                primLineLoopStart2(1, c);
+                primLineLoopStart2(1.3f, c);
 
                 radius = max(mineMineTOSize, radius);   //ensure radius not too small
 
@@ -339,7 +339,7 @@ void toAllShipsDraw(void)
                 }
 
                 icon = toClassIcon[((ShipStaticInfo *)ship->staticinfo)->shipclass];
-                primLineLoopStart2(1, c);
+                primLineLoopStart2(1.3f, c);
 
                 radius = max(toMinimumSize, radius);   //ensure radius not too small
 
@@ -351,8 +351,8 @@ void toAllShipsDraw(void)
 
                 primLineLoopEnd2();
 
-                     // mark class as used for this player (for legend)
-                     toClassUsed[((ShipStaticInfo *)ship->staticinfo)->shipclass][ship->playerowner->playerIndex] = 1;
+                // mark class as used for this player (for legend)
+                toClassUsed[((ShipStaticInfo *)ship->staticinfo)->shipclass][ship->playerowner->playerIndex] = 1;
             }
 
             //for moving ships that belong to the current player, draw the moveline
@@ -468,7 +468,7 @@ void toLegendDraw(void)
         {
             // icon
             icon = toClassIcon[shipClass];
-            primLineLoopStart2(1, col);
+            primLineLoopStart2(1.3f, col);
 
             for (index = icon->nPoints - 1; index >= 0; index--)
             {

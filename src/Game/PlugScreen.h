@@ -19,7 +19,7 @@
 #ifdef HW_BUILD_FOR_DEBUGGING
 
 #define PS_ERROR_CHECKING      1               //basic error checking
-#define PS_VERBOSE_LEVEL       1               //control verbose printing
+#define PS_VERBOSE_LEVEL       2               //control verbose printing
 
 #else
 
@@ -74,6 +74,7 @@ pluglink;
 
 typedef struct
 {
+    sdword xStart, yStart;
     sdword width, height;
     udword *imageQuilt;
 }

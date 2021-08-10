@@ -1,0 +1,40 @@
+Image       r1mothership.jpg
+GameLink    664,454,Buttons\on_Next.lif,Buttons\off_next.lif
+WebLink     336,470,button-fig-on.jpg,button-fig-off.jpg,https://www.fig.co/campaigns/homeworld3
+WebLink     400,470,button-steam-on.jpg,button-steam-off.jpg,https://store.steampowered.com/app/244160/Homeworld_Remastered_Collection/
+WebLink     464,470,button-discord-on.jpg,button-discord-off.jpg,https://discord.gg/drrKWR3Bxq
+WebLink     530,470,button-github-on.jpg,button-github-off.jpg,https://github.com/GardensOfKadesh
+TimeOut     3600,gameon
+Mouse       TRUE
+
+StaticText  260,0,1,Thank you for playing Gardens of Kadesh
+ 
+StaticText  260,20,0,This WebAssembly port of Homeworld is based on HomeworldSDL. 
+StaticText  260,32,0,HomeworldSDL in turn is based on the original Homeworld source 
+StaticText  260,44,0,code released by Relic Entertainment in 2003. This build only 
+StaticText  260,56,0,uses the assets provided in the freely distributed Homeworld 
+StaticText  260,68,0,demo and as such is limited in scope to the first two single player 
+StaticText  260,80,0,missions.
+ 
+StaticText  260,108,0,If you enjoyed playing please support the developers and follow 
+StaticText  260,120,0,the links below to check out the Homeworld 3 fig campaign and the 
+StaticText  260,132,0,Homeworld Remastered collection.
+ 
+StaticText  260,160,0,To get involved with the development of Gardens of Kadesh or 
+StaticText  260,172,0,HomeworldSDL feel free to join our discord and checkout the 
+StaticText  260,184,0,github repository below.
+ 
+StaticText  260,284,1,Dear Embracer Group, Gearbox Software, 
+StaticText  260,304,1,Blackbird Interactive, Relic Entertainment,
+ 
+StaticText  260,324,0,unfortunately the Homeworld source code was released under an 
+StaticText  260,336,0,unfavorable Relic Developer Network License. The 
+StaticText  260,348,0,disappearance of the Relic Developer Network and the Homeworld 
+StaticText  260,360,0,IP having changed hands leaves the license state of the 
+StaticText  260,372,0,Homeworld source code in a dubious state that hinders 
+StaticText  260,384,0,development.
+ 
+StaticText  260,404,0,Please reach out and consider re-releasing the original 
+StaticText  260,416,0,Homeworld source code under GPL2/3 or re-licensing the current 
+StaticText  260,428,0,GardenOfKadesh/HomeworldSDL code under GPL2/3.
+ 

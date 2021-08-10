@@ -178,7 +178,7 @@ void soundPanicReset(void)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword isoundmixerinit(SDL_AudioSpec *aspec)
 {
 #ifndef _MACOSX_FIX_SOUND
@@ -218,7 +218,7 @@ sdword isoundmixerinit(SDL_AudioSpec *aspec)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 void isoundmixerrestore(void)
 {
 	mixer.timeout = 0;
@@ -231,7 +231,7 @@ void isoundmixerrestore(void)
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2)
 {
 #ifndef _MACOSX_FIX_SOUND
@@ -336,7 +336,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 				// save number of voices
 				numvoices=soundnumvoices;
 			}
-			
+
 			// save frame number
 			framecount=rndFrameCount;
 		}
@@ -345,13 +345,13 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 	///////////////////////
 	// end panic mode code
 	///////////////////////
-	
+
 	/* clear the mixbuffers */
 	memset(mixbuffer1L, 0, FQ_SIZE * sizeof(real32));
 	memset(mixbuffer1R, 0, FQ_SIZE * sizeof(real32));
 	memset(mixbuffer2L, 0, FQ_SIZE * sizeof(real32));
 	memset(mixbuffer2R, 0, FQ_SIZE * sizeof(real32));
-	
+
 	/* mix the speech first */
 	if (streams != NULL)
 	{
@@ -364,7 +364,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 				pstream = &streams[i];
 				pchan = &speechchannels[i];
 				pqueue = &pstream->queue[pstream->playindex];
-	
+
 				if (pstream->blockstatus[pstream->readblock] == 0)
 				{
 					if (pchan->status == SOUND_STOPPING)
@@ -376,23 +376,23 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 					}
 					continue;
 				}
-	
+
 				if (pstream->blockstatus[pstream->readblock] == 1)
 				{
 					pstream->blockstatus[pstream->readblock] = 2;
 				}
-	
+
 				amountread = isoundmixerdecodeEffect(pchan->currentpos, pchan->mixbuffer1, pchan->mixbuffer2, pchan->exponentblockL,
 								pchan->fqsize, pchan->bitrate, pqueue->effect);
 				pchan->currentpos += amountread;
 				pchan->amountread += amountread;
-				
+
 				/* figure out any volume fades, pan fades, etc */
 				if (pchan->volticksleft)
 				{
 					pchan->volume += pchan->volfade;
 					pchan->volticksleft--;
-					
+
 					if (pchan->volticksleft <= 0)
 					{
 						pchan->volfade = 0.0f;
@@ -400,17 +400,17 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						pchan->volticksleft = 0;
 						pchan->voltarget = -1;
 					}
-	
+
 					if ((sword)pchan->volume > SOUND_VOL_MAX)
 					{
 						pchan->volume = SOUND_VOL_MAX;
 					}
-	
+
 					if ((sword)pchan->volume < SOUND_VOL_MIN)
 					{
 						pchan->volume = SOUND_VOL_MIN;
 					}
-	
+
 					if ((pchan->status == SOUND_STOPPING) && (pchan->volume == SOUND_VOL_MIN))
 					{
 						if (pstream->numqueued == 0)
@@ -434,10 +434,10 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						pchan->status = SOUND_FREE;
 						continue;
 					}
-					
+
 					SNDcalcvolpan(pchan);
 				}
-	
+
 				/******************************************************************************/
 				/* Shane - pchan->volfactorL BELOW IS PROBABLY NOT THE PROPER VOLUME. - Janik */
 				/******************************************************************************/
@@ -454,7 +454,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						fqMix(pchan->mixbuffer1,channels[chan].mixbuffer1, 1.0f);	//channels[chan].volfactorL);
 						fqMix(pchan->mixbuffer2,channels[chan].mixbuffer2, 1.0f);	//channels[chan].volfactorL);
 					}
-	
+
 					/* do the EQ and Delay or Acoustic Model stuff */
 					if (pqueue->eq != NULL)
 					{
@@ -465,32 +465,32 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 							fqEqualize(pchan->mixbuffer2, pqueue->eq->eq);
 						}
 					}
-		
+
 					if (pqueue->effect != NULL)
 					{
 						// Add tone
 						fqAddToneE(pchan->mixbuffer1, pqueue->effect);
 						fqAddToneE(pchan->mixbuffer2, pqueue->effect);
-				
+
 						// Generate break
 						fqAddBreakE(pchan->mixbuffer1, pqueue->effect);
 						fqAddBreakE(pchan->mixbuffer2, pqueue->effect);
-						
+
 						// Add noise
 						fqAddNoiseE(pchan->mixbuffer1, pqueue->effect);
 						fqAddNoiseE(pchan->mixbuffer2, pqueue->effect);
-					
+
 						// Limit
 						fqLimitE(pchan->mixbuffer1, pqueue->effect);
 						fqLimitE(pchan->mixbuffer2, pqueue->effect);
-	
+
 						// Filter
 						fqFilterE(pchan->mixbuffer1, pqueue->effect);
 						fqFilterE(pchan->mixbuffer2, pqueue->effect);
-	
+
 						scaleLevel = pqueue->effect->fScaleLev;
 					}
-		
+
 					if (pqueue->delay != NULL)
 					{
 						if (pqueue->delay->flags & STREAM_FLAGS_ACMODEL)
@@ -509,7 +509,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						}
 					}
 				}
-	
+
 				/* add it to mix buffer */
 				fqMix(mixbuffer1L,pchan->mixbuffer1,pchan->volfactorL * scaleLevel);
 				fqMix(mixbuffer2L,pchan->mixbuffer2,pchan->volfactorL * scaleLevel);
@@ -531,11 +531,11 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						// Add tone
 						fqAddToneE(pchan->mixbuffer1R, pqueue->effect);
 						fqAddToneE(pchan->mixbuffer2R, pqueue->effect);
-				
+
 						// Generate break
 						fqAddBreakE(pchan->mixbuffer1R, pqueue->effect);
 						fqAddBreakE(pchan->mixbuffer2R, pqueue->effect);
-						
+
 						// Add noise
 						fqAddNoiseE(pchan->mixbuffer1R, pqueue->effect);
 						fqAddNoiseE(pchan->mixbuffer2R, pqueue->effect);
@@ -558,13 +558,13 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 					fqMix(mixbuffer1R,pchan->mixbuffer1,pchan->volfactorR * scaleLevel);
 					fqMix(mixbuffer2R,pchan->mixbuffer2,pchan->volfactorR * scaleLevel);
 				}
-	
+
 				/* this is a clock for the fequency filtering/effects */
 				if (pqueue->effect != NULL)
 				{
 					pqueue->effect->nClockCount++;
 				}
-	
+
 				if ((pchan->currentpos == (sbyte *)(pstream->buffer + (pstream->blocksize * (pstream->readblock + 1)))) ||
 					(pchan->currentpos == (sbyte *)pstream->writepos))
 				{
@@ -574,7 +574,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 						pstream->readblock = 0;
 					}
 				}
-	
+
 				if (pchan->amountread == pqueue->size)
 				{
 					pchan->amountread = 0;
@@ -602,10 +602,10 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 							{
 								pstream->queue[pstream->playindex].mixHandle = pqueue->mixHandle;
 							}
-						}			
+						}
 					}
 				}
-	
+
 				if (pchan->currentpos >= pchan->endpos)
 				{
 					/* get the next block */
@@ -630,7 +630,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 					continue;
 				}
 			}
-			
+
 			if (pchan->status == SOUND_LOOPEND)
 			{
 				pchan->status = SOUND_PLAYING;
@@ -661,7 +661,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 			{
 				pchan->volume += pchan->volfade;
 				pchan->volticksleft--;
-				
+
 				if (pchan->volticksleft <= 0)
 				{
 					pchan->volfade = 0.0f;
@@ -685,7 +685,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 					SNDreleasebuffer(pchan);
 					continue;
 				}
-				
+
 				SNDcalcvolpan(pchan);
 			}
 
@@ -693,24 +693,24 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 			{
 				pchan->pan += pchan->panfade;
 				pchan->panticksleft--;
-				
+
 				if (pchan->panticksleft <= 0)
 				{
 					pchan->panfade = 0;
 					pchan->pan = pchan->pantarget;
 					pchan->panticksleft = 0;
 				}
-			
+
 				if (pchan->pan > SOUND_PAN_MAX)
 				{
 					pchan->pan =  SOUND_PAN_MIN + (pchan->pan - SOUND_PAN_MAX);
 				}
-			
+
 				if (pchan->pan < SOUND_PAN_MIN)
 				{
 					pchan->pan = SOUND_PAN_MAX + (pchan->pan - SOUND_PAN_MIN);
 				}
-				
+
 				SNDcalcvolpan(pchan);
 			}
 
@@ -718,7 +718,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 			{
 				pchan->pitch += pchan->pitchfade;
 				pchan->pitchticksleft--;
-				
+
 				if (pchan->pitchticksleft <= 0)
 				{
 					pchan->pitchfade = 0.0f;
@@ -726,7 +726,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 					pchan->pitchticksleft = 0;
 				}
 			}
-			
+
 			/******************************************************/
 			/* Shane - Try the pitch shift again below... - Janik */
 			/******************************************************/
@@ -742,7 +742,7 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 				fqEqualize(pchan->mixbuffer1, pchan->cardiodfilter);
 				fqEqualize(pchan->mixbuffer2, pchan->cardiodfilter);
 			}
-			
+
 			/* equalize this sucker */
 			fqEqualize(pchan->mixbuffer1, pchan->filter);
 			fqEqualize(pchan->mixbuffer2, pchan->filter);
@@ -755,9 +755,9 @@ sdword isoundmixerprocess(void *pBuf1, udword nSize1, void *pBuf2, udword nSize2
 				fqMix(mixbuffer2R,pchan->mixbuffer2,pchan->volfactorR);
 			}
 		}
-		
+
 	}
-	
+
 	fqEqualize(mixbuffer1L, MasterEQ);
 	fqEqualize(mixbuffer2L, MasterEQ);
 	fqEqualize(mixbuffer1R, MasterEQ);
@@ -804,7 +804,7 @@ sdword isoundmixerdecodeEffect(sbyte *readptr, real32 *writeptr1, real32 *writep
 
 	// Check size
 	if(size > dctsize) size=dctsize;
-	
+
 	if (effect != NULL)
 	{
 		fqGenQNoiseE((char *)tempblock, bitrate, effect);
@@ -814,7 +814,7 @@ sdword isoundmixerdecodeEffect(sbyte *readptr, real32 *writeptr1, real32 *writep
 					FQ_LEN, bitrate, size);
 
 	return (bitrate >> 3);
-#endif 
+#endif
 }
 
 /*-----------------------------------------------------------------------------
@@ -823,7 +823,7 @@ sdword isoundmixerdecodeEffect(sbyte *readptr, real32 *writeptr1, real32 *writep
 	Inputs		:
 	Outputs		:
 	Return		:
-----------------------------------------------------------------------------*/	
+----------------------------------------------------------------------------*/
 static Uint8 oddbuf[MIX_BLOCK_SIZE];
 static udword oddbufpos = 0;
 
@@ -852,7 +852,7 @@ void isoundmixerqueueSDL(Uint8 *stream, int len)
                 NULL, 0);
         size_written += (len - size_written);
     }
-        
+
 #else
 	if (oddbufpos > 0) {
 		memcpy(stream, oddbuf + oddbufpos, MIX_BLOCK_SIZE - oddbufpos);

@@ -45,7 +45,8 @@
 #ifdef _MACOSX_FIX_MISC
 #include "functions.h"
 #else
-#include "wrapped_functions.h"
+//#include "wrapped_functions.h"
+#include "functions.h"
 #endif
 #include "wrapped_unlisted_functions.h"
 #endif
@@ -685,6 +686,7 @@ etgcondentry etgConditionalTable[] =
 
 //table for parsing the etg script
 etgeffectstatic *etgEffectLoad(char *directory,char *field,void *dataToFillIn);
+void etgEffectLoadVoid(char *directory,char *field,void *dataToFillIn);
 void etgEffectTestKey(char *directory,char *field,void *dataToFillIn);
 void etgEffectProfileKey(char *directory,char *field,void *dataToFillIn);
 void etgDeathEventSet(char *directory,char *field,void *dataToFillIn);
@@ -704,7 +706,8 @@ void etgNumberEffectsParse(char *directory,char *field,void *dataToFillIn);
 void etgSoftwareEffect(char *directory,char *field,void *dataToFillIn);
 scriptEntry etgScriptParseTable[] =
 {
-    {"LoadEffect",                  (setVarCback)etgEffectLoad, NULL},
+    //{"LoadEffect",                  (setVarCback)etgEffectLoad, NULL},
+    {"LoadEffect",                  etgEffectLoadVoid, NULL},
     {"SoftwareVersion",             etgSoftwareEffect, NULL},
     {"setDeathEvent",               etgDeathEventSet, NULL},
     {"setFireEvent",                etgFireEventSet, NULL},
@@ -910,6 +913,12 @@ etglod *etgLODLoad(char *directory, char *name, etglod *oldLOD)
     Note        : Can be called from script loading stuff or directly from
                     special loading functions.
 ----------------------------------------------------------------------------*/
+void etgEffectLoadVoid(char *directory,char *field,void *dataToFillIn)
+{
+    etgEffectLoad(directory, field, dataToFillIn);
+    return;
+}
+
 etgeffectstatic *etgEffectLoad(char *directory,char *field,void *dataToFillIn)
 {
     char path[PATH_MAX];
@@ -1644,7 +1653,7 @@ void etgStartup(void)
 {
     sdword index = 0;
     sdword bigDeathInitialiser = -10;
-    
+
 #if ETG_VERBOSE_LEVEL >= 1
     dbgMessagef("Starting effects");
 #endif
@@ -1950,7 +1959,7 @@ void etgEffectCodeExecute(etgeffectstatic *stat, Effect *effect, udword codeBloc
     ubyte *pOpcode;
 
 
-	//this function does not interface well with optimized code which assumes 
+	//this function does not interface well with optimized code which assumes
 	//certain variables will not get stomped, hence the pushes
 #ifndef GENERIC_ETGCALLFUNCTION
 #if defined (_MSC_VER)
@@ -1983,7 +1992,7 @@ void etgEffectCodeExecute(etgeffectstatic *stat, Effect *effect, udword codeBloc
 		"movq %%rcx, %2\n\t"
 		"movq %%rdx, %3\n\t"
 		"movq %%rsi, %4\n\t"
-		"movq %%rdi, %5\n\t" 
+		"movq %%rdi, %5\n\t"
 		"movq %%r8,  %6\n\t"
 		"movq %%r9,  %7\n\t" : :
 		"m" (savedreg[0]), "m" (savedreg[1]), "m" (savedreg[2]),
@@ -2015,7 +2024,7 @@ void etgEffectCodeExecute(etgeffectstatic *stat, Effect *effect, udword codeBloc
     while (etgExecStack.etgCodeBlock[etgExecStack.etgCodeBlockIndex].offset <
            etgExecStack.etgCodeBlock[etgExecStack.etgCodeBlockIndex].length)
     {
-		
+
         pOpcode = etgExecStack.etgCodeBlock[etgExecStack.etgCodeBlockIndex].code + etgExecStack.etgCodeBlock[etgExecStack.etgCodeBlockIndex].offset;
         opcode = *((udword *)pOpcode);                      //get an opcode
 #if ETG_ERROR_CHECKING
@@ -2031,10 +2040,10 @@ void etgEffectCodeExecute(etgeffectstatic *stat, Effect *effect, udword codeBloc
         //execute the opcode
         size = etgHandleTable[opcode].function(effect, stat, pOpcode);
         etgExecStack.etgCodeBlock[etgExecStack.etgCodeBlockIndex].offset += size;
-		
+
     }
 //    etgExecStackIndex--;
-	//this function does not interface well with optimized code which assumes 
+	//this function does not interface well with optimized code which assumes
 	//certain variables will not get stomped, hence the pushes
 #ifndef GENERIC_ETGCALLFUNCTION
 #if defined (_MSC_VER)
@@ -2066,7 +2075,7 @@ void etgEffectCodeExecute(etgeffectstatic *stat, Effect *effect, udword codeBloc
 		"movq %2, %%rcx\n\t"
 		"movq %3, %%rdx\n\t"
 		"movq %4, %%rsi\n\t"
-		"movq %5, %%rdi\n\t" 
+		"movq %5, %%rdi\n\t"
 		"movq %6, %%r8\n\t"
 		"movq %7, %%r9\n\t" : :
 		"m" (savedreg[0]), "m" (savedreg[1]), "m" (savedreg[2]),
@@ -5848,12 +5857,12 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
  This function causes error during compilation of ETG.c with optimization on, and still
  needs to be fixed. It works (or seems to work) in debug mode, though. It simply calls other
  functions, but in relly messed way. (etgfunctioncall *)opcode contains a table of paramaters
- and a pointer to function to call. Number of params can vary from function to function, so 
+ and a pointer to function to call. Number of params can vary from function to function, so
  on x86 they simply push every parameter to the stack and then call function without any params.
  On PowerPC however, parameters are passed using registers (starting from r3 or f1 for floats),
  that's why I have to iterate trough etgFunctionTable to check types of each param - thanks for
  that I know what register to use. I'm still not sure if all functions called here are in this
- table... Second thing is that I have to use this ugly if-else block to put params in right 
+ table... Second thing is that I have to use this ugly if-else block to put params in right
  registers (and I assumed there are max. 8 params, which also may not be true). Anyway, when
  using optimizatons, compiling stops because of float-handling part of function.
 */
@@ -5866,9 +5875,9 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
            param       = 0,
            nParams     = ((etgfunctioncall *)opcode)->nParameters,
            returnValue = ((etgfunctioncall *)opcode)->returnValue;
-           
+
 	opfunctionentry *entry;
-        
+
 	while ((entry = &etgFunctionTable[currEntry++])->name != NULL)
 	{
 		if (entry->function == ((etgfunctioncall *)opcode)->function)
@@ -5924,10 +5933,10 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
             // gcc 4.0 simply will not allow direct references to 'param' with the
             // address operator (&), or indeed whatever the variable is called in the
             // 'else' clause's assembly (sic). To get around this we copy the value to a
-            // temporary variable and do the float conversion on that.  
+            // temporary variable and do the float conversion on that.
             udword param_copy = param;
             float paramf = *((float *)&param_copy);
-        
+
 			if( currParamF == 0 )
 				__asm__ ( "lfs f1, %0\n" : : "g" (paramf) : "f1" );
 			else if( currParamF == 1 )
@@ -5944,7 +5953,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
 				__asm__ ( "lfs f7, %0\n" : : "g" (paramf) : "f7" );
 			else if( currParamF == 7 )
 				__asm__ ( "lfs f8, %0\n" : : "g" (paramf) : "f8" );
-            
+
             currParamF++;
         }
 		else
@@ -5975,7 +5984,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     {
         *((udword *)(effect->variable + returnValue)) = param;  // set the return parameter
     }
-    
+
     return (etgFunctionSize(nParams));
 }
 
@@ -5985,12 +5994,12 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
 This function causes error during compilation of ETG.c with optimization on, and still
 needs to be fixed. It works (or seems to work) in debug mode, though. It simply calls other
 functions, but in relly messed way. (etgfunctioncall *)opcode contains a table of paramaters
-and a pointer to function to call. Number of params can vary from function to function, so 
+and a pointer to function to call. Number of params can vary from function to function, so
 on x86 they simply push every parameter to the stack and then call function without any params.
 On x86_64 however, parameters are passed using registers (starting from rdi or xmm0 for floats),
 that's why I have to iterate trough etgFunctionTable to check types of each param - thanks for
 that I know what register to use. I'm still not sure if all functions called here are in this
-table... Second thing is that I have to use^H^H^Hsteal this ugly if-else block to put params in right 
+table... Second thing is that I have to use^H^H^Hsteal this ugly if-else block to put params in right
 registers (and I assumed there are max. 8 params, which also may not be true). Anyway, when
 using optimizatons, compiling stops because of float-handling part of function.
 */
@@ -6006,7 +6015,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
    memsize param       = 0;
    memsize intParam[8] = {0,0,0,0,0,0,0,0};
    memsize returnValue = ((etgfunctioncall *)opcode)->returnValue;
-           
+
 	opfunctionentry *entry;
 
 	while ((entry = &etgFunctionTable[currEntry++])->name != NULL)
@@ -6063,10 +6072,10 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
             // gcc 4.0 simply will not allow direct references to 'param' with the
             // address operator (&), or indeed whatever the variable is called in the
             // 'else' clause's assembly (sic). To get around this we copy the value to a
-            // temporary variable and do the float conversion on that.  
+            // temporary variable and do the float conversion on that.
             memsize param_copy = param;
             float paramf = *((float *)&param_copy);
-        
+
 			if( currParamF == 0 )
 				__asm__ ( "movss %0, %%xmm0\n" : : "g" (paramf) : "xmm0" );
 			else if( currParamF == 1 )
@@ -6083,7 +6092,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
 				__asm__ ( "movss %0, %%xmm6\n" : : "g" (paramf) : "xmm6" );
 			else if( currParamF == 7 )
 				__asm__ ( "movss %0, %%xmm7\n" : : "g" (paramf) : "xmm7" );
-            
+
             currParamF++;
         }
 		else
@@ -6096,15 +6105,15 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     if ((memsize)((etgfunctioncall *)opcode)->function == (memsize) etgSpawnNewEffect){
 
         switch  (nParams+((etgfunctioncall *)opcode)->passThis){
-            case 4: 
+            case 4:
                 etgSpawnNewEffect(effect, (etgeffectstatic *) intParam[1],1,intParam[3]);
                 return (etgFunctionSize(nParams));
                 break;
-            case 5: 
+            case 5:
                 etgSpawnNewEffect(effect, (etgeffectstatic *) intParam[1],2,intParam[3],intParam[4]);
                 return (etgFunctionSize(nParams));
                 break;
-            case 6: 
+            case 6:
                 etgSpawnNewEffect(effect, (etgeffectstatic *) intParam[1],3,intParam[3],intParam[4],intParam[5]);
                 return (etgFunctionSize(nParams));
                 break;
@@ -6115,21 +6124,21 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
                 return (etgFunctionSize(nParams));
                 break;
 
-            default: 
+            default:
                 break;
         }
-    } 
+    }
     if ((memsize)((etgfunctioncall *)opcode)->function == (memsize) etgCreateEffects){
         switch  (nParams+((etgfunctioncall *)opcode)->passThis){
-            case 6: 
+            case 6:
                 etgCreateEffects(effect, (etgeffectstatic *) intParam[1],intParam[2],intParam[3],1, intParam[5]);
                 return (etgFunctionSize(nParams));
                 break;
-            case 7: 
+            case 7:
                 etgCreateEffects(effect, (etgeffectstatic *) intParam[1],intParam[2],intParam[3],2, intParam[5], intParam[6]);
                 return (etgFunctionSize(nParams));
                 break;
-            case 8: 
+            case 8:
                 etgCreateEffects(effect, (etgeffectstatic *) intParam[1],intParam[2],intParam[3],3, intParam[5], intParam[6],intParam[7]);
                 return (etgFunctionSize(nParams));
                 break;
@@ -6140,10 +6149,10 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
                 return (etgFunctionSize(nParams));
                 break;
 
-            default: 
+            default:
                 break;
         }
-    } 
+    }
     switch (currParam){
         case 8:
            __asm__ ("movq %0, (24)(%%rbp)\n"
@@ -6179,7 +6188,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     {
             *((memsize*)(effect->variable + returnValue)) = param;  // set the return parameter
     }
-    
+
     return (etgFunctionSize(nParams));
 }
 
@@ -6192,7 +6201,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     sdword index;
 	etgfunctioncall *opptr = (etgfunctioncall *)opcode; //opcode pointer
 
-	
+
     nParams = opptr->nParameters;
     returnType = opptr->returnValue;
     for (index = (sdword)nParams - 1; index >= 0; index--) {		//for each parameter
@@ -6205,7 +6214,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
 		}
 #endif
 		param = opptr->parameter[index].param;
-        switch (opptr->parameter[index].type)	
+        switch (opptr->parameter[index].type)
         {
             case EVT_Constant:
                 break;
@@ -6238,9 +6247,9 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
             :
             : "a" (param) );
 #elif defined (_MACOSX_86)
-		
+
 //		__asm__ __volatile__ (								/* store parameters above the stack pointer */
-//			"movl %0, (%%esp,%1)\n\t"						
+//			"movl %0, (%%esp,%1)\n\t"
 //			:
 //			: "a" (param), "r" (offset) );
 		void *stackPointer;
@@ -6252,9 +6261,9 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
 		*stackPointer = param;
 #endif
     }// end of above for loop
-	
-	
-    if (opptr->passThis) {                                  
+
+
+    if (opptr->passThis) {
 #if defined (_MSC_VER)										//pass a 'this' pointer
         _asm
         {
@@ -6284,7 +6293,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     {
         *((udword *)(effect->variable + returnType)) = param;//set the return parameter
     }
-	
+
     return(etgFunctionSize(nParams));
 }
 
@@ -8180,7 +8189,7 @@ void etgModifyDepthWrite(ubyte *sys, udword write)
     partModifyNoDepthWrite((psysPtr)sys, !write);
 }
 
-void etgSetColorA(color c) 
+void etgSetColorA(color c)
 {
 #if FIX_ENDIAN
     // color c is actually a numerically calculated RGBA udword
@@ -8294,22 +8303,22 @@ udword etgCARandom(udword loR, udword hiR, udword loG, udword hiG, udword loB, u
     {
         hiR = loR + 1;
     }
-    
+
     if (loG <= hiG)
     {
         hiG = loG + 1;
     }
-    
+
     if (loB <= hiB)
     {
         hiB = loB + 1;
     }
-    
+
     if (loA <= hiA)
     {
         hiA = loA + 1;
     }
-    
+
     return colRGBA(randyrandombetween(RANDOM_ETG, loR, hiR),
                    randyrandombetween(RANDOM_ETG, loG, hiG),
                    randyrandombetween(RANDOM_ETG, loB, hiB),
@@ -8404,5 +8413,3 @@ etglod *saveIndexToEtglodGunEvent(sdword index)
 
     return NULL;
 }
-
-

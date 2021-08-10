@@ -13,7 +13,7 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
-    LOCALIZATION //дддддддддддддддддддддддддддддддддд
+    LOCALIZATION //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
             LSTRING_Savegame
                 "09 - Sea of Lost Souls"
@@ -25,42 +25,42 @@
             LSTRING_LocationCard
                 "Deep Space - Sea of Lost Souls"
                 "Espace infini - La Mer des Ames Perdues"
-                "Tiefer Weltraum √ Meer der verlorenen Seelen"
+                "Tiefer Weltraum О©╫ Meer der verlorenen Seelen"
 				"Espacio profundo - Mar de las almas perdidas"
 				"Spazio profondo - Il mare delle anime perdute"
 
             LSTRING_FleetIntelIntro
                 "Sensors detect a vessel here.  It doesn't match any of the profiles we have encountered.  Send in a team to investigate."
-                "Les instruments dИtectent un vaisseau Ю ces coordonnИes. Aucune correspondance avec les profils rencontrИs auparavant. Envoyez une Иquipe d'investigation."
+                "Les instruments dО©╫tectent un vaisseau О©╫ ces coordonnО©╫es. Aucune correspondance avec les profils rencontrО©╫s auparavant. Envoyez une О©╫quipe d'investigation."
                 "Die Sensoren haben hier ein Schiff entdeckt. Keines der uns bekannten Profile ist darauf anwendbar. Schicken Sie ein Team aus, um es zu untersuchen."
-                "Los sensores detectan una nave. No encaja con ninguno de los perfiles conocidos. EnvМen un equipo de investigaciСn."
+                "Los sensores detectan una nave. No encaja con ninguno de los perfiles conocidos. EnvО©╫en un equipo de investigaciО©╫n."
 				"I sensori rilevano una nave, di origine sconosciuta. Invia una squadra per investigare."
 
             LSTRING_Objective1
                 "Investigate Anomaly"
                 "Analyse de l'anomalie."
                 "Anomalie untersuchen."
-                "Investigar anomalМa"
+                "Investigar anomalО©╫a"
 				"Investiga l'anomalia"
 
             LSTRING_Objective2
                 "Destroy Alien Vessel"
                 "Destruction vaisseau inconnu."
-                "Unbekanntes Schiff zerstЖren."
+                "Unbekanntes Schiff zerstО©╫ren."
                 "Destruir nave desconocida"
 				"Distruggi l'astronave sconosciuta"
 
             LSTRING_Objective3
                 "Salvage the Unknown Vessel"
-                "RИcupИration vaisseau inconnu."
+                "RО©╫cupО©╫ration vaisseau inconnu."
                 "Untersuchen Sie das Geisterschiff."
                 "Salvar la nave desconocida"
 				"Salva l'astronave sconosciuta"
 
             LSTRING_TraderIntro
                 "Welcome, traveller.  We have something you may be interested in."
-                "Bienvenue, voyageur. On a quelque chose qui pourrait t'intИresser."
-                "Willkommen, Reisender. Wir haben etwas, das euch interessieren kЖnnte."
+                "Bienvenue, voyageur. On a quelque chose qui pourrait t'intО©╫resser."
+                "Willkommen, Reisender. Wir haben etwas, das euch interessieren kО©╫nnte."
                 "Bienvenido, viajero. Tenemos algo que puede interesarte."
 				"Benvenuto, viaggiatore. Abbiamo qualcosa che potrebbe interessarti."
 
@@ -77,10 +77,10 @@
                 "        HYPERRAUMSPRUNG"
                 "                    HIPERESPACIO"
 				"					IPERSPAZIO"
-    ENDL //дддддддддддддддддддддддддддддддддддддддддд
+    ENDL //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-//мммммммммммммммммммм     Traders     ммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     Traders     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 FSM Traders
     States Attack1, Attack2, Talking, TalkingMore, Trading, TalkMore, TalkAlot, BlahBlah, Utalk2Much, OuttaHere;
 
@@ -110,9 +110,9 @@ FSM Traders
     ENDWATCH
 
 
-//дддддддддддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 //Defensive States
-//дддддддддддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
     STATE Attack1
         INIT
@@ -142,9 +142,9 @@ FSM Traders
           ENDIF
         ENDWATCH
     ENDSTATE
-//дддддддддддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE Talking //ддддддддддддддддддддддддддддддддддддддд
+        STATE Talking //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               SpeechEvent (M09_Traders_CouldNotApproach, 0);
             ENDINIT
@@ -153,9 +153,9 @@ FSM Traders
                 Jump TalkingMore;
               ENDIF
             ENDWATCH
-        ENDSTATE Talking //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Talking //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE TalkingMore //ддддддддддддддддддддддддддддддддддддддд
+        STATE TalkingMore //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               SpeechEvent (M09_Traders_ExchangeInfo, 0);
             ENDINIT
@@ -164,9 +164,9 @@ FSM Traders
                 Jump Trading;
               ENDIF
             ENDWATCH
-        ENDSTATE  //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE Trading //ддддддддддддддддддддддддддддддддддддддд
+        STATE Trading //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               TraderGUIDisplay ();
               TechSetCost("RepairTech", 0);
@@ -181,7 +181,7 @@ FSM Traders
               TimerCreateSetStart ("WaitingForPurchase", 60);
             ENDINIT
             WATCH
-              IFONCE (((TimerExpiredDestroy ("WaitingForPurchase")) OR (TechGet ("RepairTech")))  AND (NOT TraderGUIIsDisplayed()=TRUE))
+              IFONCE (((TimerExpiredDestroy ("WaitingForPurchase")) OR (TechGet ("RepairTech")))  AND ((NOT TraderGUIIsDisplayed())=TRUE))
                 SpeechEvent (M09_Traders_InfoTransfered, 0);
                 TimerCreateSetStart ("WaitingToTalk", 6);
               ENDIFONCE
@@ -190,9 +190,9 @@ FSM Traders
                 Jump BlahBlah;
               ENDIFONCE
             ENDWATCH
-        ENDSTATE Trading //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Trading //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE BlahBlah //ддддддддддддддддддддддддддддддддддддддд
+        STATE BlahBlah //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               IF (RaceOfHuman () = 0)
                 SpeechEvent (M09_Fleet_HelpUsDefeatKushan, 0); // TAIIDAN
@@ -205,9 +205,9 @@ FSM Traders
                 Jump Utalk2Much;
               ENDIF
             ENDWATCH
-        ENDSTATE BlahBlah //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE BlahBlah //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE Utalk2Much //ддддддддддддддддддддддддддддддддддддддд
+        STATE Utalk2Much //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               IF (RaceOfHuman () = 0)
                 SpeechEvent (M09_Traders_CouncilKushan, 0);  //KUSHAN
@@ -220,9 +220,9 @@ FSM Traders
                 Jump OuttaHere;
               ENDIF
             ENDWATCH
-        ENDSTATE Utalk2Much //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Utalk2Much //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE OuttaHere //ддддддддддддддддддддддддддддддддддддд
+        STATE OuttaHere //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               MusicStop(4);
               TeamHyperspaceOut();
@@ -230,15 +230,15 @@ FSM Traders
             ENDINIT
             WATCH
             ENDWATCH
-        ENDSTATE OuttaHere //дддддддддддддддддддддддддддддддддд
+        ENDSTATE OuttaHere //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
 
 ENDFSM Traders
-//мммммммммммммммммммм     BentusiTraders     ммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     BentusiTraders     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-//мммммммммммммммммммм     Mission Flow    мммммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     Mission Flow    О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 FSM MissionFlow
 
     States FirstWarning, RUCrazy, YoureMeat, BuildMissileDestroyer, BuildMissileDestroyer2, BuildMissileDestroyer3, WarpGrav, GhostIntro,
@@ -264,7 +264,7 @@ FSM MissionFlow
       ENDIF
     ENDWATCH
 
-    STATE GhostIntro   //ддддддддддддддддддддддддддддддддддд
+    STATE GhostIntro   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             //'Hyperspace Successful' Intro Ingame event
             SpeechEvent(M09_Fleet_AnomolyDetected, 0);
@@ -279,7 +279,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE GhostTransIn  //ддддддддддддддддддддддддддддддддддд
+    STATE GhostTransIn  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           wideScreenIn(90);
           //Jump GhostOpenSensors;
@@ -292,7 +292,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE GhostOpenSensors //ддддддддддддддддддддддддддддддддддд
+    STATE GhostOpenSensors //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
          INIT
            TimerCreateSetStart ("FIOpenSensorsTimer", 1);
          ENDINIT
@@ -305,7 +305,7 @@ FSM MissionFlow
          ENDWATCH
     ENDSTATE
 
-    STATE FIGhost  //ддддддддддддддддддддддддддддддддддд
+    STATE FIGhost  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             SpeechEvent(M09_Intel_VesselDetected, 0);
             TimerCreateSetStart("FISeTimer", 1);
@@ -318,7 +318,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-   STATE FIGhostPING //ддддддддддддддддддддддддддддддддд
+   STATE FIGhostPING //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           PingAddShips(TEAMSHIPS_GhostShip, "Ghostship");
           TimerCreateSetStart ("FIGhostPINGTimer", 1);
@@ -330,7 +330,7 @@ FSM MissionFlow
         ENDWATCH
    ENDSTATE
 
-   STATE FIGhostPointer //ддддддддддддддддддддддддддддддддд
+   STATE FIGhostPointer //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           TutSetPointerTargetShip("GhostPOINTER", TEAMSHIPS_GhostShip);
           TimerCreateSetStart ("FIGhostPINGTimer", 3);
@@ -342,7 +342,7 @@ FSM MissionFlow
         ENDWATCH
    ENDSTATE
 
-    STATE FIGhost2   //ддддддддддддддддддддддддддддддддддд
+    STATE FIGhost2   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             SpeechEvent(M09_Intel_ShipsInactive, 0);
             TimerCreateSetStart ("FIGhost2Timer", 1);
@@ -356,7 +356,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-   STATE FIGhostPointer2 //ддддддддддддддддддддддддддддддддд
+   STATE FIGhostPointer2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           TutSetPointerTargetShip("FrigPOINTER", TEAMSHIPS_CapturedFrigates);
           TutSetPointerTargetShip("ArrayPOINTER", TEAMSHIPS_CapturedIonArray);
@@ -371,7 +371,7 @@ FSM MissionFlow
         ENDWATCH
    ENDSTATE
 
-    STATE GhostTransOut      //дддддддддддддддддддддддддддддддддддддддддд
+    STATE GhostTransOut      //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             wideScreenOut(60);
             TimerCreateSetStart("TimerTransOut", 1);
@@ -383,7 +383,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FIYoureStupidTransIn  //ддддддддддддддддддддддддддддддддддд
+    STATE FIYoureStupidTransIn  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             wideScreenIn(90);
             Jump YoureStupidOpenSensors;
@@ -392,7 +392,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE YoureStupidOpenSensors //ддддддддддддддддддддддддддддддддддд
+    STATE YoureStupidOpenSensors //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
          INIT
               TimerCreateSetStart ("FIYoureStupidOpenSensorsTimer", 1);
          ENDINIT
@@ -405,7 +405,7 @@ FSM MissionFlow
          ENDWATCH
     ENDSTATE
 
-    STATE FIYoureStupid  //ддддддддддддддддддддддддддддддддддд
+    STATE FIYoureStupid  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             SpeechEvent(M09_Intel_ControlField, 0);
             TimerCreateSetStart("FIYoureStupidSeTimer", 1);
@@ -421,7 +421,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-   STATE FIYoureStupidPointer //ддддддддддддддддддддддддддддддддд
+   STATE FIYoureStupidPointer //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           TutSetPointerTargetAIVolume("GhostUsurpingRangePOINTER", VOLUME_GhostUsurpingRange);
           TimerCreateSetStart ("FIYoureStupidPINGTimer", 4);
@@ -437,7 +437,7 @@ FSM MissionFlow
         ENDWATCH
    ENDSTATE
 
-   STATE YoureStupidTransOut      //дддддддддддддддддддддддддддддддддддддддддд
+   STATE YoureStupidTransOut      //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             wideScreenOut(60);
             TimerCreateSetStart("YoureStupidTimerTransOut", 1);
@@ -451,7 +451,7 @@ FSM MissionFlow
     ENDSTATE
 
 // Commented out by Erin on 07.30.99 - see new states below
-//  STATE FIDangerWillRobinson  //дддддддддддддддддддддддддддддддддддддддддд
+//  STATE FIDangerWillRobinson  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 //      INIT
 //        TutCameraFocus(TEAMSHIPS_GhostShip);
 //        TutCameraFocus(TEAMSHIPS_GhostShip);
@@ -469,7 +469,7 @@ FSM MissionFlow
 //  ENDSTATE
 
 
-        STATE FIDangerWillRobinson //дддддддддддддддддддддддддддд
+        STATE FIDangerWillRobinson //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               WideScreenIn (90);                              // Wide screen in over 3 seconds
               TimerCreateSetStart ("AlienVesselWideScreen", 4);  // Then hold it for 1 more
@@ -482,9 +482,9 @@ FSM MissionFlow
                 Jump FIDangerWillRobinson2;
               ENDIF
             ENDWATCH
-        ENDSTATE FIDangerWillRobinson //ддддддддддддддддддддддддд
+        ENDSTATE FIDangerWillRobinson //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE FIDangerWillRobinson2 //ддддддддддддддддддддддддддд
+        STATE FIDangerWillRobinson2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               SpeechEvent (M09_Intel_NeutralizeVessel,0);     //  Attention!  Those ships are operational.  We believe the control center is the alien vessel.  It should be neutralized.
               IFONCE (TRUE)
@@ -506,9 +506,9 @@ FSM MissionFlow
                  ENDIF
               ENDIF
             ENDWATCH
-        ENDSTATE FIDangerWillRobinson2 //дддддддддддддддддддддддд
+        ENDSTATE FIDangerWillRobinson2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE FIDangerWillRobinson3 //ддддддддддддддддддддддддддд
+        STATE FIDangerWillRobinson3 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               TimerCreateSetStart ("G_GoBackToPreviousFocus", 1);
               TimerCreateSetStart ("G_StartUnLetterbox", 2);
@@ -534,11 +534,11 @@ FSM MissionFlow
                 Jump Done;
               ENDIF
             ENDWATCH
-        ENDSTATE FIDangerWillRobinson3 //дддддддддддддддддддддддд
+        ENDSTATE FIDangerWillRobinson3 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
 
-    STATE FIControlField   //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FIControlField   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           SpeechEvent (M09_Intel_LostControl,0);
         ENDINIT
@@ -550,7 +550,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FIMajorFluctuations   //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FIMajorFluctuations   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           SpeechEvent (M09_Intel_MinimalEffect,0);
         ENDINIT
@@ -567,7 +567,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FIFieldReleased  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FIFieldReleased  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           IF (VarGet("G_NumberOfUsurpedShips")<1)
             //plays the 'no caps taken message'
@@ -591,7 +591,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FIWeGetShips  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FIWeGetShips  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           IF (VarGet("G_FuckVariable")=TRUE)
              //Print("We have control of foreign vessels");
@@ -608,7 +608,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FISendACrew  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FISendACrew  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
             //Print("Send a slaveg team");
             SpeechEvent (M09_Intel_SendSalvageTeam ,0);
@@ -623,7 +623,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE FIitsOld  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE FIitsOld  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           SpeechEvent (M09_Intel_SalvageDocked ,0);
           ObjectiveSet("SalvageUnknownVessel", TRUE);
@@ -636,7 +636,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE WarpGrav  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE WarpGrav  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           SpeechEvent (M09_Intel_ResearchGravWell ,0);
           VarCreateSet("G_LetmGrav", TRUE);
@@ -649,7 +649,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE NISletIng //ддддддддддддддддддддддддддддддддддддддддддд
+    STATE NISletIng //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
       INIT
         TimerCreateSetStart ("WideScreenInBeforeNISLet", 4);
         //MusicPlay (NISlet01);
@@ -660,9 +660,9 @@ FSM MissionFlow
           Jump NISletIng2;
         ENDIFONCE
       ENDWATCH
-    ENDSTATE NISletIng //дддддддддддддддддддддддддддддддддддддддд
+    ENDSTATE NISletIng //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-    STATE NISletIng2 //дддддддддддддддддддддддддддддддддддддддддд
+    STATE NISletIng2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
       INIT
         VarCreateSet ("G_PlayNislet", 60);
       ENDINIT
@@ -674,10 +674,10 @@ FSM MissionFlow
           Jump Done;
         ENDIFONCE
       ENDWATCH
-    ENDSTATE NISletIng2 //ддддддддддддддддддддддддддддддддддддддд
+    ENDSTATE NISletIng2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 // Commented out by Erin on 07.30.99 - see new states below
-//  STATE BuildMissileDestroyer  //дддддддддддддддддддддддддддддддддддддддддд
+//  STATE BuildMissileDestroyer  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 //      INIT
 //        TutCameraFocus(SHIPS_PlayerMslDestroyer);
 //        TutCameraFocus(SHIPS_PlayerMslDestroyer);
@@ -693,7 +693,7 @@ FSM MissionFlow
 //  ENDSTATE
 
 
-        STATE BuildMissileDestroyer //ддддддддддддддддддддддддддд
+        STATE BuildMissileDestroyer //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               WideScreenIn (90);                              // Wide screen in over 3 seconds
               TimerCreateSetStart ("MissileDestroyerWideScreen", 4);  // Then hold it for 1 more
@@ -706,9 +706,9 @@ FSM MissionFlow
                 Jump BuildMissileDestroyer2;
               ENDIF
             ENDWATCH
-        ENDSTATE BuildMissileDestroyer //дддддддддддддддддддддддд
+        ENDSTATE BuildMissileDestroyer //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE BuildMissileDestroyer2 //дддддддддддддддддддддддддд
+        STATE BuildMissileDestroyer2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               SpeechEvent (M09_Intel_ConstructMissleDestroyer ,0);    //  After seizing the Missile Destroyer, construction reports we can now build a similar vessel.
               TutResetGameMessageQueue();
@@ -726,9 +726,9 @@ FSM MissionFlow
                 ENDIF
               ENDIF
             ENDWATCH
-        ENDSTATE BuildMissileDestroyer2 //ддддддддддддддддддддддд
+        ENDSTATE BuildMissileDestroyer2 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE BuildMissileDestroyer3 //дддддддддддддддддддддддддд
+        STATE BuildMissileDestroyer3 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               TimerCreateSetStart ("G_GoBackToPreviousFocus", 1);
               TimerCreateSetStart ("G_StartUnLetterbox", 2);
@@ -754,12 +754,12 @@ FSM MissionFlow
                 Jump Done;
               ENDIF
             ENDWATCH
-        ENDSTATE BuildMissileDestroyer3 //ддддддддддддддддддддддд
+        ENDSTATE BuildMissileDestroyer3 //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         //   Don't Fuck With The Bentusi
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
     STATE FirstWarning
         INIT
@@ -795,11 +795,11 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         //   END Don't Fuck With The Bentusi
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-    STATE AlmostDone  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE AlmostDone  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           TutRemoveAllPointers ();
           UnpauseUniverse();
@@ -811,7 +811,7 @@ FSM MissionFlow
         ENDWATCH
     ENDSTATE
 
-    STATE Done  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE Done  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           VarDestroy("G_CLICK_InvestigateAnomoly");
           VarDestroy("G_CLICK_DestroyUnknownVessel");
@@ -875,9 +875,9 @@ FSM MissionFlow
           ENDIFONCE
 
 
-//ддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 // Check to see if user has re-initiated briefing.
-//ддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
           IF (VarGet("G_CLICK_InvestigateAnomoly"))
             Jump GhostTransIn;
           ENDIF
@@ -889,14 +889,14 @@ FSM MissionFlow
           IF (VarGet("G_CLICK_SalvageUnknownVessel"))
            Jump FISendACrew;
           ENDIF
-//ддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 // END Check to see if user has re-initiated briefing.
-//ддддддддддддддддддддддддддддддддд
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
         ENDWATCH
     ENDSTATE Done
 
-    STATE ItsOver  //дддддддддддддддддддддддддддддддддддддддддд
+    STATE ItsOver  //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         INIT
           SpeechEvent (M09_Intel_HyperspaceReady ,0);
         ENDINIT
@@ -912,7 +912,7 @@ ENDFSM MissionFlow
 
 
 
-//мммммммммммммммммммм     GhostShip     мммммммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     GhostShip     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 FSM GhostShip        //these states will control how ships are captured, controlled and added to the usurped FSM to attack the player
     States Waiting, Transmution, Dormant;
 
@@ -939,7 +939,7 @@ FSM GhostShip        //these states will control how ships are captured, control
       ENDIFONCE
     ENDWATCH
 
-       STATE Waiting //ддддддддддддддддддддддддддддддддддддддд
+       STATE Waiting //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
             ENDINIT
             WATCH
@@ -951,9 +951,9 @@ FSM GhostShip        //these states will control how ships are captured, control
                  Jump Transmution;
               ENDIF
             ENDWATCH
-        ENDSTATE Waiting //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Waiting //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE Transmution //ддддддддддддддддддддддддддддддддддддддд
+        STATE Transmution //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               VarInc("G_NumberOfUsurpedShips");
               ShipsSwitchPlayerOwner(SHIPS_WillbUsurped);
@@ -964,9 +964,9 @@ FSM GhostShip        //these states will control how ships are captured, control
 
             WATCH
             ENDWATCH
-        ENDSTATE Transmution //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Transmution //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
-        STATE Dormant //ддддддддддддддддддддддддддддддддддддддд
+        STATE Dormant //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               VarSet("G_ItsAlive",0);
               //TimerCreateSetStart("GhostDontDie", 1200);
@@ -978,13 +978,13 @@ FSM GhostShip        //these states will control how ships are captured, control
                  //Jump Waiting;
               ENDIF
             ENDWATCH
-        ENDSTATE Dormant //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Dormant //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 ENDFSM GhostShip
-//мммммммммммммммммммм     GhostShip     ммммммммммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     GhostShip     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-//мммммммммммммммммммм     UsurpedShips     мммммммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     UsurpedShips     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 FSM UsurpedShips
     States Waiting, Combatre, Dormant;
 
@@ -997,7 +997,7 @@ FSM UsurpedShips
       ENDIF
     ENDWATCH
 
-        STATE Waiting //ддддддддддддддддддддддддддддддддддддддд
+        STATE Waiting //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               TeamMakeCrazy(TRUE);
             ENDINIT
@@ -1010,10 +1010,10 @@ FSM UsurpedShips
                 Jump Combatre;
               ENDIF
             ENDWATCH
-        ENDSTATE Waiting //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Waiting //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-        STATE Combatre //ддддддддддддддддддддддддддддддддддддддд
+        STATE Combatre //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               IFONCE (TRUE)
                 TimerCreateSetStart("WellGetToYouSoon", 20);
@@ -1023,11 +1023,11 @@ FSM UsurpedShips
 
             WATCH
               //TeamAttributesBitSet(ATTRIBUTES_SMColorInvisible);
-              //дддддддддддддд
+              //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
               IFONCE (TimerExpiredDestroy("WellGetToYouSoon"))
                 MsgSendAll("WereAttacking");
               ENDIFONCE
-              //дддддддддддддд
+              //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
               FindEnemiesInside(VOLUME_GhostCombatRange, SHIPS_WillbDestroyed, 1000);
               IF (ShipsCount(SHIPS_WillbDestroyed)>0)
                 Attack(SHIPS_WillbDestroyed);
@@ -1035,10 +1035,10 @@ FSM UsurpedShips
                 Jump Waiting;
               ENDIF
             ENDWATCH
-        ENDSTATE Combatre //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Combatre //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-        STATE Dormant //ддддддддддддддддддддддддддддддддддддддд
+        STATE Dormant //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
             INIT
               IF ((ShipsCount(TEAMSHIPS_CapturedFrigates)>0) OR
                 (ShipsCount(TEAMSHIPS_CapturedIonArray)>0) OR
@@ -1061,15 +1061,15 @@ FSM UsurpedShips
                 JUMP Waiting;
               ENDIF
             ENDWATCH
-        ENDSTATE Dormant //дддддддддддддддддддддддддддддддддддд
+        ENDSTATE Dormant //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 ENDFSM UsurpedShips
-//мммммммммммммммммммм     UsurpedShips     мммммммммммммммммммммм
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     UsurpedShips     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
 
 
-//шшшшшшшшшшшшшшшшшшшшшш     Global Stuff     шшшшшшшшшшшшшшшшшшшшшш
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     Global Stuff     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 INIT
         FSMCreate(GhostShip, TEAM_GhostShip);
         //FSMCreate(BentusiTraders, TEAM_BentusiTraders);
@@ -1083,27 +1083,27 @@ INIT
 
         VarCreateSet ("G_GetOuttaHere", FALSE);
 
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         SaveLevel (9, LSTRING_Savegame);
         LocationCard(5000, LSTRING_LocationCard);
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 ENDINIT
 
 WATCH
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         //      Ship Selection
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         ShipsClear(SHIPS_BadShips);
         ShipsAdd(SHIPS_BadShips, TEAMSHIPS_CapturedFrigates);
         ShipsAdd(SHIPS_BadShips, TEAMSHIPS_CapturedIonArray);
         ShipsAdd(SHIPS_BadShips, TEAMSHIPS_CapturedMissileDestroyer);
         ShipsAdd(SHIPS_BadShips, TEAMSHIPS_CapturedMultiBeam);
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         //      technology
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
         IFONCE (VarGet("G_LetmGrav")=TRUE)
           MsgSendAll("WeWarpGrav");
@@ -1127,12 +1127,12 @@ WATCH
                 VarCreateSet ("SetMediumGuns", TRUE);
         ENDIF
 
-        // MISSION 01 Tech stuff: //ддддддддддддддддддддддддддддддддддддддд
+        // MISSION 01 Tech stuff: //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
         // if player researches Fighter chassis, allow Corvette Drive                   // (Build: Repair Corvette)
         IFONCE (TechGet ("Chassis1"))
                 TechSetResearch ("MassDrive10Kt");
         ENDIFONCE
-        //дддддддддддддддддддддддддддддддддддддддддд
+        //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫
 
 ENDWATCH
-//шшшшшшшшшшшшшшшшшшшшшш     Global Stuff     шшшшшшшшшшшшшшшшшшшшшш
+//О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫     Global Stuff     О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫

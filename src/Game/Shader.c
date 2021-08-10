@@ -1151,4 +1151,3 @@ void shPopLightMatrix(void)
 
 	shUpdateLightsFromMatrix(&shLightMatStack[shLightMatStackPos]);
 }
-

@@ -86,11 +86,11 @@ void setupPalette(HDC hDC)
 
     DescribePixelFormat(hDC, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
-    if (pfd.dwFlags & PFD_NEED_PALETTE) 
+    if (pfd.dwFlags & PFD_NEED_PALETTE)
 	{
         //dbgFatal(DBG_Loc, "rndInit: needs paletted display");
-    } 
-	else 
+    }
+	else
 	{
 		return;
     }
@@ -308,10 +308,10 @@ void btgvRDraw(CBTGDoc *pDoc)
 		}
 
 		// Get this vertex's screen coords.
-		p.x = (long)pVertex->x; 
+		p.x = (long)pVertex->x;
 		p.y = (long)pVertex->y;
 		pDoc->CalculateScreenCoordinates(&p);
-		
+
 		// Get this vertex's colors.
 		glColor4ub((unsigned char)pVertex->red, (unsigned char)pVertex->green,
 				   (unsigned char)pVertex->blue, (unsigned char)pVertex->alpha);
@@ -389,7 +389,7 @@ void btgsRDraw(CBTGDoc *pDoc)
 		}
 
 		// Get this Star's screen coords.
-		p.x = (long)pStar->x; 
+		p.x = (long)pStar->x;
 		p.y = (long)pStar->y;
 		pDoc->CalculateScreenCoordinates(&p);
 
@@ -400,7 +400,7 @@ void btgsRDraw(CBTGDoc *pDoc)
         }
 
 		glColor3ub((unsigned char)pStar->red, (unsigned char)pStar->green, (unsigned char)pStar->blue);
-		
+
 		glEnable(GL_TEXTURE_2D);
 
 		glGenTextures(1, &thandle);
@@ -412,7 +412,7 @@ void btgsRDraw(CBTGDoc *pDoc)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 					 pStar->pMyStar->myFile.header.imageWidth, pStar->pMyStar->myFile.header.imageHeight,
 					 0, GL_RGBA, GL_UNSIGNED_BYTE, pStar->pMyStar->myFile.bitmapBits);
-		
+
 		x2 = pStar->pMyStar->myFile.header.imageWidth / 2;
 		y2 = pStar->pMyStar->myFile.header.imageHeight / 2;
 
@@ -465,12 +465,12 @@ void btgpRDraw(CBTGDoc *pDoc)
 	{
 		btgpRDrawSolid(pDoc);
 	}
-	
+
 	if(pDoc->drawMode != CBTGDoc::btgDrawMode_VertsPolys)
 	{
 		return;
 	}
-		
+
 	glShadeModel(GL_FLAT);
 
 	pPolygon = pDoc->GetFirstBTGPolygon();
@@ -530,7 +530,7 @@ void btgpRDraw(CBTGDoc *pDoc)
 		glVertex2i(p0.x, p0.y);
 		glVertex2i(p1.x, p1.y);
 		glEnd();
-		
+
 		if((pDoc->btgpSelectedEdge == 2) && (bitTest(pPolygon->flags, BTGPolygon::btgpFlags_Selected)))
 		{
 			glColor3ub(0, 0xFF, 0);
@@ -612,7 +612,7 @@ void btgpRDrawSolid(CBTGDoc *pDoc)
 
 		btgColor(pDoc, pPolygon->v0);
 		glVertex2i(p0.x, p0.y);
-		
+
 		// Second Edge
 		btgColor(pDoc, pPolygon->v1);
 		glVertex2i(p1.x, p1.y);
@@ -620,7 +620,7 @@ void btgpRDrawSolid(CBTGDoc *pDoc)
 		// Third Edge
 		btgColor(pDoc, pPolygon->v2);
 		glVertex2i(p2.x, p2.y);
-		
+
 		glEnd();
 
 		pPolygon = pPolygon->GetNext();
@@ -637,7 +637,7 @@ void glRectangle(signed long l, signed long t, signed long r, signed long b)
 	nb = (float)drawRect.bottom - b;
 	nl = (float)l;
 	nr = (float)r;
-	
+
 	glVertex2f(nl, nt);
 	glVertex2f(nr, nt);
 	glVertex2f(nr, nb);
@@ -656,7 +656,7 @@ void glSolidRectangle(signed long l, signed long t, signed long r, signed long b
 	nb = (float)drawRect.bottom - b;
 	nl = (float)l;
 	nr = (float)r;
-	
+
 	glVertex2f(nl, nt);
 	glVertex2f(nr, nt);
 	glVertex2f(nr, nb);
@@ -674,7 +674,7 @@ void glCircle(signed long xp, signed long yp, signed long r)
     float x, y, nyp;
 
     nyp = (float)drawRect.bottom - yp;
-	
+
 	segment = 0;
     endSegment = (signed long)(10 - 0.01f);//get ending segment
 
@@ -1316,12 +1316,12 @@ void btgGLDrawBackground(CBTGDoc *pDoc)
 	float zx, zy;
 	float rx, ry;
 	unsigned char bitmap[16];
-	
+
 	if(pBackground->bitmapBits == NULL)
 		return;
-	
+
 	// Get this Star's screen coords.
-	p0.x = 0; 
+	p0.x = 0;
 	p0.y = 0;
 	pDoc->CalculateScreenCoordinates(&p0);
 
@@ -1336,13 +1336,13 @@ void btgGLDrawBackground(CBTGDoc *pDoc)
 	ry = (float)drawRect.bottom-p1.y;
 
 	//glRasterPos2f(rx, ry);
-	glRasterPos2f(0, 0);
+	//glRasterPos2f(0, 0);
 	glBitmap(0, 0, 0, 0, rx, ry, bitmap); //<-- Keith is insane
 
 	glPixelZoom(pDoc->zoomVal * zx, pDoc->zoomVal * zy);
 
-	glDrawPixels(pBackground->header.imageWidth, pBackground->header.imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, pBackground->bitmapBits);
-	
+	//glDrawPixels(pBackground->header.imageWidth, pBackground->header.imageHeight, GL_RGBA, GL_UNSIGNED_BYTE, pBackground->bitmapBits);
+
 	glPixelZoom(1.0, 1.0);
 }
 
