@@ -72,13 +72,13 @@ EMXXLINK = -O3 -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s US
 
 all: $(WWWDIR)
 
-$(WWWDIR): $(WWWDIR)/hw.html $(WWWDIR)/index.html $(WWWDIR)/favicon.ico
+$(WWWDIR): $(WWWDIR)/hw.html $(WWWDIR)/index.html $(WWWDIR)/favicon.png
 
 $(WWWDIR)/index.html: hwfs.html
 	cp hwfs.html $(dir $@)index.html
 
-$(WWWDIR)/favicon.ico: 1.ico
-	cp 1.ico $(dir $@)favicon.ico
+$(WWWDIR)/favicon.png: 1.png
+	cp 1.png $(dir $@)favicon.png
 
 
 $(WWWDIR)/hw.html: $(MODULES:%=$(BUILDDIR)/%.em.o) $(ASSETS) Makefile
