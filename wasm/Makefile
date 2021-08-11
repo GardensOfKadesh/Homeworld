@@ -72,10 +72,14 @@ EMXXLINK = -O3 -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s US
 
 all: $(WWWDIR)
 
-$(WWWDIR): $(WWWDIR)/hw.html $(WWWDIR)/index.html
+$(WWWDIR): $(WWWDIR)/hw.html $(WWWDIR)/index.html $(WWWDIR)/favicon.ico
 
 $(WWWDIR)/index.html: hwfs.html
 	cp hwfs.html $(dir $@)index.html
+
+$(WWWDIR)/favicon.ico: 1.ico
+	cp 1.ico $(dir $@)favicon.ico
+
 
 $(WWWDIR)/hw.html: $(MODULES:%=$(BUILDDIR)/%.em.o) $(ASSETS) Makefile
 	$(EMXX) $(EMXXLINK) $(filter %.o,$^) $(ASSETS:%=--preload-file %) -o $@
