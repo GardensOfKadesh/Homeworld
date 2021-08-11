@@ -913,7 +913,7 @@ bool setupPixelFormat()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    if (!(sdlwindow=SDL_CreateWindow("HomeworldSDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    if (!(sdlwindow=SDL_CreateWindow("Gardens of Kadesh", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         MAIN_WindowWidth, MAIN_WindowHeight, flags)))
         return FALSE;
 
@@ -985,14 +985,14 @@ bool setupPixelFormat()
     targetDisplay = displayNum;
   }
 */
-	if (!(sdlwindow=SDL_CreateWindow("HomeworldSDL", SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayNum), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayNum),
+	if (!(sdlwindow=SDL_CreateWindow("Gardens of Kadesh", SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayNum), SDL_WINDOWPOS_UNDEFINED_DISPLAY(displayNum),
 		MAIN_WindowWidth, MAIN_WindowHeight, flags)))
 	{
 	    fprintf (stderr, "Couldn't set FSAA video mode: %s\n", SDL_GetError ());
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 0 );
 	    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 0 );
 
-		if (!(sdlwindow=SDL_CreateWindow("HomeworldSDL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		if (!(sdlwindow=SDL_CreateWindow("Gardens of Kadesh", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 			MAIN_WindowWidth, MAIN_WindowHeight, flags)))
 	    {
 		fprintf (stderr, "Couldn't set video mode: %s\n", SDL_GetError ());
