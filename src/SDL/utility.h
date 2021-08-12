@@ -39,7 +39,7 @@
     Definitions:
 =============================================================================*/
 #define UTY_ErrorStringLength       256
-#define UTY_TimerResolutionMax      240         //maximum timer resolution
+#define UTY_TimerResolutionMax      1000         //maximum timer resolution
 //bit-field flags stating which system has started properly
 typedef enum
 {
