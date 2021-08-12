@@ -7445,7 +7445,7 @@ bool univUpdate(real32 phystimeelapsed)
     if (!singlePlayerGame)
     {
         if ( (bitTest(tpGameCreated.flag,MG_ResourceInjections)) &&
-             ((universe.univUpdateCounter-universe.lasttimeadded) == (tpGameCreated.resourceInjectionInterval * UNIVERSE_UPDATE_RATE_FACTOR)) )
+             ((universe.univUpdateCounter-universe.lasttimeadded) == (tpGameCreated.resourceInjectionInterval)) )
         {
             universe.lasttimeadded = universe.univUpdateCounter;
             resourceInjectionTask();
