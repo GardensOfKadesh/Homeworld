@@ -1,7 +1,7 @@
-![gameplay gif](media/screenshot_01.jpg)
-
 # Gardens of Kadesh
 Gardens of Kadesh is a [WebAssembly] port of [HomeworldSDL]. [HomeworldSDL] is an [SDL] port of the [Homeworld] source code that was [released in 2003] by [Relic Entertainment].
+
+![gameplay gif](media/screenshot_01.jpg)
 
 ### How to play
 [To play direcly in your browser click here](https://gardensofkadesh.github.io/)
@@ -10,6 +10,7 @@ Gardens of Kadesh is a [WebAssembly] port of [HomeworldSDL]. [HomeworldSDL] is a
 ### About
 Our goals are to continue modernizing the Homeworld engine with gentle touches while preserving the original gameplay and feel. To make the Homeworld 1 experience widely accessible on modern devices and to new generations of players.
 
+![gameplay gif](media/gameplay_01.gif)
 
 In addition we hope to achieve awareness for the source code situation of Homeworld 1. The Homeworld source code was released under an unfavorable Relic Developer Network License.
 The disappearance of the Relic Developer Network and the Homeworld IP having changed hands leaves the license state of the Homeworld source code in a dubious state that hinders development.
@@ -18,10 +19,8 @@ We aim to achieve a consideration for a re-releasing of the original Homeworld s
 If you can help us in any way, or get back to us in support, please get in touch.
 Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/tpBKaHVV).
 
-
 ### Changelog
 To see changes between versions take a look at the [changelog](changelog.md).
-
 
 ## Building
 ### Homeworld demo assets
@@ -66,8 +65,10 @@ emrun www/index.html
 ```
 
 ## Media
-![gameplay gif](media/gameplay_01.gif)
+
 ![gameplay gif](media/screenshot_02.jpg)
+
+
 
 
 
