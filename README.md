@@ -1,93 +1,85 @@
-# Homeworld SDL
+# Gardens of Kadesh
+Gardens of Kadesh is a [WebAssembly] port of [HomeworldSDL]. [HomeworldSDL] is an [SDL] port of the [Homeworld] source code that was [released in 2003] by [Relic Entertainment].
 
-[SDL] port of the [Homeworld] source code that was [released in 2003] by [Relic Entertainment].
+### How to play
+[To play direcly in your browser click here](https://gardensofkadesh.github.io/)
 
-[SDL]: https://en.wikipedia.org/wiki/Simple_DirectMedia_Layer
+
+### About
+Our ultimate goal is to continue modernizing the engine with gentle touches while preserving the original gameplay and make the Homeworld 1 experience widely accessible on modern devices.
+
+
+In addition we hope to achieve awareness for the source code situation of Homeworld 1. The Homeworld source code was released under an unfavorable Relic Developer Network License.
+The disappearance of the Relic Developer Network and the Homeworld IP having changed hands leaves the license state of the Homeworld source code in a dubious state that hinders development.
+We aim to achieve a consideration for a re-releasing of the original Homeworld source code under GPL2/3 or re-licensing the current GardenOfKadesh/HomeworldSDL code under GPL2/3.
+
+If you can help us in any way, or get back to us in support, please get in touch.
+Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/tpBKaHVV).
+
+
+### Changelog
+To see changes between versions take a look at the [changelog](changelog.md).
+
+
+## Building
+### Homeworld demo assets
+This repository contains only the source code for Homeworld's engine (metaphorically, the skeleton). In order to have a playable game, you will need the original assets (artwork, textures, sounds, meshes, ... Metaphorically again, the flesh).
+
+The following asset files are required to build Gardens of Kadesh based on the Homeworld demo:
+- HomeworldDL.big (from the [Homeworld demo])
+- DL_demo.vce (from the [Homeworld demo])
+- DL_Music.wxd (from the [Homeworld demo])
+- Update.big (from the [Homeworld 1.05 Patch])
+- HomeworldSDL.big (see [HomeworldSDL] how to build this manually)
+
+All the above demo assets can also be downloaded here (TODO). Alternatively wine can be used to extract them from the windows installers. See [HomeworldSDL] on how to do that.
+
+
+### Build requirements
+To build Gardens of Kadesh based on the Homeworld demo under linux the following preparations are required:
+
+- copy all the above listed asset files into the wasm/ folder of the repository
+- install [emscripten] with a version >= 2.0.25 (Older versions don't include the necessary improvements to the legacy OpenGL emulation layer)
+
+### Building process
+To setup [emscripten] switch to your [emscripten] installation folder and run:
+``` sh
+source emsdk_env.sh
+```
+
+To run the Gardens of Kadesh build process switch to the wasm/ folder of its repository and run:
+``` sh
+make clean
+make
+```
+
+To increase build speed add "-jX" to enable parallel building. Replace the X with the number of threads your processor has.
+
+Make sure to issue a "make clean" after changes to the code since the Makefile is currently not properly setup to track all changes automatically.
+
+### Running locally
+The finished build can be tested locally in a browser by running:
+``` sh
+emrun www/index.html
+```
+
+## Media
+![gameplay gif](media/screenshot_01.jpg)
+![gameplay gif](media/gameplay_01.gif)
+
+
+
+
+
+[Discord]: https://discord.gg/tpBKaHVV
 [Homeworld]: https://en.wikipedia.org/wiki/Homeworld
+[HomeworldSDL]: https://github.com/HomeworldSDL/HomeworldSDL
+[SDL]: https://en.wikipedia.org/wiki/Simple_DirectMedia_Layer
+[WebAssembly]: https://webassembly.org/
+[emscripten]: https://emscripten.org
+
 [released in 2003]: http://www.insidemacgames.com/news/story.php?ArticleID=8516
 [Relic Entertainment]: https://www.relic.com/
 
-## Installing
-
-### Requirements
-
-This repository contains only the source code for Homeworld's engine (metaphorically, the skeleton). In order to have a playable game, you will need the original assets (artwork, textures, sounds, meshes, ... Metaphorically again, the flesh).
-
-So make sure you have:
-
-- The Homeworld CD
-- [The 1.05 Patch](http://www.homeworldaccess.net/downloads/hw1patch/si_homeworld_update_105.exe)
-
-### Asset checklist
-
-To sum it up, here are the files required for the game to run:
-
-- [ ] `Homeworld.big`  
-    > sha256: af9dcc06e3f99404334a0a8ec17e399876080e85feb5b47858382dc715136040
-- [ ] `Update.big` (This comes from the official 1.05 Patch)  
-    > sha256: c71b07758ee7696b3a19c1d75c946cbd68830e03b30cd3c2888f2f6d22b7c976
-- [ ] `HW_Comp.vce`  
-    > sha256: 15c4b988adb09b0969b0dc288b21ddc10ca9d42a2064d15b46b53dcf02fc2e44
-
-- [ ] `HW_Music.wxd`  
-    > sha256: b909c2cdbc8c8db67be168f6005bf8e8facaa9857263b16d186c824a0c4eed4f
-- [x] `HomeworldSDL.big` (This file should be included in the [releases])
-
-Usually you will find these files in your installation folder. For more detailed instructions, read on.
-
-### Linux
-
-#### Extracting game assets with wine
-
-Install the game and patch with [wine] (tested with wine 4.1)
-
-``` sh
-wine HWSetup.EXE
-wine si_homeworld_update_105.exe
-```
-
-Open the game installation folder (usually `~/.wine/drive_c/Sierra/Homeworld`). This is where you'll find the [required files](#asset-checklist). We'll be getting back at them later on.
-
-[wine]: https://www.winehq.org/
-
-#### Installing the binary distribution
-
-1. Download [__the latest release__][releases]. (Extract it if necessary)
-2. Copy [the files you gathered earlier](#extracting-game-assets-with-wine) in the folder you just downloaded
-3. Run the game
-4. Jump to [Configuring the OpenGL renderer](#configuring-the-opengl-renderer)
-
-#### Compiling from source
-
-Please refer to [`Linux/BUILD.md`](Linux/BUILD.md).
-
-## Configuring the OpenGL renderer
-
-The first time you run the game, you'll have to configure the renderer to use OpenGL. This will be saved in your `~/.homeworld`, so you won't have to do it every time you run the game.
-
-Once the game has launched, you need to:
-
-- Select "Options" from the main game menu.
-- Select "Video" from the available option sub-menus listed on
-    the right side of the screen.
-- Select "(GL) Default OpenGL" from the "Rendering System" box.
-- Choose a resolution from the "Resolution" box (any resolution
-    you choose will do fine).
-- Click on the "Accept!" button in the bottom-right corner of the screen.
-
- The game will now attempt to switch to the OpenGL renderer.  
- If everything goes okay, you should be presented with a confirmation that the settings you requested were changed.  Select "Yes", and you should be ready to go!
-
-### Mac
-
-- Copy assets listed above into the Root repo directory.
-- Open Xcode project in Mac directory.
-- Run from Xcode or build.
-- Assets are copied into App bundle
-- config file is at ~Library/Application Support/Homeworld/Homeworld.cfg
-
-## [About][wiki]
-
-If you want to know more about this project (and see some screenshots!), please head over to the [wiki].
-
-[wiki]: https://github.com/HomeworldSDL/HomeworldSDL/wiki
+[Homeworld demo]: https://www.moddb.com/games/homeworld/downloads/homeworld-demo
+[Homeworld 1.05 Patch]: http://www.homeworldaccess.net/downloads/hw1patch/si_homeworld_update_105.exe
