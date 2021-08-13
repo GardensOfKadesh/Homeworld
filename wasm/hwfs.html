@@ -1298,9 +1298,12 @@
             progressElement.value = null;
             progressElement.max = null;
             progressElement.hidden = true;
-            if (!text) spinnerElement.style.display = 'none';
           }
-          statusElement.innerHTML = text;
+          statusElement.innerHTML = text + "- this may take a while.";
+          if (!text) {
+            spinnerElement.style.display = 'none';
+            statusElement.style.display = 'none';
+          }
         },
         totalDependencies: 0,
         monitorRunDependencies: function(left) {
