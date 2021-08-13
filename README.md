@@ -67,6 +67,9 @@ emrun www/index.html
 ## Media
 
 ![gameplay gif](media/screenshot_02.jpg)
+![gameplay gif](media/CapitalShips.png)
+![gameplay gif](media/Mission1.png)
+![gameplay gif](media/Ambush.png)
 
 
 
