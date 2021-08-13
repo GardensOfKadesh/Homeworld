@@ -69,12 +69,14 @@
       }
 
       #status {
+        position: absolute;
         display: inline-block;
         vertical-align: top;
         margin-top: 30px;
         margin-left: 20px;
         font-weight: bold;
         color: rgb(120, 120, 120);
+        z-index: 100;
       }
 
       #progress {
@@ -1306,7 +1308,7 @@
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
         }
       };
-      Module.setStatus('Downloading...');
+      Module.setStatus('Downloading assets... this may take a while.');
       window.onerror = function(event) {
         // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
         Module.setStatus('Exception thrown, see JavaScript console');
