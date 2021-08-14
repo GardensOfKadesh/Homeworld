@@ -89,6 +89,10 @@ scriptEntry psScreenTweaks[] =
     END_SCRIPT_ENTRY
 };
 
+// for enabling reinit on resolution changes
+char *curScriptName;
+int screenSizeSum = 0;
+
 /*=============================================================================
     Private functions:
 =============================================================================*/
@@ -741,6 +745,13 @@ DEFINE_TASK(psRenderTaskFunction)
 
     while (1)
     {
+
+        if (screenSizeSum != MAIN_WindowWidth + MAIN_WindowHeight)
+        {
+            psCurrentScreenDelete();
+            psScreenStart(curScriptName);
+        }
+
         primErrorMessagePrint();
 
         if (psScreenTimeout && taskTimeElapsed >= psScreenCreationTime + psScreenTimeout)
@@ -911,6 +922,9 @@ void psScreenStart(char *name)
     }
 
     scriptSet(psDirectory, name, psScreenTweaks);
+
+    curScriptName = name;
+    screenSizeSum = MAIN_WindowWidth + MAIN_WindowHeight;
 
     dbgAssertOrIgnore(psScreenImage.imageQuilt != NULL);
     dbgAssertOrIgnore(reg->child != NULL);

@@ -6,9 +6,16 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
+
+
+## r5
 #### Improvements
 - update readme.md for Gardens of Kadesh
 - add changelog.md for tracking changes between versions
+- add "this may take a while" to download status text and enable showing it
+- additional screenshots added to media
+- add resolution change support to plugscreens
+
 
 ## r4
 #### Bugfixes
