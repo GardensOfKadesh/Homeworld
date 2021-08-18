@@ -8,6 +8,11 @@ versions, you can browse git to display all changes between tags.
 ## Current Trunk
 
 
+## r6
+#### Bugfix
+- half the strength of the non-linear inverse perspective scaling (N-LIPS) now also for engine trails
+
+
 ## r5
 #### Improvements
 - update readme.md for Gardens of Kadesh
@@ -42,6 +47,8 @@ versions, you can browse git to display all changes between tags.
 - severe reduction of opengl draw calls for improved performance
 - various opengl improvements for better compatibility and performance
 - extended the plugscreen system to display static text, load jpg buttons and have functional links
+- force LOD system to highest level
+- half the strength of the non-linear inverse perspective scaling (N-LIPS)
 
 #### Unfortunate side effects
 - force single threading for webassembly compatibility (prob. breaking multiplayer)

@@ -890,7 +890,7 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         {
             if (shipstaticinfo->scaleCap != 0.0f)
             {
-                scaleFactor = 1.0f - selCameraSpace.z * shipstaticinfo->scaleCap;
+                scaleFactor = 1.0f - 0.5f * selCameraSpace.z * shipstaticinfo->scaleCap;
                 glTranslatef(pos.x * scaleFactor, pos.y * scaleFactor, pos.z * scaleFactor);
             }
             else
@@ -904,7 +904,7 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
             }
             else
             {
-                scaleFactor = 1.0f - selCameraSpace.z * trail->scalecap;
+                scaleFactor = 1.0f - 0.5f * selCameraSpace.z * trail->scalecap;
             }
         }
     }
