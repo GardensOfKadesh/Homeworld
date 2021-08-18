@@ -3,7 +3,7 @@ GameLink    664,454,Buttons\on_Next.lif,Buttons\off_next.lif
 WebLink     336,470,button-fig-on.jpg,button-fig-off.jpg,https://www.fig.co/campaigns/homeworld3
 WebLink     400,470,button-steam-on.jpg,button-steam-off.jpg,https://store.steampowered.com/app/244160/Homeworld_Remastered_Collection/
 WebLink     464,470,button-discord-on.jpg,button-discord-off.jpg,https://discord.gg/drrKWR3Bxq
-WebLink     530,470,button-github-on.jpg,button-github-off.jpg,https://github.com/GardensOfKadesh
+WebLink     530,470,button-github-on.jpg,button-github-off.jpg,https://github.com/GardensOfKadesh/Homeworld
 TimeOut     3600,gameon
 Mouse       TRUE
 

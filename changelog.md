@@ -8,6 +8,11 @@ versions, you can browse git to display all changes between tags.
 ## Current Trunk
 
 
+## r7
+#### Improvements
+- update github link in plugscreen
+
+
 ## r6
 #### Bugfix
 - half the strength of the non-linear inverse perspective scaling (N-LIPS) now also for engine trails
