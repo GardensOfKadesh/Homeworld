@@ -19,7 +19,14 @@ We aim to achieve a consideration for a re-releasing of the original Homeworld s
 If you can help us in any way, or get back to us in support, please get in touch.
 Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/tpBKaHVV).
 
-### Changelog
+### Changes
+Most notable changes besides the the necessary changes described in the porting Homeworld to WebAssembly section:
+- increased universe update rate for smoother gameplay (NIS animation sequences will still display at their intended 16 fps)
+- dithering shader added to the vertex background system to prevent visible color banding
+- LODs fixed to highest level
+- tweaked the non-linear inverse perspective scaling to work better with high resolutions
+- anisotropic filtering for improved texture rendering
+
 To see changes between versions take a look at the [changelog](changelog.md).
 
 ### Porting Homeworld to WebAssembly
