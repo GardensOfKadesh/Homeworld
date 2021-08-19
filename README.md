@@ -26,8 +26,9 @@ Most notable changes besides the the necessary changes described in the porting 
 - LODs fixed to highest level
 - tweaked the non-linear inverse perspective scaling to work better with high resolutions
 - anisotropic filtering for improved texture rendering
+- antialiased rendering
 
-To see changes between versions take a look at the [changelog](changelog.md).
+To see all changes between versions take a look at the [changelog](changelog.md).
 
 ### Porting Homeworld to WebAssembly
 The original Homeworld engine was written in C and targeted the 32bit x86 Windows platform only. [HomeworldSDL] modified the original source code to use the cross-platform Simple DirectMedia Layer ([SDL]) to allow the engine to target not only Windows but also MacOS and Linux. Gardens of Kadesh is using [emscripten] to compile the C code base to [WebAssembly] allowing execution inside any modern web browser and by such making it runnable on nearly all modern computing devices from desktop computers, over laptops, tvs, chromebooks to tablets and phones.
