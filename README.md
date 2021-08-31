@@ -4,7 +4,9 @@ Gardens of Kadesh is a [WebAssembly] port of [HomeworldSDL]. [HomeworldSDL] is a
 ![gameplay gif](media/screenshot_01.jpg)
 
 ### How to play
-[To play direcly in your browser click here](https://gardensofkadesh.github.io/)
+[To play direcly in your browser click here](https://gardensofkadesh.github.io/). Don't forget to maximize your browser window for the best experience!
+
+You will be able to freely play the Homeworld demo content (the first two missions of the campaign and skirmish against the computer). If you own the full version of Homeworld or the Homeworld Remastered Collection you can follow the same link, drag and drop the required asset files from your local Homeworld installation into the browser window and play the full Homeworld campaign.
 
 
 ### About

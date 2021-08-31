@@ -9,6 +9,7 @@ versions, you can browse git to display all changes between tags.
 #### Improvements
 - support full release assets uploaded to browser IDBFS
 - support Homeworld Remastered Collection classic homeworld.big format
+- updated readme with on how to play the full version
 
 
 ## r7
