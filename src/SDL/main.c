@@ -2140,29 +2140,50 @@ void main_loop()
 }
 
 
-int main (int argc, char* argv[])
-{
-    static char *errorString = NULL;
 
 #ifdef __EMSCRIPTEN__
-        // create persisten storage
+int main (int argc, char* argv[])
+{
+        // create persistent storage
         EM_ASM(
             // Make a directory other than '/'
             FS.mkdir('/home/web_user/.homeworld/');
             FS.mkdir('/home/web_user/.homeworld/SavedGames/');
             FS.mkdir('/home/web_user/.homeworldDownloadable/');
             FS.mkdir('/home/web_user/.homeworldDownloadable/SavedGames/');
+            FS.mkdir('/assets/');
 
             // Then mount with IDBFS type
             FS.mount(IDBFS, {}, '/home/web_user/.homeworld/SavedGames/');
             FS.mount(IDBFS, {}, '/home/web_user/.homeworldDownloadable/SavedGames/');
+            FS.mount(IDBFS, {}, '/assets/');
+
+            // create symlinks to assets
+            FS.symlink('/assets/Homeworld.big', 'Homeworld.big');
+            FS.symlink('/assets/HW_Comp.vce', 'HW_Comp.vce');
+            FS.symlink('/assets/HW_Music.wxd', 'HW_Music.wxd');
 
             // Then sync
             FS.syncfs(true, function (err) {
-                // Error
+                if (err) console.log("FS.syncfs error " + err);
+
+                // continue with main after filesystem is synced
+                Module._main_postinit(0, 0);
             });
+
         );
+}
+
+int EMSCRIPTEN_KEEPALIVE main_postinit(int argc, char* argv[]) {
+  // file system sync is now complete
+  // continue on
+
+#else
+int main (int argc, char* argv[])
+{
 #endif
+
+  static char *errorString = NULL;
 
 #ifdef _MACOSX
   //set working directory to load resources (.bigs etc)

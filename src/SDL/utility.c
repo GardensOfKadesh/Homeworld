@@ -4270,7 +4270,8 @@ DONE_INTROS:
         mouseCursorShow();
 //    }
 
-#ifdef HW_GAME_DEMO
+//#ifdef HW_GAME_DEMO
+/*
     if (enableAVI)
     {
         primModeSetFunction2();
@@ -4280,7 +4281,8 @@ DONE_INTROS:
         psScreenStart("github.plug");
 
     }
-#endif
+*/
+//#endif
     if (demDemoRecording)
     {                                                       //if recording a demo
         sprintf(demDemoFilename + strlen(demDemoFilename), "%ux%u.dem", MAIN_WindowWidth, MAIN_WindowHeight);

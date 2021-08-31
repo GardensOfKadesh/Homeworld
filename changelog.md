@@ -6,7 +6,8 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
-
+#### Improvements
+- support full release assets uploaded to browser IDBFS
 
 ## r7
 #### Improvements
