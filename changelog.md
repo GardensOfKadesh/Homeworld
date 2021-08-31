@@ -8,6 +8,8 @@ versions, you can browse git to display all changes between tags.
 ## Current Trunk
 #### Improvements
 - support full release assets uploaded to browser IDBFS
+- support Homeworld Remastered Collection classic homeworld.big format
+
 
 ## r7
 #### Improvements

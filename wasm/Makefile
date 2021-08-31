@@ -25,7 +25,11 @@ MODULES = $(wildcard $(SRCDIR)/SDL/*.c) \
 # convert Discord-Logo-White.png -resize 32x32\! -background black -flatten -brightness-contrast -50x0 button-discord-off.jpg
 
 #ASSETS = HW_Music.wxd HW_Comp.vce Homeworld.big Update.big HomeworldSDL.big
+
+# for Homeworld Demo
 ASSETS = DL_Music.wxd DL_demo.vce HomeworldDL.big Update.big HomeworldSDL.big Plugscreens/
+# for Homeworld Release, plug.tga missing from remastered homeworld.big
+#ASSETS = Update.big HomeworldSDL.big Plugscreens/ plug.tga
 
 UNAME = $(shell uname -s)
 BUILDDIR = build
