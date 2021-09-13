@@ -7426,7 +7426,7 @@ bool univUpdate(real32 phystimeelapsed)
     //if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0)
     //{
         cloudSetFog();      //dust/gas cloud think
-        nebSetFog();        //nebula think
+        if ((universe.univUpdateCounter % (UNIVERSE_UPDATE_RATE_FACTOR)) == 0) nebSetFog();        //nebula think
 
         //construction manager deterministic think
         cmDeterministicBuildProcess();

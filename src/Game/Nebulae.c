@@ -49,8 +49,8 @@ ubyte nebColor[4];
         nebColor[1] = (ubyte)(NEB_FOG_GREEN * 255.0f); \
         nebColor[2] = (ubyte)(NEB_FOG_BLUE * 255.0f); \
         nebColor[3] = b; \
-        glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
-    }
+    }//glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
+    //}
 #define TENDRILCOLOR(t,a) \
     { \
         ubyte b = a; \
@@ -62,8 +62,8 @@ ubyte nebColor[4];
         nebColor[1] = colGreen(t->colour); \
         nebColor[2] = colBlue(t->colour); \
         nebColor[3] = b; \
-        glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
-    }
+    }//glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
+    //}
 
 // -----
 // DATA
@@ -1230,8 +1230,8 @@ void nebDrawChunk2(nebChunk* chunk, sdword lod)
         nebColor[1] = colGreen(c); \
         nebColor[2] = colBlue(c); \
         nebColor[3] = a; \
-        glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
-    }
+      }//glColor4ub(nebColor[0], nebColor[1], nebColor[2], nebColor[3]); \
+    //}
     nebTendril* ta;
     nebTendril* tb;
     nebTendril* tendril;
