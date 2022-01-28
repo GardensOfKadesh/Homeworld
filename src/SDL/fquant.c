@@ -18,18 +18,6 @@ int fqInitDequant(void) {
 	return OK;
 }
 
-sdword fqSUnpack_orig(udword nLen, udword nPos, char *aBlock) {
-	udword shift, mask;
-
-	shift = nPos - nPos / 8 * 8;
-	mask = ((1 << nLen) - 1) << shift;
-	if ((*(udword*)(aBlock + nPos / 8) & mask) >> shift >> (nLen - 1) == 1) {
-		return (sdword)0 - (((*(udword*)(aBlock + nPos / 8) & mask) >> shift << (33 - nLen)) >> (33 - nLen));
-	}
-
-	return (sdword)((*(udword*)(aBlock + nPos / 8) & mask) >> shift);
-}
-
 sdword fqSUnpack(udword bits, udword offset, char *buf) {
     int val; // edx
 
@@ -41,22 +29,11 @@ sdword fqSUnpack(udword bits, udword offset, char *buf) {
     return val;
 }
 
-
-udword fqUnpack_orig(udword nLen, udword nPos, char *aBlock) {
-	udword shift, mask;
-
-	shift = nPos - nPos / 8 * 8;
-	mask = ((1 << nLen) - 1) << shift;
-
-	return (*(udword*)(aBlock + nPos / 8) & mask) >> shift;
-}
-
 udword fqUnpack(udword bits, udword offset, char *buf) {
     return (*(int *) &buf[offset >> 3]
             & (uint32_t) (((1 << bits) - 1) << (offset - 8 * (offset >> 3))))
             >> (offset - 8 * (offset >> 3));
 }
-
 
 int fqDequantBlock(char *aQBlock, float *aFPBlock, float *aFSBlock, unsigned char *aEBlock, udword nLen, udword nRate, udword nSize) {
 	udword pos, count, ua, ub, uc, ud, u, i;
