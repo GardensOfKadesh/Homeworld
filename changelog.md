@@ -6,11 +6,18 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
+
+
+## r8
+#### Bugfixes
+- fix nebulae rendering and animation
+- fix bugs in reverse engineered sounds functions
+
 #### Improvements
 - support full release assets uploaded to browser IDBFS
 - support Homeworld Remastered Collection classic homeworld.big format
 - updated readme with on how to play the full version
-- fix nebulae rendering and animation
+- add simple sound compressor to prevent clipping of final sound mix
 
 
 ## r7
@@ -19,7 +26,7 @@ versions, you can browse git to display all changes between tags.
 
 
 ## r6
-#### Bugfix
+#### Bugfixes
 - half the strength of the non-linear inverse perspective scaling (N-LIPS) now also for engine trails
 
 

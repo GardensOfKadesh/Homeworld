@@ -29,6 +29,7 @@ Most notable changes besides the the necessary changes described in the porting 
 - tweaked the non-linear inverse perspective scaling to work better with high resolutions
 - anisotropic filtering for improved texture rendering
 - antialiased rendering
+- fixes for sound system bugs that stemmed from SDL port
 
 To see all changes between versions take a look at the [changelog](changelog.md).
 
