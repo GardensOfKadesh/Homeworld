@@ -436,7 +436,7 @@ DEFINE_TASK(nisUpdateTask)
         //code for playing in-game NIS's
         if (nisScissorFadeOut != 0)
         {                                                   //if fading the scissor window out
-            nisScissorFadeTime += (real32)UNIVERSE_UPDATE_PERIOD_ORIG;
+            nisScissorFadeTime += (real32)UNIVERSE_UPDATE_PERIOD;
             nisFullyScissored = FALSE;                      //window no longer fully scissored
             if (nisScissorFadeTime >= nisScissorFadeOut)
             {                                               //if at the end of the fade
@@ -455,14 +455,14 @@ DEFINE_TASK(nisUpdateTask)
         //fade to/from black
         if (nisBlackFade != nisBlackFadeDest)
         {
-            if (ABS(nisBlackFade - nisBlackFadeDest) <= UNIVERSE_UPDATE_PERIOD_ORIG)
+            if (ABS(nisBlackFade - nisBlackFadeDest) <= UNIVERSE_UPDATE_PERIOD)
             {                                           //if the end of the fade
                 nisBlackFade = nisBlackFadeDest;
                 nisBlackFadeRate = 0.0f;
             }
             else
             {
-                nisBlackFade += nisBlackFadeRate * UNIVERSE_UPDATE_PERIOD_ORIG;
+                nisBlackFade += nisBlackFadeRate * UNIVERSE_UPDATE_PERIOD;
             }
 
 #if NIS_VERBOSE_LEVEL >= 1
@@ -481,7 +481,7 @@ DEFINE_TASK(nisUpdateTask)
                 nisScissorFadeIn = nisScissorFadeTime = 0.0f;//don't do any more fading
                 nisScissorFade = 0.0f;
             }
-            nisScissorFadeTime += UNIVERSE_UPDATE_PERIOD_ORIG;
+            nisScissorFadeTime += UNIVERSE_UPDATE_PERIOD;
         }
 
         if (thisNisPlaying)
@@ -492,7 +492,7 @@ DEFINE_TASK(nisUpdateTask)
             }
             //if (!nisPaused)
             {                                               //actually update NIS if NIS unpaused
-                newTime = nisUpdate(thisNisPlaying, UNIVERSE_UPDATE_PERIOD_ORIG);
+                newTime = nisUpdate(thisNisPlaying, UNIVERSE_UPDATE_PERIOD);
                 if (newTime == REALlyBig)
                 {
                     nisStop(thisNisPlaying);
@@ -514,7 +514,7 @@ DEFINE_TASK(nisUpdateTask)
             //fly the camera in
             if (nisCameraCutTime != 0.0f)
             {
-                timeElapsed = UNIVERSE_UPDATE_PERIOD_ORIG;  //!!! cap camera velocity?
+                timeElapsed = UNIVERSE_UPDATE_PERIOD;  //!!! cap camera velocity?
                 nisCameraFlyCompute(timeElapsed);
             }
 
@@ -523,7 +523,7 @@ DEFINE_TASK(nisUpdateTask)
 #if NIS_TEST
         if (testPlaying)
         {
-            newTime = nisUpdate(testPlaying, UNIVERSE_UPDATE_PERIOD_ORIG);
+            newTime = nisUpdate(testPlaying, UNIVERSE_UPDATE_PERIOD);
             if (newTime == REALlyBig || keyIsStuck(NUMPAD1))
             {
                 keyClearSticky(NUMPAD1);
@@ -578,7 +578,7 @@ DEFINE_TASK(nisUpdateTask)
 ----------------------------------------------------------------------------*/
 void nisStartup(void)
 {
-    nisTaskHandle = taskStart(nisUpdateTask, UNIVERSE_UPDATE_PERIOD_ORIG, 0);
+    nisTaskHandle = taskStart(nisUpdateTask, UNIVERSE_UPDATE_PERIOD, 0);
     taskPause(nisTaskHandle);
 }
 
@@ -1610,7 +1610,7 @@ void nisSeek(nisplaying *NIS, real32 seekTime)
 ----------------------------------------------------------------------------*/
 void nisGoToEnd(nisplaying *NIS)
 {
-    nisSeek(NIS,NIS->header->length - UNIVERSE_UPDATE_PERIOD_ORIG);
+    nisSeek(NIS,NIS->header->length - UNIVERSE_UPDATE_PERIOD);
 }
 
 /*-----------------------------------------------------------------------------
@@ -4306,7 +4306,7 @@ void nisNewNISSet(char *directory, char *field, void *dataToFillIn)
     char fileName[80];
     sdword nScanned;
 
-    event->time -= UNIVERSE_UPDATE_PERIOD_ORIG;                  //this is to make sure that hitting ESCAPE will seek over this event
+    event->time -= UNIVERSE_UPDATE_PERIOD;                  //this is to make sure that hitting ESCAPE will seek over this event
     nScanned = sscanf(field, "%s %s", nisName, scriptName);
     dbgAssertOrIgnore(nScanned == 2);
     dbgAssertOrIgnore(strlen(nisName) > 0);

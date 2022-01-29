@@ -6,6 +6,8 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
+#### Improvements
+- Reenable NIS playback at higher universe update rate
 
 
 ## r8
