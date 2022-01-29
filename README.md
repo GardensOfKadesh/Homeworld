@@ -23,7 +23,7 @@ Follow our project here on [github](https://github.com/GardensOfKadesh) and/or j
 
 ### Changes
 Most notable changes besides the the necessary changes described in the porting Homeworld to WebAssembly section:
-- increased universe update rate for smoother gameplay (NIS animation sequences will still display at their intended 16 fps)
+- increased universe update rate for smoother gameplay and animations
 - dithering shader added to the vertex background system to prevent visible color banding
 - LODs fixed to highest level
 - tweaked the non-linear inverse perspective scaling to work better with high resolutions
