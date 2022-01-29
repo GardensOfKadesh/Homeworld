@@ -153,7 +153,7 @@ char *dither_vertex_shader = "void main(void)"
 char *dither_fragment_shader = "uniform sampler2D sampler;"
                                "void main()"
                                "{"
-                               "    vec4 dither = (1.0 / 255.0) * vec4(texture2D(sampler, gl_FragCoord.xy / 8.0).r * 4.0 - (1.0 / 2.0));"
+                               "    vec4 dither = (2.0 / 255.0) * vec4(texture2D(sampler, gl_FragCoord.xy / 8.0).r * 4.0 - (1.0 / 2.0));"
                                "    gl_FragColor = gl_Color + dither;"
                                "}";
 static GLuint dither_program = 0;
@@ -189,6 +189,7 @@ void btgStartup()
     btgReset();
     //useVBO = glCheckExtension("GL_ARB_vertex_buffer_object");
     useVBO = FALSE;
+    //useVBO = TRUE;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1423,7 +1424,7 @@ void btgRender()
     if (useVBO) {
         glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(btgTransVertex), 0);
         glVertexPointer(3, GL_FLOAT, sizeof(btgTransVertex), (GLvoid*)4);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, vboTransVerts);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices);
         glDrawElements(GL_TRIANGLES, 3 * btgHead->numPolys, GL_UNSIGNED_SHORT, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
