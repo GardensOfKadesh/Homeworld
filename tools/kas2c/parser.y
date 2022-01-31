@@ -365,7 +365,7 @@ int main(int argc, char **argv)
             break;
         }
     }
-    fprintf(stderr, "%s\n", shortinfilename);
+    //fprintf(stderr, "%s\n", shortinfilename);
 
     strcpy(tempfilename, shortinfilename);
     strcpy(infilename, tempfilename);
