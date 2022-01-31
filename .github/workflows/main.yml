@@ -3,19 +3,194 @@ name: CI
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
+  build-debug-linux-gcc:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
       - name: Install Dependencies
-        run: sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
+        run: |
+          sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
 
       - name: Build
-        uses: BSFishy/meson-build@v1.0.3
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: gcc
+
+  build-debug-linux-clang:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
         with:
-          action: build
-          options: homeworld tools assets
-          meson-version: 0.60.0
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install clang flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: clang
+
+  build-debug-macos-gcc:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          brew install gcc@11 flex bison glew sdl2
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: gcc-11
+
+  build-debug-macos-clang:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          brew install llvm flex bison glew sdl2
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: clang
+
+  build-release-linux-gcc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson --buildtype release build
+          ninja -C build homeworld tools assets
+        env:
+          CC: gcc
+
+  build-release-linux-clang:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install clang flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson --buildtype release build
+          ninja -C build homeworld tools assets
+        env:
+          CC: clang
+
+  build-release-macos-gcc:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          brew install gcc@11 flex bison glew sdl2
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson --buildtype release build
+          ninja -C build homeworld tools assets
+        env:
+          CC: gcc-11
+
+  build-release-macos-clang:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          brew install llvm flex bison glew sdl2
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson --buildtype release build
+          ninja -C build homeworld tools assets
+        env:
+          CC: clang
