@@ -1,7 +1,7 @@
 project('homeworld',
         'c',
-	    version: '0.1',
-		default_options: ['warning_level=3', 'c_std=c17'])
+        version: '0.1',
+        default_options: ['warning_level=3', 'c_std=c17'])
 
 dep_x11 = dependency('x11')
 dep_gl = dependency('gl')
@@ -71,8 +71,8 @@ alias_target('assets', asset_homeworldsdl_big)
 
 executable(meson.project_name(),
            src,
-		   include_directories: inc_src,
-		   link_with: [lib_jpg, lib_sdl],
-		   dependencies: [dep_x11, dep_gl, dep_sdl, dep_math, dep_glew],
-		   c_args: c_args,
+           include_directories: inc_src,
+           link_with: [lib_jpg, lib_sdl],
+           dependencies: [dep_x11, dep_gl, dep_sdl, dep_math, dep_glew],
+           c_args: c_args,
            install: true)
