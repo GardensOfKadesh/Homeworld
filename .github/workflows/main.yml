@@ -17,5 +17,5 @@ jobs:
         uses: BSFishy/meson-build@v1.0.3
         with:
           action: build
-          options: all
+          options: homeworld tools assets
           meson-version: 0.60.0
