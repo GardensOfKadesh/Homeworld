@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -12,6 +12,23 @@ jobs:
 
       - name: Install Dependencies
         run: sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
+
+      - name: Build
+        uses: BSFishy/meson-build@v1.0.3
+        with:
+          action: build
+          options: homeworld tools assets
+          meson-version: 0.60.0
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: brew install clang flex bison glew sdl2
 
       - name: Build
         uses: BSFishy/meson-build@v1.0.3
