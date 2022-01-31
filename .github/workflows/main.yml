@@ -17,7 +17,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          apt-get install gcc flex bison libglew-dev libsdl2-dev
+          sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
           pip install meson ninja
 
       - name: Build
@@ -41,7 +41,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          apt-get install clang flex bison libglew-dev libsdl2-dev
+          sudo apt-get install clang flex bison libglew-dev libsdl2-dev
           pip install meson ninja
 
       - name: Build
@@ -89,7 +89,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          brew install clang flex bison glew sdl2
+          brew install llvm flex bison glew sdl2
           pip install meson ninja
 
       - name: Build
