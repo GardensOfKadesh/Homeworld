@@ -10,7 +10,7 @@
 /*#define _WIN32_LEAN_AND_MEAN*/
 #define STRICT
 
-#include "SDL.h"
+#include <SDL.h>
 #include <stdio.h>
 
 #include <stdio.h>

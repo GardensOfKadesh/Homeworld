@@ -18,8 +18,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-#include "SDL_stdinc.h"
-#include "SDL_endian.h"
+#include <SDL_stdinc.h>
+#include <SDL_endian.h>
 
 #ifdef _MSC_VER
     #ifndef _WIN32_LEAN_AND_MEAN

@@ -76,7 +76,7 @@
 #include "UnivUpdate.h"
 #include "utility.h"
 #ifdef HW_ENABLE_GLES
-#include "SDL_syswm.h"
+#include <SDL_syswm.h>
 #endif
 
 #if defined _MSC_VER

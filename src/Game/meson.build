@@ -62,6 +62,7 @@ src_game = files('AIAttackMan.c',
                  'InfoOverlay.c',
                  'KAS.c',
                  'KASFunc.c',
+                 'KNITransform.c',
                  'KeyBindings.c',
                  'Key.c',
                  'LagPrint.c',
@@ -72,7 +73,6 @@ src_game = files('AIAttackMan.c',
                  'LOD.c',
                  'MadLinkIn.c',
                  'Matrix.c',
-                 #'Matrix-mult.c',
                  'Memory.c',
                  'MeshAnim.c',
                  'Mesh.c',
@@ -136,12 +136,6 @@ src_game = files('AIAttackMan.c',
                  'UnivUpdate.c',
                  'Vector.c',
                  'Volume.c')
-
-if build_machine.cpu_family() in ['x86', 'x86_64']
-    src_game += files('KNITransform.c')
-else
-	src_game += files('StubTransform.c')
-endif
 
 src_game += custom_target('wrapped_functions.h',
                           input: ['functions.h', 'wrap.h', 'wrap_types.h'],

@@ -4,22 +4,22 @@
 *.bik
 
 *.gch
-.vscode
+.vscode/**
 
 *.em.d
 *.em.o
 *.o
 *.Po
 
-big.contents/
-assets_oem/
+big.contents/**
+assets_oem/**
 
-Mac/build
+Mac/build**
 Mac/Homeworld.xcodeproj/*.mode*
 Mac/Homeworld.xcodeproj/*.pbxuser
-Mac/Homeworld.xcodeproj/project.xcworkspace/xcuserdata/
-Mac/Homeworld.xcodeproj/xcuserdata/
-Mac/SDL2.framework
+Mac/Homeworld.xcodeproj/project.xcworkspace/xcuserdata/**
+Mac/Homeworld.xcodeproj/xcuserdata/**
+Mac/SDL2.framework/**
 
 src/Missions/Generated
 
@@ -35,9 +35,9 @@ Linux/config.h
 Linux/config.log
 Linux/config.status
 Linux/libtool
-Linux/src
+Linux/src/**
 Linux/stamp-h1
-Linux/tools
+Linux/tools/**
 
 Makefile.am
 Makefile.in
