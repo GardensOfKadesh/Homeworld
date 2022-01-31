@@ -31,7 +31,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-
       - run: brew install gcc flex bison glew sdl2
       - run: pip install meson ninja
 
