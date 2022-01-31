@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Dependencies
-        run: brew install clang flex bison glew sdl2
+        run: brew install --with-toolchain llvm flex bison glew sdl2
 
       - name: Build
         uses: BSFishy/meson-build@v1.0.3
