@@ -53,6 +53,7 @@ COMMONFLAGS = -MMD \
               -DSTDC_HEADERS \
               -DGIT_VERSION="\"$(GIT_VERSION)\"" \
               -I ../Linux/src/Missions/ \
+              -I ../Linux/src/Missions/Generated/ \
               -I ../src/Game/ \
               -I ../src/Ships/ \
               -I ../src/Game/ \
