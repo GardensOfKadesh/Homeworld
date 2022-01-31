@@ -56,7 +56,7 @@ if build_machine.cpu_family() == 'x86_64'
 	subdir('tools/x86_64')
 endif
 
-subdir('HomeworldSDL_big')
+subdir('assets')
 
 alias_target('tools', exe_tools)
 
