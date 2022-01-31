@@ -11,14 +11,6 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Dependencies
-<<<<<<< HEAD
-        run: sudo apt-get install gcc flex bison libglew-dev, libsdl2-dev
-
-      - name: Build & Test
-        uses: BSFishy/meson-build@v1.0.3
-        with:
-          action: test
-=======
         run: sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
 
       - name: Build
@@ -26,5 +18,4 @@ jobs:
         with:
           action: build
           options: homeworld tools assets
->>>>>>> actions
           meson-version: 0.60.0
