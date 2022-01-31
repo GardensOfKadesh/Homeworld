@@ -9,7 +9,7 @@
 #include "screenshot.h"
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
+    #define _WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #else
     #include <sys/mman.h>
@@ -139,7 +139,7 @@ void ssTakeScreenshot(void)
             MEM_COMMIT, PAGE_READWRITE);
 #else
         mmap(NULL, 3 * MAIN_WindowWidth * MAIN_WindowHeight,
-            PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+            PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
 
     if (screenshot_buffer != NULL)

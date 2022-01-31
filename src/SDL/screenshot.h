@@ -21,7 +21,7 @@
 
 #define SS_SCREENSHOT_KEY   SCROLLKEY
 
-#ifdef _MACOSX
+#ifdef __APPLE__
     // MAC OS X captures high F-keys for system functions like monitor
     // brightness and Expose etc so we also check for: 
 

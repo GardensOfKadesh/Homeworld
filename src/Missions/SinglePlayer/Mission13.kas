@@ -14,6 +14,9 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
+#define FALSE 0
+#define TRUE (!FALSE)
+
 #include "Utilities.kash"
 
 
@@ -702,7 +705,7 @@ STATES Waiting, Wants2Snatch, ChooseWho, UseGate1, UseGate2, UseGate3, UseGate4,
           GateMoveToNearest();
         ENDINIT
         WATCH
-          IF (GateShipsOutNearest(ThisTeamShips)=True)
+          IF (GateShipsOutNearest(ThisTeamShips)=TRUE)
            TimerCreateSetStart("GateTimer", 12);
            JUMP ChooseWho;
           ENDIF
@@ -901,7 +904,7 @@ STATES Waiting, Wants2Snatch, ChooseWho, UseGate1, UseGate2, UseGate3, UseGate4,
           GateMoveToNearest();
         ENDINIT
         WATCH
-          IF (GateShipsOutNearest(ThisTeamShips)=True)
+          IF (GateShipsOutNearest(ThisTeamShips)=TRUE)
              //GateShipsOutNearest(SHIPS_DawgTarget);
              JUMP HyperspaceDelay;
           ENDIF
@@ -1542,7 +1545,7 @@ FSMCreate(MissionFlow, TEAM_DummyTeam);
         //컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
         //      Variable/Timer Creation
         //컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
-        VarCreateSet("G_TeleporterInUse", False);
+        VarCreateSet("G_TeleporterInUse", FALSE);
         VarCreateSet("G_ThisTeleporterIs", -1);
         VarCreateSet("G_GunTimer", 0);
         TimerCreateSetStart("BigGunTimer", (Random (30, 90)));

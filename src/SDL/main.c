@@ -60,7 +60,7 @@
 #include "utility.h"
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
+    #define _WIN32_LEAN_AND_MEAN
     #define strcasecmp _stricmp
     #include <windows.h>
     #include <winreg.h>
@@ -101,7 +101,7 @@ bool mainNoPerspective = FALSE;
 
 bool systemActive = FALSE;              //active flag for the program
 
-#ifndef _MACOSX
+#ifndef __APPLE__
 static char windowTitle[] = "Homeworld";//name of window
 #endif
 
@@ -172,7 +172,7 @@ bool GLOBAL_NO_TEXTURES = FALSE;
 
 // turn fullscreen off when debugging so that if the debugger kicks in
 // after a crash you don't find yourself locked out and have to reboot...
-#if defined(_MACOSX) && defined(HW_BUILD_FOR_DEBUGGING)
+#if defined(__APPLE__) && defined(HW_BUILD_FOR_DEBUGGING)
 bool fullScreen = TRUE;
 #else
 bool fullScreen = TRUE;
@@ -2185,14 +2185,14 @@ int main (int argc, char* argv[])
 
   static char *errorString = NULL;
 
-#ifdef _MACOSX
+#ifdef __APPLE__
   //set working directory to load resources (.bigs etc)
   //On OSX we use Resources in App bundle.
   char resourcesdir[PATH_MAX];
   strncpy(resourcesdir,argv[0],strlen(argv[0])-15);
   strcat(resourcesdir,"Resources");
   chdir(resourcesdir);
-#endif //_MACOSX
+#endif //__APPLE__
 #ifdef _WIN32
     static HANDLE hMapping;
 #endif

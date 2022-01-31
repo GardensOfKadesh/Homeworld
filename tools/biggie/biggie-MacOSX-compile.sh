@@ -3,7 +3,7 @@
 # This compiles biggie on Mac OS X.
 
 /usr/bin/gcc                                       \
-    -D _MACOSX                                     \
+    -D __APPLE__                                     \
     -I ../../Mac/SDL2.framework/Headers            \
     -I ../../src/SDL                               \
     -I ../../src/ThirdParty/CRC                    \

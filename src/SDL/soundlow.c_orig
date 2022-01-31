@@ -191,7 +191,7 @@ extern void soundfeedercb(void *userdata, Uint8 *stream, int len);
 ----------------------------------------------------------------------------*/
 sdword soundinit(bool mode)
 {
-#ifdef _MACOSX_FIX_SOUND
+#ifdef __APPLE___FIX_SOUND
 	return SOUND_ERR;
 #endif
 
@@ -277,7 +277,7 @@ void soundrestore(void)
 	soundpause(TRUE);
 
 	soundinited = FALSE;
-#ifndef _MACOSX_FIX_86
+#ifndef __APPLE___FIX_86
 #ifndef _WIN32_FIXME
 	while (!((streamer.status == SOUND_FREE) && (mixer.status == SOUND_FREE)))
 	{

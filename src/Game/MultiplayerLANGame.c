@@ -52,7 +52,7 @@
     #include <strings.h>
 #endif
 
-#ifndef _MACOSX
+#ifndef __APPLE__
     #include <wchar.h>
 #endif
 
@@ -1123,7 +1123,7 @@ void lgCurrentChannelDraw(featom *atom, regionhandle region)
 
 void lgSeeDetails(char*name,featom*atom)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     dbgAssertOrIgnore(LANGame);
 
     if (lgListOfGamesWindow->CurLineSelected!=NULL)
@@ -1178,7 +1178,7 @@ void lgJoinGame(char*name,featom*atom)
             }
         }
 
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
         if (wcslen(gameinfo->game.directoryCustomInfo.stringdata)>1)
         {
             joingame = &gameinfo->game;
@@ -1197,7 +1197,7 @@ void lgJoinGame(char*name,featom*atom)
 // callback for sorting the game list window
 bool lgListOfGamesCompare(void *firststruct,void *secondstruct)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     sdword i;
 #endif
 
@@ -1215,7 +1215,7 @@ bool lgListOfGamesCompare(void *firststruct,void *secondstruct)
             return(FALSE);
     }
 
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     switch (lgListOfGamesWindow->sorttype)
     {
         case LG_SortByGameName:
@@ -1415,7 +1415,7 @@ void lgListOfGamesItemDraw(rectangle *rect, listitemhandle data)
     bool gameinprogress = gameinfo->game.directoryCustomInfo.flag & GAME_IN_PROGRESS;
     bool diffversion = (!CheckNetworkVersionCompatibility(gameinfo->game.directoryCustomInfo.versionInfo));
 
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     udword passwordlen;
 #endif
 
@@ -1448,7 +1448,7 @@ void lgListOfGamesItemDraw(rectangle *rect, listitemhandle data)
     sprintf(temp,"%i",gameinfo->game.directoryCustomInfo.numPlayers);
     fontPrint(x-fontWidth(temp)-fontWidth("W"),y,c,temp);
 
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     passwordlen = wcslen(gameinfo->game.directoryCustomInfo.stringdata);
 
     wcstombs(temp,gameinfo->game.directoryCustomInfo.stringdata + 1+passwordlen,512);
@@ -1731,7 +1731,7 @@ void lgSetupGame(char*name,featom*atom)
 
 void lgStartGame(char*name,featom*atom)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     sdword i;
 
     if (tpGameCreated.numPlayers == 0)
@@ -1780,7 +1780,7 @@ void lgStartGame(char*name,featom*atom)
     sigsPressedStartGame = TRUE;
 
     lgShutdownMultiPlayerGameScreens();
-#endif // _MACOSX_FIX_LAN
+#endif // __APPLE___FIX_LAN
 }
 
 void lgGameChatTextEntry(char *name, featom *atom)
@@ -1910,7 +1910,7 @@ void lgDirtyNumPlayerRegions()
 
 void lgCreateGameNow(char *name, featom *atom)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     if (SeeingDetailsForGameName[0])
     {
         SeeingDetailsForGameName[0] = 0;
@@ -1981,7 +1981,7 @@ void lgCreateGameNow(char *name, featom *atom)
 
         lgUpdateGameInfo();
     }
-#endif // _MACOSX_FIX_LAN
+#endif // __APPLE___FIX_LAN
 }
 
 void lgGameNameTextEntry(char *name, featom *atom)
@@ -2110,7 +2110,7 @@ void lgBackFromPassword(char *name, featom *atom)
 
 void lgGoPassword(char *name, featom *atom)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     static wchar_t widepasswordentryboxtext[MAX_PASSWORD_LENGTH];
 
     if (joingame!=NULL)
@@ -2255,7 +2255,7 @@ void CopyToTpGameCreatedExceptPlayerColors(CaptainGameInfo *newcaptaingameinfo)
 
 void lgProcessGameHere(lgqueuegamehere *game)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     LANAdvert_GameHere *gamehere = &game->gamehere;
 
     // see if gamehere is already in the list
@@ -2338,7 +2338,7 @@ void lgProcessGameHere(lgqueuegamehere *game)
     {
         gameinfo->item = NULL;
     }
-#endif // _MACOSX_FIX_LAN
+#endif // __APPLE___FIX_LAN
 }
 
 void lgProcessChatMsg(lgqueuechatmsg *chat)
@@ -2583,7 +2583,7 @@ void lgSendChatMessage(char *towho,char *message)
 
 static void lgExplicitlyDeleteGameFromGameList(wchar_t *name)
 {
-#ifndef _MACOSX_FIX_LAN
+#ifndef __APPLE___FIX_LAN
     lggamelist *gameinfo;
     Node     *walk2;
 

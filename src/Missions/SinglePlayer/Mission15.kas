@@ -12,6 +12,9 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
+#define FALSE 0
+#define TRUE (!FALSE)
+
 // ---could be from "Subtitle.h" if it didn't include so much extra....
 #define STA_FleetCommand        0
 #define STA_FleetIntel          4

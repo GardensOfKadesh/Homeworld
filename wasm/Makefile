@@ -49,10 +49,11 @@ COMMONFLAGS = -MMD \
               -DHW_BUILD_FOR_DISTRIBUTION \
               -DGENERIC_ETGCALLFUNCTION \
               -D_LINUX_FIX_ME \
-              -Dlinux \
+              -D__linux__ \
               -DSTDC_HEADERS \
               -DGIT_VERSION="\"$(GIT_VERSION)\"" \
               -I ../Linux/src/Missions/ \
+              -I ../Linux/src/Missions/Generated/ \
               -I ../src/Game/ \
               -I ../src/Ships/ \
               -I ../src/Game/ \

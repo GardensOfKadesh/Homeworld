@@ -76,7 +76,7 @@
 #include "UnivUpdate.h"
 #include "utility.h"
 #ifdef HW_ENABLE_GLES
-#include "SDL_syswm.h"
+#include <SDL_syswm.h>
 #endif
 
 #if defined _MSC_VER
@@ -84,7 +84,7 @@
 #endif
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
+    #define _WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #else
     #include <sys/mman.h>
@@ -1012,7 +1012,7 @@ bool setupPixelFormat()
 
 	SDL_ShowCursor(SDL_DISABLE);
 
-#ifdef _MACOSX_FIX_GL
+#ifdef __APPLE___FIX_GL
 	if (!((flags & SDL_WINDOW_FULLSCREEN_DESKTOP)))
     {
 		SDL_WM_GrabInput(SDL_GRAB_ON);
@@ -3969,7 +3969,7 @@ DEFINE_TASK(rndRenderTask)
 
         //take a screenshot or sequence thereof
         if (keyIsStuck(SS_SCREENSHOT_KEY)
-#ifdef _MACOSX
+#ifdef __APPLE__
         ||  keyIsStuck(SS_SCREENSHOT_KEY_2)
         //||  keyIsStuck(SS_SCREENSHOT_KEY_3)
 #endif
@@ -3978,7 +3978,7 @@ DEFINE_TASK(rndRenderTask)
             rndTakeScreenshot = TRUE;
 
             keyClearSticky(SS_SCREENSHOT_KEY);
-#ifdef _MACOSX
+#ifdef __APPLE__
             keyClearSticky(SS_SCREENSHOT_KEY_2);
             //keyClearSticky(SS_SCREENSHOT_KEY_3);
 #endif

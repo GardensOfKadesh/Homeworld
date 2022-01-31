@@ -16,6 +16,9 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
+#define FALSE 0
+#define TRUE (!FALSE)
+
     LOCALIZATION
 
         LSTRING_LocationCard
@@ -1014,9 +1017,9 @@ FSM TuranicFighters
      JUMP DefendMothership;
    ELSEIF ((UnderAttack(SHIPS_AttackFighters)) AND (TeamCount()<=(TeamCountOriginal()/2)))
      JUMP DefendYourSelf;
-   ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (NOT (VarGet("G_StartingTimer")=True)))
+   ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (NOT (VarGet("G_StartingTimer")=TRUE)))
      JUMP AttackTimer;
-   ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_StartingTimer")=True))
+   ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_StartingTimer")=TRUE))
      JUMP AssaultMothership;
    ENDIF
 
@@ -1053,7 +1056,7 @@ FSM TuranicFighters
       ENDIFONCE
 
       IFONCE ( TimerExpired("FighterDelay") )
-        VarCreateSet("G_StartingTimer", True);
+        VarCreateSet("G_StartingTimer", TRUE);
         UnhideShips(TEAMSHIPS_TuranicFighters);
         JUMP AssaultMothership;
       ENDIFONCE
@@ -1166,7 +1169,7 @@ FSM TuranicHarrassFighters
     ENDINIT
     WATCH
       IF (UnderAttack(SHIPS_AttackHarrassers)>0)
-        VarCreateSet("G_ResourcersAttacked", True);
+        VarCreateSet("G_ResourcersAttacked", TRUE);
           //컴컴컴컴
           IFONCE (VarGet("G_IAmTheWalrus")=0)
             VarSet("G_IAmTheWalrus", 1);
@@ -1182,7 +1185,7 @@ FSM TuranicHarrassFighters
   STATE  AssaultEnemy      //컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
     INIT
       MusicPlay(B01_TuranicRaidersLong);
-      VarCreateSet("G_ResourcersAttacked", True);
+      VarCreateSet("G_ResourcersAttacked", TRUE);
       //컴컴컴컴
       IFONCE (VarGet("G_IAmTheWalrus")=0)
         VarSet("G_IAmTheWalrus", 1);
@@ -1500,11 +1503,11 @@ FSM StdCorvette1
       JUMP DefendMothership;
     ELSEIF (UnderAttack(SHIPS_AttackC1))
       JUMP DefendYourSelf;
-    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_CStartingTimer")=True)))
+    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_CStartingTimer")=TRUE)))
       JUMP Waiting;
-    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (NOT (VarGet("G_CStartingTimer")=True)))
+    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (NOT (VarGet("G_CStartingTimer")=TRUE)))
       JUMP AssaultTimer;
-    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_CStartingTimer")=True))
+    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_CStartingTimer")=TRUE))
       JUMP AssaultMothership;
     ENDIF
   ENDWATCH
@@ -1545,12 +1548,12 @@ FSM StdCorvette1
     ENDINIT
 
     WATCH
-      IF (NOT (VarGet("G_CTimeExists")=True))
+      IF (NOT (VarGet("G_CTimeExists")=TRUE))
         TimerCreateSetStart("Corvette1Delay",(Random(40, 100)));
-        VarCreateSet("G_CTimeExists", True);
+        VarCreateSet("G_CTimeExists", TRUE);
       ENDIF
-      IF ((TimerExpired("Corvette1Delay")) AND (NOT (VarGet("G_CStartingTimer")=True)))
-        VarCreateSet("G_CStartingTimer", True);
+      IF ((TimerExpired("Corvette1Delay")) AND (NOT (VarGet("G_CStartingTimer")=TRUE)))
+        VarCreateSet("G_CStartingTimer", TRUE);
         UnhideShips(TEAMSHIPS_StdCorvette1);
         JUMP AssaultMothership;
       ENDIF
@@ -1647,12 +1650,12 @@ FSM StdCorvette2
       JUMP DefendMothership;
     ELSEIF (UnderAttack(SHIPS_AttackC2))
       JUMP DefendYourSelf;
-    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_C2StartingTimer")=True)))
+    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_C2StartingTimer")=TRUE)))
      JUMP Waiting;
-    ELSEIF ((ShipsCount(TEAMSHIPS_MissileCorvette1)<1) AND (NOT (VarGet("G_C2StartingTimer")=True)))
-     //VarCreateSet("StartingTimer", True);
+    ELSEIF ((ShipsCount(TEAMSHIPS_MissileCorvette1)<1) AND (NOT (VarGet("G_C2StartingTimer")=TRUE)))
+     //VarCreateSet("StartingTimer", TRUE);
      JUMP AssaultTimer;
-    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_C2StartingTimer")=True))
+    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_C2StartingTimer")=TRUE))
      JUMP AssaultMothership;
     ENDIF
 
@@ -1698,11 +1701,11 @@ FSM StdCorvette2
 
     WATCH
 
-      IF (NOT (VarGet("G_C2TimeExists")=True))
+      IF (NOT (VarGet("G_C2TimeExists")=TRUE))
         TimerCreateSetStart("Corvette2Delay",(Random(50, 150)));
-        VarCreateSet("G_C2TimeExists", True);
-      ELSEIF ((TimerExpired("Corvette2Delay")) AND (NOT (VarGet("G_C2StartingTimer")=True)))
-        VarCreateSet("G_C2StartingTimer", True);
+        VarCreateSet("G_C2TimeExists", TRUE);
+      ELSEIF ((TimerExpired("Corvette2Delay")) AND (NOT (VarGet("G_C2StartingTimer")=TRUE)))
+        VarCreateSet("G_C2StartingTimer", TRUE);
         UnhideShips(TEAMSHIPS_StdCorvette2);
         JUMP AssaultMothership;
       ENDIF
@@ -1800,12 +1803,12 @@ FSM MissileCorvette1
       JUMP DefendMothership;
     ELSEIF (UnderAttack(SHIPS_AttackMc))
       JUMP DefendYourSelf;
-    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_MCStartingTimer")=True)))
+    ELSEIF ((NOT (VarGet("G_AssaultMsgSent")=TRUE)) AND (NOT (VarGet("G_MCStartingTimer")=TRUE)))
      JUMP Waiting;
-    ELSEIF ((ShipsCount(TEAMSHIPS_StdCorvette1)<1) AND (NOT (VarGet("G_MCStartingTimer")=True)))
-     //VarCreateSet("StartingTimer", True);
+    ELSEIF ((ShipsCount(TEAMSHIPS_StdCorvette1)<1) AND (NOT (VarGet("G_MCStartingTimer")=TRUE)))
+     //VarCreateSet("StartingTimer", TRUE);
      JUMP AssaultTimer;
-    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_MCStartingTimer")=True))
+    ELSEIF ((VarGet("G_AssaultMsgSent")=TRUE) AND (VarGet("G_MCStartingTimer")=TRUE))
      JUMP AssaultMothership;
     ENDIF
   ENDWATCH
@@ -1815,7 +1818,7 @@ FSM MissileCorvette1
     ENDINIT
     WATCH
       IF ((VarGet("G_AssaultMsgSent")=TRUE) AND (NOT (VarGet("OnceTheFuck")=TRUE)))
-         VarCreateSet("OnceTheFuck", True);
+         VarCreateSet("OnceTheFuck", TRUE);
          JUMP AssaultTimer;
       ENDIF
     ENDWATCH
@@ -1826,11 +1829,11 @@ FSM MissileCorvette1
     ENDINIT
 
     WATCH
-      IF (NOT (VarGet("G_MCTimeExists")=True))
+      IF (NOT (VarGet("G_MCTimeExists")=TRUE))
         TimerCreateSetStart("MCorvetteDelay",(Random(40, 120)));
-        VarCreateSet("G_MCTimeExists", True);
-      ELSEIF ((TimerExpired("MCorvetteDelay")) AND (NOT (VarGet("G_MCStartingTimer")=True)))
-        VarCreateSet("G_MCStartingTimer", True);
+        VarCreateSet("G_MCTimeExists", TRUE);
+      ELSEIF ((TimerExpired("MCorvetteDelay")) AND (NOT (VarGet("G_MCStartingTimer")=TRUE)))
+        VarCreateSet("G_MCStartingTimer", TRUE);
         UnhideShips(TEAMSHIPS_MissileCorvette1);
         JUMP AssaultMothership;
       ENDIF
@@ -1989,7 +1992,7 @@ FSM P1Mothership
     INIT
       TeamVelocityMaxSet(170);
       PatrolPath(PATH_PathMotherShipFlank);
-      VarCreateSet("StillOnPath", True);
+      VarCreateSet("StillOnPath", TRUE);
     ENDINIT
     WATCH
       IF (PathNextPoint()=0)
@@ -2020,9 +2023,9 @@ FSM P1Mothership
 
     WATCH
       IF ((UnderAttack(SHIPS_EnemyOfMS)>0) AND (ShipsSelectClass(SHIPS_PCapShipsAttackCarrier, SHIPS_EnemyOfMS, "CLASS_CapitalShips")>0))
-        VarCreateSet("IWasAttacked", True);
+        VarCreateSet("IWasAttacked", TRUE);
         Attack(SHIPS_PlayerMothership);
-      ELSEIF ((VarGet("IWasAttacked")=True) AND (UnderAttack(SHIPS_EnemyOfMS)<1))
+      ELSEIF ((VarGet("IWasAttacked")=TRUE) AND (UnderAttack(SHIPS_EnemyOfMS)<1))
         VarDestroy("IWasAttacked");
         ShipsClear(SHIPS_EnemyOfMS);
         JUMP Kamikaze;
