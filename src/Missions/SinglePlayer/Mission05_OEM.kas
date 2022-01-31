@@ -14,6 +14,9 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
+#define FALSE 0
+#define TRUE (!FALSE)
+
     LOCALIZATION //컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
             LSTRING_Savegame
@@ -479,7 +482,7 @@ FSM TuranicFrigs1
 
         State Attack
             INIT
-              IFONCE (True)
+              IFONCE (TRUE)
                 MsgSendAll("MusicIsaWorldWithinItself");
               ENDIFONCE
             ENDINIT
@@ -557,7 +560,7 @@ FSM TuranicFrigs2
 
         State Attack
             INIT
-              IFONCE (True)
+              IFONCE (TRUE)
                 MsgSendAll("MusicIsaWorldWithinItself");
               ENDIFONCE
             ENDINIT
@@ -669,7 +672,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -767,7 +770,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -865,7 +868,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -962,7 +965,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1060,7 +1063,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1163,7 +1166,7 @@ States Wait, Launching, Guard, Attack;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1236,7 +1239,7 @@ States Wait, Launching, Attack, Done;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1304,7 +1307,7 @@ States Wait, Launching, Attack, Done;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1374,7 +1377,7 @@ States Wait, Launching, Attack, Done;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1448,7 +1451,7 @@ States Wait, Launching, Attack, Done;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1512,7 +1515,7 @@ States Wait, Attack, Done;
 
     State Attack
         INIT
-          IFONCE (True)
+          IFONCE (TRUE)
             MsgSendAll("MusicIsaWorldWithinItself");
           ENDIFONCE
         ENDINIT
@@ -1571,7 +1574,7 @@ FSM PDefenseS
 
     STATE Attack
       INIT
-        IFONCE (True)
+        IFONCE (TRUE)
           MsgSendAll("MusicIsaWorldWithinItself");
         ENDIFONCE
       ENDINIT
@@ -1619,7 +1622,7 @@ FSM PDefenseL
 
     STATE Attack
       INIT
-        IFONCE (True)
+        IFONCE (TRUE)
           MsgSendAll("MusicIsaWorldWithinItself");
         ENDIFONCE
       ENDINIT

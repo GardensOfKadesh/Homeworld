@@ -7,7 +7,7 @@
 =============================================================================*/
 
 
-/*#define WIN32_LEAN_AND_MEAN*/
+/*#define _WIN32_LEAN_AND_MEAN*/
 #define STRICT
 
 #include "SDL.h"
@@ -498,7 +498,7 @@ int rinEnumerateDevices(void)
     rdevice  primaryDev;
     bool primaryVal;
 
-#ifndef _MACOSX_FIX_GL
+#ifndef __APPLE___FIX_GL
     int maxWidth;
 #endif
 

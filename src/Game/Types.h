@@ -22,19 +22,19 @@
 #include "SDL_endian.h"
 
 #ifdef _MSC_VER
-    #ifndef WIN32_LEAN_AND_MEAN
-        #define WIN32_LEAN_AND_MEAN
+    #ifndef _WIN32_LEAN_AND_MEAN
+        #define _WIN32_LEAN_AND_MEAN
         #include <windows.h>
     #endif
 #endif
 
 // PATH_MAX is Homeworld's standard #define for stating
 // "maximum length of a filesystem path string".
-#ifdef WIN32
+#ifdef _WIN32
     #define PATH_MAX MAX_PATH
-#elif defined _MACOSX
+#elif defined __APPLE__
     #include <sys/syslimits.h>
-#elif defined linux
+#elif defined __linux__
     #include <limits.h>
 #endif
 

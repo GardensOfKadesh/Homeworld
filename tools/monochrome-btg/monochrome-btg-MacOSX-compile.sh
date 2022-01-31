@@ -3,7 +3,7 @@
 # This compiles monochrome-btg on Mac OS X
 
 /usr/bin/gcc                                       \
-    -D _MACOSX                                     \
+    -D __APPLE__                                     \
     -I /Library/Frameworks/SDL.framework/Headers   \
     -I ../../src/Game                              \
     ../../src/Game/Types.c                         \

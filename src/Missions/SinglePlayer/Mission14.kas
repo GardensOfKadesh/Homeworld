@@ -8,6 +8,9 @@
     #include "../../Game/SpeechEvent.h"
 #endif
 
+#define FALSE 0
+#define TRUE (!FALSE)
+
     LOCALIZATION //컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
             LSTRING_Savegame
