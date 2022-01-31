@@ -1,0 +1,20 @@
+name: CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: sudo apt-get install gcc flex bison libglew-dev, libsdl2-dev
+
+      - name: Build & Test
+        uses: BSFishy/meson-build@v1.0.3
+        with:
+          action: test
+          meson-version: 0.60.0
