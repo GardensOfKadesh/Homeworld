@@ -10,15 +10,46 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
       - name: Install Dependencies
-        run: sudo apt-get install gcc flex bison libglew-dev libsdl2-dev
+        run: |
+          apt-get install gcc flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
 
       - name: Build
-        uses: BSFishy/meson-build@v1.0.3
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: gcc
+
+  build-linux-clang:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setting up Environment
+        uses: actions/setup-python@v2
         with:
-          action: build
-          options: homeworld tools assets
-          meson-version: 0.60.0
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: |
+          apt-get install clang flex bison libglew-dev libsdl2-dev
+          pip install meson ninja
+
+      - name: Build
+        run: |
+          meson build
+          ninja -C build homeworld tools assets
+        env:
+          CC: clang
 
   build-macos-gcc:
     runs-on: macos-latest
@@ -27,10 +58,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install Dependencies
+      - name: Setting up Environment
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+
+      - name: Install Dependencies
         run: |
           brew install gcc flex bison glew sdl2
           pip install meson ninja
@@ -49,10 +82,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install Dependencies
+      - name: Setting up Environment
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+
+      - name: Install Dependencies
         run: |
           brew install clang flex bison glew sdl2
           pip install meson ninja
