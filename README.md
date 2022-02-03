@@ -19,7 +19,7 @@ The disappearance of the Relic Developer Network and the Homeworld IP having cha
 We aim to achieve a consideration for a re-releasing of the original Homeworld source code under GPL2/3 or re-licensing the current GardenOfKadesh/Homeworld code under GPL2/3.
 
 If you can help us in any way, or get back to us in support, please get in touch.
-Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/tpBKaHVV).
+Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/3hTsAsargq).
 
 ### Changes
 Most notable changes besides the the necessary changes described in the porting Homeworld to WebAssembly section:
