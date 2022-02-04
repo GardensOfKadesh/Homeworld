@@ -137,9 +137,9 @@ src_game = files('AIAttackMan.c',
                  'Vector.c',
                  'Volume.c')
 
-src_game += custom_target('wrapped_functions.h',
-                          input: ['functions.h', 'wrap.h', 'wrap_types.h'],
-                          output: 'wrapped_functions.h',
-                          command: [meson.get_compiler('c').cmd_array(), '-E', '-o', '@OUTPUT@', '@INPUT0@'])
+game_wrapped_functions = custom_target('wrapped_functions.h',
+                                       input: ['functions.h', 'wrap.h', 'wrap_types.h'],
+                                       output: 'wrapped_functions.h',
+                                       command: [meson.get_compiler('c').cmd_array(), '-E', '-o', '@OUTPUT@', '@INPUT0@'])
 
 inc_src_game = include_directories('.')
