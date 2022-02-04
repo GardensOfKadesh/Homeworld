@@ -26,7 +26,7 @@
 #define TUT_PointerTypeRegion       6
 #define TUT_PointerTypeAIVolume     7
 
-#define TUT_PointerPulseInc         8           //pointer pulse rate
+#define TUT_PointerPulseInc         1           //pointer pulse rate
 #define TUT_PointerPulseMin         100         //pointer pulse minimum
 
 //length of a pointer name string
