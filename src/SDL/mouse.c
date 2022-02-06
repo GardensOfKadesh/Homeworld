@@ -8,7 +8,7 @@
 
 #include "mouse.h"
 
-#include "SDL.h"
+#include <SDL.h>
 
 #include "CommandWrap.h"
 #include "DDDFrigate.h"
@@ -43,7 +43,7 @@
 #include "utility.h"
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
+    #define _WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #endif
 

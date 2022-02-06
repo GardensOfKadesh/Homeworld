@@ -10,7 +10,7 @@
 /usr/bin/yacc -d -o parser.c parser.y
 
 /usr/bin/gcc                                       \
-    -D_MACOSX                                      \
+    -D__APPLE__                                      \
     -I ../../Mac/SDL2.framework/Headers            \
     *.c                                            \
     -o kas2c

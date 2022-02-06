@@ -23,7 +23,7 @@
 // whether or not case-insensitive searches for files should be performed
 // based on the target platform.
 #ifndef FILE_CASE_INSENSITIVE_SEARCH
-    #if defined (_WIN32) || defined (_MACOSX)
+    #if defined (_WIN32) || defined (__APPLE__)
         #define FILE_CASE_INSENSITIVE_SEARCH 0
     #else
         #define FILE_CASE_INSENSITIVE_SEARCH 1

@@ -17,7 +17,7 @@
 
     #define BASEKEYNAME "SOFTWARE\\Sierra On-Line\\Homeworld OEM"
 	
-    #ifdef _MACOSX
+    #ifdef __APPLE__
         // Raider Retreat and the full version can live alongside so we use the same dir
         #define CONFIGDIR "Library/Application Support/Homeworld"
     #else
@@ -28,7 +28,7 @@
 
     #define BASEKEYNAME "SOFTWARE\\Sierra On-Line\\Homeworld"
 
-    #ifdef _MACOSX
+    #ifdef __APPLE__
         #define CONFIGDIR "Library/Application Support/Homeworld"
     #else
         #define CONFIGDIR ".homeworld"

@@ -2941,7 +2941,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_MACOSX,
+					__APPLE__,
 					HW_BUILD_FOR_DEBUGGING,
 					HW_GAME_HOMEWORLD,
 				);
@@ -2962,7 +2962,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_MACOSX,
+					__APPLE__,
 					HW_BUILD_FOR_DISTRIBUTION,
 					HW_GAME_HOMEWORLD,
 				);
@@ -2995,7 +2995,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_MACOSX,
+					__APPLE__,
 					HW_BUILD_FOR_DEBUGGING,
 					HW_GAME_RAIDER_RETREAT,
 				);
@@ -3013,7 +3013,7 @@
 					"$(PROJECT_DIR)",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_MACOSX,
+					__APPLE__,
 					HW_BUILD_FOR_DISTRIBUTION,
 					HW_GAME_RAIDER_RETREAT,
 				);

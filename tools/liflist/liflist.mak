@@ -69,9 +69,9 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /Zp2 /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "HW_Debug" /YX /c
-CPP_PROJ=/nologo /Zp2 /ML /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D\
+# ADD BASE CPP /nologo /W3 /GX /O2 /D "_WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
+# ADD CPP /nologo /Zp2 /W3 /GX /O2 /D "NDEBUG" /D "_WIN32" /D "_CONSOLE" /D "HW_Debug" /YX /c
+CPP_PROJ=/nologo /Zp2 /ML /W3 /GX /O2 /D "NDEBUG" /D "_WIN32" /D "_CONSOLE" /D\
  "HW_Debug" /Fp"$(INTDIR)/liflist.pch" /YX /Fo"$(INTDIR)/" /c 
 CPP_OBJS=.\Release/
 CPP_SBRS=.\.
@@ -146,9 +146,9 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-# ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /Zp2 /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "HW_Debug" /YX /c
-CPP_PROJ=/nologo /Zp2 /MLd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "WIN32" /D\
+# ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "_WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
+# ADD CPP /nologo /Zp2 /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "_WIN32" /D "_CONSOLE" /D "HW_Debug" /YX /c
+CPP_PROJ=/nologo /Zp2 /MLd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "_WIN32" /D\
  "_CONSOLE" /D "HW_Debug" /Fp"$(INTDIR)/liflist.pch" /YX /Fo"$(INTDIR)/"\
  /Fd"$(INTDIR)/" /c 
 CPP_OBJS=.\Debug/

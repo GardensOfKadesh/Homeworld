@@ -500,7 +500,7 @@ sdword memClearDword(void *dest, udword pattern, sdword nDwords)
         mov eax,pattern
         rep stosd
     }
-#elif defined (__GNUC__) && defined (__i386__) && !defined (_MACOSX_86)
+#elif defined (__GNUC__) && defined (__i386__) && !defined (__APPLE___86)
     __asm__ (
         "rep stosl\n\t"
         :

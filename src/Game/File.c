@@ -19,7 +19,7 @@
 #include "Memory.h"
 
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN
+    #define _WIN32_LEAN_AND_MEAN
     #include <windows.h>
     #include <direct.h>
 #else
@@ -118,7 +118,7 @@ void fileNameReplaceSlashesInPlace(char *filePath)
 {
 	char *ptr = NULL;
 
-#ifdef WIN32
+#ifdef _WIN32
     #define PATH_DELIMITER     '\\'
     #define REPLACE_DELIMITER  '/'
 #else
@@ -1492,7 +1492,7 @@ sdword fileBlockRead(filehandle handle, void *dest, sdword nBytes)
         lengthRead = fread(dest, 1, nBytes, filesOpen[handle].fileP);    //read in the data
     }
 
-#ifndef _MACOSX_FIX_MISC  // zero-length .wxd since you can't play the original
+#ifndef __APPLE___FIX_MISC  // zero-length .wxd since you can't play the original
 #if FILE_ERROR_CHECKING
     if (lengthRead != nBytes)
     {                                                       //make sure it was all read in

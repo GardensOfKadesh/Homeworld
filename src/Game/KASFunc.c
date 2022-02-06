@@ -3593,7 +3593,7 @@ void kasfSpeechEvent(sdword event, sdword variable)
     subMessageEnded = 0;
     universeTurbo = FALSE;
 
-#ifndef _MACOSX_FIX_SOUND
+#ifndef __APPLE___FIX_SOUND
     speechEventFleet(event, variable, universe.curPlayerIndex);
 #endif
 }
