@@ -4,7 +4,13 @@ Gardens of Kadesh is a [WebAssembly] port of [HomeworldSDL]. [HomeworldSDL] is a
 ![gameplay gif](media/screenshot_01.jpg)
 
 ### How to play
-[To play direcly in your browser click here](https://gardensofkadesh.github.io/). Don't forget to maximize your browser window for the best experience!
+<a align="center" href="https://gardensofkadesh.github.io/">
+
+To play direcly in your browser click here
+
+</a>
+
+Don't forget to maximize your browser window for the best experience!
 
 You will be able to freely play the Homeworld demo content (the first two missions of the campaign and skirmish against the computer). If you own the full version of Homeworld or the Homeworld Remastered Collection you can follow the same link, drag and drop the required asset files from your local Homeworld installation into the browser window and play the full Homeworld campaign.
 
@@ -14,12 +20,19 @@ Our goals are to continue modernizing the Homeworld engine with gentle touches w
 
 ![gameplay gif](media/gameplay_01.gif)
 
-In addition we hope to achieve awareness for the source code situation of Homeworld 1. The Homeworld source code was released under an unfavorable Relic Developer Network License.
+In addition we hope to raise awareness for the source code situation of Homeworld 1. The Homeworld source code was released under an unfavorable Relic Developer Network License.
 The disappearance of the Relic Developer Network and the Homeworld IP having changed hands leaves the license state of the Homeworld source code in a dubious state that hinders development.
 We aim to achieve a consideration for a re-releasing of the original Homeworld source code under GPL2/3 or re-licensing the current GardenOfKadesh/Homeworld code under GPL2/3.
 
 If you can help us in any way, or get back to us in support, please get in touch.
-Follow our project here on [github](https://github.com/GardensOfKadesh) and/or joins us on our [discord](https://discord.gg/3hTsAsargq).
+Follow our project here on [Github] and/or joins us on our [discord].
+
+Please support the original Homeworld developers and the Homeworld IP/universe:
+- Homeworld Remastered Collection [on Steam](https://store.steampowered.com/app/244160/Homeworld_Remastered_Collection/), [on GoG](https://www.gog.com/en/game/homeworld_remastered_collection)
+- Homeworld Cataclysm/Emergence [on GoG](https://www.gog.com/game/homeworld_emergence)
+- Homeworld Deserts of Kharak [on Steam](https://store.steampowered.com/app/281610/Homeworld_Deserts_of_Kharak/), [on GoG](https://www.gog.com/game/homeworld_deserts_of_kharak)
+- Homeworld 3 [on Fig](https://www.fig.co/campaigns/homeworld3), [on Steam](https://store.steampowered.com/app/1840080/Homeworld_3/), [on Epic](https://www.epicgames.com/store/de/p/homeworld-3)
+
 
 ### Changes
 Most notable changes besides the the necessary changes described in the porting Homeworld to WebAssembly section:
@@ -97,8 +110,8 @@ emrun www/index.html
 
 
 
-
-[Discord]: https://discord.gg/tpBKaHVV
+[Github]: https://github.com/GardensOfKadesh
+[Discord]: https://discord.gg/3hTsAsargq
 [Homeworld]: https://en.wikipedia.org/wiki/Homeworld
 [HomeworldSDL]: https://github.com/HomeworldSDL/HomeworldSDL
 [SDL]: https://en.wikipedia.org/wiki/Simple_DirectMedia_Layer

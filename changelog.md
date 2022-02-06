@@ -6,6 +6,11 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
+#### Bugfixes
+- Fix null pointer access
+
+#### Improvements
+- Decrease tutorial pointer pulse rate
 
 
 ## r9
