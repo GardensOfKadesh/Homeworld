@@ -6156,10 +6156,10 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     switch (currParam){
         case 8:
            __asm__ ("movq %0, (24)(%%rbp)\n"
-                   : : "g" (intParam[7]) );
+                   : : "r" (intParam[7]) );
         case 7:
             __asm__ ("movq %0, (16)(%%rbp)\n"
-                    : : "g" (intParam[6]) );
+                    : : "r" (intParam[6]) );
         case 6:
             __asm__ ("movq %0, %%r9\n"
                     : : "g" (intParam[5]) : "r9" );
