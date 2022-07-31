@@ -2326,6 +2326,7 @@ int main (int argc, char* argv[])
             // 0 fps means to use requestAnimationFrame; non-0 means to use setTimeout.
             emscripten_set_main_loop(main_loop, 0, 1);
         #else
+            bool breakMainLoop = FALSE;
             while (TRUE)
             {
                 // Give sound a break :)
@@ -2348,9 +2349,12 @@ int main (int argc, char* argv[])
                     }
 
                     if (e.type == SDL_QUIT) {
+                        breakMainLoop = TRUE;
                         break;
                     }
                 }
+                if (breakMainLoop) break;
+
                 utyTasksDispatch();                         //execute all tasks
                 isoundstreamupdate_manual(NULL);
 
