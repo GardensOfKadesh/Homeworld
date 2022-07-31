@@ -1008,7 +1008,7 @@ bool setupPixelFormat()
     SDL_GL_MakeCurrent(sdlwindow, glcontext);
 
     // disable VSYNC
-    SDL_GL_SetSwapInterval(0);
+    //SDL_GL_SetSwapInterval(0);
 
 	SDL_ShowCursor(SDL_DISABLE);
 
