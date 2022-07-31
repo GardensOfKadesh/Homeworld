@@ -2105,7 +2105,7 @@ void main_loop()
 
     //isoundstreamupdate_manual(NULL);
 
-    if (SDL_PollEvent(&e))
+    while (SDL_PollEvent(&e))
     {
         event_res = HandleEvent(&e);
 
@@ -2123,11 +2123,8 @@ void main_loop()
             }
         }
     }
-    //else
-    //{
-        utyTasksDispatch();                         //execute all tasks
-        isoundstreamupdate_manual(NULL);
-    //}
+    utyTasksDispatch();                         //execute all tasks
+    isoundstreamupdate_manual(NULL);
 
     if (opTimerActive)
     {
@@ -2334,7 +2331,7 @@ int main (int argc, char* argv[])
                 // Give sound a break :)
                 SDL_Delay(0);
 
-                if (SDL_PollEvent(&e))
+                while (SDL_PollEvent(&e))
                 {
                     event_res = HandleEvent(&e);
 
@@ -2354,11 +2351,8 @@ int main (int argc, char* argv[])
                         break;
                     }
                 }
-                //else
-                //{
-                    utyTasksDispatch();                         //execute all tasks
-                    isoundstreamupdate_manual(NULL);
-                //}
+                utyTasksDispatch();                         //execute all tasks
+                isoundstreamupdate_manual(NULL);
 
                 if (opTimerActive)
                 {
