@@ -6,11 +6,17 @@ versions, you can browse git to display all changes between tags.
 
 
 ## Current Trunk
+
+
+## r10
 #### Bugfixes
 - Fix null pointer access
 
 #### Improvements
 - Decrease tutorial pointer pulse rate
+- Properly empty SDL event queue
+- Re-enable vertical sync
+- Improved emsdk compiler flags
 
 
 ## r9

@@ -64,14 +64,15 @@ COMMONFLAGS = -MMD \
 
 EMXX = emcc
 
-#EMXXFLAGS = $(COMMONFLAGS) -O2 -g --profiling --use-preload-plugins -s ALLOW_MEMORY_GROWTH=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s WASM=1 -s LEGACY_GL_EMULATION=1#-s FULL_ES2=1 -s MAX_WEBGL_VERSION=2
-# -s SAFE_HEAP=1 -s ASSERTIONS=2 --profiling  -s DEMANGLE_SUPPORT=1
-#EMXXLINK = -g3 -s TOTAL_MEMORY=50331648 -lidbfs.js
-
 # -msimd128 for enabling WASM SIMD extension and llvm autovectorization, measure performance?!
 # add -flto to EMXXFLAGS for link time optimization, for dev work it takes quite long
-EMXXFLAGS = $(COMMONFLAGS) -O3 --use-preload-plugins -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
-EMXXLINK = -O3 -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+EMXXFLAGS = $(COMMONFLAGS) -O3 -flto -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
+EMXXLINK = -O3 --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+# for dev/debugging
+#EMXXFLAGS = $(COMMONFLAGS) -O2 -g --profiling  -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
+#EMXXLINK = -O2 -g --profiling --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+
+
 
 
 all: $(WWWDIR)
@@ -91,7 +92,7 @@ $(WWWDIR)/hw.html: $(MODULES:%=$(BUILDDIR)/%.em.o) $(ASSETS) Makefile
 $(BUILDDIR)/%.em.o: % Makefile
 	@mkdir -p $(dir $@)
 	@echo $(EMXX) -c $< -o $@
-	@$(EMXX) $(EMXXFLAGS) -c $< -o $@ --emrun
+	@$(EMXX) $(EMXXFLAGS) -c $< -o $@ #--emrun
 
 clean:
 	rm -rf $(BUILDDIR)/* $(BINDIR)/* $(WWWDIR)/* Linux/* src/*
