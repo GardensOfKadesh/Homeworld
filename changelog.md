@@ -5,9 +5,11 @@ as part of pull requests. To get a full picture of all changes between
 versions, you can browse git to display all changes between tags.
 
 
-## Current Trunk
+## r11
 #### Bugfixes
-- Fix ships with NaN positions preventing mission completion (e.g. common in M10 Super Nova Station) 
+- Fix many pointer arithmetic and casting issues
+- Fix ships with NaN positions preventing mission completion (e.g. common in M10 Super Nova Station)
+
 
 ## r10
 #### Bugfixes

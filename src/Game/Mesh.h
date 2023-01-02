@@ -12,6 +12,7 @@
 #include "Types.h"
 #include "Color.h"
 #include "Matrix.h"
+#include "texreg.h"
 
 /*=============================================================================
     Switches:
@@ -169,7 +170,7 @@ typedef struct tagmaterialentry
     color  diffuse;                         // Diffuse color information.
     color  specular;                        // Specular color information.
     real32 kAlpha;                          // Alpha blending information.
-    memsize texture;                         // Pointer to texture information (or CRC32).
+    trhandle *texture;                         // Pointer to texture information (or CRC32).
     uword  flags;                           // Flags for this material.
     ubyte  nFullAmbient;                    // Number of self-illuminating colors in texture.
     bool8  bTexturesRegistered;             // Set to TRUE when some textures have been registered.

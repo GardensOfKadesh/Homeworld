@@ -41,7 +41,7 @@ static inline memsize do_get_arg(Effect *effect, struct etgeffectstatic *stat, e
 #define funcEntry0(name, ret, func) \
 memsize wrap_##func(Effect *effect, struct etgeffectstatic *stat ,etgfunctioncall *opcode) \
 { \
-    _RET_##ret (*func_ptr)(void) = opcode->function; \
+    _RET_##ret (*func_ptr)(void) = (_RET_##ret (*)(void)) opcode->function; \
     call_and_return_##ret(func_ptr();) \
 }
 
