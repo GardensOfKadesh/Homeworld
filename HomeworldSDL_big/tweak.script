@@ -1,0 +1,807 @@
+[Tweak]
+cmFloatRefundRatio              1.0         ; ie. 0.5 would refund half RUs spent on calcelled buildman jobs
+
+shipsRetaliate                  TRUE        ; normally set this to TRUE
+singleMachineNumPlayers         2
+DefaultScenario                 Talas Crossroads (2-5)
+useMission                      OneBigRing
+RETALIATE_ZONE                  7000.0      ; set this to 0.0 if you don't want ships to retaliate based soley on proximity
+R1BulletColor                   255,180,0
+R2BulletColor                   100,184,255
+
+AUTOSTABILIZE_FRAME_KICK_IN     8           ; number of univupdate frames to wait before kicking in autostabilization
+                                            ; must be <= 255.  16 == 1 second
+
+BLAST_RADIUS_MULTIPLE_DEFAULT   3.0         ; multiple of collision sphere size
+BLAST_CONSTANT                  959500.0   ; determines strength of force of explosion for blowing ships away
+BLAST_DAMAGE_MAX_PERCENT        1.0         ; max percentage of damage that can be taken from explosion (0 - 1.0)
+
+BLAST_RADIUS_SCUTTLE_BONUS          4.0    ; blast radius gets even bigger by being multiplied by this number
+BLAST_CONSTANT_SCUTTLE              959500.0    ; determines strength of force of explosion for blowing ships away (scuttle)
+BLAST_DAMAGE_MAX_PERCENT_SCUTTLE    1.5     ; max percentage of damage that can be taken from explosion (0 - 1.0) (scuttle)
+
+YAWEXPLOSIONROCKLO              -50.0
+YAWEXPLOSIONROCKHI              50.0
+PITCHEXPLOSIONROCKLO            -50.0
+PITCHEXPLOSIONROCKHI            50.0
+ROLLEXPLOSIONROCKLO             -200.0
+ROLLEXPLOSIONROCKHI             200.0
+
+YAWROCKLO                     -100.0
+YAWROCKHI                     100.0
+PITCHROCKLO                   -100.0
+PITCHROCKHI                   100.0
+ROLLROCKLO                    -300.0
+ROLLROCKHI                    300.0
+
+YAWCAREENLO                     -800.0
+YAWCAREENHI                     800.0
+PITCHCAREENLO                   -800.0
+PITCHCAREENHI                   800.0
+ROLLCAREENLO                    -400.0
+ROLLCAREENHI                    400.0
+
+YAWCRAZYLO                     -2.0
+YAWCRAZYHI                     2.0
+PITCHCRAZYLO                   -1.0
+PITCHCRAZYHI                   1.0
+ROLLCRAZYLO                    -5.0
+ROLLCRAZYHI                    5.0
+
+;these next 2 tweakables are still used for objects
+;and large objects that aren't ships
+RENDER_VIEWABLE_DISTANCE_SQR    24000.0
+RENDER_MAXVIEWABLE_DISTANCE_SQR 32000.0
+RENDER_VIEWABLE_FADE            12000.0
+RENDER_MAXVIEWABLE_FADE         16000.0
+BG_RADIUS                      100000.0
+
+;these are the ship renderlist tweaks.
+;limit refers to the range that the ship is "in" the renderlist.
+;fade refers to the range from the edge that a ship fades within.
+RENDER_LIMIT_MOTHERSHIP         20000.0
+RENDER_FADE_MOTHERSHIP           5000.0
+RENDER_LIMIT_HEAVYCRUISER       16000.0
+RENDER_FADE_HEAVYCRUISER         5000.0
+RENDER_LIMIT_CARRIER            16000.0
+RENDER_FADE_CARRIER              5000.0
+RENDER_LIMIT_DESTROYER          16000.0
+RENDER_FADE_DESTROYER            5000.0
+RENDER_LIMIT_FRIGATE            16000.0
+RENDER_FADE_FRIGATE              5000.0
+RENDER_LIMIT_CORVETTE           16000.0
+RENDER_FADE_CORVETTE             5000.0
+RENDER_LIMIT_FIGHTER            16000.0
+RENDER_FADE_FIGHTER              5000.0
+RENDER_LIMIT_RESOURCE           16000.0
+RENDER_FADE_RESOURCE             5000.0
+RENDER_LIMIT_NONCOMBAT          16000.0
+RENDER_FADE_NONCOMBAT            5000.0
+
+VERYBIGSHIP_SIZE                1500.0
+
+OUT_OF_FUEL_FRICTION            0.95
+SHIP_CRAZY_FRICTION             0.95
+DONT_DRIFT_FRICTION             0.99         ; used for asteroids, derelicts, ships
+CONSIDERED_STILL_LO             -1.0
+CONSIDERED_STILL_HI             1.0
+
+; colors of pie plate movement mechanism
+TW_MOVE_SPOKE_COLOR                6,191,113      ; pizza dish spokes
+TW_MOVE_HEADING_COLOR              255,255,22     ; pizza dish heading spoke
+TW_MOVE_PIZZA_COLOR                6,191,113      ; pizza dish
+TW_MOVE_ENEMY_COLOR                220, 30, 0     ; enemy blob feet
+TW_MOVE_POINT_LINE_COLOR           9,143,202      ; line between origin and goal
+TW_MOVE_ORIGIN_COLOR               245,58,58      ; origin and goal of move
+TW_SELECT_BOX_COLOR                100,150,150    ; color of select box
+TW_SHIP_LINE_COLOR                 233,114,41     ; color of ship lines when pie plate activated
+TW_SHIP_LINE_CLOSEST_COLOR         255,255,22     ; color of ship line when goal touches it
+TW_DISTANCE_READOUT_COLOR          245,58,58      ; color of the distance readout
+TW_DISTANCE_READOUT_FONT           HW_EuroseCond_11.hff  ;font of the distance readout
+TW_MOVE_ATTACK_POINT_LINE_COLOR_IN_RANGE  9,143,202  ;color of movement line/circle when moving while attacking and destination is in gun range of target
+TW_MOVE_ATTACK_POINT_LINE_COLOR_NOT_IN_RANGE  255,10,10  ;color of movement line/circle when moving while attacking and destination is NOT in gun range of target
+TW_MOVE_ATTACK_PIE_COLOR           255,255,22     ;color of pie plate when attacking move pie plate is up
+TW_MOVE_ATTACK_SPOKE_COLOR         255,255,22
+
+TW_MOVE_HYPERSPACE_COLOUR            198,51,191               ;pizza dish - hyperspace
+TW_MOVE_POINT_HYPERSPACE_LINE_COLOR  61,231,18             ; line between origin and goal - hyperspace
+TW_MOVE_SPOKE_HYPERSPACE_COLOR       154,44,163              ; pizza dish spokes - hyperspace
+TW_MOVE_HEADING_HYPERSPACE_COLOR     255,20,20             ;heading line - hyperspace
+TW_RU_READOUT_COLOR_GOOD             20,255,20             ;readout if player CAN afford it
+TW_RU_READOUT_COLOR_BAD              255,20,20              ;readout if player CAN'T afford it
+
+TW_MULTIPLAYER_HYPERSPACE_WAIT_IN_ETHER_TIME   20.0        ;minimum time spent in ether..
+
+;cost tweaks for hyperspaceing    shipname mincost mindistance RUperMeter maxcost
+;must space below things EXACTLY 1 space appart!
+
+hyperspace                      AdvanceSupportFrigate 150.0 5000.0 0.004 500.0
+hyperspace                      Carrier 850.0 5000.0 0.004 2500.0
+hyperspace                      CloakGenerator 150.0 5000.0 0.004 500.0
+hyperspace                      DDDFrigate 150.0 5000.0 0.004 500.0
+hyperspace                      DFGFrigate 150.0 5000.0 0.004 500.0
+hyperspace                      GravWellGenerator 150.0 5000.0 0.004 500.0
+hyperspace                      HeavyCruiser 700.0 5000.0 0.004 4000.0
+hyperspace                      IonCannonFrigate 150.0 5000.0 0.004 500.0
+hyperspace                      MissileDestroyer 300.0 5000.0 0.004 1500.0
+hyperspace                      ResourceCollector 150.0 5000.0 0.004 500.0
+hyperspace                      ResourceController 150.0 5000.0 0.004 500.0
+hyperspace                      SensorArray 150.0 5000.0 0.004 500.0
+hyperspace                      StandardDestroyer 300.0 5000.0 0.004 1500.0
+hyperspace                      StandardFrigate 150.0 5000.0 0.004 500.0
+
+hyperspace                      Mothership 1500.0 3000.0 0.5 50000.0
+
+TW_PING_MAX_DISPERSAL           5.0             ;it will take x seconds for all the pings of a group of incoming/outgoing ships to appear
+
+TW_HW_PING_COLOUR_IN            198,51,191      ;hyperspacing IN ping colour
+TW_HW_PING_RATE_IN              0.8
+TW_HW_PING_MIN_SIZE_IN          0.0
+TW_HW_PING_MAX_SIZE_IN          5000.0
+
+
+TW_HW_PING_COLOUR_OUT           198,51,191      ;hyperspacing OUT ping colour
+TW_HW_PING_RATE_OUT             0.8
+TW_HW_PING_MIN_SIZE_OUT         5000.0
+TW_HW_PING_MAX_SIZE_OUT         0.0
+
+TW_HYPERSPACE_TELEGRAPH_WAIT_TIME       5.0     ;time that the HS window will pop up and stay up before revealing the hs'ed ship
+
+
+; cursor text tweaks
+TW_CURSORTEXT_COLOR                0,128,255
+TW_CURSORTEXT_DELAY_TIME           1.0            ; in seconds
+TW_CURSORTEXT_X                    5
+TW_CURSORTEXT_Y                    25
+TW_CURSORTEXT_FONT         HW_EuroseCond_11.hff
+
+;SELECTION OVERLAY colours
+selShipHealthSolidGreen            0,255,64
+selShipHealthSolidYellow           255,255,0
+selShipHealthSolidRed              255,0,0
+
+
+;Here are some other selection overlay colours which haven't been tweaked yet and are using
+;the defaults in code:
+;
+;selShipResourceColor      - color of resourcer bar
+;selShipDarkResourceColor  - unfilled part of the bar
+;selSelectingColor         - color of the boxes drawn around things when dragging the
+;                            selection bandbox
+selShipHealthGreen                 0, 255,64
+selShipHealthYellow                255,255,0
+selShipHealthRed                   255,0,0
+;selShipHealthDarkGreen    - rest of the healh bar (the empty part)
+;selShipHealthDarkYellow
+;selShipHealthDarkRed
+;selFuelColorGreen                 0,0,255
+;selFuelColorRed           - fuel is low
+;selFuelColorDarkGreen     - the rest of the fuel bar (the empty part)
+;selFuelColorDarkRed
+selDepthSelectMultiplier            0.5
+
+
+
+; moveto line tweaks
+TW_MOVETO_LINE_COLOR               30,30,160      ;color of the moveto line
+TW_MOVETO_PULSE_COLOR              255,200,0      ;color of the pulse on the moveto line
+TW_ATTMOVETO_LINE_COLOR            255,30,30      ;color of the moveto line when ship is attacking
+TW_ATTMOVETO_PULSE_COLOR           250,237,119    ;color of the pulse on the moveto line when ship is attacking
+TW_MOVETO_CIRCLE_RADIUS            1.2            ;size of circle (multiple of ship size)
+TW_MOVETO_PULSE_SPEED_SCALE        2.0            ;higher number, slower pulse
+TW_MOVETO_ENDCIRCLE_RADIUS         160.0          ;radius of the destination circle
+
+;special ship TO sphere tweaks
+TO_SPHERE_COLOR                    70,60,140      ;color of circles forming sphere
+
+TO_PULSE1_COLOR                    10,200,10      ;color of proximity sensor ALL CLEAR pulse
+TO_PULSE2_COLOR                    250,10,10      ;color of proximity sensor WARNING pulse
+TO_CROSS_COLOR1                    25,25,245    ;ALL CLEAR cross colors
+TO_CROSS_COLOR2                    175,25,25       ;WARNING CROSS color
+TO_CROSS_HALF_SIZE                 300.0          ;Half the size (in m) of the crosses forming the sphere
+TO_PULSE1_SPEED                    1000.0         ;ALL Clear pulse speed  (m/s)
+TO_PULSE2_SPEED                    4000.0         ;WARNING pulse speed  (m/s)
+TO_DELAY_PULSE1                    4.0            ; delay (s) for pulse to restart after it has stoped
+TO_DELAY_PULSE2                    0.5            ; same but for warning mode
+TO_PULSE1_SIZE                     150.0          ; ALL CLEAR pulse size
+TO_PULSE2_SIZE                     175.0          ; warning pulse size
+
+
+;tweakables for collision - don't change or collision may not work
+univBobDensityLow                   2.0e-012        ; range of mass densites for blobs in the sensors manager, tonnes/m^3
+univBobDensityHigh                  4.0e-012
+univBobSmallestRadius               6000
+univBobBiggestRadius                15000   ; increased from 10000 to 15000 to fix collision bug with blobs.  Please don't change unless you talk to Gary first.
+univBobOverlapFactor                1.3     ; I bumped this from 1 to 1.3 to fix a collision bug with blobs.  Please don't change unless you talk to Gary first.
+univBobRadiusCombineMargin          2000
+univBobStartSphereSize              3000
+univBobDoingCollisionBobs           TRUE       ; make sure this is always TRUE, or collisions won't work
+
+;length of time command feedback messages stay on the screen
+TW_MESSAGE_DELAY_TIME           4                ; in seconds
+
+;number of frames to flash ships on selection
+FLASH_TIMER                     0.3
+
+; scale factor for determining collision damage.  The bigger, the smaller the damage
+COLLDAMAGE_VELOCITY_TANGENT_SCALE       1000.0
+
+COLLDAMAGE_DEFAULTMIN_FRACTION          0.1     ; min collision damage default (as % of health)
+COLLDAMAGE_DEFAULTMAX_FRACTION          1.0     ; max collision damage default (as % of health)
+
+PLAYERLOSE_SHIPDEATHTIMEMIN             20.0    ; min seconds which ships will have before self-destructing after player dies
+PLAYERLOSE_SHIPDEATHTIMEMAX             120.0   ; max seconds which ships will have before self-destructing after player dies
+
+SCUTTLE_SHIPDEATHTIMEMIN                0.0     ; min seconds which ships will have before self-destructing (scuttle)
+SCUTTLE_SHIPDEATHTIMEMAX                1.0     ; max seconds which ships will have before self-destructing (scuttle)
+
+WAIT_TIME_TO_QUIT                       10.0     ; time game waits before quitting when there is a victor
+WAIT_TIME_TO_WIN                        5.0      ; time game waits before declaring winner
+
+;color of on screen map sphere
+MM_SPHERE_COLOR                         30,30,160
+MM_SELECTED_FLASH_SPEED                 0.8      ;flash speed in seconds
+MM_CAMERA_DISTANCE                      35000.0  ;camera distance
+MM_MESH_SCALE_FACTOR                    0.6f     ;how much textures are scaled in mission map
+
+; stats gathering stuff
+MIN_SHIPS_TO_FIGHT                      5
+FACEOFF_DISTANCE                        5000.0
+STATFIGHT_TIMEOUT_TIME                  1800.0
+
+
+; Selection overlay minimum size
+selMinSelectionRadius                   0.01875
+
+
+; Adjusts how fast the gun meshes turn in gun tuning mode
+GUNTUNE_SPEED                           0.04
+
+pieMaxMoveVertical                      16000.0
+pieMaxMoveHorizontal                    16000.0
+
+
+; Specifies the font for the shiplist in the Build Manager
+cmShipListFontName                      HW_EuroseCond_11.hff
+
+; Specifies position adjustment for the selection rectangles in the Build Manager shiplist.
+; negative values are OK
+cmSelectTopAdjust                       0
+cmSelectBottomAdjust                    2
+cmSelectLeftAdjust                      0
+cmSelectRightAdjust                     -1
+
+
+; Specifies the font for the ship stats in the Ship View screen
+;svShipStatFontName                      HW_EuroseCond_11.hff
+svShipStatFontName                      HW_EuroseCond_11.hff
+
+
+
+; Build manager text colours
+
+cmClassHeadingTextColor                 255,200,0   ;rich yellow
+
+cmStandardTextColor                     0,100,160   ;standard text blue
+
+cmSelectionTextColor                    255,255,105 ;pale yellow - ORIGINAL
+
+cmBuildingTextColor                     0,255,0     ;bright green - ORIGINAL
+
+cmProgressShipColor                     100,100,55  ;olive green - ORIGINAL
+
+cmProgressTotalColor                    180,180,80  ;greyish yellow - ORIGINAL
+
+cmCapsExceededTextColor                 255,25,25   ;bright red
+
+; Launch manager tunables, colors and fonts
+
+lmShipListFontName                      HW_EuroseCond_11.hff
+lmShipListTextColor                     0,100,160
+lmShipSelectedTextColor                 255,255,105
+lmUsedColor                             180,5,5
+lmAvailableColor                        40,180,0
+
+; Research manager tunables, colors and fonts
+
+rmTechListFontName                      HW_EuroseCond_11.hff
+rmTechInfoFontName                      HW_EuroseCond_11.hff
+rmSelectionTextColor                    255,255,105
+rmResearchingTextColor                  0,139,0
+rmCantResearchTextColor                 100,100,100
+rmStandardTextColor                     0,100,160
+rmClassHeadingTextColor                 255,200,0
+rmProgressToGoColor                     180,180,80
+rmProgressDoneColor0                    50,50,27      ; Shade value (dark)
+rmProgressDoneColor1                    160,160,115   ; Shade value (light)
+rmLabActiveColor                        0,160,20
+rmPulseColor                            20,20,255
+rmNoResearchItemColor                   0,50,100
+rmMarqueeOnColor                        255,255,0
+rmMarqueeSemiOnColor                    175,175,0
+rmMarqueeOffColor                       100,100,0
+
+; Info Overlay tunables, colors and font
+
+ioShipListFontName                      HW_EuroseCond_11.hff
+ioListTextColor                         0,160,200
+ioSelectedTextColor                     255,255,255
+
+; Fleet Intelligence tunables
+poHeadingFontName                       SimplixSSK_13.hff
+poTextFontName                          Arial_b12.hff
+
+
+; Dist max for move etc..
+; distance is 14,000 meters squared
+MAX_MOVE_DISTANCE                       256000000       ;changed for daly's new camera distances
+MAX_HARVEST_DISTANCE                    196000000       ;not used...
+
+
+; DeCloaking Attack Time Variables
+
+TW_NOONE_SEE_TIME                       3.5             ;number of seconds after a ship decloaks that
+                                                        ;it won't be 'passive' attacked by ships
+TW_FIRST_SEE_TIME                       3.5             ;Between previous and this time, a big group of ships
+                                                        ;starts to see decloaked ships
+TW_SECOND_SEE_TIME                      7.0             ;between previous time and this time, a larger
+                                                        ;group of ships will start to see the decloaked ships
+                                                        ;after this time, ALL ships will see decloaked ships
+
+TW_FIRST_SEE_PERCENTAGE                 40              ;between NOONE and FIRST times above, this percentage of ships
+                                                        ;should see the decloaked ships
+TW_SECOND_SEE_PERCENTAGE                70              ;between first and second times above, this percentage of ships
+                                                        ;will see the decloaked ships (additional 20% in this case)
+
+; All of the tweakables from the Multiplayer game interface
+; fonts and colors for evrything you would want to change
+
+; font used to print the list of available games in the listwindow
+mgListOfGamesFontName                   Small_Fonts_8.hff
+
+; font used to print the chat in the room chatting listwindow
+mgChatWindowFontName                    Small_Fonts_8.hff
+
+; font used to print the users in the current room listwindow
+mgUserNameFontName                      Small_Fonts_8.hff
+
+; font used to print the name of the current room
+mgCurrentChannelFontName                Arial_b17.hff
+
+; font used to print the titles in the list of rooms listwindow
+mgChannelListTitleFontName              Small_Fonts_8.hff
+
+; font used to print the rooms in the list of rooms listwindow
+mgChannelListFontName                   Small_Fonts_8.hff
+
+; font used to print the titles in the title bar for the list of games listwindow
+mgGameListTitleFontName                 Small_Fonts_8.hff
+
+; font used to print the chat in the pre-game chat listwindow
+mgGameChatFontName                      Small_Fonts_8.hff
+
+; font used to print the users in the game users screen
+mgGameUserNameFontName                  Small_Fonts_8.hff
+
+; font used to print the current game the user has joined
+mgCurrentGameFontName                   Arial_b17.hff
+
+; font used to print the number of humans and computers playing the current scenario
+mgOptionsFontName                       SimplixSSK_13.hff ;HW_EuroseCond_11.hff
+
+; font used to print the status lines in the connecting screen listwindow
+mgConnectingFontName                    Small_Fonts_8.hff
+
+; font used to print the message in the message box window
+mgMessageBoxFontName                    Small_Fonts_8.hff
+
+lgProtocalFontName      EuroseWideHeavy_i17.hff
+;old font below...
+;lgProtocalFontName                      EyeChartDisplayCapsSSK_bi11.hff
+
+; all of the colors for the different things in the screens
+
+; color of the (whispered) text in the game chat window
+mgGameWhisperedColor                    255,0,255
+
+; color of the text for a private chat message in the game chat window
+mgGamePrivateChatColor                  20,255,50
+
+; color of normal text in the game chat window
+mgGameNormalChatColor                   180,180,180
+
+; color of the text for when players leave and enter a game
+mgGameMessageChatColor                  255,255,0
+
+; color of the (whispered) text in the room chat window
+mgWhisperedColor                        255,0,255
+
+; color of the text for a private chat message in the room chat window
+mgPrivateChatColor                      255,0,255
+
+; color of normal text in the room chat window
+mgNormalChatColor                       180,180,180
+
+; color of the text for messages when players join and leave a room
+mgMessageChatColor                      255,255,0
+
+; color of the user names printed in the room chat window
+mgUserNameColor                         180,180,180
+
+; color used to print the current room the user is in
+mgCurrentChannelColor                   20,200,20
+
+; color used to print the titles in the list of rooms window
+mgChannelTitleColor                     50,255,50
+
+; color used to print the unselected items in the room list window
+mgChannelListNormalColor                0,160,200
+
+; color used to print the selected items in the room list window
+mgChannelListSelectedColor              255,255,255
+
+; color used to indicate a user has clicked on the title in the game list window
+mgTitleFlashColor                       255,255,50
+
+; normal color for the title in the game list window
+mgGameListTitleColor                    50,255,50
+
+; normal color for items in the game list window
+mgGameListNormalColor                   0,160,200
+
+; selected color for items in the game list window
+mgGameListSelectedColor                 255,255,255
+
+; color for games that are in progress in the game list window
+mgGameListStartedColor                  100,100,100
+
+; color for games that are a different version in the game list window (and you therefore can't join them)
+mgGameListDiffVersionColor              155,155,0
+
+; color used to print the name of the current game
+mgCurrentGameColor                      20,200,20
+
+; color used to print the number of humans in the option screens
+mgNumberOfHumansColor                   20,200,20
+
+; color used to print the number of computers in the option screens
+;mgNumberOfComputersColor                20,200,20
+mgNumberOfComputersColor                255,255,105 ;pale yellow
+
+; color used to print the status lines in the connecting window
+mgConnectingStatusColor                 180,180,180
+
+; color used to print the text in the message box window
+mgMessageBoxColor                       180,180,180
+
+lgProtocalFontColor                     255,200,0
+
+; X, and Y margins for the player list in the tactical overlay
+TO_PLAYERLIST_Y         30
+TO_PLAYERLIST_X         2
+alliescolor             255,255,0
+
+; Starting resource amounts for multiplayer games.
+resourceStartSmall                      1000
+resourceStartMedium                     2500
+resourceStartLarge                      4000
+
+resourceStartTutorial                   1700
+
+; tweakables from the in game chatting system
+gcGamePrivateChatColor                  255,0,0
+gcGameWhisperedColor                    0,139,0
+gcGameNormalChatColor                   200,200,200
+maxlines                                3
+
+
+;Horse Race Tweakables
+;
+
+horseTotalNumBars   5   0.05,0.25,0.05,0.05,0.60
+
+;;render every Xth milliseconds (i.e. 500 = 2frames per second)
+horseRaceRenderTime                     500.0
+
+;missile target loss tweakables
+
+tweakCheckMissileTargetLossRate         3       ;0,1,3,7,15,31,...game frames that missile is checked for target loss
+tweakNumTimesCheck                      1       ;number of times missile gets checked for target loss
+tweakMinDistBeforeTargetLoss         1000.0     ;missile must be X m or closer before it is considered for target loss
+
+
+tweakRandomNess[Evasive]              0.50     ;X*100% of missile miss in this setting
+tweakRandomNess[Neutral]              0.30     ;X*100% of missile miss in this setting
+tweakRandomNess[Aggressive]              0.10     ;X*100% of missile miss in this setting
+tweakBoostIfDodging                     0.15    ;X*100% added to missing probability if dodgeing at the time
+tweakBoostIfFlightMan                   0.05    ;X*100% added to missing probability if preforming a flight maneuver
+
+;
+; The next set of tweakables are for the initilization of the multiplayer game settings.
+; the first one is for all of the checkboxes here is a list of what bit sets what checkbox
+;
+;#define MG_LastMotherShip       BIT1
+;#define MG_CaptureCapitalShip   BIT2
+;#define MG_ResearchEnabled      BIT3
+//#define MG_BountiesEnabled      BIT4      obsolete, check instead tpGameCreated.bountySize == MG_BountiesOff
+;#define MG_HarvestinEnabled     BIT5
+;#define MG_ResourceInjections   BIT6
+;#define MG_ResourceLumpSum      BIT7
+;#define MG_PasswordProtected    BIT8
+;#define MG_UnitCapsEnabled      BIT9
+;#define MG_FuelBurnEnabled      BIT10
+;#define MG_AlliedVictory        BIT11
+;#define MG_CratesEnabled        BIT12
+;#define MG_CarrierIsMothership  BIT13
+;#define MG_Hyperspace           BIT14
+;
+;tpGameCreated.flag                      BIT1
+;tpGameCreated.flag                      BIT5
+;tpGameCreated.flag                      BIT3
+;tpGameCreated.flag                      BIT9
+;tpGameCreated.flag                      BIT10
+;tpGameCreated.flag                      BIT12
+;tpGameCreated.flag                      BIT14
+
+; this is the number of computers in the game
+;tpGameCreated.numComputers              0
+; the following three are for the radio buttons, 0 Low, 1 Medium, 2 High
+;tpGameCreated.startingFleet             1
+;tpGameCreated.bountySize                3       ; 3 indicates off
+;tpGameCreated.startingResources         1
+; this is the interval for resource injections
+; take the time in minutes and multiply by 960
+;tpGameCreated.resourceInjectionInterval 14400
+; this is the amount of the resource injection in RU's
+;tpGameCreated.resourceInjectionsAmount  2000
+; this is the time for the lump sum injection
+; take the time in minutes and multiply by 960
+;tpGameCreated.resourceLumpSumTime       19200
+; this is the amount of the lump sum injection in RU's
+;tpGameCreated.resourceLumpSumAmount     2000
+
+; must be 0..100 inclusive, 0..33 beginner, 34..66 intermediate, 67+ advanced
+tpGameCreated.aiplayerDifficultyLevel   50
+; must be 0..100 inclusive, 100 always attacks humans
+tpGameCreated.aiplayerBigotry           50
+
+; Scrolling time for game chat messages
+GC_SCROLL_TIME                          3.6
+
+
+; general attributes stuff
+attrVELOCITY_TOWARDS                        125.0
+attrVELOCITY_TOWARDS_DEVIATION              0.1
+attrKillerCollDamage                        20000.0
+attrRING_WIDTH_SCALE                        0.5         ; 0 indicates no ring (sphere), 1 indicates infinitely thin ring
+attrHEADSHOTKillerCollDamage                60000.0
+attrHEADSHOTVELOCITY_TOWARDS                  340.0
+attrHEADSHOTVELOCITY_TOWARDS_DEVIATION        0
+
+capitalSideModifiers[TRANS_UP]              1.3         ; vulnerable from above
+capitalSideModifiers[TRANS_DOWN]            1.3         ; vulnerable from below
+capitalSideModifiers[TRANS_RIGHT]           1.0
+capitalSideModifiers[TRANS_LEFT]            1.0
+capitalSideModifiers[TRANS_FORWARD]         0.9         ; good armor in front
+capitalSideModifiers[TRANS_BACK]            1.7         ; watch out for the engine!
+
+friendlyFireModifier                        0.5
+
+TW_RETIRE_MONEYBACK_RATIO                   0.6         ; When a ship is retired, player is credited with #of RU's equal to ships original buildcost multipled by this ratio.
+
+;duration of double-pressing numbers keys in order to focus on them
+mrNumberDoublePressTime                     0.5
+
+;tolerance thresholds for missing the click on a ship, both temporal and spatial
+mrFastMoveShipClickTime                     0.5         ; you can be 1/2 second late
+mrFastMoveShipClickX                        5           ; you can have moved the mouse 5 pixels
+mrFastMoveShipClickY                        5
+
+TW_ScuttleReconfirmTime                     3.0         ; if you try to scuttle, you must reconfirm the order within X seconds or else it won't scuttle them :)
+
+;BOUNTY CALCULATION TWEAKABLES
+
+;weight each one carries
+TW_Bounty_ResourcesCollected                0.02
+TW_Bounty_ResourcesInPossesion              0.35
+TW_Bounty_CurrentShipWorth                  0.70
+TW_Bounty_AllyStrength                      0.05
+TW_Bounty_ResourcesKilled                   0.05
+
+//Damage Done By Harvestor Beam to other ships PER SECOND
+TW_HARVESTER_DAMAGE_PER_SECOND              10.0
+
+;Targets travelling above this speed will require the class of ship
+;to assend to the same plane within the next variable
+;0.0 = no lieflatingeneral behavior
+
+;only valid for capital ships and defenders or anything that uses
+;attackStraightForward(...)
+
+
+;This variable sets the minimum speed for each ship class that the TARGET must be traveling
+;for the attacker to move up or down instead of pointing directly at the target
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Mothership]    0.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_HeavyCruiser]  350.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Carrier]       350.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Destroyer]     350.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Frigate]       350.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Corvette]      0.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Fighter]       0.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_Resource]      0.0
+capShipLieFlatInGeneralSpeedSqrTolerance[CLASS_NonCombat]     0.0
+
+;vertical distance tolerance
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Mothership]    0.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_HeavyCruiser]  150.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Carrier]       150.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Destroyer]     150.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Frigate]       150.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Corvette]      0.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Fighter]       0.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_Resource]      0.0
+capShipLieFlatInGeneralDistanceTolerance[CLASS_NonCombat]     0.0
+
+
+TW_HOLDING_PATTERN_NUM_TURNS                    12.0     ;number of turns to make during holding pattern
+TW_HOLDING_PATTERN_PATHTIME                     4.0     ;seconds spent travelling along segment of holding pattern before each turn
+TW_HOLDING_PATTERN_PATH_DISTANCE                4000.0  ;distance from pivot point (turn point) ship tries to travel to.
+TW_HOLDING_PATTERN_PATH_MAX_SPEED               350.0   ;maximum speed ships travel at in holding pattern (don't want too high..but want consistent among classes and ships)
+TW_HOLDING_PATTERN_HEADING_COEFFICIENT          1.0     ;Holding patterns heading multiplier
+TW_HOLDING_PATTERN_RIGHT_COEFFICIENT            0.3     ;Holding patterns right vector multipler; if both this and above one are equal, formatin will turn 45 degrees each turn..adjust acordinly
+
+MINING_BASE_ROTATION_SPEED        0.035         (rad/s)
+MINING_BASE_VERTICAL_DIST_HACK    0         ; distance it is from pie plane in lightwave scene file
+
+selShipHealthGreenFactor                        0.5     ;if Greater than this, health is green in selection
+selShipHealthYellowFactor                       0.25    ; if greater, health is yellow (uptil green value)..if beloiw, health is red
+
+COLLISION_CLEAR_TIME                            5.0
+GLANCE_COLLISION_VEL_RATIO                      2.0
+COLLISION_REPULSE_FACTOR                        500.0
+
+;Bounty sizes 0=small, 1= medium, 2 = large
+TW_BountySizes[0]                       15
+TW_BountySizes[1]                       40
+TW_BountySizes[2]                       90
+
+versionColor                                    100,100,250
+
+;Bounty sizes 0=small, 1= medium, 2 = large
+TW_BountySizes[0]                       15
+TW_BountySizes[1]                       40
+TW_BountySizes[2]                       90
+
+;scarred scaffold rotation tweaks
+; NOTE: no longer used.  Now defined in Mission03.kas.
+SCAFFOLD_SCARRED_ROTX                   -0.007
+SCAFFOLD_SCARRED_ROTY                   0.02
+SCAFFOLD_SCARRED_ROTZ                   0.0
+SCAFFOLDFINGERA_SCARRED_ROTX            -0.007
+SCAFFOLDFINGERA_SCARRED_ROTY            0.02
+SCAFFOLDFINGERA_SCARRED_ROTZ            0.0 ;0.005
+SCAFFOLDFINGERB_SCARRED_ROTX            0.028
+SCAFFOLDFINGERB_SCARRED_ROTY            -0.015
+SCAFFOLDFINGERB_SCARRED_ROTZ            0.0
+
+;minimum RETROFITing time for a captured ship
+SALVAGE_MIN_RETROFIT_TIME                    10.0f
+;maximum retrofitting time..multiplied by 1-shiphealth/shipmaxhealth
+;hence, a heavily damaged ship would be (1-0.1) ==> close to MAX time
+;lightly damaged would reduce to minimum time.
+SALVAGE_MAX_RETROFIT_TIME                    100.0f
+
+
+;This variable will tweak the distance that ALL ships reside
+;from on the R1 Mothership door.  A more positive modifier
+;will make a ship sit further off of the door...
+;negative will have opositve effect obviously
+TW_R1_MOTHERSHIP_DOOR_OFFSET_MODIFIER        0.0f
+
+TW_SCUTTLE_CONFIRM_TIME  7.0
+
+demAutoDemoWaitTime                          300.0
+
+TM_TechListFont                         HW_EuroseCond_11.hff
+TM_Font                                 HW_EuroseCond_11.hff
+TM_StandardTextColor                    0,100,160
+TM_CantAffordTextColor                  255,25,25
+TM_SelectionTextColor                   255,255,105
+TM_SelectionRectColor                   50,120,20
+
+;these are compared to the sum of the turnspeeds of a particular ship
+TW_SV_MAN_VERY_LOW                      1.0     ;      //below this number it will register as VERYLOW
+TW_SV_MAN_LOW                           4.0     ;           //below this, but above previouw == LOW
+TW_SV_MAN_MEDIUM                        5.0     ;        //below this, but above previouw == MEDIUM
+TW_SV_MAN_HIGH                          7.0     ;          //below this, but above previouw == HIGH
+                                                        //Above previous == VERY_HIGH
+selFontName0                            TO_0.hff ;actual font --> Arial 12pt
+selFontName1                            TO_1.hff ;actual font --> Arial 9pt
+selFontName2                            TO_2.hff ;actual font --> Arial 7pt
+selFontName3                            TO_3.hff ;actual font --> Arial 6pt
+
+TW_R1_DOOR_DOCK_TOLERANCE               20.0            ;tolerance of ship attaching to door before it sNAPS into position..higher is faster but less acurate, lower is more acurate, but slower
+
+;Sphere TO colour tuning
+TW_GRAVWELL_SPHERE_COLOUR               139,50,133
+TW_CLOAKGENERATOR_SPHERE_COLOUR         60,60,130
+TW_DFGF_SPHERE_COLOUR                   29,155,182
+TW_PROXIMITY_SPHERE_COLOUR              80,80,150
+;colour the sphere turns when an enemy is in it
+TW_PROXIMITY_SPHERE_COLOUR_FOUND        180,80,80
+TW_PROXIMITY_RING_COLOUR                255,0,0
+
+lagSlowCompX                            10              // X location of slow computer icon lag
+lagSlowCompY                            42              // Y location of slow computer icon lag
+lagSlowIntX                             10              // X location of slow internet icon lag
+lagSlowIntY                             75              // X location of slow internet icon lag
+SLOW_INTERNETPRINTTIME                  5.0             // lag amount before internet icon is displayed
+
+
+
+TUTORIAL_KAS_UPDATE_MASK                1
+TUTORIAL_KAS_UPDATE_FRAME               0
+
+SP_KAS_UPDATE_FRAME                     0
+
+MINE_DO_SEARCH_MASK                     15
+
+CHECKBOGEY_FRAME                        1
+
+SPHERE_CHECK_TARGET_MASK                31
+SPHERE_CHECK_TARGET_FRAME               21
+
+CHECK_ATTACKMOVE_TO_MOVE_RATE           31
+CHECK_ATTACKMOVE_TO_MOVE_FRAME          22
+
+FORMATION_ERROR_CALCULATE_RATE          7
+FORMATION_ERROR_CALCULATE_FRAME         2
+
+
+EnemyNearByCheckRate                            15      ;Every Xth univupdate frame we
+                                                        ;check for enemies near other ships Needs to be one of
+                                                        ;0, 1,3,7,15,31,63
+EnemyNearByCheckFrame                           14      ; must be <= EnemyNearByCheckRate
+
+RetreatCheckRate                                   31   ;Every xth frame we check to see if retreat conditions
+                                                        ;have been satisfied for retreating ships
+                                                        ;0, 1,3,7,15,31,63
+RetreatCheckFrame                                  26   ; must be <= RetreatCheckRate
+
+ATTACKMEMORY_CLEANUP_RATE                       255
+ATTACKMEMORY_CLEANUP_FRAME                      254
+
+TW_ProximitySensorSearchRate                31          ; 0,1,3,7,15,31,63,etc... rate at which checks are made for ships
+TW_ProximitySensorSearchFrame               27          ; must be <= TW_ProximitySensorSearchRate
+
+CHECK_PASSIVE_ATTACK_RATE   15
+CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE   31
+
+REFRESH_RENDERLIST_RATE         7
+REFRESH_RENDERLIST_FRAME        1
+
+REFRESH_MINORRENDERLIST_RATE    7
+REFRESH_MINORRENDERLIST_FRAME   3
+
+REFRESH_COLLBLOB_RATE           7
+REFRESH_COLLBLOB_FRAME          6
+
+REFRESH_COLLBLOB_BATTLEPING_FRAME   4
+
+REFRESH_RESEARCH_RATE           15
+REFRESH_RESEARCH_FRAME          13
+
+CHECK_BOUNTIES_RATE                 127
+CHECK_BOUNTIES_FRAME                101
+
+CLOAKGENERATOR_CLOAKCHECK_RATE      15
+
+TW_GLOBAL_PASSIVE_ATTACK_CANCEL_MODIFIER     180.0
+
+twHyperingInDamage                      4.0             ;damage the ship hyperspacing IN takes
+twHyperedIntoDamage              0.25            ;damage the ship being hyperspaced into takes
+
+TW_BURST_ATTACK_FORCE_MODIFIER          0.2     ;modifier for force applied by burst attack
+
+
+armourPiercingModifier			2.0
