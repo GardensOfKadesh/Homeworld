@@ -1346,7 +1346,7 @@ udword partRenderMeshSystem(udword n, particle *p, udword flags, trhandle tex, m
         dbgMessagef("partRenderMeshSystem: Got mesh with suspect flag: %d",mesh);
         return 0; //kill the render system
       }
-#if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME)
+#if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME) && !defined(__EMSCRIPTEN__)
         if ((mesh != NULL) && (mesh != (meshdata*) 0x7fffffff))
 #else
         if ((mesh != NULL) && (mesh != (meshdata*) 0xffffffff))
@@ -1459,8 +1459,8 @@ udword partRenderMeshSystem(udword n, particle *p, udword flags, trhandle tex, m
             {                                               //else there is a morph animation
                 mesh2 = partMeshNextMesh(meshPart, p);
               /* it will catch stuff like 0x9cce2641ffffffff on 64-bit... but source of 32/64 should really be found and fixed */
-              if ( 0xffffffff == ((memsize)mesh2 & 0xffffffff)) {
-                dbgMessagef("partRenderMeshSystem: Got mesh2 with suspected flag: %d",mesh2);
+              if ( (0xffffffff == ((memsize)mesh & 0xffffffff)) || (0xffffffff == ((memsize)mesh2 & 0xffffffff))) {
+                dbgMessagef("partRenderMeshSystem: Got mesh(es) with suspected flag: %d | %d", mesh, mesh2);
                 return 0; //kill the render system
               }
                 frac = p->meshFrame - (real32)((sdword)p->meshFrame);
@@ -2012,7 +2012,7 @@ sdword partAdvanceMeshMorph(meshSystem* psys, particle* p)
     frame = (sdword)p->meshFrame + 1;
     next = animblock + frame;
 // MeshMorphedObjectRender crash fixme part 2
-#if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME)
+#if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME) && !defined(__EMSCRIPTEN__)
     if (next->mesh == NULL || next->mesh == (meshdata*) 0x7fffffff)
 #else
     if (next->mesh == NULL || next->mesh == (meshdata*) 0xffffffff)
