@@ -1204,8 +1204,10 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
             }
 
             // harvest RU's
-
-            //CollectResources(ship,resource);
+            if ((target->objtype == OBJ_AsteroidType) || (target->objtype == OBJ_DustType) || (target->objtype == OBJ_GasType) || (target->objtype == OBJ_NebulaType) )
+            {
+                CollectResources(ship, target);
+            }
 
             ApplyDamageToTarget(target,TW_HARVESTER_DAMAGE_PER_SECOND*universe.phystimeelapsed,-1,DEATH_Killed_By_Player,ship->playerowner->playerIndex);
 
