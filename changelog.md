@@ -4,6 +4,14 @@ Not all changes are tracked here but it's recommended to add important changes
 as part of pull requests. To get a full picture of all changes between
 versions, you can browse git to display all changes between tags.
 
+## r12
+#### Bugfixes
+- Fix pointer handling of invalid meshes
+
+#### Improvements
+- Better render distance and fading for space objs
+- Force attacking resources with the collector now harvests while attacking
+
 
 ## r11
 #### Bugfixes
