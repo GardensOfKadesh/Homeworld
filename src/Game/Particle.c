@@ -1346,6 +1346,11 @@ udword partRenderMeshSystem(udword n, particle *p, udword flags, trhandle tex, m
         dbgMessagef("partRenderMeshSystem: Got mesh with suspect flag: %d",mesh);
         return 0; //kill the render system
       }
+      if ( 0x7fffffff == ((memsize)mesh & 0xffffffff)) {
+        dbgMessagef("partRenderMeshSystem: Got mesh with suspect flag: %d",mesh);
+        return 0; //kill the render system
+      }
+
 #if !defined(__FreeBSD__) && defined(_LINUX_FIX_ME) && !defined(__EMSCRIPTEN__)
         if ((mesh != NULL) && (mesh != (meshdata*) 0x7fffffff))
 #else
@@ -1463,6 +1468,13 @@ udword partRenderMeshSystem(udword n, particle *p, udword flags, trhandle tex, m
                 dbgMessagef("partRenderMeshSystem: Got mesh(es) with suspected flag: %d | %d", mesh, mesh2);
                 return 0; //kill the render system
               }
+              //dbgMessagef("partRenderMeshSystem: mesh2 : %ld", mesh2);
+              //dbgMessagef("partRenderMeshSystem: mesh2 : %ld", ((memsize)mesh2 & 0xffffffff));
+              if ( 0x7fffffff == ((memsize)mesh2 & 0xffffffff)) {
+                dbgMessagef("partRenderMeshSystem: Got mesh2 with suspected flag: %d",mesh2);
+                return 0; //kill the render system
+              }
+
                 frac = p->meshFrame - (real32)((sdword)p->meshFrame);
 
                 glDisable(GL_RESCALE_NORMAL);
