@@ -10,6 +10,9 @@
 *.em.o
 *.o
 *.Po
+*.c.d
+
+windows/bin/*
 
 big.contents/
 assets_oem/
