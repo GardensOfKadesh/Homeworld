@@ -613,7 +613,7 @@ void ferStartup(void)
 {
     uword i;
 
-    useDrawTex = glCheckExtension("GL_OES_draw_texture");
+    //useDrawTex = glCheckExtension("GL_OES_draw_texture");
 
     for (i = 0; i < FER_NumTextures; i++)
     {
