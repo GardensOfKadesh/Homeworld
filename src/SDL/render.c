@@ -898,16 +898,18 @@ bool setupPixelFormat()
     flags = SDL_WINDOW_OPENGL;
     flags |= SDL_WINDOW_RESIZABLE;
 
+    SDL_SetHint(SDL_HINT_VIDEO_HIGHDPI_DISABLED, "1");
+
 #ifndef HW_ENABLE_GLES
     /* Set attributes. */
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE,  MAIN_WindowDepth);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   16);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,   24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #endif
 
-    //if (/* main */ fullScreen)
-    //    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    if (/* main */ fullScreen)
+        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 #ifdef HW_ENABLE_GLES
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
