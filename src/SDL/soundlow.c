@@ -280,10 +280,12 @@ void soundrestore(void)
 #ifndef __EMSCRIPTEN__
 #ifndef _MACOSX_FIX_86
 #ifndef _WIN32_FIXME
+#ifndef _WIN32
 	while (!((streamer.status == SOUND_FREE) && (mixer.status == SOUND_FREE)))
 	{
 		SDL_Delay(0);
 	}
+#endif
 #endif
 #endif
 #endif
