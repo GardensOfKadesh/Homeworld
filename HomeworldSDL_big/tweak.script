@@ -50,33 +50,33 @@ ROLLCRAZYHI                    5.0
 
 ;these next 2 tweakables are still used for objects
 ;and large objects that aren't ships
-RENDER_VIEWABLE_DISTANCE_SQR    24000.0
-RENDER_MAXVIEWABLE_DISTANCE_SQR 32000.0
-RENDER_VIEWABLE_FADE            12000.0
-RENDER_MAXVIEWABLE_FADE         16000.0
-BG_RADIUS                      100000.0
+RENDER_VIEWABLE_DISTANCE_SQR              24000.0
+RENDER_MAXVIEWABLE_DISTANCE_SQR           32000.0
+RENDER_VIEWABLE_FADE                      12000.0
+RENDER_MAXVIEWABLE_FADE                   16000.0
+BG_RADIUS                                100000.0
 
 ;these are the ship renderlist tweaks.
 ;limit refers to the range that the ship is "in" the renderlist.
 ;fade refers to the range from the edge that a ship fades within.
-RENDER_LIMIT_MOTHERSHIP         20000.0
-RENDER_FADE_MOTHERSHIP           5000.0
-RENDER_LIMIT_HEAVYCRUISER       16000.0
-RENDER_FADE_HEAVYCRUISER         5000.0
-RENDER_LIMIT_CARRIER            16000.0
-RENDER_FADE_CARRIER              5000.0
-RENDER_LIMIT_DESTROYER          16000.0
-RENDER_FADE_DESTROYER            5000.0
-RENDER_LIMIT_FRIGATE            16000.0
-RENDER_FADE_FRIGATE              5000.0
-RENDER_LIMIT_CORVETTE           16000.0
-RENDER_FADE_CORVETTE             5000.0
-RENDER_LIMIT_FIGHTER            16000.0
-RENDER_FADE_FIGHTER              5000.0
-RENDER_LIMIT_RESOURCE           16000.0
-RENDER_FADE_RESOURCE             5000.0
-RENDER_LIMIT_NONCOMBAT          16000.0
-RENDER_FADE_NONCOMBAT            5000.0
+RENDER_LIMIT_MOTHERSHIP                   24000.0
+RENDER_FADE_MOTHERSHIP                    15000.0
+RENDER_LIMIT_HEAVYCRUISER                 24000.0
+RENDER_FADE_HEAVYCRUISER                  15000.0
+RENDER_LIMIT_CARRIER                      24000.0
+RENDER_FADE_CARRIER                       15000.0
+RENDER_LIMIT_DESTROYER                    24000.0
+RENDER_FADE_DESTROYER                     15000.0
+RENDER_LIMIT_FRIGATE                      24000.0
+RENDER_FADE_FRIGATE                       15000.0
+RENDER_LIMIT_CORVETTE                     24000.0
+RENDER_FADE_CORVETTE                      15000.0
+RENDER_LIMIT_FIGHTER                      24000.0
+RENDER_FADE_FIGHTER                       15000.0
+RENDER_LIMIT_RESOURCE                     24000.0
+RENDER_FADE_RESOURCE                      15000.0
+RENDER_LIMIT_NONCOMBAT                    24000.0
+RENDER_FADE_NONCOMBAT                     15000.0
 
 VERYBIGSHIP_SIZE                1500.0
 

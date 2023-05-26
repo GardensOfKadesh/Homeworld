@@ -4,6 +4,11 @@ Not all changes are tracked here but it's recommended to add important changes
 as part of pull requests. To get a full picture of all changes between
 versions, you can browse git to display all changes between tags.
 
+## r13
+#### Improvements
+- Better render distance for ships and resources
+
+
 ## r12
 #### Bugfixes
 - Fix pointer handling of invalid meshes
