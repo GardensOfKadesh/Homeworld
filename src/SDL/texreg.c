@@ -1151,7 +1151,9 @@ void trCreateUnpalettedTexture(ubyte* palette, ubyte* data, sdword width, sdword
         dp[3] = palette[index + 3];
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
 
     memFree(rgba);
 }
@@ -1216,15 +1218,14 @@ udword trPalettedTextureCreate(ubyte *data, color *palette, sdword width, sdword
     {                                                       //set min/mag filters to point samplingor linear
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
-        glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
     {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     if (tempData != NULL)
     {
@@ -1256,15 +1257,8 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
 
     tempData = NULL;
 
-    if (useAlpha)
-    {
-        destType = TR_RGBAType;
-    }
-    else
-    {
-        //destType = TR_RGBType; // webgl requires same internal and source format
-        destType = TR_RGBAType;
-    }
+    destType = TR_RGBAType;
+
     glGenTextures(1, (GLuint*)&newHandle);                           //create a texture name
     primErrorMessagePrint();
     trClearCurrent();
@@ -1294,26 +1288,25 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
         data = tempData;
     }
 #endif //TR_ASPECT_CHECKING
-    glTexImage2D(GL_TEXTURE_2D, 0, destType, width,       //create the GL texture object
-                 height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    
+    glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //glTexImage2D(GL_TEXTURE_2D, 0, destType, width,       //create the GL texture object
+    //             height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     if (texLinearFiltering)
     {                                                       //set min/mag filters to point samplingor linear
-        if (useAlpha) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);          
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        }
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
     else
     {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     if (tempData != NULL)
     {
@@ -1336,8 +1329,11 @@ void trRGBTextureUpdate(udword handle, color *data, sdword width, sdword height)
     trClearCurrent();
     glBindTexture(GL_TEXTURE_2D, handle);                   //bind texture for modification
     primErrorMessagePrint();
-    glTexImage2D(GL_TEXTURE_2D, 0, TR_RGBAType, width,       //create the GL texture object
-                 height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //glTexImage2D(GL_TEXTURE_2D, 0, TR_RGBAType, width,       //create the GL texture object
+    //             height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width,
+                 height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
 }
 /*-----------------------------------------------------------------------------
     Name        : trRGBTextureDelete
@@ -3260,13 +3256,13 @@ void trFilterEnable(sdword bEnable)
                     glBindTexture(GL_TEXTURE_2D, reg->handle);  //set texture for modification
                     if (bEnable)
                     {                                           //set min/mag filters to linear
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                     }
                     else
                     {                                           //or point sampling
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                     }
                 }
             }
@@ -3279,13 +3275,13 @@ void trFilterEnable(sdword bEnable)
                         glBindTexture(GL_TEXTURE_2D, ((udword *)reg->palettes)[j]);
                         if (bEnable)
                         {                                   //set min/mag filters to linear
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                         }
                         else
                         {                                   //or point sampling
+                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
                             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                         }
                     }
                 }
@@ -3294,12 +3290,12 @@ void trFilterEnable(sdword bEnable)
                     glBindTexture(GL_TEXTURE_2D, reg->handle);
                     if (bEnable)
                     {                                       //set min/mag filters to linear
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                     }
                     else
                     {                                       //or point sampling
-                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
                         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                     }
                 }
@@ -3711,21 +3707,22 @@ void trNoPalTexImage(ubyte* data, ubyte* palette, sdword width, sdword height)
         dp[3] = palette[index + 3];
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
 
     if (texLinearFiltering)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
-        glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
     {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     memFree(rgba);
 
@@ -4011,13 +4008,13 @@ void trNoPalFilter(sdword bEnable, sdword handle)
             glBindTexture(GL_TEXTURE_2D, reg->glhandle[index]);
             if (bEnable)
             {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             }
             else
             {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             }
         }
     }
