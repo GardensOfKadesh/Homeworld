@@ -110,8 +110,8 @@ char ersWindowInit[] = "Error creating window";
 
 //screen width, height
 int MAIN_WindowWidth = 1280;
-int MAIN_WindowHeight = 960;
-int MAIN_WindowDepth = 16;
+int MAIN_WindowHeight = 720;
+int MAIN_WindowDepth = 24;
 
 sdword mainWidthAdd = 0;
 sdword mainHeightAdd = 0;
@@ -2356,7 +2356,7 @@ int main (int argc, char* argv[])
                 if (breakMainLoop) break;
 
                 utyTasksDispatch();                         //execute all tasks
-                isoundstreamupdate_manual(NULL);
+                //isoundstreamupdate_manual(NULL);
 
                 if (opTimerActive)
                 {
