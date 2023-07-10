@@ -66,11 +66,13 @@ EMXX = emcc
 
 # -msimd128 for enabling WASM SIMD extension and llvm autovectorization, measure performance?!
 # add -flto to EMXXFLAGS for link time optimization, for dev work it takes quite long
-EMXXFLAGS = $(COMMONFLAGS) -O3 -flto -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
-EMXXLINK = -O3 --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+# CRASH ON CAPTURE WITH SALVAGE CORVETTE
+#EMXXFLAGS = $(COMMONFLAGS) -O3 -flto -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
+#EMXXLINK = -O3 --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
 # for dev/debugging
-#EMXXFLAGS = $(COMMONFLAGS) -O2 -g --profiling  -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
-#EMXXLINK = -O2 -g --profiling --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+EMXXFLAGS = $(COMMONFLAGS) -O2 -g --profiling  -s USE_SDL=2 -s USE_SDL_IMAGE=2 -Wno-invalid-source-encoding
+EMXXLINK = -O2 -g --profiling --use-preload-plugins -s TOTAL_MEMORY=50331648 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s LEGACY_GL_EMULATION=1 -lidbfs.js
+
 
 
 
