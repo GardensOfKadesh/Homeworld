@@ -20,18 +20,8 @@ MODULES = $(wildcard $(SRCDIR)/SDL/*.c) \
           $(wildcard $(SRCDIR)/ThirdParty/LZSS/*.c) \
 
 
-# prepare buttons for plugscreen
-# convert Discord-Logo-White.png -resize 32x32\! -background black -flatten -brightness-contrast 0x0 button-discord-on.jpg
-# convert Discord-Logo-White.png -resize 32x32\! -background black -flatten -brightness-contrast -50x0 button-discord-off.jpg
-
-#ASSETS = HW_Music.wxd HW_Comp.vce Homeworld.big Update.big HomeworldSDL.big
-ASSETS = DL_Music.wxd DL_demo.vce HomeworldDL.big Update.big HomeworldSDL.big Plugscreens/
-
-#UNAME = $(shell uname -s)
 BUILDDIR = build
 BINDIR = bin
-#WWWDIR = www
-_MKDIRS := $(shell mkdir -p $(BINDIR) $(BUILDDIR))
 
 
 # -DHW_GAME_HOMEWORLD
@@ -46,7 +36,7 @@ COMMONFLAGS = -MMD \
               -MP \
               -DHAVE_BOOLEAN \
               -DHW_GAME_HOMEWORLD \
-              -DHW_BUILD_FOR_DEBUGGING \
+              -DHW_BUILD_FOR_DISTRIBUTION \
               -DGENERIC_ETGCALLFUNCTION \
               -D_WIN32 \
               -D_LINUX_FIX_ME \
@@ -67,13 +57,6 @@ COMMONFLAGS = -MMD \
               -I ../src/ThirdParty/JPG/
 
 EMXX = gcc
-
-#EMXXFLAGS = $(COMMONFLAGS) -O2 -g --profiling --use-preload-plugins -s ALLOW_MEMORY_GROWTH=1 -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s WASM=1 -s LEGACY_GL_EMULATION=1#-s FULL_ES2=1 -s MAX_WEBGL_VERSION=2
-# -s SAFE_HEAP=1 -s ASSERTIONS=2 --profiling  -s DEMANGLE_SUPPORT=1
-#EMXXLINK = -g3 -s TOTAL_MEMORY=50331648 -lidbfs.js
-
-# -msimd128 for enabling WASM SIMD extension and llvm autovectorization, measure performance?!
-# add -flto to EMXXFLAGS for link time optimization, for dev work it takes quite long
 EMXXFLAGS = $(COMMONFLAGS) -O0 -ggdb3 `sdl2-config --cflags` -mconsole
 EMXXLINK = -O0 -ggdb3 -lSDL2main -lSDL2 `sdl2-config --libs` -lopengl32 -lglew32 -mconsole
 
