@@ -912,8 +912,10 @@ bool setupPixelFormat()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #endif
 
+#ifndef __EMSCRIPTEN__
     if (/* main */ fullScreen)
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
 
 #ifdef HW_ENABLE_GLES
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
