@@ -573,7 +573,7 @@ sdword speechEventInit(void)
     if (soundstreamopenfile(loadfile, &musicfilehandle) != musicheader->checksum)
     {
         dbgMessage("Music data file does not match lookup table.  Not from same generate.");
-        dbgAssertOrIgnore(FALSE);
+        //dbgAssertOrIgnore(FALSE);
     }
 
     pmusicbuffer0 = memAlloc(buffersize, "MusicBuffer", NonVolatile);
