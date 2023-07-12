@@ -2074,7 +2074,7 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
               currentMaterial = polygon->iMaterial;           //remember current material
               meshCurrentMaterial(&materials[currentMaterial], iColorScheme);//set new material
             }
-            if (enableBlend)
+            if (bFade)
             {
                 glEnable(GL_BLEND);
             }
@@ -2092,15 +2092,12 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
     glShadeModel(GL_SMOOTH);
     glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
-    if (enableBlend)
-    {
-        glDisable(GL_BLEND);
-    }
+    glDisable(GL_BLEND);
 
     if (g_WireframeHack)
     {
         rndLightingEnable(lightOn);
-        if (enableBlend)
+        if (bFade)
         {
             glDisable(GL_LINE_SMOOTH);
         }

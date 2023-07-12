@@ -1051,6 +1051,7 @@ void cloudRenderSystem(cloudSystem* system, sdword lod)
     udword i;
     bool fogOn;
     GLfloat attrib[4];
+    extern real32 meshFadeAlpha;
 
     if (system == NULL)
     {
@@ -1085,7 +1086,7 @@ void cloudRenderSystem(cloudSystem* system, sdword lod)
     attrib[2] = 0.0f;
     attrib[3] = 0.0f;
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, attrib);
-    attrib[3] = 0.5f;
+    attrib[3] = 0.5f * meshFadeAlpha;
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, attrib);
     attrib[0] = (GLfloat)colRed(cloudColor) / 255.0f;
     attrib[1] = (GLfloat)colGreen(cloudColor) / 255.0f;
@@ -1103,10 +1104,10 @@ void cloudRenderSystem(cloudSystem* system, sdword lod)
         //ellipsoid_render(&ellipseLOD[1], radius);
         //break;
     case 2:
-        ellipsoid_render(&ellipseLOD[2], radius);
-        break;
+        //ellipsoid_render(&ellipseLOD[2], radius);
+        //break;
     default:
-        ellipsoid_render(&ellipseLOD[3], radius);
+        ellipsoid_render(&ellipseLOD[0], radius);
     }
 
     rndLightingEnable(FALSE);

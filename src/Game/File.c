@@ -475,7 +475,7 @@ static bool8 fileNameCorrectCase (char* fileName)
 #ifdef _WIN32
 		char filespec[PATH_MAX + 1];
 		struct _finddata_t findData;
-		long hFile;
+		intptr_t hFile;
 		bool foundResult;
 #else
 		struct dirent* pEntry;
@@ -1899,6 +1899,12 @@ char *filePathPrepend(char *fileName, udword flags)
     else
     {
         strcpy(filePathTempBuffer, fileOverrideBigPath);
+    }
+
+    int length = strlen(filePathTempBuffer);
+    if((filePathTempBuffer[length - 1] == '\\') && (filePathTempBuffer[length - 2] == '\\'))
+    {
+        filePathTempBuffer[length - 1] = 0;
     }
 
     strcat(filePathTempBuffer, fileName);
