@@ -1151,9 +1151,12 @@ void trCreateUnpalettedTexture(ubyte* palette, ubyte* data, sdword width, sdword
         dp[3] = palette[index + 3];
     }
 
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#ifdef __EMSCRIPTEN__
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#else
     glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#endif
 
     memFree(rgba);
 }
@@ -1288,11 +1291,14 @@ udword trRGBTextureCreate(color *data, sdword width, sdword height, bool useAlph
         data = tempData;
     }
 #endif //TR_ASPECT_CHECKING
-    
+
+#ifdef __EMSCRIPTEN__
+    glTexImage2D(GL_TEXTURE_2D, 0, destType, width,       //create the GL texture object
+                 height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#else
     glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //glTexImage2D(GL_TEXTURE_2D, 0, destType, width,       //create the GL texture object
-    //             height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#endif
 
     if (texLinearFiltering)
     {                                                       //set min/mag filters to point samplingor linear
@@ -3707,9 +3713,12 @@ void trNoPalTexImage(ubyte* data, ubyte* palette, sdword width, sdword height)
         dp[3] = palette[index + 3];
     }
 
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#ifdef __EMSCRIPTEN__
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#else
     glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, width, height);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+#endif
 
     if (texLinearFiltering)
     {
