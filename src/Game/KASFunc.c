@@ -3621,31 +3621,19 @@ void kasfMusicStop(sdword fadeTime)
     soundEventStopMusic((real32)fadeTime);
 }
 
-sdword kasfRenderedShips(GrowSelection *ships, sdword LOD)
-{
+sdword kasfRenderedShips(GrowSelection *ships, sdword LOD) {
     sdword i;
     ubyte LODmask;
-
-    for (LODmask = 0, i = 8; i > 0; i--)
-    {                                                       //prepare a mask for the given LOD
-        if (i <= LOD)
-        {
-            LODmask |= 1;
-        }
-        LODmask <<= 1;
-    }
-
-    // with the original implementation the mask has no bit set for LOD 0 regardless of parameter
-    // hence with LOD fixed to 0 it will never pass this check and some KAS stuff won't work correctly
-    LODmask |= 1;
 
     if (ships == NULL || ships->selection == NULL)
         return 0;
 
-    for (i = 0; i < ships->selection->numShips; ++i)        //see if ship rendered at the specified LOD or lower
+    LODmask = (ubyte)0b11111111u >> (7 - LOD);
+    // At LOD == 2:  0b00000111
+
+    for (i = 0; i < ships->selection->numShips; ++i) // see if ship rendered at the specified LOD or lower
     {
-        if (bitTest(ships->selection->ShipPtr[i]->renderedLODs, LODmask))
-        {
+        if (bitTest(ships->selection->ShipPtr[i]->renderedLODs, LODmask)) {
             return 1;
         }
     }
