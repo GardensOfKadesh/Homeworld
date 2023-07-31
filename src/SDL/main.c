@@ -657,9 +657,7 @@ commandoption commandOptions[] =
 #endif
 #endif
     entryVr("/ignoreBigfiles",      IgnoreBigfiles, TRUE,               " - don't use anything from bigfile(s)"),
-#ifdef HW_BUILD_FOR_DEBUGGING
     entryFV("/logFileLoads",        EnableFileLoadLog,LogFileLoads,TRUE," - create log of data files loaded"),
-#endif
 
     entryComment("PROCESSOR OPTIONS"),//-----------------------------------------------------
     entryVr("/enableSSE",           mainAllowKatmai, TRUE,              " - allow use of SSE if support is detected."),
@@ -1713,6 +1711,7 @@ sdword HandleEvent (const SDL_Event* pEvent)
     /* Mouse button press times for double-click support. */
     static Uint32 mbDownTime[3] = { 0, 0, 0 };
     static Uint8 mbDouble[3] = { 0, 0, 0 };
+    static Uint32 mbDoublePosX, mbDoublePosY;
 
     dbgAssertOrIgnore(pEvent);
 
@@ -1810,14 +1809,23 @@ sdword HandleEvent (const SDL_Event* pEvent)
             return 0;
 
         case SDL_MOUSEBUTTONDOWN:
+            //dbgMessagef("Mouse down: 0x%hhx - %d", pEvent->button.button, mouseDisabled);
             if (!mouseDisabled)
             {
                 Uint32 curr_time = SDL_GetTicks();
+                Uint32 mbTempPosX, mbTempPosY;
+                SDL_GetMouseState(&mbTempPosX, &mbTempPosY);
+
+                bool mbDoubleValid = FALSE;
+                if ((abs(mbDoublePosX - mbTempPosX) < 5) && (abs(mbDoublePosY - mbTempPosY) < 5))
+                {
+                    mbDoubleValid = TRUE;
+                }
 
                 switch (pEvent->button.button)
                 {
                     case SDL_BUTTON_LEFT:
-                        if (!mbDouble[0] && curr_time - mbDownTime[0] <= 500)
+                        if ((!mbDouble[0] && curr_time - mbDownTime[0] <= 500) && mbDoubleValid)
                         {
                             keyPressDown(LMOUSE_DOUBLE);
                             mbDouble[0] = 1;
@@ -1829,10 +1837,12 @@ sdword HandleEvent (const SDL_Event* pEvent)
                             mbDouble[0] = 0;
                         }
                         mbDownTime[0] = curr_time;
+                        mbDoublePosX = mbTempPosX;
+                        mbDoublePosY = mbTempPosY;
                     break;
 
                     case SDL_BUTTON_MIDDLE:
-                        if (!mbDouble[1] && curr_time - mbDownTime[1] <= 500)
+                        if ((!mbDouble[1] && curr_time - mbDownTime[1] <= 500) && mbDoubleValid)
                         {
                             keyPressDown(MMOUSE_DOUBLE);
                             mbDouble[1] = 1;
@@ -1843,10 +1853,12 @@ sdword HandleEvent (const SDL_Event* pEvent)
                             mbDouble[1] = 0;
                         }
                         mbDownTime[1] = curr_time;
+                        mbDoublePosX = mbTempPosX;
+                        mbDoublePosY = mbTempPosY;
                     break;
 
                     case SDL_BUTTON_RIGHT:
-                        if (!mbDouble[2] && curr_time - mbDownTime[2] <= 500)
+                        if ((!mbDouble[2] && curr_time - mbDownTime[2] <= 500) && mbDoubleValid)
                         {
                             keyPressDown(RMOUSE_DOUBLE);
                             mbDouble[2] = 1;
@@ -1857,6 +1869,8 @@ sdword HandleEvent (const SDL_Event* pEvent)
                             mbDouble[2] = 0;
                         }
                         mbDownTime[2] = curr_time;
+                        mbDoublePosX = mbTempPosX;
+                        mbDoublePosY = mbTempPosY;
                     break;
 
                }
@@ -1874,6 +1888,7 @@ sdword HandleEvent (const SDL_Event* pEvent)
             }
 
         case SDL_MOUSEBUTTONUP:
+            //dbgMessagef("Mouse up: 0x%hhx - %d", pEvent->button.button, mouseDisabled);
             if (!mouseDisabled)
             {
                 switch (pEvent->button.button)
