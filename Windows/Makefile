@@ -65,8 +65,11 @@ all: $(BINDIR)
 
 $(BINDIR): $(BINDIR)/hw.exe $(BINDIR)/hw.pdb
 
-$(BINDIR)/hw.exe: $(MODULES:%=$(BUILDDIR)/%.o) Makefile
-	$(EMXX) $(filter %.o,$^) -o $@ $(EMXXLINK)
+hw.res: hw.rc
+	windres.exe hw.rc -O coff -o hw.res
+
+$(BINDIR)/hw.exe: $(MODULES:%=$(BUILDDIR)/%.o) hw.res Makefile
+	$(EMXX) $(filter %.o,$^) hw.res -o $@ $(EMXXLINK)
 
 $(BUILDDIR)/%.o: % Makefile
 	@mkdir -p $(dir $@)
