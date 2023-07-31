@@ -13,6 +13,7 @@
 *.c.d
 
 windows/bin/*
+windows/hw.res
 
 big.contents/
 assets_oem/
@@ -32,6 +33,8 @@ tools/kas2c/kas2c
 tools/kas2c/lexer.c
 tools/kas2c/parser.c
 tools/kas2c/parser.h
+
+tools/x86_64/*.exe
 
 Linux/Makefile
 Linux/config.h
