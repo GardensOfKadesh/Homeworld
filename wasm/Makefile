@@ -8,7 +8,7 @@ JPG_MODULES = interfce.c \
               jddctmgr.c jdhuff.c jdinput.c jdmainct.c jdmarker.c jdmaster.c \
               jdmerge.c jdpostct.c jdsample.c jdtrans.c jerror.c jfdctflt.c \
               jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c jquant1.c \
-              jquant2.c jutils.c jmemmgr.c jmemansi.c
+              jquant2.c jutils.c jmemmgr.c jmemnobs.c
 
 SRCDIR = ../src
 MODULES = $(wildcard $(SRCDIR)/SDL/*.c) \
