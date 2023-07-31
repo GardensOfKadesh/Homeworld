@@ -873,7 +873,8 @@ void versionNumDraw(featom *atom, regionhandle region)
 
     primRectSolid2(&region->rect, colBlack);
 
-    strcpy(versionstr, strGetString(strVersion));
+    //strcpy(versionstr, strGetString(strVersion));
+    strcpy(versionstr, "Homeworld:");
     strcat(versionstr, " ");
     strcat(versionstr, networkVersion);
     strcat(versionstr, ".");

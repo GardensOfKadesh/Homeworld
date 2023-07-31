@@ -1,4 +1,4 @@
-GIT_VERSION = `git config --get remote.origin.url | sed -r 's/.*(\@|\/\/)(.*)(\:|\/)([^:\/]*)\/([^\/\.]*)\.git/https:\/\/\2\/\4\/\5/'` `git describe --always --dirty`
+GIT_VERSION = `git config --get remote.origin.url | sed -r 's/.*(\@|\/\/)(.*)(\:|\/)([^:\/]*)\/([^\/\.]*)\.git/https:\/\/\2\/\4\/\5/'` `git describe --tags --always --dirty=-dev`
 
 JPG_MODULES = interfce.c \
               jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c \

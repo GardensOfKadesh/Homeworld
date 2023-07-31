@@ -245,13 +245,13 @@ char networkVersion[MAX_NETWORKVERSION_STRING_LEN] =   "DLD_05";
 #elif defined(HW_GAME_RAIDER_RETREAT)
 char networkVersion[MAX_NETWORKVERSION_STRING_LEN] =   "OEMV1";
 #else
-char networkVersion[MAX_NETWORKVERSION_STRING_LEN] =   "HomeworldV1C";
+char networkVersion[MAX_NETWORKVERSION_STRING_LEN] =   "Gardens of Kadesh 0";
 #endif
 
 #if defined(HW_GAME_RAIDER_RETREAT)
 char minorBuildVersion[] = "051";
 #else
-char minorBuildVersion[] = "06.1";
+char minorBuildVersion[] = "001";
 #endif
 char languageVersion[50] = "";    // constructed at beginning of program
 
