@@ -49,7 +49,7 @@
 //  the retail version.
 bool CompareBigfiles =
 #ifdef HW_BUILD_FOR_DISTRIBUTION
-    FALSE
+    TRUE
 #else
     TRUE
 #endif
@@ -67,6 +67,13 @@ bool LogFileLoads = FALSE;
 
 
 bigFileConfiguration bigFilePrecedence[] = {
+    {
+        "HomeworldMod.big",      // bigFileName
+        FALSE,                      // required
+        NULL,                       // filePtr
+        UNINITIALISED_BIG_TOC,      // tableOfContents
+        NULL,                       // localFileRelativeAge
+    },
     {
         "HomeworldSDL.big",         // bigFileName
         FALSE,                      // required
@@ -2564,11 +2571,11 @@ bool bigOpenAllBigFiles(void)
                 bigFilePrecedence[bigfile_i].bigFileName);
 
             bigFilePrecedence[bigfile_i].localFileRelativeAge
-                = memAlloc(bigFilePrecedence[bigfile_i].tableOfContents.numFiles,
+                = memAlloc(bigFilePrecedence[bigfile_i].tableOfContents.numFiles * sizeof(bigLocalFileAgeComparison),
                            "bigLocalFileRelativeAge", 0);                   // 0 => no memAlloc flags
 
             memset(bigFilePrecedence[bigfile_i].localFileRelativeAge,
-                0, bigFilePrecedence[bigfile_i].tableOfContents.numFiles);  // 0 = LOCAL_FILE_DOES_NOT_EXIST
+                0, bigFilePrecedence[bigfile_i].tableOfContents.numFiles * sizeof(bigLocalFileAgeComparison));  // 0 = LOCAL_FILE_DOES_NOT_EXIST
         }
     }
 
@@ -2776,7 +2783,7 @@ void bigFilesystemCompare(char *baseDirectory, char *directory)
 #ifdef HW_BUILD_FOR_DEBUGGING
                     if (bigFilePrecedence[bigfile_i].localFileRelativeAge[fileNum] == LOCAL_FILE_IS_NEWER)
                     {
-                        dbgMessagef("    %s", subpath);
+                        dbgMessagef("%d %d    %s", bigfile_i, fileNum, subpath);
                     }
 #endif
                 }

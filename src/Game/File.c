@@ -1213,6 +1213,9 @@ filehandle fileOpen(char *_fileName, udword flags)
 
         if (usingBigfile)  // common stuff, whether it's in the main or update bigfile
         {
+            if (LogFileLoads) {
+                logfileLogf(FILELOADSLOG, "%s | ", whereFound->bigFileName);
+            }
             if ((filesOpen[fh].bigTOC->fileEntries + fileIndex)->compressionType)
             {
                 // compressed file
