@@ -2654,10 +2654,8 @@ docapslock:
             break;
 
         case SS_SCREENSHOT_KEY:
-#ifdef _MACOSX
         case SS_SCREENSHOT_KEY_2:
         //case SS_SCREENSHOT_KEY_3:
-#endif
             soundEvent(NULL, UI_Click);
             rndTakeScreenshot = TRUE;
             break;

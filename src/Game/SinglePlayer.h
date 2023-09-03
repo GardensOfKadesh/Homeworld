@@ -188,6 +188,8 @@ void singlePlayerGameCleanup(void);
 void singlePlayerGameUpdate();
 void singlePlayerLoadNewLevel(void);
 void singlePlayerStartGame(void);
+void singlePlayerNextLevel(void);
+void spGoNowHyperspace();
 
 void singlePlayerShipDied(Ship *ship);
 

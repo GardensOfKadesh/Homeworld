@@ -20,6 +20,7 @@
 
 
 #define SS_SCREENSHOT_KEY   SCROLLKEY
+#define SS_SCREENSHOT_KEY_2  F14KEY
 
 #ifdef _MACOSX
     // MAC OS X captures high F-keys for system functions like monitor
@@ -34,6 +35,6 @@
 #endif
 
 
-void ssTakeScreenshot(void);
+void ssTakeScreenshot(char* filename);
 
 #endif

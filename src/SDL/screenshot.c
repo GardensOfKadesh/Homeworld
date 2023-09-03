@@ -27,7 +27,7 @@
 #endif
 
 static void _ssAppendScreenshotFilename(char* savePath);
-static void _ssSaveScreenshot(ubyte* buf);
+static void _ssSaveScreenshot(ubyte* buf, char* targetFilename);
 
 
 // =============================================================================
@@ -50,7 +50,7 @@ static void _ssAppendScreenshotFilename(char* savePath)
         time(&now);
         timeStruct = *localtime(&now);
         
-        strftime(imageName, sizeof(imageName), "shot_%Y%m%d_%H%M%S_%Z.jpg", &timeStruct);
+        strftime(imageName, sizeof(imageName), "shot_%Y%m%d_%H%M%S.jpg", &timeStruct);
 
         strcpy(imagePath, savePath);
         strcat(imagePath, imageName);
@@ -75,7 +75,7 @@ static void _ssAppendScreenshotFilename(char* savePath)
 }
 
 
-static void _ssSaveScreenshot(ubyte* buf)
+static void _ssSaveScreenshot(ubyte* buf, char* targetFilename)
 {
     char *fname;
     FILE* out;
@@ -88,7 +88,12 @@ static void _ssSaveScreenshot(ubyte* buf)
     if (!fileMakeDirectory(fname))
         return;
 
-    _ssAppendScreenshotFilename(fname);
+    if (!targetFilename)
+    {
+        _ssAppendScreenshotFilename(fname);
+    } else {
+        strcat(fname, targetFilename);
+    }
 
 #if SS_VERBOSE_LEVEL >= 1
     dbgMessagef("Saving %dx%d screenshot to '%s'.", MAIN_WindowWidth, MAIN_WindowHeight, fname);
@@ -123,7 +128,7 @@ static void _ssSaveScreenshot(ubyte* buf)
     jp.height = MAIN_WindowHeight;
     jp.output_file = out;
     jp.aritcoding = 0;
-    jp.quality = 97;
+    jp.quality = 100;
 
     JpegWrite(&jp);
 
@@ -131,7 +136,7 @@ static void _ssSaveScreenshot(ubyte* buf)
 }
 
 
-void ssTakeScreenshot(void)
+void ssTakeScreenshot(char* filename)
 {
     ubyte* screenshot_buffer =
 #ifdef _WIN32
@@ -149,7 +154,7 @@ void ssTakeScreenshot(void)
         glReadPixels(0, 0, MAIN_WindowWidth, MAIN_WindowHeight,
             GL_RGB, GL_UNSIGNED_BYTE, screenshot_buffer);
             
-        _ssSaveScreenshot(screenshot_buffer);
+        _ssSaveScreenshot(screenshot_buffer, filename);
 
 #ifdef _WIN32
         result = VirtualFree(screenshot_buffer, 0, MEM_RELEASE);

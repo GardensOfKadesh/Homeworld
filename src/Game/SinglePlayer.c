@@ -692,6 +692,11 @@ void spAbortHyperspaceCB(char *string, featom *atom)
     }
 }
 
+void spGoNowHyperspace()
+{
+    spGoNowHyperspaceCB(NULL, NULL);
+}
+
 void spGoNowHyperspaceCB(char *string, featom *atom)
 {
     if (singlePlayerGameInfo.hyperspaceState == HYPERSPACE_WAITINGROLLCALL)

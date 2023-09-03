@@ -105,6 +105,8 @@
 #define DISABLE_RANDOM_STARS  0     // turn off drawing of random stars over background
 
 
+extern bool debugScreenshots;
+extern bool hyperspaceOverride;
 
 bool8 rndFogOn = FALSE;
 
@@ -4005,29 +4007,86 @@ DEFINE_TASK(rndRenderTask)
 
         //take a screenshot or sequence thereof
         if (keyIsStuck(SS_SCREENSHOT_KEY)
-#ifdef _MACOSX
         ||  keyIsStuck(SS_SCREENSHOT_KEY_2)
         //||  keyIsStuck(SS_SCREENSHOT_KEY_3)
-#endif
             )
         {
             rndTakeScreenshot = TRUE;
 
             keyClearSticky(SS_SCREENSHOT_KEY);
-#ifdef _MACOSX
             keyClearSticky(SS_SCREENSHOT_KEY_2);
             //keyClearSticky(SS_SCREENSHOT_KEY_3);
-#endif
         }
         else if (keyIsStuck(PAUSEKEY))
         {
             keyClearSticky(PAUSEKEY);
         }
 
+        // Automatic screenshot generation for render debugging
+        if(debugScreenshots)
+        {
+            char screenshotName[64];
+            static sdword screenshotMission = 0;
+            static sdword screenshotTimer = 128 * UNIVERSE_UPDATE_RATE_FACTOR;
+            if (screenshotMission != spGetCurrentMission())
+            {
+                screenshotTimer = 128 * UNIVERSE_UPDATE_RATE_FACTOR;
+                screenshotMission = spGetCurrentMission();
+            }
+
+            if (universe.univUpdateCounter >= screenshotTimer)
+            {
+                printf("cnt: %d\n", universe.univUpdateCounter);
+                screenshotTimer += 112 * UNIVERSE_UPDATE_RATE_FACTOR;
+                sprintf(screenshotName, "golden-%02d-%05d.jpg", spGetCurrentMission(), universe.univUpdateCounter/UNIVERSE_UPDATE_RATE_FACTOR);
+                ssTakeScreenshot(screenshotName);
+            }
+
+            if (universe.univUpdateCounter > 800 * UNIVERSE_UPDATE_RATE_FACTOR)
+            {
+                
+                if (thisNisPlaying)
+                {
+                    nisGoToEnd(thisNisPlaying);
+                    printf("nisGoToEnd()\n");
+                }
+                
+                //printf("keyPressDown() ESC\n");
+                //keyPressDown(SDL_SCANCODE_ESCAPE);
+            }
+            
+            if (universe.univUpdateCounter > 816 * UNIVERSE_UPDATE_RATE_FACTOR)
+            {
+                if (spGetCurrentMission() == MISSION_16_HIIGARA)
+                {
+                    utyGameQuit(NULL, NULL);    
+                }
+
+                if (singlePlayerGameInfo.hyperspaceState == NO_HYPERSPACE)
+                {
+                    printf("singlePlayerNextLevel()\n");
+                    hyperspaceOverride = TRUE;
+                    singlePlayerNextLevel();
+                    //spHyperspaceButtonPushed();
+                }
+            }
+            
+            if (universe.univUpdateCounter > 832 * UNIVERSE_UPDATE_RATE_FACTOR)
+            {
+                if ((universe.univUpdateCounter%(16 * UNIVERSE_UPDATE_RATE_FACTOR) == 0) && (singlePlayerGameInfo.hyperspaceState == HYPERSPACE_WAITINGROLLCALL))
+                {
+                    printf("keyPressDown()\n");
+                    keyPressDown(SDL_SCANCODE_SPACE);
+                }
+            }
+            
+            
+        }
+
         if (rndTakeScreenshot)
         {
             rndTakeScreenshot = FALSE;
-            ssTakeScreenshot();
+            ssTakeScreenshot(NULL);
         }
 
         if (rndFillCounter)

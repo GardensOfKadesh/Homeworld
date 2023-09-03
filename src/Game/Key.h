@@ -126,6 +126,13 @@
 #define F10KEY                  SDL_SCANCODE_F10
 #define F11KEY                  SDL_SCANCODE_F11
 #define F12KEY                  SDL_SCANCODE_F12
+#define F13KEY                  SDL_SCANCODE_F13
+#define F14KEY                  SDL_SCANCODE_F14
+#define F15KEY                  SDL_SCANCODE_F15
+#define F16KEY                  SDL_SCANCODE_F16
+#define F17KEY                  SDL_SCANCODE_F17
+#define F18KEY                  SDL_SCANCODE_F18
+#define F19KEY                  SDL_SCANCODE_F19
 #define PRINTKEY                SDL_SCANCODE_PRINTSCREEN      // F13 on Apple Extended keyboard
 #define SCROLLKEY               SDL_SCANCODE_SCROLLLOCK  // F14 (caught by MacOSX: -brightness)
 #define PAUSEKEY                SDL_SCANCODE_PAUSE      // F15 (caught by MacOSX: +brightness)
