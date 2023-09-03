@@ -99,8 +99,8 @@
 #define TR_MaxCramIterations        5           //maximum number of times to try and fit things into RAM
 #define TR_MinimumSizeX             1           //minimum texture size
 #define TR_MinimumSizeY             1           //minimum texture size
-#define TR_TexSizesX                10          //number of sizes thereafter
-#define TR_TexSizesY                10          //1,2,4,8,16,32,64,128,256,512(512!)
+#define TR_TexSizesX                13          //number of sizes thereafter
+#define TR_TexSizesY                13          //1,2,4,8,16,32,64,128,256,512(512!)
 #define TR_SSBMinX                  0           //1 << TR_SSBMinX = TR_MinimumSizeX
 #define TR_SSBMinY                  0           //1 << TR_SSBMinY = TR_MinimumSizeY
 #define TR_PerScaleFactor           (10 * (TR_TexSizesX + TR_TexSizesY))//for adjusting scale factor per-size
@@ -133,8 +133,8 @@
 #define TR_UnusedColorPalette       colRGB(64, 255, 64)
 
 //maximum size of textures
-#define TR_TextureWidthMax          256
-#define TR_TextureHeightMax         256
+#define TR_TextureWidthMax          4096
+#define TR_TextureHeightMax         4096
 
 #define TR_MeshSortGrowBy           10
 

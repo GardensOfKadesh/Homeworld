@@ -1561,6 +1561,7 @@ void meshObjectPoints(polygonobject* object, materialentry* materials, sdword iC
     rndLightingEnable(lightOn);
     rndTextureEnable(texOn);
 }
+
 void meshObjectRender_original(polygonobject *object, materialentry *materials, sdword iColorScheme)
 {
     sdword iPoly;
@@ -1805,6 +1806,7 @@ void meshObjectRender_original(polygonobject *object, materialentry *materials, 
         }
     }
 }
+
 void meshObjectRender(polygonobject *object, materialentry *materials, sdword iColorScheme)
 {
     sdword iPoly;
@@ -1843,11 +1845,11 @@ void meshObjectRender(polygonobject *object, materialentry *materials, sdword iC
     normalList = object->pNormalList;                       //get base of normal list
     polygon = object->pPolygonList;                         //get first polygon list entry
 
-
-    static GLfloat vertex_buffer[4096];
-    static GLfloat texcoord_buffer[4096];
+    
+    static GLfloat vertex_buffer[4*4096];
+    static GLfloat texcoord_buffer[4*4096];
     //static GLfloat color_buffer[4096];
-    static GLfloat normal_buffer[4096];
+    static GLfloat normal_buffer[4*4096];
     static unsigned int vertex_count;
     static GLenum gl_mode;
 

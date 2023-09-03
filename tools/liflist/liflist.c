@@ -39,9 +39,9 @@
 #define LL_FileVersion              0x104
 #define LL_MaxElements              12000
 #define LL_MinWidth                 2
-#define LL_MaxWidth                 512
+#define LL_MaxWidth                 4096
 #define LL_MinHeight                2
-#define LL_MaxHeight                512
+#define LL_MaxHeight                4096
 #define LL_MaxTexEntries            1024
 //tokens defining special layers
 #define TR_ColoringThreshold        128

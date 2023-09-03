@@ -63,7 +63,7 @@ trrampool trRamPoolList[TR_NumberRamPools] =
 {
     {
         NULL,                                   //no real base
-        1024 * 1024 * 10,                       //n MB of texture RAM
+        1024 * 1024 * 256,                       //n MB of texture RAM
         0                                       //none used yet
     }
 };
@@ -2659,6 +2659,53 @@ llelement *trListFileLoad(char *name, sdword *number)
 }
 
 /*-----------------------------------------------------------------------------
+    Name        : trLiFMeasure
+    Description : Measure a .LiF file by loading it's header.
+    Inputs      : fileName - name of .LiF file
+    Outputs     : width, height, flags - out parameters for the file attributes
+    Return      : TRUE if the file measured OK, FALSE otherwise.
+----------------------------------------------------------------------------*/
+bool trLiFMeasure(char *fileName, sdword *width, sdword *height, udword *flags)
+{
+    filehandle handle;
+    lifheader header;
+
+    if (!fileExists(fileName, 0))
+    {
+        return(FALSE);
+    }
+    handle = fileOpen(fileName, 0);
+    fileBlockRead(handle, &header, sizeof(lifheader));
+    fileClose(handle);
+
+#if FIX_ENDIAN
+	header.version     = FIX_ENDIAN_INT_32( header.version );
+	header.flags       = FIX_ENDIAN_INT_32( header.flags );
+	header.width       = FIX_ENDIAN_INT_32( header.width );
+	header.height      = FIX_ENDIAN_INT_32( header.height );
+	header.paletteCRC  = FIX_ENDIAN_INT_32( header.paletteCRC );
+	header.imageCRC    = FIX_ENDIAN_INT_32( header.imageCRC );
+	header.data        = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.data );
+	header.palette     = ( color *)FIX_ENDIAN_INT_32( ( udword )header.palette );
+	header.teamEffect0 = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.teamEffect0 );
+	header.teamEffect1 = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.teamEffect1 );
+#endif
+
+    if (strcmp(header.ident, LIF_FileIdentifier))
+    {                                                       //verify proper file
+        return(FALSE);
+    }
+    if (header.version != LIF_FileVersion)
+    {
+        return(FALSE);
+    }
+    *width = header.width;
+    *height = header.height;
+    *flags = header.flags;
+    return(TRUE);
+}
+
+/*-----------------------------------------------------------------------------
     Name        : trImageMeasureFromListing
     Description : Get the dimensions of a named texture from the specified listing file
     Inputs      : name - name to look for
@@ -2672,6 +2719,7 @@ bool trImageMeasureFromListing(char *name, llelement *list, sdword listLength, s
 {
     sdword base = 0, index, length = listLength, result;
     char ch, name_cpy[PATH_MAX];
+    char fullName[PATH_MAX];
     unsigned int i;
 
     /* I've successfully gone and crapped all over the file names by mixing in
@@ -2690,14 +2738,31 @@ bool trImageMeasureFromListing(char *name, llelement *list, sdword listLength, s
             *width = list[index].width;
             *height = list[index].height;
             *flags = list[index].flags;
+            //dbgMessagef("measureFromListing: '%s' %dx%d", name, *width, *height);
             if (list[index].sharedFrom < 0)
             {
                 *sharedFrom = NULL;
+                //dbgMessagef("measureFromListing: '%s'.", name);
+
+                strcpy(fullName, name);
+                strcat(fullName, ".LiF");
             }
             else
             {
                 *sharedFrom = list[list[index].sharedFrom].textureName;
+                //dbgMessagef("measureFromListing: '%s' sF '%s'.", name, *sharedFrom);
+
+                strcpy(fullName, *sharedFrom);
+                strcat(fullName, ".LiF");
             }
+            if(!trLiFMeasure(fullName, width, height, flags))
+            {
+                *width = list[index].width;
+                *height = list[index].height;
+                //dbgMessagef("measureFromListing: using measures from Listing");
+            }
+            *flags = list[index].flags;
+
             return(TRUE);                                   //done searching
         }
         if (result < 0)
@@ -2746,52 +2811,6 @@ void trSharedFilenameCreate(sdword trIndex, llelement *lifListing, sdword listin
     bitSet(reg->flags, TRF_SharedFileName);
 }
 
-/*-----------------------------------------------------------------------------
-    Name        : trLiFMeasure
-    Description : Measure a .LiF file by loading it's header.
-    Inputs      : fileName - name of .LiF file
-    Outputs     : width, height, flags - out parameters for the file attributes
-    Return      : TRUE if the file measured OK, FALSE otherwise.
-----------------------------------------------------------------------------*/
-bool trLiFMeasure(char *fileName, sdword *width, sdword *height, udword *flags)
-{
-    filehandle handle;
-    lifheader header;
-
-    if (!fileExists(fileName, 0))
-    {
-        return(FALSE);
-    }
-    handle = fileOpen(fileName, 0);
-    fileBlockRead(handle, &header, sizeof(lifheader));
-    fileClose(handle);
-
-#if FIX_ENDIAN
-	header.version     = FIX_ENDIAN_INT_32( header.version );
-	header.flags       = FIX_ENDIAN_INT_32( header.flags );
-	header.width       = FIX_ENDIAN_INT_32( header.width );
-	header.height      = FIX_ENDIAN_INT_32( header.height );
-	header.paletteCRC  = FIX_ENDIAN_INT_32( header.paletteCRC );
-	header.imageCRC    = FIX_ENDIAN_INT_32( header.imageCRC );
-	header.data        = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.data );
-	header.palette     = ( color *)FIX_ENDIAN_INT_32( ( udword )header.palette );
-	header.teamEffect0 = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.teamEffect0 );
-	header.teamEffect1 = ( ubyte *)FIX_ENDIAN_INT_32( ( udword )header.teamEffect1 );
-#endif
-
-    if (strcmp(header.ident, LIF_FileIdentifier))
-    {                                                       //verify proper file
-        return(FALSE);
-    }
-    if (header.version != LIF_FileVersion)
-    {
-        return(FALSE);
-    }
-    *width = header.width;
-    *height = header.height;
-    *flags = header.flags;
-    return(TRUE);
-}
 
 /*-----------------------------------------------------------------------------
     Name        : trRegistryRefresh
@@ -2875,44 +2894,45 @@ void trRegistryRefresh(void)
                 }
                 */
                 //... get width/height/flags trying several methods
-                if (!trImageMeasureFromListing(reg->fileName, lifListing, listingLength, &width, &height, &listFlags, &pSharedFrom))
+
+                strcpy(fullName, reg->fileName);
+                strcat(fullName, ".LiF");
+
+                if (trLiFMeasure(fullName, &width, &height, &listFlags))
                 {
 #if TR_VERBOSE_LEVEL >= 1
-                    dbgMessagef("Image '%s' not found in listing", reg->fileName);
+                    dbgMessagef("regular .LiF %s", reg->fileName);
 #endif
-                    strcpy(fullName, reg->fileName);
-                    strcat(fullName, ".LiF");
-                    if (trLiFMeasure(fullName, &width, &height, &listFlags))
-                    {
-#if TR_VERBOSE_LEVEL >= 1
-                        dbgMessagef("...regular .LiF", reg->fileName);
-#endif
-                        reg->diskWidth = (sword)width;
-                        reg->diskHeight = (sword)height;
+                    reg->diskWidth = (sword)width;
+                    reg->diskHeight = (sword)height;
 #if TR_ERROR_CHECKING
-                        if ((reg->flags & TRM_CompareFlags) != (listFlags & TRM_CompareFlags))
-                        {
-                            dbgWarningf(DBG_Loc, "Texture '%s' flags from listing inconsistent with expected.", reg->fileName);
-                        }
+                    if ((reg->flags & TRM_CompareFlags) != (listFlags & TRM_CompareFlags))
+                    {
+                        dbgWarningf(DBG_Loc, "Texture '%s' flags from listing inconsistent with expected.", reg->fileName);
+                    }
 #endif
-                        reg->flags |= (uword)listFlags & TRM_ListFlag;//plug these flags straight in
-                        if (bitTest(reg->flags, TRF_Alpha))
-                        {                                   //if image says it's alpha
-                            bitClear(reg->flags, TRF_Paletted); //it can't be paletted
-                        }
-                        else
-                        {
-                            bitSet(reg->flags, TRF_Paletted);
-                        }
+                    reg->flags |= (uword)listFlags & TRM_ListFlag;//plug these flags straight in
+                    if (bitTest(reg->flags, TRF_Alpha))
+                    {                                   //if image says it's alpha
+                        bitClear(reg->flags, TRF_Paletted); //it can't be paletted
                     }
                     else
                     {
-                        dbgMessagef("Cannot open '%s'. index=%d", fullName,index);
-                        dbgFatalf(DBG_Loc, "Cannot open '%s'. index=%d", fullName,index);
+                        bitSet(reg->flags, TRF_Paletted);
                     }
+                
+                    
+                    //dbgMessagef("Cannot open '%s'. index=%d", fullName,index);
+                    //dbgFatalf(DBG_Loc, "Cannot open '%s'. index=%d", fullName,index);
+
                 }
                 else
                 {                                           //else the list search measurment worked
+#if TR_VERBOSE_LEVEL >= 1
+                    dbgMessagef("listing .LiF %s", reg->fileName);
+#endif
+                    trImageMeasureFromListing(reg->fileName, lifListing, listingLength, &width, &height, &listFlags, &pSharedFrom);
+
                     reg->diskWidth = (sword)width;
                     reg->diskHeight = (sword)height;
                     reg->flags |= (ubyte)(listFlags & TRM_ListFlag);//plug these flags straight in
@@ -2922,6 +2942,9 @@ void trRegistryRefresh(void)
                     }
                     else
                     {                                       //this texture is shared
+#if TR_VERBOSE_LEVEL >= 1
+                        dbgMessagef("-> .LiF %s", pSharedFrom);
+#endif
                         reg->sharedFrom = trFindTextureIndexByName(pSharedFrom);//find what texture it's shared to
                         if (reg->sharedFrom == TR_NotShared)
                         {                                   //the share parent is not loaded
@@ -3984,6 +4007,7 @@ void trNoPalResizePool(sdword mb)
 #ifdef HW_BUILD_FOR_DEBUGGING
     dbgMessagef("trNoPalResizePool: %dMB", mb);
 #endif
+    if (mb < 256) mb = 256;
     trNoPalMaxBytes = mb << 20;
     trNoPalReadjust();
 }

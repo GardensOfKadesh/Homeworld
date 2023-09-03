@@ -7,6 +7,11 @@
 #include <strings.h>
 #include <assert.h>
 
+#include "SDL2/SDL.h"
+
+#ifdef __cplusplus
+extern "C"
+#endif
 int 
 main (int argc, char *argv[])
 {

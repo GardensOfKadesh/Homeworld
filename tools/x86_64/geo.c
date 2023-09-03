@@ -7,6 +7,9 @@
 #include <strings.h>
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C"
+#endif
 int 
 main (int argc, char *argv[])
 {
@@ -87,7 +90,7 @@ main (int argc, char *argv[])
 //      strcpy(newHeader + offset,oldHeader + (Uint64)oldHeader->pName);
 //      offset += strlen(oldHeader + (Uint64)oldHeader->pName);
     }
-    newHeader->fileSize = oldHeader->fileSize;
+    //newHeader->fileSize = oldHeader->fileSize;
     newHeader->localSize = oldHeader->localSize;
     newHeader->nPublicMaterials = oldHeader->nPublicMaterials;
     newHeader->nLocalMaterials = oldHeader->nLocalMaterials;
@@ -243,7 +246,7 @@ main (int argc, char *argv[])
 
 
 
-    newHeader->fileSize= offset - sizeof (struct tagGeoFileHeader_disk);
+    //newHeader->fileSize= offset - sizeof (struct tagGeoFileHeader_disk);
 //    newHeader->localSize = 
 
 
