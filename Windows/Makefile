@@ -20,7 +20,7 @@ MODULES = $(wildcard $(SRCDIR)/SDL/*.c) \
           $(wildcard $(SRCDIR)/ThirdParty/LZSS/*.c) \
 
 
-BUILDDIR = build
+BUILDDIR = build/build
 BINDIR = bin
 
 
@@ -80,4 +80,4 @@ $(BINDIR)/hw.pdb: $(BINDIR)/hw.exe
 	.\cv2pdb\cv2pdb.exe bin\hw.exe
 
 clean:
-	rm -rf $(BUILDDIR)/* $(BINDIR)/*
+	rm -rf build/* $(BUILDDIR)/* $(BINDIR)/hw.exe
