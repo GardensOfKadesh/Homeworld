@@ -3,11 +3,18 @@ project('homeworld',
         version: '1.2.0',
         default_options: ['warning_level=3', 'c_std=c17', 'b_sanitize=address,undefined'])
 
-dep_x11 = dependency('x11')
-dep_gl = dependency('gl')
+if get_option('b_sanitize') != 'none'
+	warning('Building with memory sanitizers on. If linking fails, pass "-Db_sanitize=none" to `meson setup`.')
+endif
+
 dep_sdl = dependency('sdl2')
-dep_sdl_img = dependency('SDL2_image')
-dep_math = meson.get_compiler('c').find_library('m', required: false)
+
+base_deps = [
+	dependency('gl'),
+	dep_sdl,
+	dependency('SDL2_image'),
+	meson.get_compiler('c').find_library('m', required: false),
+]
 
 c_base_args = ['-DHW_GAME_HOMEWORLD']
 c_base_args += ['-DHAVE_CONFIG_H', '-D_REENTRANT']
@@ -24,8 +31,10 @@ elif build_machine.cpu_family() in ['arm', 'aarch64']
 endif
 
 if build_machine.system() == 'linux'
+	base_deps += [dependency('x11')]
 	c_base_args += ['-D_LINUX_FIX_ME', '-D_GNU_SOURCE']
 elif build_machine.system() == 'darwin'
+	base_deps += [dependency('x11')]
 	c_base_args += ['-D__APPLE___FIX_ANIM', '-D__APPLE___FIX_LAN', '-D__APPLE___FIX_MISC', '-DGENERIC_ETGCALLFUNCTION']
 
 	if build_machine.cpu_family() == 'x86_64'
@@ -34,7 +43,7 @@ elif build_machine.system() == 'darwin'
 		c_base_args += ['-D__APPLE___86', '-D__APPLE___FIX_86']
 	endif
 elif build_machine.system() == 'windows'
-
+	c_base_args += ['-D_LINUX_FIX_ME', '-D_GNU_SOURCE', '-D_WIN32', '-DWIN32', '-DWINDOWS']
 endif
 
 if get_option('debug') and get_option('debug_asserts')
@@ -56,6 +65,6 @@ executable(meson.project_name(),
            src,
            include_directories: inc_src,
            link_with: [lib_sdl],
-           dependencies: [dep_x11, dep_gl, dep_sdl, dep_math, dep_sdl_img],
+           dependencies: base_deps,
            c_args: c_args,
            install: true)
