@@ -2051,6 +2051,10 @@ void main_loop() {
 
         if (event.type == SDL_QUIT) {
             SDL_Quit();
+            EM_ASM(
+                // Send back to root URL
+                location.href = "/";
+            );
         }
     }
 
@@ -2259,10 +2263,11 @@ int main (int argc, char* argv[])
                 HandleEvent(&event);
 
                 if (event.type == SDL_QUIT) {
-                    SDL_Quit();
+                    breakMainLoop = TRUE;
                     break;
                 }
             }
+            if (breakMainLoop) break;
 
             utyTasksDispatch(); // execute all tasks
 
