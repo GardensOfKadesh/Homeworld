@@ -521,7 +521,7 @@ void mouseClipToRect(rectangle *rect)
         mouseClipRect = *rect;
         SDL_GetRelativeMouseState(&x, &y); // prime the next poll to start at 0,0
     }
-    SDL_SetRelativeMouseMode(mouseClip);
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 
