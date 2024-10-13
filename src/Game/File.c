@@ -667,8 +667,7 @@ static bool8 fileNameCorrectCase (char* fileName)
     Inputs      : directoryName - Name of the directory to create.
     Return      : TRUE if successful, FALSE if not.
 ----------------------------------------------------------------------------*/
-bool8 fileMakeDirectory (const char* directoryName)
-{
+bool8 fileMakeDirectory(char const* directoryName) {
     char directoryCopy[PATH_MAX + 1];
     size_t directoryLen;
 
@@ -770,7 +769,6 @@ bool8 fileMakeDirectory (const char* directoryName)
     return TRUE;
 }
 
-
 /*-----------------------------------------------------------------------------
     Name        : fileMakeDestinationDirectory
     Description : Creates the directory in which the given file resides.
@@ -778,8 +776,7 @@ bool8 fileMakeDirectory (const char* directoryName)
     Return      : TRUE if the directory exists or could be created, FALSE if
                   not.
 ----------------------------------------------------------------------------*/
-bool8 fileMakeDestinationDirectory (const char* fileName)
-{
+bool8 fileMakeDestinationDirectory(char const* fileName) {
     char directoryName[PATH_MAX + 1];
     char* pChar0;
     char* pChar1;
@@ -805,7 +802,6 @@ bool8 fileMakeDestinationDirectory (const char* fileName)
 
     return fileMakeDirectory(directoryName);
 }
-
 
 /*-----------------------------------------------------------------------------
     Name        : fileLoadAlloc
@@ -1293,7 +1289,11 @@ filehandle fileOpen(char *_fileName, udword flags)
 
     // resort to the good old disk filesystem
 
-    fileName = filePathPrepend(_fileName, flags);            //get full path
+    if (localFileExists) {
+        fileName = localPath;
+    } else {
+        fileName = filePathPrepend(_fileName, flags); // get full path
+    }
     fileNameCorrectCase(fileName);
 
     if (bitTest(flags, FF_AppendMode))
