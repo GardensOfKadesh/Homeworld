@@ -1015,6 +1015,11 @@ bool32 setupPixelFormat()
 
 	SDL_ShowCursor(SDL_DISABLE);
 
+    // query actual resolution we render into (e.g. in fullscreen desktop mode it may be different from requested)
+    SDL_GL_GetDrawableSize(sdlwindow, &MAIN_WindowWidthActual, &MAIN_WindowHeightActual);
+    printf("UI resolution: %dx%d\n", MAIN_WindowWidth, MAIN_WindowHeight);
+    printf("Render resolution: %dx%d\n", MAIN_WindowWidthActual, MAIN_WindowHeightActual);
+
 	lastWidth  = MAIN_WindowWidth;
 	lastHeight = MAIN_WindowHeight;
 	lastDepth  = MAIN_WindowDepth;

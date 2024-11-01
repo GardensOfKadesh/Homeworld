@@ -106,6 +106,9 @@ extern sdword mainReinitRenderer;
 extern sdword MAIN_WindowWidth;
 extern sdword MAIN_WindowHeight;
 extern sdword MAIN_WindowDepth;
+extern sdword MAIN_WindowWidthActual;
+extern sdword MAIN_WindowHeightActual;
+
 
 extern sdword mainWindowWidth;
 extern sdword mainWindowHeight;

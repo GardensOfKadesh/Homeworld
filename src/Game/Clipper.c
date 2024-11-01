@@ -7,6 +7,7 @@
 // =============================================================================
 
 #include "Clipper.h"
+#include "main.h"
 
 #include "glinc.h"
 
@@ -432,6 +433,11 @@ bool32 clipPointToScreenWithMatrices(
     viewportS.x = (real32)param[2] / 2.0f;
     viewportS.y = (real32)param[3] / 2.0f;
     viewportS.z = DEPTH_SCALE * ((1.0f - 0.0f) / 2.0f);
+
+    // scale viewport to match actual window size (e.g. for fullscreen windowed mode where target resolution != desktop resolution)
+    viewportS.x *= (real32)MAIN_WindowWidth/MAIN_WindowWidthActual;
+    viewportS.y *= (real32)MAIN_WindowHeight/MAIN_WindowHeightActual;
+
     viewportT.x = viewportS.x + (real32)param[0];
     viewportT.y = viewportS.y + (real32)param[1];
     viewportT.z = DEPTH_SCALE * ((1.0f - 0.0f) / 2.0f + 0.0f);
@@ -621,6 +627,11 @@ bool32 clipLineToScreen(
     viewportS.x = (real32)param[2] / 2.0f;
     viewportS.y = (real32)param[3] / 2.0f;
     viewportS.z = DEPTH_SCALE * ((1.0f - 0.0f) / 2.0f);
+
+    // scale viewport to match actual window size (e.g. for fullscreen windowed mode where target resolution != desktop resolution)
+    viewportS.x *= (real32)MAIN_WindowWidth/MAIN_WindowWidthActual;
+    viewportS.y *= (real32)MAIN_WindowHeight/MAIN_WindowHeightActual;
+
     viewportT.x = viewportS.x + (real32)param[0];
     viewportT.y = viewportS.y + (real32)param[1];
     viewportT.z = DEPTH_SCALE * ((1.0f - 0.0f) / 2.0f + 0.0f);

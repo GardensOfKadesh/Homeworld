@@ -498,7 +498,7 @@ void mousePositionSet(sdword x, sdword y)
     */
 
     if (!mouseClip)
-        SDL_WarpMouseInWindow(NULL, x, y);
+        SDL_WarpMouseInWindow(NULL, x * (real32)MAIN_WindowWidthActual/(real32)MAIN_WindowWidth, y * (real32)MAIN_WindowHeightActual/(real32)MAIN_WindowHeight);
 }
 
 /*-----------------------------------------------------------------------------
@@ -1850,14 +1850,18 @@ void mousePoll(void)
     if (mouseClip)
     {
         SDL_GetRelativeMouseState(&tmpX, &tmpY);
-        mouseCursorXPosition += tmpX;
-        mouseCursorYPosition += tmpY;
+        mouseCursorXPosition += tmpX * (real32)MAIN_WindowWidth / (real32)MAIN_WindowWidthActual;
+        mouseCursorYPosition += tmpY * (real32)MAIN_WindowHeight / (real32)MAIN_WindowHeightActual;
         mouseClipPointToRect(&mouseCursorXPosition, &mouseCursorYPosition, &mouseClipRect);
         mousePositionSet(mouseCursorXPosition, mouseCursorYPosition);
     }
     else
     {
         SDL_GetMouseState(&mouseCursorXPosition, &mouseCursorYPosition);
+
+        // scale the mouse position to the UI resolution in case render resolution is different
+        mouseCursorXPosition = (sdword)((real32)mouseCursorXPosition * (real32)MAIN_WindowWidth / (real32)MAIN_WindowWidthActual);
+        mouseCursorYPosition = (sdword)((real32)mouseCursorYPosition * (real32)MAIN_WindowHeight / (real32)MAIN_WindowHeightActual);
     }
     //perform client area enter/exit logic to hide/show Windows system cursor
     /*

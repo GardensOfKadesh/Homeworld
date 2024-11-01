@@ -418,6 +418,7 @@ bool32 rinEnumeratePrimary(rdevice* dev)
             return FALSE;
     }
 
+/*
     for(i=SDL_GetNumDisplayModes(display_index); i>0; i--){
         if(SDL_GetDisplayMode(display_index, i-1, &mode)){
             dbgMessagef("Error in SDL_GetDisplayMode(): %d %s",i-1,SDL_GetError());
@@ -428,7 +429,23 @@ bool32 rinEnumeratePrimary(rdevice* dev)
             rinAddMode(dev, mode.w, mode.h, SDL_BITSPERPIXEL(mode.format));
         }
     }
+ */
+
+    // for windowed fullscreen mode we only want to offer modes that allow for
+    // perfect integer scaling to the desktop resolution
+    SDL_GetCurrentDisplayMode(display_index, &mode);
     
+    for(i=1; i < 10; i++)
+    {
+        if (mode.w % i == 0 && mode.h % i == 0)
+        {
+            if (mode.w/i >= 640 && mode.h/i >= 480)
+            {
+                rinAddMode(dev, mode.w/i, mode.h/i, SDL_BITSPERPIXEL(mode.format));
+            }
+        }
+    }
+
     return (dev->modes != 0);
 }
 

@@ -111,6 +111,8 @@ char ersWindowInit[] = "Error creating window";
 int MAIN_WindowWidth = 1024;
 int MAIN_WindowHeight = 768;
 int MAIN_WindowDepth = 32;
+int MAIN_WindowWidthActual;
+int MAIN_WindowHeightActual;
 
 sdword mainWidthAdd = 0;
 sdword mainHeightAdd = 0;
