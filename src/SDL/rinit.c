@@ -22,6 +22,10 @@
 #include "StringSupport.h"
 #include "Types.h"
 
+#ifdef _WIN32
+    #include <windows.h>
+#endif
+
 extern unsigned int mainSoftwareDirectDraw;
 extern unsigned int mainOutputCRC;
 
@@ -405,6 +409,10 @@ bool32 rinEnumeratePrimary(rdevice* dev)
 
     max_width = rinMaxWidth();
 
+#ifdef _WIN32
+    HRESULT hr = SetProcessDPIAware();
+#endif
+
     /* Make sure SDL video is initialized. */
     flags = SDL_WasInit(SDL_INIT_EVERYTHING);
     if (!flags)
@@ -434,6 +442,7 @@ bool32 rinEnumeratePrimary(rdevice* dev)
     // for windowed fullscreen mode we only want to offer modes that allow for
     // perfect integer scaling to the desktop resolution
     SDL_GetCurrentDisplayMode(display_index, &mode);
+    printf("Current display mode: %dx%d %d\n", mode.w, mode.h, SDL_BITSPERPIXEL(mode.format));
     
     for(i=1; i < 10; i++)
     {
