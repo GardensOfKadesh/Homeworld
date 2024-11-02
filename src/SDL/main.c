@@ -2050,12 +2050,27 @@ void main_loop() {
                     MAIN_WindowWidth = event.window.data1;
                     MAIN_WindowHeight = event.window.data2;
 
-                    // Sadly we cannot as easily have different render vs UI resolutions
-                    // as we can in the desktop fullscreen windowed version.
+                    // try to find an integer down scaled resolution for UI rendering
+                    for (i = 10; i > 0; i--)
+                    {
+                        // Since the browser window can be resized to any size, we need to allow
+                        // for a little more 'fuzziness' in the resolution selection.
+                        // Instead of requiring perfect pixel scaling, we allow for a 1 pixel difference.
+                        if ((MAIN_WindowWidth % i <= 1) && (MAIN_WindowHeight % i <= 1))
+                        {
+                            if ((MAIN_WindowWidth / i >= 640) && (MAIN_WindowHeight / i >= 480))
+                            {
+                                MAIN_WindowWidth /= i;
+                                MAIN_WindowHeight /= i;
+                                break;
+                            }
+                        }
+                    }
+
                     printf("UI resolution: %dx%d\n", MAIN_WindowWidth, MAIN_WindowHeight);
                     printf("Render resolution: %dx%d\n", MAIN_WindowWidthActual, MAIN_WindowHeightActual);
 
-                    (void)utyChangeResolution(MAIN_WindowWidth, MAIN_WindowHeight, MAIN_WindowDepth);
+                    (void)utyChangeResolution(MAIN_WindowWidthActual, MAIN_WindowHeightActual, MAIN_WindowDepth);
                 }
             }
         }
