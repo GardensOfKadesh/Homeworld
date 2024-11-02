@@ -2034,17 +2034,27 @@ void mainCleanupAfterVideo(void)
 
 #ifdef __EMSCRIPTEN__
 void main_loop() {
+    int i;
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         HandleEvent(&event);
 
         if (event.type == SDL_WINDOWEVENT) {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                printf("Resolution change: %d %d\n", event.window.data1, event.window.data2);
+                printf("Resolution change event!\n");
                 if ((event.window.data1 > 320) && (event.window.data2 > 240))
                 {
+                    MAIN_WindowWidthActual = event.window.data1;
+                    MAIN_WindowHeightActual = event.window.data2;
+
                     MAIN_WindowWidth = event.window.data1;
                     MAIN_WindowHeight = event.window.data2;
+
+                    // Sadly we cannot as easily have different render vs UI resolutions
+                    // as we can in the desktop fullscreen windowed version.
+                    printf("UI resolution: %dx%d\n", MAIN_WindowWidth, MAIN_WindowHeight);
+                    printf("Render resolution: %dx%d\n", MAIN_WindowWidthActual, MAIN_WindowHeightActual);
+
                     (void)utyChangeResolution(MAIN_WindowWidth, MAIN_WindowHeight, MAIN_WindowDepth);
                 }
             }
