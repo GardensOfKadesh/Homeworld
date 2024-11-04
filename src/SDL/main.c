@@ -2041,7 +2041,7 @@ void main_loop() {
 
         if (event.type == SDL_WINDOWEVENT) {
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                printf("Resolution change event!\n");
+                printf("Resolution change event: %dx%d!\n", event.window.data1, event.window.data2);
                 if ((event.window.data1 > 320) && (event.window.data2 > 240))
                 {
                     MAIN_WindowWidthActual = event.window.data1;
@@ -2062,6 +2062,10 @@ void main_loop() {
                             {
                                 MAIN_WindowWidth /= i;
                                 MAIN_WindowHeight /= i;
+
+                                // Calculate the actual render resolution. This might be off by a few pixels
+                                MAIN_WindowWidthActual = MAIN_WindowWidth * i;
+                                MAIN_WindowHeightActual = MAIN_WindowHeight * i;
                                 break;
                             }
                         }

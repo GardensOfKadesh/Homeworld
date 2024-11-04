@@ -497,10 +497,8 @@ void mousePositionSet(sdword x, sdword y)
     SetCursorPos(mousePoint.x, mousePoint.y);               //set Windows mouse location
     */
 
-#ifndef __EMSCRIPTEN__
     if (!mouseClip)
         SDL_WarpMouseInWindow(NULL, x * (real32)MAIN_WindowWidthActual/(real32)MAIN_WindowWidth, y * (real32)MAIN_WindowHeightActual/(real32)MAIN_WindowHeight);
-#endif
 }
 
 /*-----------------------------------------------------------------------------

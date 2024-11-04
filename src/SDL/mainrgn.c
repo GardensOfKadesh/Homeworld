@@ -1325,7 +1325,6 @@ void mrCameraMotion(void)
     }
     else
     {
-#ifndef __EMSCRIPTEN__
         if (mouseCursorX() != MAIN_WindowWidth / 2 ||
         mouseCursorY() != MAIN_WindowHeight / 2)
         {
@@ -1335,18 +1334,6 @@ void mrCameraMotion(void)
             camMouseY = MAIN_WindowHeight / 2 - mouseCursorY();
             mousePositionSet(MAIN_WindowWidth / 2, MAIN_WindowHeight / 2);
         }
-#else
-        sdword mouseCursorXshifted = mrOldMouseX - mouseCursorX();
-        sdword mouseCursorYshifted = mrOldMouseY - mouseCursorY();
-        if (mouseCursorXshifted != 0 || mouseCursorYshifted != 0)
-        {
-            mrMouseHasMoved += abs(mouseCursorXshifted) + abs(mouseCursorYshifted);
-            camMouseX = mouseCursorXshifted;
-            camMouseY = mouseCursorYshifted;
-            mrOldMouseX = mouseCursorX();
-            mrOldMouseY = mouseCursorY();
-        }
-#endif
     }
 }
 

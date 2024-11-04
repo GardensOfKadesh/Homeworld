@@ -3423,9 +3423,7 @@ udword smViewportProcess(regionhandle region, sdword ID, udword event, udword da
             break;
         case RPE_PressRight:
 #ifdef _LINUX_FIX_ME
-#ifndef __EMSCRIPTEN__
             mouseClipToRect(&smViewRectangle);
-#endif
 #endif
             smHoldLeft = smNULL;
             smHoldRight = mrCameraMotion;
