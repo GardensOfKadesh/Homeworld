@@ -3447,7 +3447,7 @@ void nisSoundEventSet(char *directory,char *field,void *dataToFillIn)
 {
     nisevent *event = nisNewEvent(NEO_SoundEvent);
     event->param[0] = event->param[1] = 0;
-    int param;
+    int param = event->param[0];
     sscanf(field, "%d", &param);
     event->param[0] = param;
 }
@@ -3514,7 +3514,7 @@ void nisSpeechEventSet(char *directory,char *field,void *dataToFillIn)
     event->param[0] = (udword)(sdword)evaluatedNumber;
     if (*nextString)
     {
-        int param;
+        int param = event->param[1];
         sscanf(nextString + 1, "%d", &param);
         event->param[1] = param;
     }
@@ -3550,7 +3550,7 @@ void nisFleetSpeechEventSet(char *directory,char *field,void *dataToFillIn)
     event->param[0] = (udword)(sdword)evaluatedNumber;
     if (*nextString)
     {
-        int param;
+        int param = event->param[1];
         sscanf(nextString + 1, "%d", &param);
         event->param[1] = param;
     }
@@ -3575,7 +3575,7 @@ void nisAnimaticSpeechEventSet(char* directory, char* field, void* dataToFillIn)
     event->param[0] = (udword)(sdword)evaluatedNumber;
     if (*nextString)
     {
-        int param;
+        int param = event->param[1];
         sscanf(nextString + 1, "%d", &param);
         event->param[1] = param;
     }
@@ -3608,7 +3608,7 @@ void nisRemainAtEndSet(char *directory,char *field,void *dataToFillIn)
 void nisCameraFOVSet(char *directory,char *field,void *dataToFillIn)
 {
     nisevent *event = nisNewEvent(NEO_CameraFOV);
-    int param;
+    int param = event->param[0];
     scanf(field, "%d", &param);
     event->param[0] = param;
 }
@@ -4285,7 +4285,7 @@ void nisStaticOffSet(char *directory, char *field, void *dataToFillIn)
     nisevent *event = nisNewEventNoObject(NEO_StaticOff);
     sdword nScanned;
 
-    int param;
+    int param = event->param[0];
     nScanned = sscanf(field, "%d", &param);
     event->param[0] = param;
     dbgAssertOrIgnore(nScanned == 1);
@@ -4357,7 +4357,7 @@ void nisMinimumLODSet(char *directory, char *field, void *dataToFillIn)
     nisevent *event = nisNewEvent(NEO_MinimumLOD);
     sdword nScanned;
 
-    int param;
+    int param = event->param[0];
     nScanned = sscanf(field, "%d", &param);
     event->param[0] = param;
     dbgAssertOrIgnore(nScanned == 1);
