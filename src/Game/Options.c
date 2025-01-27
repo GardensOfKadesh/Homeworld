@@ -1266,6 +1266,7 @@ void opOptionsAcceptHelper(char* name, featom* atom, char* linkName)
     opReloading = TRUE;
     opOldDeviceIndex = opDeviceIndex;
 
+#ifndef __EMSCRIPTEN__
     if (opResChanged() || opDeviceIndex != opRenderCurrentSelected)
     {
         if (opResHackSupported())
@@ -1294,6 +1295,7 @@ void opOptionsAcceptHelper(char* name, featom* atom, char* linkName)
             opGLCStart();
         }
     }
+#endif
 
     opReloading = FALSE;
 

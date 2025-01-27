@@ -427,6 +427,8 @@ bool32 rinEnumeratePrimary(rdevice* dev)
     }
 
 /*
+    // for exclusive fullscreen mode we want to offer all modes
+    // leave this code here in case we want to support/restore exclusive fullscreen mode in the future
     for(i=SDL_GetNumDisplayModes(display_index); i>0; i--){
         if(SDL_GetDisplayMode(display_index, i-1, &mode)){
             dbgMessagef("Error in SDL_GetDisplayMode(): %d %s",i-1,SDL_GetError());
