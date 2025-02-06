@@ -101,17 +101,17 @@ static void _ssSaveScreenshot(ubyte* buf, const char* targetFilename)
     fileNameReplaceSlashesInPlace(fname);
 
 #if SS_VERBOSE_LEVEL >= 1
-    dbgMessagef("Saving %dx%d screenshot to '%s'.", MAIN_WindowWidth, MAIN_WindowHeight, fname);
+    dbgMessagef("Saving %dx%d screenshot to '%s'.", MAIN_WindowWidthActual, MAIN_WindowHeightActual, fname);
 #endif
 
     // Flip buffer contents vertically due to OpenGL's origin being in the lower-left corner
-    Size = MAIN_WindowWidth*3;
+    Size = MAIN_WindowWidthActual*3;
     pTempLine = (unsigned char *)malloc(Size);
 
-    for (i = 0; i < (MAIN_WindowHeight / 2); i++)
+    for (i = 0; i < (MAIN_WindowHeightActual / 2); i++)
     {
         Top = i;
-        Bot = (MAIN_WindowHeight - 1) - i;
+        Bot = (MAIN_WindowHeightActual - 1) - i;
 
         memcpy(pTempLine, buf + (Size * Top), Size);
         memcpy(buf + (Size * Top), buf + (Size * Bot), Size);
@@ -119,7 +119,7 @@ static void _ssSaveScreenshot(ubyte* buf, const char* targetFilename)
     }
     free(pTempLine);
 
-    stbi_write_jpg(fname, MAIN_WindowWidth, MAIN_WindowHeight, 3, buf, 100);
+    stbi_write_jpg(fname, MAIN_WindowWidthActual, MAIN_WindowHeightActual, 3, buf, 100);
 }
 
 
@@ -127,10 +127,10 @@ void ssTakeScreenshot(const char* filename)
 {
     ubyte* screenshot_buffer =
 #ifdef _WIN32
-        (void *)VirtualAlloc(NULL, 3 * MAIN_WindowWidth * MAIN_WindowHeight,  // 3 = RGB
+        (void *)VirtualAlloc(NULL, 3 * MAIN_WindowWidthActual * MAIN_WindowHeightActual,  // 3 = RGB
             MEM_COMMIT, PAGE_READWRITE);
 #else
-        mmap(NULL, 3 * MAIN_WindowWidth * MAIN_WindowHeight,
+        mmap(NULL, 3 * MAIN_WindowWidthActual * MAIN_WindowHeightActual,
             PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
 #endif
 
@@ -138,7 +138,7 @@ void ssTakeScreenshot(const char* filename)
     {
         int result = 0;
         
-        glReadPixels(0, 0, MAIN_WindowWidth, MAIN_WindowHeight,
+        glReadPixels(0, 0, MAIN_WindowWidthActual, MAIN_WindowHeightActual,
             GL_RGB, GL_UNSIGNED_BYTE, screenshot_buffer);
             
         _ssSaveScreenshot(screenshot_buffer, filename);
@@ -147,7 +147,7 @@ void ssTakeScreenshot(const char* filename)
         result = VirtualFree(screenshot_buffer, 0, MEM_RELEASE);
         dbgAssertOrIgnore(result);
 #else
-        result = munmap(screenshot_buffer, 3*MAIN_WindowWidth*MAIN_WindowHeight);
+        result = munmap(screenshot_buffer, 3*MAIN_WindowWidthActual*MAIN_WindowHeightActual);
         dbgAssertOrIgnore(result != -1);
 #endif
     }
