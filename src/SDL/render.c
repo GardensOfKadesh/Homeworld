@@ -2461,7 +2461,7 @@ void rndMainViewRenderFunction(Camera *camera)
         cameraOffset[0] = cameraOffset[1] = cameraOffset[2] = 0.0f;
     }
 
-    if (cameraFloating)
+    if (cameraFloating && !debugScreenshots)
     {
         cameraOffset[0] = CAMERA_FLOAT_OFFSET_SCALAR0 * rndCameraOffset0();
         cameraOffset[1] = CAMERA_FLOAT_OFFSET_SCALAR1 * rndCameraOffset1();
