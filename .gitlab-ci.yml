@@ -11,7 +11,7 @@ pages:
       - Linux/build.emscripten
 
   script:
-    - meson setup --reconfigure --cross-file wasm/wasm32-emscripten.meson-cross-build-definition.txt -Dbuildtype=release -Db_sanitize=none -Dmovies=false Linux/build.emscripten .
+    - meson setup --reconfigure --cross-file wasm/wasm32-emscripten.meson-cross-build-definition.txt -Dbuildtype=release -Db_sanitize=none -Ddemo=true -Dmovies=false Linux/build.emscripten .
     - cd Linux/build.emscripten
     - export EM_CACHE=$(pwd)/cache
     # The docker image has no /tmp dir

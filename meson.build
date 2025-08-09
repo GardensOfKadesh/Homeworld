@@ -74,8 +74,6 @@ c_base_args = [
 
 if host_machine.system() == 'emscripten'
 	c_base_args += [
-		'-DHW_GAME_DEMO',
-
 		# TODO: fix warnings
 		'-Wno-unknown-warning-option',
 		'-Wno-constant-logical-operand',
@@ -86,8 +84,6 @@ if host_machine.system() == 'emscripten'
 		'-Wno-sometimes-uninitialized',
 		'-Wno-non-literal-null-conversion', # 1 occurrence
 	]
-else
-	c_base_args += ['-DHW_GAME_HOMEWORLD']
 endif
 
 if host_machine.cpu_family() != 'x86'
@@ -119,6 +115,12 @@ elif host_machine.system() == 'windows'
 elif host_machine.system() == 'emscripten'
 	base_deps += [subproject('demo-assets').get_variable('demo_assets_dep')]
 	c_base_args += ['-D_LINUX_FIX_ME', '-D_GNU_SOURCE']
+endif
+
+if get_option('demo')
+	c_base_args += ['-DHW_GAME_DEMO']
+else
+	c_base_args += ['-DHW_GAME_HOMEWORLD']
 endif
 
 if get_option('debug') and get_option('debug_asserts')

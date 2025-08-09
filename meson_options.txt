@@ -1,2 +1,20 @@
-option('debug_asserts', type: 'boolean', value: true, description: 'Toggle HW_BUILD_FOR_DEBUGGING. This flag causes slight behaviour changes, and so may get in the way when trying to reproduce a bug that happens in release builds.')
-option('movies', type: 'boolean', value: true, description: 'Toggle HW_ENABLE_MOVIES. Enable support for bink video cutscenes playback. Note that this requires additional dependencies (usually provided by FFMPEG).')
+option(
+	'debug_asserts',
+	description: 'Toggle HW_BUILD_FOR_DEBUGGING. This flag causes slight behaviour changes, and so may get in the way when trying to reproduce a bug that happens in release builds.',
+	type: 'boolean',
+	value: true,
+)
+
+option(
+	'demo',
+	description: 'Toggle between HW_GAME_HOMEWORLD and HW_GAME_DEMO. When true the game is built to use the demo assets instead of the full game assets',
+	type: 'boolean',
+	value: false,
+)
+
+option(
+	'movies',
+	description: 'Toggle HW_ENABLE_MOVIES. Enable support for bink video cutscenes playback. Note that this requires additional dependencies (usually provided by FFMPEG).',
+	type: 'boolean',
+	value: true,
+)
