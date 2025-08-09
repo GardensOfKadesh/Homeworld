@@ -1,0 +1,4 @@
+kate-wildcard(*.wrap): syntax INI Files;
+kate-wildcard(.clang-format): syntax YAML;
+kate-wildcard(.clang-uml): syntax YAML;
+kate-wildcard(.git-blame-ignore-revs): syntax Git Ignore;
