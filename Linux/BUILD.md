@@ -30,6 +30,18 @@ meson compile
 
 You can now [run the compiled executable for the first time](../README#running-the-game-for-the-first-time).
 
+#### Game is slow/crashes
+
+By default, the game is compiled with debugging tools which can slow down the game _and_ crash it when it is trying to fit round pegs into square holes.
+
+__If you experience any crash, please, send us the log!__
+
+But if the game is too slow or you encounter a crash that you cannot work around, you can compile an optimised version with:
+
+```sh
+meson setup --buildtype=release -Db_sanitize=none build.fast
+```
+
 ### Autotools (Deprecated)
 
 #### x86_64 (intel/amd 64-bit)
@@ -61,67 +73,6 @@ make
 ```
 
 > Note: this will output a binary without debug symbols. Building a 32b binary with debug symbols on a 64b machine is feasible (I have done it for debugging), but not supported by autoconf and therefore not very straightforward.
-
-## Hacking
-
-So you want to dive into the code and start hacking, huh?
-Here are a few pointers to help you with that:
-
-### Clangd
-
-[Clangd] is a _language server_ that can work with many editors (including [VSCode]) via a plugin.
-It adds smart features to your editor: code completion, compile errors, go-to-definition and more.
-
-To give proper hints, though, clangd needs to know the compile flags used (otherwise you'll get "header not found" errors).
-To that end, it uses a `compile_commands.json` file describing how each file was compiled.
-
-[Clangd]: https://clangd.llvm.org
-[VSCode]: https://vscodium.com/
-
-### With Meson
-
-Meson automatically generates `compile_commands.json`, so if you named your build dir `build` as clangd expects, then you have nothing to do.
-Enjoy your modern development environment!
-
-#### With Autotools (Deprecated)
-
-You can use [bear] to auto-generate `compile_commands.json`.
-In the build steps outlined above, replace the `make` step with:
-
-```sh
-bear -- make -j4
-```
-
-> ⚠️ As of 2023-09-22, this breaks the build if you also used the [`--enable-sanitizers`](#sanitizers) option in the `configure step`.
-  You will have to run a first build __without__ this option, then re-enable it, and re-build once the `compile_commands.json` has been generated.
-
-Then link or copy the result to the root of the repo, so that clangd finds it automatically
-
-```sh
-ln -srv compile_commands.json ..
-```
-
-[bear]: https://github.com/rizsotto/Bear
-
-### Sanitizers
-
-[LLVM's Sanitizers] are a powerful suite of tools for memory debugging.
-They can detect and help debug many kinds of invalid or dangerous memory handling patterns (like buffer overflows, use after free, or leaks).
-
-[LLVM's Sanitizers]: https://clang.llvm.org/docs/AddressSanitizer.html
-
-#### With Meson
-
-The `address` and `undefined` sanitizers are enabled by default.
-You can disable them by passing the `-Db_sanitize=none` option to `meson setup`.
-
-#### With Autotools (Deprecated)
-
-You can build a debug version of the game that includes those sanitizers with
-
-```sh
-../configure --enable-sanitizers
-```
 
 ## Cross-compiling to wasm32-emscripten
 
