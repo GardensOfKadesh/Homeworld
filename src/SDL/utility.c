@@ -898,28 +898,10 @@ void utyOptionsFileRead(void)
 ----------------------------------------------------------------------------*/
 void utyOptionsFileWrite(void)
 {
-    char* home_dir;
-    char ch_buf[PATH_MAX];
+    filehandle cfgFile = fileOpen(UTY_CONFIG_FILENAME, FF_WriteMode|FF_IgnoreBIG|FF_UserSettingsPath);
+    FILE *f = fileStream(cfgFile);
+
     sdword index;
-    FILE *f;
-
-#ifdef _WINDOWS
-    home_dir = getenv("APPDATA");
-#else
-    home_dir = getenv("HOME");
-#endif
-
-    if (home_dir)
-    {
-        strcpy(ch_buf, home_dir);
-        strcat(ch_buf, "/" CONFIGDIR "/" UTY_CONFIG_FILENAME);
-    }
-    else
-    {
-        strcpy(ch_buf, UTY_CONFIG_FILENAME);
-    }
-    f = fopen(ch_buf, "wt");
-
     for (index = 0; utyOptionsList[index].name != NULL; index++)
     {
         if (utyOptionsList[index].setVarCB == scriptSetUbyteCB) {
@@ -944,8 +926,7 @@ void utyOptionsFileWrite(void)
         }
     }
     
-    fclose(f);
-
+    fileClose(cfgFile);
 }
 
 /*-----------------------------------------------------------------------------
