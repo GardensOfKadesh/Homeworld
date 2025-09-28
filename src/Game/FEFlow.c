@@ -1682,7 +1682,7 @@ bool32 feAtomOnScreen(featom* atom)
     }
 }
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 char *stpcpy_reimplementation(char *__restrict__ dest, const char *__restrict__ src)
 {
   while ((*dest++ = *src++) != '\0')
@@ -1844,7 +1844,7 @@ fibfileheader *feScreensLoad(char *fileName)
     sdword screenIndex, index;
     bool32 menuItemsPresent;
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
     feScreensLoadAndConvertTo64Bit(fileName, (void **)&loadAddress);
 #else
     fileLoadAlloc(fileName, (void **)&loadAddress, NonVolatile);     //load in the file

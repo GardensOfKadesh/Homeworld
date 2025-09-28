@@ -3842,7 +3842,7 @@ sdword etgNewInteger(struct etgeffectstatic *stat, ubyte *dest, char *opcode, ch
     if (etgParseMode == EPM_Constant)
     {                                                       //if we're creating a constant
         start = strtok(params, " =\t");
-#ifdef _X86_64
+#ifdef HW_PTR_64
         nScanned = sscanf(start, "%ld", &initial);
 #else
         nScanned = sscanf(start, "%d", &initial);
@@ -3873,7 +3873,7 @@ sdword etgNewInteger(struct etgeffectstatic *stat, ubyte *dest, char *opcode, ch
     start = etgParseVariable(params, &bSetInitial);         //prepare string
     if (bSetInitial)
     {
-#ifdef _X86_64
+#ifdef HW_PTR_64
         nScanned = sscanf(start, "%ld", &initial);           //scan the initial value
 #else
         nScanned = sscanf(start, "%d", &initial);           //scan the initial value
@@ -4122,7 +4122,7 @@ sdword etgSetTextureParse(struct etgeffectstatic *stat, ubyte *dest, char *opcod
         }
 #endif
         function->parameter[function->nParameters].type = EVT_Constant;
-#ifdef _X86_64
+#ifdef HW_PTR_64
         nScanned = sscanf(param, "%ld", &function->parameter[function->nParameters].param);
 #else
         nScanned = sscanf(param, "%d", &function->parameter[function->nParameters].param);
@@ -5362,7 +5362,7 @@ sdword etgSpawnParse(struct etgeffectstatic *stat, ubyte *dest, char *opcodeStri
             }
             else
             {                                               //else it's an integer
-#ifdef _X86_64
+#ifdef HW_PTR_64
                 nScanned = sscanf(param, "%ld", &call->parameter[nParams].param);
 #else
                 nScanned = sscanf(param, "%d", &call->parameter[nParams].param);
@@ -5653,7 +5653,7 @@ sdword etgCreateEffectsParse(struct etgeffectstatic *stat, ubyte *dest, char *op
             }
             else
             {                                               //else it's an integer
-#ifdef _X86_64
+#ifdef HW_PTR_64
                 nScanned = sscanf(param, "%ld", &call->parameter[nParams].param);
 #else
                 nScanned = sscanf(param, "%d", &call->parameter[nParams].param);
@@ -5774,7 +5774,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     return(etgFunctionSize(nParams));
 }
 
-#elif defined _X86_64
+#elif defined HW_PTR_64
 /* handle function calls
 
 This function causes error during compilation of ETG.c with optimization on, and still
@@ -6011,7 +6011,7 @@ sdword etgFunctionCall(Effect *effect, struct etgeffectstatic *stat, ubyte *opco
     return(etgFunctionSize(nParams));
 }
 
-#endif // __ppc__, _X86_64, Other x86
+#endif // __ppc__, HW_PTR_64, Other x86
 
 //handle 'end'
 sdword etgEnd(Effect *effect, struct etgeffectstatic *stat, ubyte *opcode)

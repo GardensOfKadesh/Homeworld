@@ -76,7 +76,7 @@ typedef enum
     ResearchStationTower
 } ShipType_enum;
 
-#ifdef _X86_64   //Capture this first, and make sure it's correctly sized.
+#ifdef HW_PTR_64   //Capture this first, and make sure it's correctly sized.
 #include "Types.h"
 typedef smemsize  ShipType;
 #else
@@ -88,7 +88,7 @@ typedef udword ShipType;
 #else
 typedef ShipType_enum ShipType;
 #endif  // _LINUX_FIX_ME || defined _WIN32_FIXME
-#endif // _X86_64
+#endif // HW_PTR_64
 
 #define STD_FIRST_SHIP        AdvanceSupportFrigate
 #define STD_LAST_SHIP         CryoTray

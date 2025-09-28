@@ -41,8 +41,8 @@ COMMONFLAGS = -MMD \
               -DGENERIC_ETGCALLFUNCTION \
               -D_WIN32 \
               -D_LINUX_FIX_ME \
-              -D_X86_64 \
-              -D_X86_64_FIX_ME \
+              -DHW_PTR_64 \
+              -DHW_PTR_64_FIX_ME \
               -DWIN32 \
               -DWINDOWS \
               -DSTDC_HEADERS \

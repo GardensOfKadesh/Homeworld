@@ -641,7 +641,7 @@ bool32 glfontDisplayString(fontheader* font, char* string, sdword x, sdword y, c
 }
 
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 sdword fontLoadAndConvertTo64Bit(char *fileName, void** loadAddress)
 {
     int i;
@@ -746,7 +746,7 @@ fontheader *fontLoad(char *fileName)
 
     antialias = TRUE;
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
     length = fontLoadAndConvertTo64Bit(fileName, (void **)(&fileHeader));
 #else
     length = fileLoadAlloc(fileName, (void **)(&fileHeader), NonVolatile);

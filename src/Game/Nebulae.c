@@ -2361,10 +2361,6 @@ void nebSetFog(void)
     Save functions for nebula
 =============================================================================*/
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 sdword nebChunkPtrToNum(nebulae_t* neb, nebChunk *nebChunk)
 {
     sdword i;
@@ -2640,8 +2636,4 @@ void nebLoad_Nebula(void)
         }
     }
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 

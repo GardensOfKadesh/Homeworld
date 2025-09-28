@@ -978,10 +978,6 @@ void DefenseFighterPassiveAttack(Ship *ship,Ship *target,bool32 rotate)
     aitrackHeading(ship,&heading,0.9999f);
 }
 
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void SaveDefenseStruct(DefenseStruct *defenseStruct)
 {
     SaveChunk *chunk;
@@ -1065,10 +1061,6 @@ void DefenseFighter_Fix(Ship *ship)
         node = node->next;
     }
 }
-
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 CustShipHeader DefenseFighterHeader =
 {

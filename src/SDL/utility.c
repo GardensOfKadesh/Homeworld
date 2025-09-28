@@ -100,16 +100,8 @@
 #include "Universe.h"
 #include "UnivUpdate.h"
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4142 )     //turn off "benign redefinition of type" warning
-#endif
-
 #include "main.h"
 #include "avi.h"
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4142 )
-#endif
 
 #ifdef _WIN32
     #include <windows.h>
@@ -3483,10 +3475,6 @@ void utyGrowthHeapFree(void *heap)
     BOOL result;
     result = VirtualFree(heap, 0, MEM_RELEASE);
     dbgAssertOrIgnore(result);
-#elif defined(__aarch64__)
-    int result;
-    result = munmap(heap, 0);
-    dbgAssertOrIgnore(result != NULL);
 #else
     int result;
     result = munmap(heap, 0);
@@ -4658,10 +4646,6 @@ char *utyGameSystemsShutdown(void)
         bool32 result;
         result = VirtualFree(utyMemoryHeap, 0, MEM_RELEASE);
         dbgAssertOrIgnore(result);
-#elif defined(__aarch64__)
-        int result;
-        result = munmap(utyMemoryHeap, 0);
-        dbgAssertOrIgnore(result != NULL);
 #else
         int result;
         result = munmap(utyMemoryHeap, 0);

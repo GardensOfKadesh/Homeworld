@@ -91,11 +91,13 @@ if host_machine.cpu_family() != 'x86'
 endif
 
 if host_machine.cpu_family() == 'x86_64'
-	c_base_args += ['-D_X86_64', '-D_X86_64_FIX_ME']
+	c_base_args += ['-DHW_PTR_64', '-DHW_PTR_64_FIX_ME']
 elif host_machine.cpu_family() == 'x86'
 	c_base_args += ['-malign-double', '-D_X86', '-msse']
-elif host_machine.cpu_family() in ['arm', 'aarch64']
+elif host_machine.cpu_family() in ['arm']
 	c_base_args += ['-DARM']
+elif host_machine.cpu_family() in ['aarch64']
+	c_base_args += ['-DARM', '-DHW_PTR_64', '-DHW_PTR_64_FIX_ME']
 endif
 
 if host_machine.system() == 'linux'

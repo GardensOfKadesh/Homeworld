@@ -52,7 +52,7 @@ typedef Uint64  uqword;
 typedef float   real32;
 typedef double  real64;
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 typedef uqword	memsize;	
 typedef sqword	smemsize;	
 typedef real64  memrealsize;
@@ -114,7 +114,7 @@ real32 MemsizeToReal32(memsize a);
 
 #define TreatAsReal32(x) (*((real32 *)(&(x))))
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 #define SCALECAST(x)  ((memsize)(udword)(x))
 #define SCALESHIFT(x) (2*(x))    //Make the thing scale from 4 to 8 bytes offset
 #else

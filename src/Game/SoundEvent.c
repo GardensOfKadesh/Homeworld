@@ -2577,7 +2577,7 @@ void SEstopsoundhandle(sdword *shandle, real32 fadetime)
 }
 
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 void loadbankAndConvertTo64Bit(char *fileName, void** loadAddress)
 {
 	int i;
@@ -2822,7 +2822,7 @@ void SEloadbank(void)
 
     strcpy(loadfile, SOUNDFXDIR);
 	strcat(loadfile, "Guns.bnk");
-#ifdef _X86_64
+#ifdef HW_PTR_64
     loadbankAndConvertTo64Bit(loadfile, (void**)&GunBank);
 #else
     fileLoadAlloc(loadfile, (void**)&GunBank, NonVolatile);
@@ -2835,7 +2835,7 @@ void SEloadbank(void)
 
     strcpy(loadfile, SOUNDFXDIR);
 	strcat(loadfile, "Ships.bnk");
-#ifdef _X86_64
+#ifdef HW_PTR_64
     loadbankAndConvertTo64Bit(loadfile, (void**)&ShipBank);
 #else
     fileLoadAlloc(loadfile, (void**)&ShipBank, NonVolatile);
@@ -2848,7 +2848,7 @@ void SEloadbank(void)
 
     strcpy(loadfile, SOUNDFXDIR);
 	strcat(loadfile, "SpecialEffects.bnk");
-#ifdef _X86_64
+#ifdef HW_PTR_64
     loadbankAndConvertTo64Bit(loadfile, (void**)&SpecialEffectBank);
 #else
     fileLoadAlloc(loadfile, (void**)&SpecialEffectBank, NonVolatile);
@@ -2862,7 +2862,7 @@ void SEloadbank(void)
 
     strcpy(loadfile, SOUNDFXDIR);
 	strcat(loadfile, "UI.bnk");
-#ifdef _X86_64
+#ifdef HW_PTR_64
     loadbankAndConvertTo64Bit(loadfile, (void**)&UIBank);
 #else
     fileLoadAlloc(loadfile, (void**)&UIBank, NonVolatile);

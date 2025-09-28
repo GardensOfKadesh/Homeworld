@@ -175,7 +175,7 @@ bool32 enableMSAA = FALSE;
 
 // turn fullscreen off when debugging so that if the debugger kicks in
 // after a crash you don't find yourself locked out and have to reboot...
-#if defined(__APPLE__) && defined(HW_BUILD_FOR_DEBUGGING) 
+#if defined(HW_BUILD_FOR_DEBUGGING) 
 bool32 fullScreen = FALSE;
 #else
 bool32 fullScreen = TRUE;

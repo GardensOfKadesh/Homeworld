@@ -50,10 +50,6 @@
 void SaveConsMgr(void);
 void LoadConsMgr(void);
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 GrowSelection SpaceObjRegistry;
 GrowSelection BlobRegistry;
 
@@ -4242,8 +4238,4 @@ void LoadUniverse(void)
         universe.world[i] = (Derelict *)SpaceObjRegistryGetObj((sdword)universe.world[i]);
     }
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 

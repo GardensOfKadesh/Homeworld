@@ -715,10 +715,6 @@ void toUnFakeOneShip(Ship *ship, vector *oldpos,real32 *oldradius)
 
 }
 
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void ResearchShip_PreFix(Ship *ship)
 {
     ResearchShipSpec *spec = (ResearchShipSpec *)ship->ShipSpecifics;
@@ -734,10 +730,6 @@ void ResearchShip_Fix(Ship *ship)
     spec->masterptr = SpaceObjRegistryGetShip((sdword)spec->masterptr);
     spec->dockwith = SpaceObjRegistryGetShip((sdword)spec->dockwith);
 }
-
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword dockindex)
 {

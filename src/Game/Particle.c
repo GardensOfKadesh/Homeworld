@@ -2061,7 +2061,7 @@ int is_final_tex(trhandle tex)
 {
     if (tex == 0x7fffffff) return 1;
 
-#ifdef _X86_64_FIX_ME
+#ifdef HW_PTR_64_FIX_ME
     if (tex == 0xffffffff) {
       return 1;
     }

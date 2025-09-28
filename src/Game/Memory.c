@@ -214,7 +214,7 @@ sdword memStartup(void *heapStart, sdword heapSize, memgrowcallback grow)
     char *memNonVolatileFileName;
 #endif
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
     if ((sizeof(mbhcookie) != 64) || (sizeof(memcookie) != 64))
 #else
     if ((sizeof(mbhcookie) != 32) || (sizeof(memcookie) != 32))
@@ -937,9 +937,7 @@ void *memAllocFunctionA(sdword length, udword flags, mempool *pool)
 
     memInitCheck();
     
-#if !defined(__APPLE__) || !defined(__aarch64__)
     dbgAssertOrIgnore(length > 0/* && length < pool->heapLength*/);        //verify size is reasonable
-#endif
 
 #if MEM_VERBOSE_LEVEL >= 2
     dbgMessagef("memAllocFunctionA: allocating %d bytes for '%s'", length, name);
@@ -1184,14 +1182,13 @@ void *memAllocAttemptFunction(sdword length, udword flags)
     mempool *pool;
     ubyte *newPointer = NULL;
 
-#if !defined(__APPLE__) || !defined(__aarch64__)
 #if MEM_ERROR_CHECKING
     if (length <= 0)
     {
         dbgFatalf(DBG_Loc, "Attempted to allocate %d bytes of '%s'", length, name);
     }
 #endif
-#endif
+
     if (!bitTest(flags, MBF_ExtendedPoolOnly))
     {
 #if MEM_USE_NAMES
@@ -1596,11 +1593,9 @@ foundPool:;
     }
 #endif //MEM_DETECT_VOLATILE
 
-#if !defined(__APPLE__) || !defined(__aarch64__)
 #if MEM_ERROR_CHECKING
     dbgAssertOrIgnore(cookie->blocksNext > 0);                      //ensure non-zero size
     dbgAssertOrIgnore((ubyte *)cookie + sizeof(memcookie) + memBlocksToBytes(cookie->blocksNext) <= (ubyte *)pool->last);
-#endif
 #endif
 
 #if MEM_VERBOSE_LEVEL >= 2

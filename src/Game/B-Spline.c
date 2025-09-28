@@ -249,7 +249,7 @@ real32 bsCurveUpdate(splinecurve *curve, real32 timeElapsed)
                + dd0b * delta)) +
             hermiteVector.w * (adj1 * ( ds1a * delta + ds1b *
                ( curve->points[currentPoint + 2] - curve->points[currentPoint + 1])));
-    #ifdef _X86_64  // Fixes the launching of ships through the big bad door.
+    #ifdef HW_PTR_64  // Fixes the launching of ships through the big bad door.
                     // Something in the above calculation seems to get lost. :(
         if( isnan(value)){
 //        dbgMessagef("NAN found!");

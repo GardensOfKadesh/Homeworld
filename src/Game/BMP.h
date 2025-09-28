@@ -34,13 +34,6 @@
     Type definitions:
 =============================================================================*/
 
-//because these images use structures with 2-byte boundaries, let's set the
-//structure packing to words for this file only.
-#ifdef _WIN32_FIX_ME
- #pragma warning( disable : 4103 )
- #pragma pack(push, 2)
-#endif
-
 //from windows.h, the definition for the header of a .bmp
 typedef struct
 {
@@ -57,12 +50,6 @@ typedef struct
     udword biClrUsed;
     udword biClrImportant;
 } bmpheader;
-
-//because these images use structures with 2-byte boundaries, let's set the
-//structure packing to words for this file only.
-#ifdef _WIN32_FIX_ME
- #pragma pack(pop)
-#endif
 
 /*=============================================================================
     Macros:

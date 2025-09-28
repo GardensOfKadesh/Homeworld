@@ -2443,8 +2443,8 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					HW_BUILD_FOR_DEBUGGING,
 					HW_GAME_HOMEWORLD,
-					_X86_64_FIX_ME,
-					_X86_64,
+					HW_PTR_64_FIX_ME,
+					HW_PTR_64,
 					_MACOSX,
 					BF_HOMEWORLD,
 				);
@@ -2487,8 +2487,8 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					HW_BUILD_FOR_DISTRIBUTION,
 					HW_GAME_HOMEWORLD,
-					_X86_64_FIX_ME,
-					_X86_64,
+					HW_PTR_64_FIX_ME,
+					HW_PTR_64,
 					_MACOSX,
 					BF_HOMEWORLD,
 				);
@@ -2564,8 +2564,8 @@
 					HW_BUILD_FOR_DEBUGGING,
 					HW_GAME_RAIDER_RETREAT,
 					BF_HOMEWORLD,
-					_X86_64,
-					_X86_64_FIX_ME,
+					HW_PTR_64,
+					HW_PTR_64_FIX_ME,
 				);
 				INFOPLIST_FILE = RaiderRetreat.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HomeworldSDL;
@@ -2602,8 +2602,8 @@
 					_MACOSX,
 					HW_BUILD_FOR_DISTRIBUTION,
 					HW_GAME_RAIDER_RETREAT,
-					_X86_64,
-					_X86_64_FIX_ME,
+					HW_PTR_64,
+					HW_PTR_64_FIX_ME,
 					BF_HOMEWORLD,
 				);
 				INFOPLIST_FILE = RaiderRetreat.plist;

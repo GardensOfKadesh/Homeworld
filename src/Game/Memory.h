@@ -83,7 +83,7 @@
 #define MBF_VerifyValue         (0xfa7babe5 & MBF_VerifyMask)
 
 //max length for cookie name strings
-#ifdef _X86_64
+#ifdef HW_PTR_64
  #if MEM_DETECT_VOLATILE
   #define MEM_NameLength          48
  #else

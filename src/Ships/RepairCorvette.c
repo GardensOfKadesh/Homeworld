@@ -496,10 +496,6 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
     return FALSE;
 }
 
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void RepairCorvette_PreFix(Ship *ship)
 {
     RepairCorvetteSpec *spec = (RepairCorvetteSpec *)ship->ShipSpecifics;
@@ -513,10 +509,6 @@ void RepairCorvette_Fix(Ship *ship)
 
     spec->target = (Ship *) SpaceObjRegistryGetShip((sdword)spec->target);
 }
-
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 bool32 RepairCorvetteSpecialTarget(Ship *ship,void *custom)
 {

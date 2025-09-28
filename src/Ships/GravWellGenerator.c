@@ -629,10 +629,6 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
     }
 }
 
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void SaveGravStruct(GravStruct *gravStruct)
 {
     SaveChunk *chunk;
@@ -720,10 +716,6 @@ void GravWellGenerator_PreFix(Ship *ship)
     GravWellGeneratorSpec *spec = (GravWellGeneratorSpec *)ship->ShipSpecifics;
     spec->gravityEffect = NULL; //set to NULL!
 }
-
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 void GravWellAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdist)
 {

@@ -68,11 +68,7 @@ extern Uint32 utyTimerLast;
     defines:
 =============================================================================*/
 
-#ifdef __APPLE__
-    #define HR_SCALE_MISSION_LOADING_SCREENS  TRUE
-#else
-    #define HR_SCALE_MISSION_LOADING_SCREENS  FALSE
-#endif
+#define HR_SCALE_MISSION_LOADING_SCREENS  FALSE
 
 #define HR_PlayerNameFont   "Arial_12.hff"
 #define MAX_CHAT_TEXT       64

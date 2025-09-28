@@ -51,7 +51,7 @@ static Ship *madDupeShip;
 =============================================================================*/
 
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 sdword madFileLoadAndConvertTo64Bit(char *fileName, void** loadAddress)
 {
     int i;
@@ -203,7 +203,7 @@ madheader *madFileLoad(char *fileName)
 
     dbgAssertOrIgnore(fileName != NULL);
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
     fileSize = madFileLoadAndConvertTo64Bit(fileName, (void **)&loadAddress);
 #else
     fileSize = fileLoadAlloc(fileName, (void **)&loadAddress, NonVolatile);     //load in the file
@@ -907,10 +907,6 @@ void madAnimBindingMatrix(matrix *destMatrix, vector *destPos, Ship *ship, sdwor
     Save Game Stuff:
 =============================================================================*/
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void PreFix_madBindings(Ship *ship,Ship *fixcontents)
 {
     sdword i;
@@ -981,8 +977,3 @@ void Fix_madBindings(Ship *ship)
         ship->bindings = &madBindings->bindings;
     }
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
-

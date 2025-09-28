@@ -329,10 +329,6 @@ void MothershipDettachObjectFromDoor(Ship *ship)
     spec->doorCargo = NULL;
 }
 
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void Mothership_PreFix(Ship *ship)
 {
     MothershipSpec *spec = (MothershipSpec *)ship->ShipSpecifics;
@@ -355,10 +351,6 @@ void Mothership_Fix(Ship *ship)
     }
     spec->doorCargo = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetObj((sdword)spec->doorCargo);
 }
-
-#ifdef _WIN32_FIX_ME
-    #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 udword ReadDockTimer(ubyte *docktimer)
 {

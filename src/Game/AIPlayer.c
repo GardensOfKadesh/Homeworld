@@ -1499,10 +1499,6 @@ void aiplayerAddLeader(AIPlayer *aiplayer, ShipPtr ship)
     Save Game Stuff
 =============================================================================*/
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 AIPlayer *fixingThisAIPlayer;
 
 void SavePath(struct Path *path)
@@ -1867,9 +1863,4 @@ void aiplayerLoad(void)
 
     aiCurrentAIPlayer = NumberToAIPlayer(number);
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
-
 

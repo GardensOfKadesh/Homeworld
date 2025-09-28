@@ -265,7 +265,7 @@ StaticInfo *meshNameToStaticInfo(char *fileName)
         return(NULL);
     }
     type = StrToShipType(typeString);
-#ifdef _X86_64
+#ifdef HW_PTR_64
     if (type == 0xffffffffffffffff)
 #else
     if (type == 0xffffffff)
@@ -611,7 +611,7 @@ void meshFixupPacoUV(meshdata* mesh, sdword on)
 }
 
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 sdword meshLoadAndConvertTo64Bit(char *fileName, void** loadAddress)
 {
     int i;
@@ -877,7 +877,7 @@ meshdata *meshLoad(char *inFileName)
         fileName = inFileName;
     }
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
     fileLength = meshLoadAndConvertTo64Bit(fileName, (void **)&loadAddress);
 #else
     fileLength = fileLoadAlloc(fileName, (void **)&loadAddress, NonVolatile);     //load in the file
@@ -1391,7 +1391,7 @@ void meshFree(meshdata *mesh)
             {                                               //for each player
                 if (((trhandle *)mesh->localMaterial[index].texture)[j] != TR_Invalid)
                 {                                           //if this player was this race
-#ifdef _X86_64
+#ifdef HW_PTR_64
                     if (((trhandle *)mesh->localMaterial[index].texture)[j] != 0xffffffffffffffff) // Check for -1
                     {
                         if (((trhandle *)mesh->localMaterial[index].texture)[j] < TR_RegistrySize ) {
@@ -1399,7 +1399,7 @@ void meshFree(meshdata *mesh)
                 
                     trTextureUnregister(((trhandle *)mesh->localMaterial[index].texture)[j]);
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
                         }
                     }
 #endif

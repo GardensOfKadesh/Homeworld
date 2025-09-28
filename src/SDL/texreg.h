@@ -224,7 +224,7 @@ typedef struct
     sdword stringLength;                        //length of all strings
     sdword sharingLength;                       //length of all offsets
     sdword totalLength;                         //total length of file, this header not included
-#ifdef _X86_64
+#ifdef HW_PTR_64
     sdword pad;
 #endif
 }
@@ -273,7 +273,7 @@ typedef struct
 }
 lifheader;
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 typedef struct
 {
     char ident[8];                              //compared to "Willy 7"

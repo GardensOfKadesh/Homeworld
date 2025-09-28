@@ -550,10 +550,6 @@ void poClose(char *string, featom *atom)
     Save Game Stuff:
 =============================================================================*/
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void SaveObjective(Objective *objective)
 {
     Objective *sc;
@@ -589,10 +585,6 @@ Objective *LoadObjective(void)
 
     return objective;
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif
 
 void SaveFleetIntelligence(void *stuff)
 {

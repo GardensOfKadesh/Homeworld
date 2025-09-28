@@ -657,10 +657,6 @@ sdword aieCheckInterrupt(AITeam *team)
     Save Game Stuff
 =============================================================================*/
 
-#ifdef _WIN32_FIX_ME
- #pragma warning( 4 : 4047)      // turns off "different levels of indirection warning"
-#endif
-
 void aiePreFixAIEvents(struct AITeamMove *move)
 {
     if (move->events.interrupt.handler)
@@ -710,7 +706,3 @@ void aieFixAIEvents(struct AITeamMove *move)
         move->events.interrupt.intvar = (udword *)( ((ubyte *)fixingThisAIPlayer) + ((sdword)move->events.interrupt.intvar) );
     }
 }
-
-#ifdef _WIN32_FIX_ME
- #pragma warning( 2 : 4047)      // turn back on "different levels of indirection warning"
-#endif

@@ -169,7 +169,7 @@ etgopcode;
 #define EVT_This                    10          //include a 'this' pointer
 
 //amounts to allocate during parsing of an effect
-#ifdef _X86_64
+#ifdef HW_PTR_64
 #define ETG_StartupParseSize        32768
 #define ETG_EachFrameParseSize      32768
 #else
@@ -294,7 +294,7 @@ etgopcode;
 
 #define ETG_TokenDelimiters         ", \t"
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 #define MINUS1              0xffffffffffffffff
 #else
 #define MINUS1              0xffffffff
@@ -633,7 +633,7 @@ extern bool32   etgBulletEffectsEnabled;
 /*=============================================================================
     Macros:
 =============================================================================*/
-//#ifdef _X86_64
+//#ifdef HW_PTR_64
 //#define etgFunctionSize(n)  (sizeof(etgfunctioncall) + sizeof(sdword) * 4 * ((n) - 1))
 //#else
 #define etgFunctionSize(n)  (sizeof(etgfunctioncall) + sizeof(memsize) * 2 * ((n) - 1))

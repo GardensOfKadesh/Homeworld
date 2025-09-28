@@ -210,7 +210,7 @@ typedef struct tagfeatom
 }
 featom;
 
-#ifdef _X86_64
+#ifdef HW_PTR_64
 typedef struct tagfescreen_disk
 {
     udword name;   // *                              //name of screen for link purposes
