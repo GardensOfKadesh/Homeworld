@@ -11,6 +11,14 @@ Gardens of Kadesh (GoK) is a fan project to maintain and improve the 1999 classi
 - [How do I contact you?](/documentation/community/README.md#legal-contact)
 - [I have another question.](/documentation/community/README.md#opening-an-issue)
 
+**Our main repository is located [here][main repo].**
+(Hover to read the URL. Usually at the bottom left corner of your browser window.)
+If this is not the address of the page you're currently looking at, then this is either a fork or a mirror.
+It may be outdated and/or broken.
+If they're not specific to a fork, please [report issues](/documentation/community/README.md#opening-an-issue) to our [main repo].
+
+[main repo]: https://gitlab.com/gardens-of-kadesh/gardens-of-kadesh#welcome-to-the-gardens-of-kadesh
+
 ## History
 
 - 1997-06-01: [Relic Entertainment] is founded in Vancouver, Canada, and begins work on a real-time strategy game, set and played in a 3D space environment.
