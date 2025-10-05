@@ -9,7 +9,7 @@ This section is titled "Legal Contact" to make it easy to find in case the owner
 ## Chatting
 
 The community around the GoK project mostly organises through instant communication.
-Currently, everything happens over on [Discord], but you can also find us in our [[matrix]] space.
+Currently, everything happens over on [Discord], but you can also find us in our [matrix] space.
 
 ## Tracking Issues
 
@@ -31,7 +31,7 @@ Or maybe you have a specific question you'd like to ask the contributors?
 **The best way to let us know is to [open an issue on our Gitlab][the gitlab issues].**
 (You will need an account on either Gitlab.com, GitHub.com, Bitbucket.org, Salesforce.com, or Google.com)
 
-If that does not suit you, for whatever reason, you may also tell us about your issue on [Discord], [[matrix]], or via [e-mail].
+If that does not suit you, for whatever reason, you may also tell us about your issue on [Discord], [matrix], or via [e-mail].
 We will create the issue on your behalf on Gitlab (anonymizing it if you wish).
 
 [the Gitlab issues]: https://gitlab.com/gardens-of-kadesh/gardens-of-kadesh/-/issues
