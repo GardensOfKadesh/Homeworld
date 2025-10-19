@@ -43,6 +43,10 @@ The rest of this documentation will assume you understand Git concepts.
 So you want to dive into the code and start hacking, huh?
 Here are a few pointers to help you with that:
 
+### Code Structure and Design
+
+Please refer to [Design and Architecture](./design-and-architecture.md).
+
 ### Clangd
 
 [Clangd] is a _language server_ that can work with many editors (including [VSCode]) via a plugin.
