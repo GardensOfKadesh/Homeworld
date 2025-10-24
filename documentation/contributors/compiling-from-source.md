@@ -3,7 +3,7 @@
 The GoK project (this repository) contains the source code to compile an executable/binary to play Homeworld.
 (That binary will be useless without the assets from the original game.)
 
-This page assumes you have no knowledge of software development and compilers.
+**This page assumes you have no knowledge of software development and compilers.**
 Feel free to skip some sections if you do.
 
 If this documentation was not enough to let you build and run the game, then please [let us know!][open an issue]
@@ -17,7 +17,7 @@ They basically mean the same thing.)
 
 1. You will need to download the code in this repository
 2. You will need to install tools and libraries to build the code.
-3. Once you have these tools and libraries, you will need to follow some instructions to use them to translate the source code into an executable.
+3. Once you have that, you will need to follow some instructions to turn the source code into a playable executable.
 
 These tools will vary depending on your Operating System (OS), so we have separate documentation for each:
 
@@ -33,11 +33,13 @@ To build that new frame, you need the blueprints (the source code), and a factor
 When you have the factory set up, you can change the blueprints to build as many different frames as you wish!
 (This is what software developers do)
 
-## Build tools
+## Build Tools / Requirements
 
 Regardless of your OS, you should expect to install the following to build GoK:
 
  - Meson (a build system)
  - A C compiler (e.g. GCC or Clang)
- - SDL2 (*the* cross-platform game library)
+ - SDL2 (*the* cross-platform game library. You will need the development headers. In some Linux distros that's a different package, usually suffixed with "-dev".)
+ - ffmpeg (to play the video cut-scenes of the singleplayer campaign.)
  - yacc & flex (domain-specific parsers and translators for the scripts of the single-player campaign)
+ - ASan and UBSan (**A**ddress **San**itizer and **U**ndefined **B**ehaviour **San**itizer; They're debugging tools to help generate useful crash reports)

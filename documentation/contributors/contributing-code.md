@@ -65,7 +65,13 @@ Enjoy your modern development environment!
 ### Sanitizers
 
 [LLVM's Sanitizers] are a powerful suite of tools for memory debugging.
-They can detect and help debug many kinds of invalid or dangerous memory handling patterns (like buffer overflows, use after free, or leaks).
+They can detect and help debug many kinds of invalid or dangerous memory handling patterns (like buffer overflows, use-after-frees, or leaks).
+
+That's very useful when the game crashes as it prints the backtrace in the terminal with a bit of info on what went wrong (like if the pointer being dereferenced was invalid or simply null).
+
+Unfortunately, in the current (2025-10-24) state of the code they also print a lot of warnings (in the form of "runtime error"s) because the code is doing shady things with memory.
+It floods the terminal and is not very friendly for players that are just running the debug version.
+These warnings could probably be fixed, but might require deep changes in how the game allocates its objects.
 
 [LLVM's Sanitizers]: https://clang.llvm.org/docs/AddressSanitizer.html
 

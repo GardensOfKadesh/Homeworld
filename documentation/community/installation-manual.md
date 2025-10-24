@@ -2,8 +2,7 @@
 
 To play the full *Homeworld* game using this project, **you must have bought a copy of the game** to [get the original assets](#setting-up-the-assets-folder) (models, textures, sounds, movies etc.). 
 
-You can then either [find a pre-compiled binary/executable for your platform](#downloads) (if available), or [compile one yourself](#compiling-from-source) from the source code and the instructions available in this repository.
-(We try to make that as easy as we can)
+You can then either [find a pre-compiled binary/executable for your platform](#downloads) (if available), or [compile one yourself](#compiling-from-source) (don't be scared! We try our best to make that easy as pie) from the source code and the instructions available in this repository.
 
 When you have both, please read [the post-install instructions](#running-the-game-for-the-first-time).
 
@@ -93,7 +92,7 @@ If there are no downloads for your platform, then the best we can offer is for y
 
 ## Compiling From Source
 
-Please read the [compilation documentation](/documentation/contributors/compiling-from-source.md).
+Not that scary! And not that long either! Don't give up before you've read the [compilation documentation](/documentation/contributors/compiling-from-source.md)!
 
 ## Running the game for the first time
 

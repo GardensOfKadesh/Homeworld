@@ -2,21 +2,56 @@
 
 ## Installing dependencies
 
-### Using [Nix]
+Find your distro here, then skip ahead to [Quick Start](#quick-start).
 
-If you have [Nix] installed, there is a [`flake.nix`](flake.nix) file listing the build depencies so you can just run the build in a `nix develop` environment without installing anything:
+### Fedora
+
+Last tested: 2025-11-16, Fedora 42
+
+```bash
+sudo dnf install meson ninja libGL SDL ffmpeg libswscale-free libasan libubsan
+```
+
+### NixOS
+
+Last tested: 2025-10-24, or see the last time [`flake.nix`](flake.nix) was updated
+
+Oldest version of nix tested: 2.31.2
+
+> [!NOTE]
+>
+> If you're not on NixOS, you can still install [Nix] and proceed with the following, but be warned that you will also need to use [NixGL]
+
+There is a [`flake.nix`](flake.nix) file listing the build depencies so you should be able to just run the build in a `nix develop` environment:
 
 ``` sh
 nix develop ./Linux
 ```
 
+> [!TIP]
+>
+> It may complain about experimental features not being enabled, you can [temporarily enable them][enable flakes] with:
+> ```
+>  --experimental-features 'nix-command flakes'
+> ```
+
 You can then go on with the [Quick Start](#quick-start) in that virtual environment.
 
 [Nix]: https://nixos.org/nix/
+[NixGL]: https://github.com/nix-community/nixGL?tab=readme-ov-file#directly-run-nixgl
+[enable flakes]: https://nixos.wiki/wiki/flakes#Enable_flakes_temporarily
+
+### Other distros
+
+Coming Soon™!
+
+In the meantime, please use [this list](/documentation/contributors/compiling-from-source.md#build-tools--requirements) as a baseline and let [Meson](#meson) tell you what is missing.
+
+It will be a boring "run meson -> fail -> install missing dependency -> run meson again" loop, but the good news is, when it finally works and if you kept a list, you can [contribute](/documentation/README.md#helping-with-documentation) the dependencies for your distro! 
 
 ## Quick Start
 
-> More information can be found in the documentation files next to this one.
+> More information can be found in the (sometimes outdated) documentation files next to this one.
 
 ### Meson
 
@@ -32,15 +67,21 @@ You can now [run the compiled executable for the first time](../README#running-t
 
 #### Game is slow/crashes
 
-By default, the game is compiled with debugging tools which can slow down the game _and_ crash it when it is trying to fit round pegs into square holes.
+By default, the game is compiled with [debugging tools](/documentation/contributors/contributing-code.md#sanitizers) which can slow down the game _and_ crash it when it is trying to fit round pegs into square holes.
 
-__If you experience any crash, please, send us the log!__
+__If you experience any crash, please, [send us the log!](/documentation/community/README.md#opening-an-issue)__
 
 But if the game is too slow or you encounter a crash that you cannot work around, you can compile an optimised version with:
 
 ```sh
 meson setup --buildtype=release -Db_sanitize=none build.fast
 ```
+
+> [!NOTE]
+>
+> If that release build (optimised version) crashes then we'll have basically no info as to what happened.
+> Which is why we default to a debug build.
+> Please do not send us a log from a release build, it won't help us.
 
 ### Autotools (Deprecated)
 
@@ -77,7 +118,7 @@ make
 ## Cross-compiling to wasm32-emscripten
 
 You need to have emscripten installed and enable your installed emsdk tools in your current shell environment.
-(If you're using the nix shell, you can skip this step)
+(If you're using the [nix shell](#using-nix), you can skip this step)
 
 ```sh
 source emsdk_env.sh
