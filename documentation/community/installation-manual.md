@@ -33,6 +33,19 @@ This section is intended as a quick checklist to make sure you have everything n
     > sha256: b909c2cdbc8c8db67be168f6005bf8e8facaa9857263b16d186c824a0c4eed4f
 - [ ] `Movies` (This folder is optional, you will simply not have the pencil-style cutscenes in the campaign)
 
+##### Translations
+
+In addition to English, the game was released in a few officially supported languages.
+These versions of the game have translated actor speech, subtitles, and every other in-game text.
+Which changes the signature of 2 of the above files (since their content is different)
+
+###### French (FR)
+
+- `Homeworld.big`  
+  > sha256: 04164b5cbbb877e381449d341e782f7df5eaac6984ed71c96883a51a21bee714
+- `HW_Comp.vce`  
+  > sha256: 4be0d07ff7a0f9071cd368050ab9c80e63876fea317c9c68c6c2f05ee92a97ec
+
 #### Remaster (2015)
 
 - [ ] `homeworld.big` (You might have to rename it to `Homeworld.big`, with a capital `H`)
