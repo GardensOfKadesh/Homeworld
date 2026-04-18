@@ -556,7 +556,7 @@ int aviStop(void)
    
     SDL_Delay(500); // Give the audio time to stop
 
-    avcodec_close(pCodecCtx); 
+    avcodec_free_context(&pCodecCtx); 
     aviFileExit();
 #endif
     return 1;
