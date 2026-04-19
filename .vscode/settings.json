@@ -10,6 +10,7 @@
         "editor.formatOnSaveMode": "file",
     },
     "clangd.arguments": [
-        "-header-insertion=never"
+        "-header-insertion=never",
+        "-compile-commands-dir=Linux/build"
     ]
 }
