@@ -7470,17 +7470,17 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     newEffect->staticinfo = (StaticInfo *)stat;             //save static info
     ClearNode(newEffect->renderlink);                       //no in render list
     newEffect->currentLOD = 0;//owner ? ((Ship *)owner)->currentLOD : 0;
-    newEffect->cameraDistanceSquared = owner ? ((Ship *)owner)->cameraDistanceSquared : REALlyBig;
+    newEffect->cameraDistanceSquared = owner ? owner->cameraDistanceSquared : REALlyBig;
     newEffect->timeElapsed = 0.0f;                          //effect just now starting
     newEffect->drag = 1.0f;                                 //default is no drag at all
 
     //position
     if (pos == NULL)
     {
-        dbgAssertOrIgnore(((Ship *)owner) != NULL);
+        dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachPosition))
         {
-            newEffect->posinfo.position = ((Ship *)owner)->posinfo.position;
+            newEffect->posinfo.position = owner->posinfo.position;
         }
     }
     else
@@ -7491,10 +7491,10 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     //velocity
     if (vel == NULL)
     {
-        dbgAssertOrIgnore(((Ship *)owner) != NULL);
+        dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachVelocity))
         {
-            newEffect->posinfo.velocity = ((Ship *)owner)->posinfo.velocity;
+            newEffect->posinfo.velocity = owner->posinfo.velocity;
         }
     }
     else
@@ -7505,17 +7505,17 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     //coordinate system
     if (coordsys == NULL)
     {
-        dbgAssertOrIgnore(((Ship *)owner) != NULL);
+        dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachCoordsys))
         {
-            newEffect->rotinfo.coordsys = ((Ship *)owner)->rotinfo.coordsys;
+            newEffect->rotinfo.coordsys = owner->rotinfo.coordsys;
         }
     }
     else
     {
         newEffect->rotinfo.coordsys = *coordsys;
     }
-    newEffect->owner = (Ship *)owner;                       // ((Ship *)owner) that effect is attached to
+    newEffect->owner = owner;                       // ((Ship *)owner) that effect is attached to
     newEffect->nSpawnedAttachedToOwner = 0;
     if (nLips == 0.0f)
     {
@@ -7542,7 +7542,7 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     }
     listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
     listAddNode(&universe.effectList,&(newEffect->effectLink),newEffect);
-    if (((Ship *)owner) != NULL)
+    if (owner != NULL)
     {
         if (bitTest(stat->specialOps, ESO_WorldRender))
         {
