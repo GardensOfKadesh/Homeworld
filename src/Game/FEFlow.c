@@ -1787,13 +1787,13 @@ void feScreensLoadAndConvertTo64Bit(char *fileName, void** loadAddress)
           if (oldfeatom->type == FA_RadioButton){
             newfeatom->pData = oldfeatom->pData;
           } else {
-            newfeatom->pData = (char *)((Uint64)newptr - (Uint64)newrootptr );
+            newfeatom->pData = (ubyte *)((Uint64)newptr - (Uint64)newrootptr );
             newptr = stpcpy_reimplementation(newptr,  (char *)((Uint64)oldfeatom->pData + oldrootptr) );
             newptr = (void*)(((Uint64)newptr + 8) & ((Uint64) ~7));
           }
         }
         if (oldfeatom->attribs != 0){
-          newfeatom->attribs = (char *)((Uint64)newptr - (Uint64)newrootptr );
+          newfeatom->attribs = (ubyte *)((Uint64)newptr - (Uint64)newrootptr );
           newptr = stpcpy_reimplementation(newptr,  (char *)((Uint64)oldfeatom->attribs + oldrootptr) );
           newptr = (void*)(((Uint64)newptr + 8) & ((Uint64) ~7)); 
         }
@@ -1889,8 +1889,8 @@ fibfileheader *feScreensLoad(char *fileName)
         {
             dbgMessagef("WARNING atoms %s not byte aligned",fileName);
         }
-        screen->links = (memsize)loadAddress + (ubyte *)screen->links;      //update list pointers
-        screen->atoms = (memsize)loadAddress + (ubyte *)screen->atoms;
+        screen->links = (typeof(screen->links))((memsize)loadAddress + (ubyte *)screen->links);      //update list pointers
+        screen->atoms = (typeof(screen->atoms))((memsize)loadAddress + (ubyte *)screen->atoms);
         for (index = 0; index < screen->nLinks; index++)
         {                                                   //for each link in screen
 

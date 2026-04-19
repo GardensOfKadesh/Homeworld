@@ -67,7 +67,7 @@ udword aviPlayIntros = 0;
 AVFormatContext *pFormatCtx    = NULL;
 AVCodecContext  *pCodecCtx     = NULL;
 AVStream        *streamPointer = NULL;
-AVCodec         *pCodec        = NULL;
+AVCodec const   *pCodec        = NULL;
 AVFrame         *pFrame        = NULL;
 AVDictionary    **opts         = NULL;
 AVCodecParameters *pCodecpar   = NULL;
@@ -353,7 +353,15 @@ dbgMessagef("aviPlayLoop: frameFinished=%d  packet.data=%x   packet.size=%d ", f
 
         if(avcodec_receive_frame(pCodecCtx, pFrame)==0) {
 
-            sws_scale(img_convert_ctx, pFrame->data,pFrame->linesize, 0, pCodecCtx->height, pPictureRGB->data,pPictureRGB->linesize);
+            sws_scale(
+                img_convert_ctx,
+                (ubyte const* const*)pFrame->data,
+                pFrame->linesize,
+                0,
+                pCodecCtx->height,
+                pPictureRGB->data,
+                pPictureRGB->linesize
+            );
             
             animAviDecode(frame);
 

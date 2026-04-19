@@ -4648,7 +4648,7 @@ bool32 DeleteDeadDerelict(Derelict *derelict, sdword deathBy)
             colSizeDword = Real32ToUdword(colSize);
             velMagnitudeDword = Real32ToUdword(velMagnitude);
             //??? EAF_ flags ???
-            effect = etgEffectCreate(explosion, derelict, NULL, NULL, NULL, 1.0f, 0, 2, SCALECAST(colSizeDword), SCALECAST(velMagnitudeDword));
+            effect = etgEffectCreate(explosion, (Ship *)derelict, NULL, NULL, NULL, 1.0f, 0, 2, SCALECAST(colSizeDword), SCALECAST(velMagnitudeDword));
             bitSet(effect->flags, SOF_ForceVisible);
         }
     }

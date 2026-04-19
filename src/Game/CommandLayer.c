@@ -2530,7 +2530,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
 
                     movetodo->selection->ShipPtr[j]->hyperspacePing=TRUE;
                     //create ping HERE!
-                    newPing = pingCreate(NULL, (SpaceObj *)movetodo->selection->ShipPtr[j], (pingeval)hyperspaceOutPingTimeOut, NULL, 0, movetodo->selection->ShipPtr[j]);
+                    newPing = pingCreate(NULL, (SpaceObj *)movetodo->selection->ShipPtr[j], (pingeval)hyperspaceOutPingTimeOut, NULL, 0, (SpaceObj *)movetodo->selection->ShipPtr[j]);
                     newPing->c = TW_HW_PING_COLOUR_OUT;
                     newPing->size = TW_HW_PING_MAX_SIZE_OUT;
                     newPing->minScreenSize = primScreenToGLScaleX(2);
@@ -2626,7 +2626,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
                     ping *newPing;
                     movetodo->selection->ShipPtr[j]->hyperspacePing=TRUE;
                     //create ping HERE!
-                    newPing = pingCreate(NULL, (SpaceObj *)movetodo->selection->ShipPtr[j], (pingeval)hyperspaceInPingTimeOut, NULL, 0, movetodo->selection->ShipPtr[j]);
+                    newPing = pingCreate(NULL, (SpaceObj *)movetodo->selection->ShipPtr[j], (pingeval)hyperspaceInPingTimeOut, NULL, 0, (SpaceObj *)movetodo->selection->ShipPtr[j]);
                     newPing->c = TW_HW_PING_COLOUR_IN;
                     newPing->size = TW_HW_PING_MAX_SIZE_IN;
                     newPing->minScreenSize = primScreenToGLScaleX(2);

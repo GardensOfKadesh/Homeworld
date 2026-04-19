@@ -346,7 +346,14 @@ void ProximitySensorHouseKeep(Ship *ship)
                     {
                         battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_F_ProxSensor_Detection, SOUND_EVENT_DEFAULT, &ship->posinfo.position);
                     }
-                    newPing = pingCreate(NULL, (SpaceObj *)ship, ProximitySensorPingTimeout, NULL, 0, ship);
+                    newPing = pingCreate(
+                        NULL,
+                        (SpaceObj *)ship,
+                        ProximitySensorPingTimeout,
+                        NULL,
+                        0,
+                        (SpaceObj *)ship
+                    );
                     newPing->c = proxBlipColor(ship);
                     newPing->size = proximitysensorstatics->SearchRadius;
                     newPing->minScreenSize = primScreenToGLScaleX(2);

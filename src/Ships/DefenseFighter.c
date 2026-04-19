@@ -207,7 +207,7 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     if (stat != NULL && etgBulletEffectsEnabled && !etgFrequencyExceeded(stat))
 #endif
     {
-        laser->effect = etgEffectCreate(stat, laser, NULL, NULL, NULL, 1.0f, EAF_AllButNLips, 3, intDamage, intVelocity, intLength);
+        laser->effect = etgEffectCreate(stat, (Ship *)laser, NULL, NULL, NULL, 1.0f, EAF_AllButNLips, 3, intDamage, intVelocity, intLength);
 //        univAddObjToRenderListIf((SpaceObj *)laser->effect,(SpaceObj *)ship);     // add to render list if parent ship is in render list
         //do length calculations :)
         ((real32 *)laser->effect->variable)[ETG_LengthVariable] =
@@ -259,7 +259,7 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
          *
          * Gitlab #30 "Segfault on defense fighter laser" - Thibault Lemaire - 2024-04-10 - 1 of 3
          */
-        etgEffectCreate(stat, laser, NULL, NULL, NULL, 1.0f, EAF_AllButNLips, 1, intDamage);
+        etgEffectCreate(stat, (Ship *)laser, NULL, NULL, NULL, 1.0f, EAF_AllButNLips, 1, intDamage);
     }
 /*
 //spawn bullet hitting effect

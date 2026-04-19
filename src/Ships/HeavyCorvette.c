@@ -260,7 +260,7 @@ bool32 doBurstFire(Ship *ship)
     spec->bulletLifeTime = range*oneOverburstSpeed;
 
     bitSet(ship->specialFlags,SPECIAL_BurstFiring);
-    done = gunShootGunsAtTarget(ship,&dummyTarg,0.0f,&trajectory);
+    done = gunShootGunsAtTarget(ship,(SpaceObjRotImpTarg *)&dummyTarg,0.0f,&trajectory);
     bitClear(ship->specialFlags,SPECIAL_BurstFiring);
     if(done == TRUE)
     {

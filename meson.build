@@ -38,7 +38,6 @@ c_base_args = [
 	'-Wno-format',
 	'-Wno-implicit-fallthrough',
 	'-Wno-implicit-function-declaration',
-	'-Wno-incompatible-pointer-types',
 	'-Wno-int-conversion', # 6 occurrences
 	'-Wno-int-in-bool-context',
 	'-Wno-int-to-pointer-cast',
