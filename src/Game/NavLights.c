@@ -35,8 +35,8 @@ void navLightBillboardEnable(Ship *s, NAVLightStatic *nls)
 
     //object -> worldspace
     src = nls->position;
-    matMultiplyMatByVec(&dst, &s->rotinfo.coordsys, &src);
-    vecAddTo(dst, s->posinfo.position);
+    matMultiplyMatByVec(&dst, &s->rotatable.rotinfo.coordsys, &src);
+    vecAddTo(dst, s->obj.posinfo.position);
 
     //setup billboarding
     glPushMatrix();
@@ -92,6 +92,8 @@ void navLightStaticInfoDelete(NAVLightStaticInfo *staticInfo)
 ----------------------------------------------------------------------------*/
 void RenderNAVLights(Ship *ship)
 {
+   //TODO(type safety, 2026-04-20): Make a "parent" `NavLights` struct to Ship & Derelict
+   // and take that as argument to avoid casting Derelicts as Ships
    sdword i;
    NAVLight *navLight;
    NAVLightInfo *navLightInfo;
@@ -143,7 +145,7 @@ void RenderNAVLights(Ship *ship)
 
 			if(navLight->lightstate)
 			{
-				if (ship->currentLOD <= (sdword)navLightStatic->minLOD)
+				if (ship->obj.currentLOD <= (sdword)navLightStatic->minLOD)
 				{
 					navLightBillboardEnable(ship, navLightStatic);
 

@@ -70,9 +70,9 @@ void calculatePlayerBounties(void)
         while (objnode != NULL)
         {
             ship = (Ship *)listGetStructOfNode(objnode);
-            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-            if ( ((ship->flags & (SOF_Dead|SOF_Disabled)) == 0) && (ship->shiptype != Drone) )
+            if ( ((ship->header.flags & (SOF_Dead|SOF_Disabled)) == 0) && (ship->shiptype != Drone) )
             {
                 playerindex = ship->playerowner->playerIndex;
                 if ((playerindex >= 0) && (playerindex < universe.numPlayers))
@@ -91,9 +91,9 @@ void calculatePlayerBounties(void)
                         {
                             insideship2 = (InsideShip *)listGetStructOfNode(insidenode);
                             ship = insideship2->ship;
-                            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+                            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-                            if ( ((ship->flags & (SOF_Dead|SOF_Disabled)) == 0) && (ship->shiptype != Drone) )
+                            if ( ((ship->header.flags & (SOF_Dead|SOF_Disabled)) == 0) && (ship->shiptype != Drone) )
                             {
                                 playerindex = ship->playerowner->playerIndex;
                                 if ((playerindex >= 0) && (playerindex < universe.numPlayers))

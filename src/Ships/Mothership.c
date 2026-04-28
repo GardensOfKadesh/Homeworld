@@ -173,22 +173,22 @@ void MothershipDoorUpKeep(Ship *ship)
         matGetVectFromMatrixCol3(doorHeading,coordsysWS);
 
         //vecScalarMultiply(doorLeft,doorRight,-1.0f);
-        matPutVectIntoMatrixCol1(up,spec->doorCargo->rotinfo.coordsys);
+        matPutVectIntoMatrixCol1(up,spec->doorCargo->rotatable.rotinfo.coordsys);
         //vecScalarMultiply(doorHeading,doorHeading,-1.0f);
-        matPutVectIntoMatrixCol2(right,spec->doorCargo->rotinfo.coordsys);
-        matPutVectIntoMatrixCol3(heading,spec->doorCargo->rotinfo.coordsys);
+        matPutVectIntoMatrixCol2(right,spec->doorCargo->rotatable.rotinfo.coordsys);
+        matPutVectIntoMatrixCol3(heading,spec->doorCargo->rotatable.rotinfo.coordsys);
 
         if(spec->doorCargo->putOnDoor==TRUE || MoveReachedDestinationVariable((Ship *)spec->doorCargo,&positionWS,1.0f))
         {
             spec->doorCargo->putOnDoor=TRUE;
-            spec->doorCargo->posinfo.position = positionWS;
+            spec->doorCargo->obj.posinfo.position = positionWS;
         }
         else
         {
             vector adder;
-            vecSub(adder,positionWS,spec->doorCargo->posinfo.position);
+            vecSub(adder,positionWS,spec->doorCargo->obj.posinfo.position);
             vecScalarMultiply(adder,adder,0.3f);
-            vecAddTo(spec->doorCargo->posinfo.position,adder);
+            vecAddTo(spec->doorCargo->obj.posinfo.position,adder);
         }
     }
 }
@@ -223,7 +223,7 @@ void GetDirectionVectorFromMat(vector *result,udword direction,matrix *coordsys)
         vecNegate(*result);
     }
 }
-void mothershipGetCargoPosition(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *cargo, vector *position, matrix *coordsys, vector *heading, vector *up, vector *right)
+void mothershipGetCargoPosition(Ship *ship,ShipOrDerelict *cargo, vector *position, matrix *coordsys, vector *heading, vector *up, vector *right)
 {
     MothershipStatics *mothershipstatics = (MothershipStatics *)((ship->staticinfo))->custstatinfo;
     vector worldRelative;//doorUp,doorRight,doorHeading;
@@ -240,7 +240,7 @@ void mothershipGetCargoPosition(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
         updir = mothershipstatics->specialDoorOrientationUp[((Ship *)cargo)->shiprace][((Ship *)cargo)->shiptype];
         if(updir == -1)
             updir = 1;
-        if(cargo->objtype == OBJ_ShipType)
+        if(cargo->header.objtype == OBJ_ShipType)
         {
             matMultiplyMatByVec(&worldRelative,coordsys,&mothershipstatics->specialDoorOffset[((Ship *)cargo)->shiprace][((Ship *)cargo)->shiptype]);
             GetDirectionVectorFromMat(heading,headingdir,coordsys);
@@ -252,8 +252,8 @@ void mothershipGetCargoPosition(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
             //probably never going to get here normally...derelicts will not be salvaged or docked.
             //use default values
             matMultiplyMatByVec(&worldRelative,coordsys,&mothershipstatics->specialDoorOffset[R1][HeavyCruiser]);
-            GetDirectionVectorFromMat(heading,0,&ship->rotinfo.coordsys);
-            GetDirectionVectorFromMat(up,1,&ship->rotinfo.coordsys);
+            GetDirectionVectorFromMat(heading,0,&ship->rotatable.rotinfo.coordsys);
+            GetDirectionVectorFromMat(up,1,&ship->rotatable.rotinfo.coordsys);
             vecCrossProduct(*right,*heading,*up);
 
         }
@@ -262,9 +262,9 @@ void mothershipGetCargoPosition(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
     else
     {
         //no postion attainable use default values
-        *position = ship->posinfo.position;
-        GetDirectionVectorFromMat(heading,0,&ship->rotinfo.coordsys);
-        GetDirectionVectorFromMat(up,1,&ship->rotinfo.coordsys);
+        *position = ship->obj.posinfo.position;
+        GetDirectionVectorFromMat(heading,0,&ship->rotatable.rotinfo.coordsys);
+        GetDirectionVectorFromMat(up,1,&ship->rotatable.rotinfo.coordsys);
         vecCrossProduct(*right,*heading,*up);
     }
 
@@ -307,7 +307,7 @@ void MothershipRemoveShipReferences(Ship *ship,Ship *shiptoremove)
     }
 }
 
-void MothershipAttachObjectToDoor(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *object)
+void MothershipAttachObjectToDoor(Ship *ship,ShipOrDerelict *object)
 {
     MothershipSpec *spec = (MothershipSpec *)ship->ShipSpecifics;
 
@@ -335,9 +335,9 @@ void Mothership_PreFix(Ship *ship)
     sdword i;
     for(i=0;i<MAX_NUM_DROP;i++)
     {
-        spec->droptarget[i] = (SpaceObjRotImpTargGuidanceShipDerelict *) SpaceObjRegistryGetID((SpaceObj *)spec->droptarget[i]);
+        spec->droptarget[i] = (ShipOrDerelict *) SpaceObjRegistryGetID((SpaceObj *)spec->droptarget[i]);
     }
-    spec->doorCargo = (SpaceObjRotImpTargGuidanceShipDerelict *) SpaceObjRegistryGetID((SpaceObj *)spec->doorCargo);
+    spec->doorCargo = (ShipOrDerelict *) SpaceObjRegistryGetID((SpaceObj *)spec->doorCargo);
 
 }
 
@@ -347,9 +347,9 @@ void Mothership_Fix(Ship *ship)
     sdword i;
     for(i=0;i<MAX_NUM_DROP;i++)
     {
-        spec->droptarget[i] = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetObj((sdword)spec->droptarget[i]);
+        spec->droptarget[i] = (ShipOrDerelict *)SpaceObjRegistryGetObj((sdword)spec->droptarget[i]);
     }
-    spec->doorCargo = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetObj((sdword)spec->doorCargo);
+    spec->doorCargo = (ShipOrDerelict *)SpaceObjRegistryGetObj((sdword)spec->doorCargo);
 }
 
 udword ReadDockTimer(ubyte *docktimer)
@@ -508,14 +508,14 @@ void MothershipDied(Ship *ship)
     {
         if(spec->droptarget[i] != NULL)
         {
-            if(spec->droptarget[i]->objtype == OBJ_ShipType)
+            if(spec->droptarget[i]->header.objtype == OBJ_ShipType)
             {
                 //undisabled and make selectable
-                if(!bitTest(((Ship *)spec->droptarget[i])->specialFlags2,SPECIAL_2_DisabledForever))
+                if(!bitTest(spec->droptarget[i]->specialFlags2,SPECIAL_2_DisabledForever))
                 {
-                    bitClear(spec->droptarget[i]->flags,SOF_Disabled);
+                    bitClear(spec->droptarget[i]->header.flags,SOF_Disabled);
                     bitClear(spec->droptarget[i]->specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip);
-                    bitSet(spec->droptarget[i]->flags,SOF_Selectable);
+                    bitSet(spec->droptarget[i]->header.flags,SOF_Selectable);
                 }
             }
 

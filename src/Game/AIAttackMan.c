@@ -103,7 +103,7 @@ AITeam *aiaSendRecon(SelectCommand *ships)
 
         if (team->shipList.selection->numShips)
         {
-            team_location = team->shipList.selection->ShipPtr[0]->posinfo.position;
+            team_location = team->shipList.selection->ShipPtr[0]->obj.posinfo.position;
         }
         else
         {
@@ -1007,7 +1007,7 @@ void aiaProcessSwarm(void)
                     growSelectRemoveShipIndex(&aiCurrentAIPlayer->newships, i);
                     break;
                 case P2AdvanceSwarmer:
-                    if (bitTest(ship->attributes, ATTRIBUTES_TeamLeader))
+                    if (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader))
                     {
                         selSelectionAddSingleShip(&newLeaders, ship);
                     }
@@ -1018,7 +1018,7 @@ void aiaProcessSwarm(void)
                     growSelectRemoveShipIndex(&aiCurrentAIPlayer->newships, i);
                     break;
                 case P2Swarmer:
-                    if (bitTest(ship->attributes, ATTRIBUTES_TeamLeader))
+                    if (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader))
                     {
                         selSelectionAddSingleShip(&newLeaders, ship);
                     }
@@ -1212,7 +1212,7 @@ bool32 aiaPlayerCanBuildShipType(ShipType shiptype, AIPlayer *aiplayer)
     }
 
     teststatic = GetShipStaticInfo(shiptype,race);
-    if (!bitTest(teststatic->staticheader.infoFlags, IF_InfoLoaded))
+    if (!bitTest(teststatic->common.infoFlags, IF_InfoLoaded))
     {
         return FALSE;       // this ship static info not loaded, so can't build
     }

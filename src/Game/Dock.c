@@ -264,16 +264,16 @@ void GetDirectionVectorOfShip(vector *result,udword direction,Ship *ship)
     switch (direction & 3)
     {
         case 0:
-            matGetVectFromMatrixCol1(*result,ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol1(*result,ship->rotatable.rotinfo.coordsys);
             break;
 
         case 1:
-            matGetVectFromMatrixCol2(*result,ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol2(*result,ship->rotatable.rotinfo.coordsys);
             break;
 
         case 2:
         case 3:
-            matGetVectFromMatrixCol3(*result,ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(*result,ship->rotatable.rotinfo.coordsys);
             break;
     }
 
@@ -319,10 +319,10 @@ bool32 ShipWithinDockRange(Ship *ship,Ship *target)
     vector diff;
     real32 distsqr;
 
-    vecSub(diff,ship->posinfo.position,target->posinfo.position);
+    vecSub(diff,ship->obj.posinfo.position,target->obj.posinfo.position);
     distsqr = vecMagnitudeSquared(diff);
 
-    if (distsqr < ((ShipStaticInfo *)target->staticinfo)->dockShipRange)
+    if (distsqr < target->staticinfo->dockShipRange)
     {
         return TRUE;
     }
@@ -352,15 +352,15 @@ Ship *FindAnotherResearchShiptoDockWith(Ship *ship)
     while (objnode != NULL)
     {
         dockat = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(dockat->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(dockat->header.objtype == OBJ_ShipType);
 
-        if ((dockat->flags & SOF_Dead) == 0)
+        if ((dockat->header.flags & SOF_Dead) == 0)
         {
             if (ship->playerowner == dockat->playerowner)
             {
                 if(ship != dockat)
                 {   //don't dock with same ship...its not cool
-                    dockatstatic = (ShipStaticInfo *)dockat->staticinfo;
+                    dockatstatic = dockat->staticinfo;
                     if(dockatstatic->shiptype == ResearchShip && dockat->shiprace == ship->shiprace)
                     {
                         spec = (ResearchShipSpec *)dockat->ShipSpecifics;
@@ -425,7 +425,7 @@ Ship *FindAnotherResearchShiptoDockWith(Ship *ship)
                                     {   //just add 1 to the docking ships position
                                         ((ResearchShipSpec *)dockat->ShipSpecifics)->pie_plate_num++;
                                     }
-                                    if(dockat->flags & SOF_Slaveable)
+                                    if(dockat->header.flags & SOF_Slaveable)
                                     {
                                         ((ResearchShipSpec *)(dockat->slaveinfo->Master)->ShipSpecifics)->prepshipforanother++;
                                     }
@@ -468,7 +468,7 @@ Ship *FindAnotherResearchShiptoDockWith(Ship *ship)
             spec = (ResearchShipSpec *)ship->ShipSpecifics;
             spec->seed = TRUE;                                  //set this one to being the main seed!
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->master = TRUE;
-            bitSet(closestDockat->flags,SOF_Selectable);
+            bitSet(closestDockat->header.flags,SOF_Selectable);
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->masterptr = closestDockat;
             ((ResearchShipSpec *)ship->ShipSpecifics)->masterptr = closestDockat;
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->pie_plate_num = 0;
@@ -483,7 +483,7 @@ Ship *FindAnotherResearchShiptoDockWith(Ship *ship)
         {
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->master = TRUE;
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->masterptr = closestDockat;
-            bitSet(closestDockat->flags,SOF_Selectable);
+            bitSet(closestDockat->header.flags,SOF_Selectable);
             ((ResearchShipSpec *)ship->ShipSpecifics)->masterptr = closestDockat;
             ((ResearchShipSpec *)closestDockat->ShipSpecifics)->pie_plate_num = 1;
             ((ResearchShipSpec *)ship->ShipSpecifics)->pie_plate_num = 1;
@@ -497,7 +497,7 @@ Ship *FindAnotherResearchShiptoDockWith(Ship *ship)
         }
     }
     //assume that ship is on its own..hence we should make it selectable
-    bitSet(ship->flags,SOF_Selectable);
+    bitSet(ship->header.flags,SOF_Selectable);
     return(NULL);
 }
 
@@ -524,9 +524,9 @@ sdword ThisShipIs(ShipStaticInfo *shipstatic)
 //returns TRUE if the shiptype requires a mothership in order to retire
 bool32 shipRetireNeedsMothership(Ship *ship)
 {
-    if (ship->staticinfo->salvageStaticInfo != NULL)
+    if (ship->staticinfo->shipOrDerelict.salvageStaticInfo != NULL)
     {
-        return !ship->staticinfo->salvageStaticInfo->willFitCarrier;
+        return !ship->staticinfo->shipOrDerelict.salvageStaticInfo->willFitCarrier;
     }
     else
     {
@@ -553,9 +553,9 @@ bool32 ThisShipCanDockWith(Ship *ship,Ship *dockwith,DockType dockType)
 
     if (dockwith->staticinfo->canReceiveSomething)
     {
-        if ((dockwith->flags & (SOF_Dead|SOF_Disabled|SOF_Crazy|SOF_Hyperspace)) == 0)
+        if ((dockwith->header.flags & (SOF_Dead|SOF_Disabled|SOF_Crazy|SOF_Hyperspace)) == 0)
         {
-            if (allianceIsShipAlly(ship,dockwith->playerowner) || bitTest(dockwith->specialFlags, SPECIAL_FriendlyStatus))
+            if (allianceIsShipAlly(ship,dockwith->playerowner) || bitTest(dockwith->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus))
             {
                 thisShip = ThisShipIs(ship->staticinfo);
                 if(dockType & DOCK_FOR_RETIRE)
@@ -644,7 +644,7 @@ Ship *FindNearestShipToDockAt(Ship *ship,DockType dockType)
     real32 mindist = (real32)1e20;
     Ship *closestDockat = NULL;
     ShipStaticInfo *dockatstatic;
-    ShipStaticInfo *shipstatic = (ShipStaticInfo *)ship->staticinfo;
+    ShipStaticInfo *shipstatic = ship->staticinfo;
     sdword canHandleNumShips;
     real32 busyadddist;
 
@@ -656,13 +656,13 @@ Ship *FindNearestShipToDockAt(Ship *ship,DockType dockType)
     while (objnode != NULL)
     {
         dockat = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(dockat->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(dockat->header.objtype == OBJ_ShipType);
 
         if (ThisShipCanDockWith(ship,dockat,dockType))
         {
-            dockatstatic = (ShipStaticInfo *)dockat->staticinfo;
+            dockatstatic = dockat->staticinfo;
 
-            if(!(dockat->flags & SOF_Disabled))
+            if(!(dockat->header.flags & SOF_Disabled))
             {
                 //ship mustn't be disabled
                 CommandToDo *dockatcommand = getShipAndItsCommand(&universe.mainCommandLayer,dockat);
@@ -680,7 +680,7 @@ Ship *FindNearestShipToDockAt(Ship *ship,DockType dockType)
                    ((dockType & DOCK_PERMANENTLY) && (dockatstatic->canReceiveShipsPermanently)) ||
                    ((dockType & DOCK_FOR_RETIRE) && (dockatstatic->canReceiveShipsForRetire)))
                 {
-                    vecSub(diff,dockat->posinfo.position,ship->posinfo.position);
+                    vecSub(diff,dockat->obj.posinfo.position,ship->obj.posinfo.position);
                     dist = fsqrt(vecMagnitudeSquared(diff));
 
                     if (dockType & DOCK_TO_DEPOSIT_RESOURCES)
@@ -770,7 +770,7 @@ void InitializeDockVars(Ship *ship,Ship *dockship,DockType dockType)
 {
     if (dockType & DOCK_STAY_TILL_EXPLICITLAUNCH)
     {
-        ship->specialFlags |= SPECIAL_STAY_TILL_EXPLICITLAUNCH;
+        ship->shipOrDerelict.specialFlags |= SPECIAL_STAY_TILL_EXPLICITLAUNCH;
     }
     ship->dockvars.dockship = dockship;
     if (ship->dockvars.dockship != NULL)
@@ -819,7 +819,7 @@ DockType dockGetAppropriateTypeOfDocking(SelectCommand *selectcom)
         else if (!isCapitalShipStatic(shipstatic))
         {
             shipsConsidered++;
-            avghealth += (ship->health / shipstatic->maxhealth);
+            avghealth += (ship->targetable.health / shipstatic->health.maxhealth);
 
             if (shipstatic->maxfuel != 0.0f)
             {
@@ -1115,8 +1115,8 @@ void dockPrepareDroneForDocking(Ship *ship,Ship *dockship)
 
 void dockPrepareSingleShipForLaunch(Ship *ship,Ship *dockship)
 {
-    ship->specialFlags |= SPECIAL_Launching;
-    ship->dockingship = dockship;
+    ship->shipOrDerelict.specialFlags |= SPECIAL_Launching;
+    ship->shipOrDerelict.dockingship = dockship;
     ship->dockvars.dockship = dockship;
     ship->dockvars.busyingThisShip = NULL;
     ship->dockvars.reserveddocking = -1;
@@ -1126,10 +1126,10 @@ void dockPrepareSingleShipForLaunch(Ship *ship,Ship *dockship)
 
 void RemoveShipFromDocking(Ship *ship)
 {
-    bitClear(ship->specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH|SPECIAL_KasCheckDoneLaunching);
-    if(ship->clampInfo != NULL)
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH|SPECIAL_KasCheckDoneLaunching);
+    if(ship->guidance.clampInfo != NULL)
     {
-        if(ship->dockingship == (Ship *)ship->clampInfo->host)
+        if(&ship->shipOrDerelict.dockingship->targetable == ship->guidance.clampInfo->host)
         {
             //host is docking ships...so unclamp
             //won't unclamp unless it is the right ship
@@ -1141,7 +1141,7 @@ void RemoveShipFromDocking(Ship *ship)
     {
         dockUnbusyThisShip(ship);
     }
-    ship->dockingship = NULL;
+    ship->shipOrDerelict.dockingship = NULL;
     if (ship->dockvars.reserveddocking >= 0)
     {
         dockFreeDockPoint(ship,ship->dockvars.dockship);
@@ -1158,9 +1158,9 @@ void RemoveShipFromDocking(Ship *ship)
 
 void RemoveShipFromLaunching(Ship *ship)
 {
-    bitClear(ship->specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH|SPECIAL_KasCheckDoneLaunching);
-    bitClear(ship->specialFlags,SPECIAL_Launching);
-    ship->dockingship = NULL;
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH|SPECIAL_KasCheckDoneLaunching);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_Launching);
+    ship->shipOrDerelict.dockingship = NULL;
     if (ship->dockvars.reserveddocking >= 0)
     {
         dockFreeDockPoint(ship,ship->dockvars.dockship);
@@ -1292,8 +1292,8 @@ void DockCleanup(struct CommandToDo *docktodo)
 ----------------------------------------------------------------------------*/
 bool32 dockShipRefuelsAtShip(Ship *ship,Ship *dockwith)
 {
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
-    ShipStaticInfo *dockwithstaticinfo = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
+    ShipStaticInfo *dockwithstaticinfo = dockwith->staticinfo;
     bool32 alldone = TRUE;
 
     dbgAssertOrIgnore(dockwithstaticinfo->canReceiveShips | dockwithstaticinfo->canReceiveResources);
@@ -1320,20 +1320,20 @@ bool32 dockShipRefuelsAtShip(Ship *ship,Ship *dockwith)
 
     if (dockwithstaticinfo->repairOtherShipRate != 0.0f)
     {
-        if (ship->health < shipstaticinfo->maxhealth)
+        if (ship->targetable.health < shipstaticinfo->health.maxhealth)
         {
             if(ship->shiptype == ResourceCollector &&
                dockwithstaticinfo->repairResourceCollectorRate != 0.0f)
             {
-                ship->health += dockwithstaticinfo->repairResourceCollectorRate * shipstaticinfo->maxhealth * 0.01f;
+                ship->targetable.health += dockwithstaticinfo->repairResourceCollectorRate * shipstaticinfo->health.maxhealth * 0.01f;
             }
             else
             {
-                ship->health += dockwithstaticinfo->repairOtherShipRate * shipstaticinfo->maxhealth * 0.01f;
+                ship->targetable.health += dockwithstaticinfo->repairOtherShipRate * shipstaticinfo->health.maxhealth * 0.01f;
             }
-            if (ship->health > shipstaticinfo->maxhealth)
+            if (ship->targetable.health > shipstaticinfo->health.maxhealth)
             {
-                ship->health = shipstaticinfo->maxhealth;
+                ship->targetable.health = shipstaticinfo->health.maxhealth;
             }
             else
             {
@@ -1374,9 +1374,9 @@ bool32 dockFlyToConeInsideAndAlign(Ship *ship,Ship *dockwith,real32 headingToler
      vector destination;
      bool32 ok=FALSE;
 
-     matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
-     matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-     vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+     matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
+     matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+     vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
 
      vecScalarMultiply(destination,coneheadingInWorldCoordSys,dockDistance);
@@ -1384,7 +1384,7 @@ bool32 dockFlyToConeInsideAndAlign(Ship *ship,Ship *dockwith,real32 headingToler
 
 
 
-     aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_DontFlyToObscuredPoints|AISHIP_IgnoreDockWithObscuredPoints|AISHIP_ReturnImmedIfPointObscured, CONEINSIDE_MINFLYSPEED,&dockwith->posinfo.velocity);
+     aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_DontFlyToObscuredPoints|AISHIP_IgnoreDockWithObscuredPoints|AISHIP_ReturnImmedIfPointObscured, CONEINSIDE_MINFLYSPEED,&dockwith->obj.posinfo.velocity);
 
      if (MoveReachedDestinationVariable(ship,&destination,100.0f))
      {
@@ -1392,7 +1392,7 @@ bool32 dockFlyToConeInsideAndAlign(Ship *ship,Ship *dockwith,real32 headingToler
      }
      if(dockwithRace==R2 && dockwith->shiptype == Mothership)
      {
-        matGetVectFromMatrixCol3(heading,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(heading,dockwith->rotatable.rotinfo.coordsys);
      }
      else
      {
@@ -1420,15 +1420,15 @@ bool32 dockFlyToConeOrigin(Ship *ship,Ship *dockwith,real32 tolerance,real32 min
     if((overide = dockNeedOffsetOveride(dockwith,ship,dockstaticpoint)) != -1)
     {
         vecAdd(tmpvec,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset,dockstaticpoint->position);
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&tmpvec);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&tmpvec);
     }
     else
     {
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
     }
 
-    //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     if (MoveReachedDestinationVariable(ship,&conepositionInWorldCoordSys,tolerance))
     {
@@ -1447,7 +1447,7 @@ bool32 dockFlyToConeOrigin(Ship *ship,Ship *dockwith,real32 tolerance,real32 min
         else if (pointAlongConeVector)
         {
             vector heading;
-            vecSub(heading,conepositionInWorldCoordSys,ship->posinfo.position);
+            vecSub(heading,conepositionInWorldCoordSys,ship->obj.posinfo.position);
             vecNormalize(&heading);
             aitrackHeading(ship,&heading,FLYSHIP_HEADINGACCURACY);
             flags = 0;
@@ -1455,7 +1455,7 @@ bool32 dockFlyToConeOrigin(Ship *ship,Ship *dockwith,real32 tolerance,real32 min
         else if(faceWithDockwith)
         {
             vector heading;
-            matGetVectFromMatrixCol3(heading,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(heading,dockwith->rotatable.rotinfo.coordsys);
             aitrackHeading(ship,&heading,0.999f);
             flags = 0;
         }
@@ -1463,7 +1463,7 @@ bool32 dockFlyToConeOrigin(Ship *ship,Ship *dockwith,real32 tolerance,real32 min
         {
             flags = AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying;
         }
-        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,flags,minflyspeed,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,flags,minflyspeed,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -1482,21 +1482,21 @@ bool32 dockFlyToConeOriginLatchIfWithin(Ship *ship,Ship *dockwith,real32 withind
 
     if((overide = dockNeedOffsetOveride(dockwith,ship,dockstaticpoint)) != -1)
     {
-        //matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+        //matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
         //vecScalarMultiply(coneheadingInWorldCoordSys,coneheadingInWorldCoordSys,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
         //vecAddTo(conepositionInWorldCoordSys,coneheadingInWorldCoordSys);
         //vecAddTo(conepositionInWorldCoordSys,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
-        //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
-        //vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+        //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
+        //vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
         vecAdd(tmpvec,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset,dockstaticpoint->position);
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&tmpvec);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&tmpvec);
     }
     else
     {
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
     }
 
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     if (withindistsqr == 0.0f)
     {
@@ -1504,12 +1504,12 @@ bool32 dockFlyToConeOriginLatchIfWithin(Ship *ship,Ship *dockwith,real32 withind
     }
 
 
-    vecSub(lefttogo,ship->posinfo.position,conepositionInWorldCoordSys);
+    vecSub(lefttogo,ship->obj.posinfo.position,conepositionInWorldCoordSys);
     distsqr = vecMagnitudeSquared(lefttogo);
 
     if (distsqr > withindistsqr)
     {
-        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,AISHIP_PointInDirectionFlying,-50.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,AISHIP_PointInDirectionFlying,-50.0f,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
     else
@@ -1517,7 +1517,7 @@ bool32 dockFlyToConeOriginLatchIfWithin(Ship *ship,Ship *dockwith,real32 withind
 latchimmediately:
         if (MoveReachedDestinationVariable(ship,&conepositionInWorldCoordSys,LATCH_TOLERANCE))
         {
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             return TRUE;
         }
         else
@@ -1533,7 +1533,7 @@ latchimmediately:
                 GetDirectionVectorOfShip(&desiredUp,dockstaticpoint->updirection,dockwith);
             }
             aitrackHeadingAndUp(ship,&desiredHeading,&desiredUp,FLYSHIP_HEADINGACCURACY);
-            aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,0,-50.0f,&dockwith->posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,0,-50.0f,&dockwith->obj.posinfo.velocity);
             return FALSE;
         }
     }
@@ -1562,32 +1562,32 @@ bool32 dockFlyToConeOriginLatch(Ship *ship,Ship *dockwith)
 
     if((overide = dockNeedOffsetOveride(dockwith,ship,dockstaticpoint)) != -1)
     {
-        //matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+        //matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
         //vecScalarMultiply(coneheadingInWorldCoordSys,coneheadingInWorldCoordSys,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
         //vecAddTo(conepositionInWorldCoordSys,coneheadingInWorldCoordSys);
         //vecAddTo(conepositionInWorldCoordSys,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
-        //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
-        //vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+        //matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset);
+        //vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
         vecAdd(tmpvec,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset,dockstaticpoint->position);
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&tmpvec);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&tmpvec);
     }
     else
     {
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
     }
 
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
 
     if (MoveReachedDestinationVariable(ship,&conepositionInWorldCoordSys,LATCH_TOLERANCE))
     {
-        ship->posinfo.velocity = dockwith->posinfo.velocity;
+        ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
         return TRUE;
     }
     else
     {
         aitrackHeadingAndUp(ship,&desiredHeading,&desiredUp,FLYSHIP_HEADINGACCURACY);
-        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,0,-50.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&conepositionInWorldCoordSys,0,-50.0f,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -1600,10 +1600,10 @@ bool32 dockBackoutOfConeLatch(Ship *ship,Ship *dockwith)
     vector conepositionInWorldCoordSys;
     vector destination;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     vecScalarMultiply(destination,coneheadingInWorldCoordSys,backupDistance);
     vecAddTo(destination,conepositionInWorldCoordSys);
@@ -1614,7 +1614,7 @@ bool32 dockBackoutOfConeLatch(Ship *ship,Ship *dockwith)
     }
     else
     {
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,BACKOUT_MINFLYSPEED,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,BACKOUT_MINFLYSPEED,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -1632,20 +1632,20 @@ bool32 dockBackoutOfConeLatchFacingProperly(Ship *ship,Ship *dockwith,real32 wit
     sdword overide;
 
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     vecScalarMultiply(destination,coneheadingInWorldCoordSys,backupDistance);
     vecAddTo(destination,conepositionInWorldCoordSys);
 
-    vecSub(lefttogo,ship->posinfo.position,conepositionInWorldCoordSys);
+    vecSub(lefttogo,ship->obj.posinfo.position,conepositionInWorldCoordSys);
     distsqr = vecMagnitudeSquared(lefttogo);
 
     if (distsqr > withindistsqr)
     {
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,BACKOUT_MINFLYSPEED,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,BACKOUT_MINFLYSPEED,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
     else
@@ -1667,7 +1667,7 @@ bool32 dockBackoutOfConeLatchFacingProperly(Ship *ship,Ship *dockwith,real32 wit
                 GetDirectionVectorOfShip(&desiredUp,dockstaticpoint->updirection,dockwith);
             }
             aitrackHeadingAndUp(ship,&desiredHeading,&desiredUp,FLYSHIP_HEADINGACCURACY);
-            aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,BACKOUT_MINFLYSPEED,&dockwith->posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,BACKOUT_MINFLYSPEED,&dockwith->obj.posinfo.velocity);
             return FALSE;
         }
     }
@@ -1683,15 +1683,15 @@ bool32 dockFlyOutOfCone(Ship *ship,Ship *dockwith,sdword headingdirection,sdword
     vector destination;
     vector distanceawayVec;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     vecScalarMultiply(destination,coneheadingInWorldCoordSys,10000.0f);
     vecAddTo(destination,conepositionInWorldCoordSys);
 
-    vecSub(distanceawayVec,ship->posinfo.position,conepositionInWorldCoordSys);
+    vecSub(distanceawayVec,ship->obj.posinfo.position,conepositionInWorldCoordSys);
     if (vecMagnitudeSquared(distanceawayVec) >= (backupDistance*backupDistance))
     {
         return TRUE;
@@ -1715,7 +1715,7 @@ bool32 dockFlyOutOfCone(Ship *ship,Ship *dockwith,sdword headingdirection,sdword
             flags = AISHIP_PointInDirectionFlying;
         }
 
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,flags,0.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,flags,0.0f,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -1727,7 +1727,7 @@ bool32 dockFlyAboveMothershipDoor(Ship *ship,Ship *dockwith)
     vector heading,up,right;
     matrix coordsysWS;
 
-    mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
+    mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
     //madLinkInGetDoorInfo(dockwith,&coordsysWS,&dest1);
     //matGetVectFromMatrixCol1(heading,coordsysWS);
     //get tracking up vector
@@ -1745,7 +1745,7 @@ bool32 dockFlyAboveMothershipDoor(Ship *ship,Ship *dockwith)
     else
     {
         aitrackHeadingAndUp(ship,&heading,&up,1.0f);
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,0.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,0.0f,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -1762,7 +1762,7 @@ bool32 dockFlyToBottomOfDoor1(Ship *ship,Ship *dockwith)
     //bool32 track = FALSE;
     bool32 dest = FALSE;
 
-    mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
+    mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
     //madLinkInGetDoorInfo(dockwith,&coordsysWS,&dest1);
     matGetVectFromMatrixCol1(doorheading,coordsysWS);
     //get tracking up vector
@@ -1775,7 +1775,7 @@ bool32 dockFlyToBottomOfDoor1(Ship *ship,Ship *dockwith)
     vecAddTo(destination,dest1);
 
     //track = aitrackHeadingAndUp(ship,&heading,&up,0.98f);
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_PointInDirectionFlying,0.0f,&dockwith->obj.posinfo.velocity);
 
 
     if(MoveReachedDestinationVariable(ship,&destination,400.0f))
@@ -1799,7 +1799,7 @@ bool32 dockFlyToBottomOfDoor2(Ship *ship,Ship *dockwith)
     bool32 track = FALSE;
     bool32 dest = FALSE;
 
-    mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
+    mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
     //madLinkInGetDoorInfo(dockwith,&coordsysWS,&dest1);
     //matGetVectFromMatrixCol1(heading,coordsysWS);
     //get tracking up vector
@@ -1810,7 +1810,7 @@ bool32 dockFlyToBottomOfDoor2(Ship *ship,Ship *dockwith)
     vecAddTo(destination,dest1);
 
     track = aitrackHeadingAndUp(ship,&heading,&up,0.98f);
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->obj.posinfo.velocity);
 
 
     if(MoveReachedDestinationVariable(ship,&destination,100.0f))
@@ -1831,7 +1831,7 @@ bool32 dockFlyToBottomOfDoor3(Ship *ship,Ship *dockwith)
     bool32 track = FALSE;
     bool32 dest = FALSE;
 
-    mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
+    mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
     //madLinkInGetDoorInfo(dockwith,&coordsysWS,&dest1);
     //matGetVectFromMatrixCol1(heading,coordsysWS);
     //get tracking up vector
@@ -1842,7 +1842,7 @@ bool32 dockFlyToBottomOfDoor3(Ship *ship,Ship *dockwith)
     vecAddTo(destination,dest1);
 
     track = aitrackHeadingAndUp(ship,&heading,&up,0.98f);
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->obj.posinfo.velocity);
 
 
     if(MoveReachedDestinationVariable(ship,&destination,100.0f))
@@ -1863,7 +1863,7 @@ bool32 dockFlyToDoor(Ship *ship,Ship *dockwith)
     bool32 track = FALSE;
     bool32 dest = FALSE;
 
-    mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
+    mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship,&destination,&coordsysWS,&heading,&up,&right);
     //madLinkInGetDoorInfo(dockwith,&coordsysWS,&dest1);
     //matGetVectFromMatrixCol1(heading,coordsysWS);
     //get tracking up vector
@@ -1871,7 +1871,7 @@ bool32 dockFlyToDoor(Ship *ship,Ship *dockwith)
     //vecScalarMultiply(up,up,-1.0f);
 
     track = aitrackHeadingAndUp(ship,&heading,&up,1.0f);
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->obj.posinfo.velocity);
 
 
     if(MoveReachedDestinationVariable(ship,&destination,TW_R1_DOOR_DOCK_TOLERANCE))
@@ -1894,12 +1894,12 @@ bool32 dockFlyToConeInside(Ship *ship,Ship *dockwith,real32 dockDistance)
     real32 dotprod;
     vector destination;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
-    vecSub(coneToShip,ship->posinfo.position,conepositionInWorldCoordSys);
+    vecSub(coneToShip,ship->obj.posinfo.position,conepositionInWorldCoordSys);
     coneToShipMag = fsqrt(vecMagnitudeSquared(coneToShip));
 
     dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -1920,7 +1920,7 @@ rinside:
     else
     {
         if (aishipFlyToPointAvoidingObjsWithVel(ship,&destination,
-            AISHIP_DontFlyToObscuredPoints|AISHIP_IgnoreDockWithObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_FirstPointInDirectionFlying|AISHIP_PointInDirectionFlying, CONEINSIDE_MINFLYSPEED,&dockwith->posinfo.velocity)
+            AISHIP_DontFlyToObscuredPoints|AISHIP_IgnoreDockWithObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_FirstPointInDirectionFlying|AISHIP_PointInDirectionFlying, CONEINSIDE_MINFLYSPEED,&dockwith->obj.posinfo.velocity)
             & AISHIP_FLY_OBJECT_IN_WAY)
         {
             goto rinside;
@@ -1965,7 +1965,7 @@ sdword dockFindNearestDockPoint(sdword *dockpointindices[],Ship *ship,Ship *dock
 {
     sdword *curdockpoint = dockpointindices[0];
     sdword curdockindex;
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockInfo *dockInfo = dockwith->dockInfo;
     DockStaticInfo *dockStaticInfo = dockwithstatic->dockStaticInfo;
     real32 mindistsqr = REALlyBig;
@@ -1988,10 +1988,10 @@ sdword dockFindNearestDockPoint(sdword *dockpointindices[],Ship *ship,Ship *dock
         {
             dockstaticpoint = &dockStaticInfo->dockstaticpoints[curdockindex];
 
-            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-            vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+            vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
-            vecSub(coneToShip,ship->posinfo.position,conepositionInWorldCoordSys);
+            vecSub(coneToShip,ship->obj.posinfo.position,conepositionInWorldCoordSys);
 
             coneToShipMagSqr = vecMagnitudeSquared(coneToShip);
 
@@ -2083,7 +2083,7 @@ sdword dockFindLaunchPointRandom(sdword *dockpointindices[],Ship *dockwith,Ship 
                         }
                         else
                         {
-                            ship->specialFlags |= SPECIAL_EXITING_DOOR;
+                            ship->shipOrDerelict.specialFlags |= SPECIAL_EXITING_DOOR;
                         }
                     }
                 }
@@ -2325,10 +2325,10 @@ void dockPutShipInside(Ship *ship,Ship *dockwith)
         //check if it has a target
         if(((SalCapCorvetteSpec *)ship->ShipSpecifics)->target != NULL)
         {
-            SpaceObjRotImpTargGuidanceShipDerelict *temp = ((SalCapCorvetteSpec *)ship->ShipSpecifics)->target;
+            ShipOrDerelict *temp = ((SalCapCorvetteSpec *)ship->ShipSpecifics)->target;
 
             //cleanup the salcap
-            bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+            bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
             SalCapOrderChangedCleanUp(ship);
 
             //harvest the target
@@ -2377,34 +2377,34 @@ void dockPutShipOutside(Ship *ship,Ship *creator,vector *createat,udword heading
     sdword i;
 
     dbgAssertOrIgnore(creator);
-    if (creator->collMyBlob != NULL)
+    if (creator->obj.collMyBlob != NULL)
     {
-        collAddSpaceObjToSpecificBlob(creator->collMyBlob,(SpaceObj *)ship);
+        collAddSpaceObjToSpecificBlob(creator->obj.collMyBlob,(SpaceObj *)ship);
     }
     else
     {
         collAddSpaceObjToCollBlobs((SpaceObj *)ship);
     }
-    listAddNode(&universe.SpaceObjList,&(ship->objlink),ship);
+    listAddNode(&universe.SpaceObjList,&(ship->header.objlink),ship);
     listAddNode(&universe.ShipList,&(ship->shiplink),ship);
-    listAddNode(&universe.ImpactableList,&(ship->impactablelink),ship);
+    listAddNode(&universe.ImpactableList,&(ship->impactable.impactablelink),ship);
 
-    if (creator->flags & SOF_Hide)      // if creator is hidden, ship coming out should be hidden too
-        bitSet(ship->flags, SOF_Hide);
+    if (creator->header.flags & SOF_Hide)      // if creator is hidden, ship coming out should be hidden too
+        bitSet(ship->header.flags, SOF_Hide);
     else
-        bitClear(ship->flags, SOF_Hide);
+        bitClear(ship->header.flags, SOF_Hide);
 
     univAddObjToRenderListIf((SpaceObj *)ship,(SpaceObj *)creator);     // add to render list if parent ship is in render list
-    ship->posinfo.position = *createat;
-    ship->posinfo.velocity = creator->posinfo.velocity;
+    ship->obj.posinfo.position = *createat;
+    ship->obj.posinfo.velocity = creator->obj.posinfo.velocity;
 
     dbgAssertOrIgnore(headingdirection != updirection);
     GetDirectionVectorOfShip(&heading,headingdirection,creator);
     GetDirectionVectorOfShip(&up,updirection,creator);
     vecCrossProduct(right,heading,up);   // should not have to normalize because heading, up are unit vectors and angle between them is 90 degrees.
-    matCreateMatFromVecs(&ship->rotinfo.coordsys,&up,&right,&heading);
+    matCreateMatFromVecs(&ship->rotatable.rotinfo.coordsys,&up,&right,&heading);
 
-    univUpdateObjRotInfo((SpaceObjRot *)ship);
+    univUpdateObjRotInfo(&ship->rotatable);
 
     for (i = 0; i < MAX_NUM_TRAILS; i++)
     {
@@ -2417,22 +2417,22 @@ void dockPutShipOutside(Ship *ship,Ship *creator,vector *createat,udword heading
 
 void dockMakeNewStaticInfoForMaster(Ship *master)
 {
-    dbgAssertOrIgnore(!(master->flags & SOF_StaticInfoIsDynamic));
+    dbgAssertOrIgnore(!(master->header.flags & SOF_StaticInfoIsDynamic));
 
 
     master->staticinfo = memAlloc(sizeof(ShipStaticInfo),"ShipStaticInfo",0);
-    *((ShipStaticInfo *)(master->staticinfo)) = *GetShipStaticInfo(master->shiptype,master->shiprace);
+    *master->staticinfo = *GetShipStaticInfo(master->shiptype,master->shiprace);
         //asteroidStaticInfos[asteroid->asteroidtype];  // structure copy
-    master->flags |= SOF_StaticInfoIsDynamic;
+    master->header.flags |= SOF_StaticInfoIsDynamic;
 
 }
 
 void dockFreeMasterStaticMem(Ship *master)
 {
-    if (master->flags & SOF_StaticInfoIsDynamic)
+    if (master->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(master->staticinfo);
-        bitClear(master->flags, SOF_StaticInfoIsDynamic);
+        bitClear(master->header.flags, SOF_StaticInfoIsDynamic);
     }
     //here regenerate static info...not yet though
     master->staticinfo = GetShipStaticInfo(master->shiptype,master->shiprace);
@@ -2464,7 +2464,7 @@ void dockMakeMaster(Ship *master)
     master->slaveinfo->Master = master;             //own master
     bitSet(master->slaveinfo->flags,SF_MASTER);
     listInit(&master->slaveinfo->slaves);
-    bitSet(master->flags,SOF_Slaveable);            //set to indicate involved in the slave trade
+    bitSet(master->header.flags,SOF_Slaveable);            //set to indicate involved in the slave trade
 #ifdef DEBUG_SLAVE
 dbgMessagef("SLAVE_TRADE: Just made master: %x",master);
 #endif
@@ -2505,21 +2505,21 @@ void dockAddSlave(Ship *master, Ship *slave)
             slaveslave->slaveinfo->flags = 0;
             bitSet(slaveslave->slaveinfo->flags,SF_SLAVE);
             slaveslave->slaveinfo->Master = master;
-            bitSet(slaveslave->flags,SOF_Slaveable);
+            bitSet(slaveslave->header.flags,SOF_Slaveable);
 
-            bitClear(slaveslave->flags,SOF_Selectable);  //make non selectable
-            //bitClear(slave->flags,SOF_Targetable);
+            bitClear(slaveslave->header.flags,SOF_Selectable);  //make non selectable
+            //bitClear(slave->header.flags,SOF_Targetable);
 
             listAddNode(&master->slaveinfo->slaves,&slaveslave->slavelink,slave);
 
             //Store offset with respect to MASTER's object space
-            vecSub(tmpvec,slaveslave->posinfo.position,master->posinfo.position);
-            matMultiplyVecByMat(&slaveslave->slaveinfo->offset,&tmpvec,&master->rotinfo.coordsys);
+            vecSub(tmpvec,slaveslave->obj.posinfo.position,master->obj.posinfo.position);
+            matMultiplyVecByMat(&slaveslave->slaveinfo->offset,&tmpvec,&master->rotatable.rotinfo.coordsys);
 
             //Store slaves coordsys with respect to MASTER's object space
-            tmpmat = slaveslave->rotinfo.coordsys;
+            tmpmat = slaveslave->rotatable.rotinfo.coordsys;
             matTranspose(&tmpmat);
-            matMultiplyMatByMat(&slaveslave->slaveinfo->coordsys,&tmpmat,&master->rotinfo.coordsys);
+            matMultiplyMatByMat(&slaveslave->slaveinfo->coordsys,&tmpmat,&master->rotatable.rotinfo.coordsys);
             matTranspose(&slaveslave->slaveinfo->coordsys);
 
             slavenode = slavenode->next;
@@ -2532,32 +2532,32 @@ void dockAddSlave(Ship *master, Ship *slave)
     slave->slaveinfo->flags = 0;
     bitSet(slave->slaveinfo->flags,SF_SLAVE);
     slave->slaveinfo->Master = master;
-    bitSet(slave->flags,SOF_Slaveable);
+    bitSet(slave->header.flags,SOF_Slaveable);
 
-    bitClear(slave->flags,SOF_Selectable);  //make non selectable
-    //bitClear(slave->flags,SOF_Targetable);
+    bitClear(slave->header.flags,SOF_Selectable);  //make non selectable
+    //bitClear(slave->header.flags,SOF_Targetable);
 
     listAddNode(&master->slaveinfo->slaves,&slave->slavelink,slave);
 
     //Store offset with respect to MASTER's object space
-    vecSub(tmpvec,slave->posinfo.position,master->posinfo.position);
-    matMultiplyVecByMat(&slave->slaveinfo->offset,&tmpvec,&master->rotinfo.coordsys);
+    vecSub(tmpvec,slave->obj.posinfo.position,master->obj.posinfo.position);
+    matMultiplyVecByMat(&slave->slaveinfo->offset,&tmpvec,&master->rotatable.rotinfo.coordsys);
 
     //Store slaves coordsys with respect to MASTER's object space
-    tmpmat = slave->rotinfo.coordsys;
+    tmpmat = slave->rotatable.rotinfo.coordsys;
     matTranspose(&tmpmat);
-    matMultiplyMatByMat(&slave->slaveinfo->coordsys,&tmpmat,&master->rotinfo.coordsys);
+    matMultiplyMatByMat(&slave->slaveinfo->coordsys,&tmpmat,&master->rotatable.rotinfo.coordsys);
     matTranspose(&slave->slaveinfo->coordsys);
 
     //MOD HEALTH...MAYBE ONLY FOR RESEARCH!
-    //((ShipStaticInfo *)master->staticinfo)->staticheader.mass += ((ShipStaticInfo *)slave->staticinfo)->staticheader.mass;
-    ((ShipStaticInfo *)master->staticinfo)->maxhealth += ((ShipStaticInfo *)slave->staticinfo)->maxhealth;
+    //(master->staticinfo)->common.mass += (slave->staticinfo)->common.mass;
+    master->staticinfo->health.maxhealth += slave->staticinfo->health.maxhealth;
 
-    ((ShipStaticInfo *)master->staticinfo)->oneOverMaxHealth = 1.0f/((ShipStaticInfo *)master->staticinfo)->maxhealth;
+    master->staticinfo->health.oneOverMaxHealth = 1.0f/master->staticinfo->health.maxhealth;
 
 
 
-    master->health += slave->health;
+    master->targetable.health += slave->targetable.health;
     /*
     for(i=0;i<NUM_TURN_TYPES;i++)
     {
@@ -2570,7 +2570,7 @@ void dockAddSlave(Ship *master, Ship *slave)
             num = master->slaveinfo->slaves.num;
         }
 
-        ((ShipStaticInfo *)master->staticinfo)->turnspeed[i] = ((ShipStaticInfo *)slave->staticinfo)->turnspeed[i]/num;
+        (master->staticinfo)->turnspeed[i] = (slave->staticinfo)->turnspeed[i]/num;
     }
     */
     //ccRemoveShip(&universe.mainCameraCommand,slave);
@@ -2594,12 +2594,12 @@ void dockRemoveSlave(Ship *master, Ship *slavetoremove)
     listRemoveNode(&slavetoremove->slavelink);
     memFree(slavetoremove->slaveinfo);                        //MEMFREE
     slavetoremove->slaveinfo = NULL;
-    bitClear(slavetoremove->flags,SOF_Slaveable);
+    bitClear(slavetoremove->header.flags,SOF_Slaveable);
 #ifdef DEBUG_SLAVE
     dbgMessagef("SLAVE_TRADE: Removing Slave");
 #endif
-    //bitSet(slavetoremove->flags,SOF_Selectable);
-    master->health-=slavetoremove->health;
+    //bitSet(slavetoremove->header.flags,SOF_Selectable);
+    master->targetable.health-=slavetoremove->targetable.health;
 }
 
 void dockCrushMaster(Ship *master)
@@ -2622,7 +2622,7 @@ void dockCrushMaster(Ship *master)
         dockRemoveSlave(master,slave);
     }
     dbgAssertOrIgnore(master->slaveinfo->slaves.num == 0);      //makes sure nothing has been left
-    bitClear(master->flags, SOF_Slaveable);
+    bitClear(master->header.flags, SOF_Slaveable);
     memFree(master->slaveinfo);                         //MEMFREE
     master->slaveinfo = NULL;
     dockFreeMasterStaticMem(master);
@@ -2655,7 +2655,7 @@ void dockDealWithDeadSlaveable(Ship *ship)
     dbgMessagef("SLAVE_TRADE: cleaning up dead slave/master");
 #endif
 
-    dbgAssertOrIgnore(bitTest(ship->flags,SOF_Slaveable));
+    dbgAssertOrIgnore(bitTest(ship->header.flags,SOF_Slaveable));
     dbgAssertOrIgnore(ship->slaveinfo != NULL);
     if(bitTest(ship->slaveinfo->flags,SF_MASTER))
     {    //dead ship was a master....
@@ -2685,22 +2685,22 @@ void dockUpdateSlaves(Ship *master)
     while(slavenode != NULL)
     {
         slave = (Ship *) listGetStructOfNode(slavenode);
-        //slave->posinfo.force = master->posinfo.force;
-        //slave->rotinfo.torque = master->rotinfo.torque;
+        //slave->obj.posinfo.force = master->obj.posinfo.force;
+        //slave->rotatable.rotinfo.torque = master->rotatable.rotinfo.torque;
         //maybe set velocity, and rot speed here..but not yet...actually...yet
-        //slave->posinfo.velocity = master->posinfo.velocity;
-        //slave->rotinfo.rotspeed = master->rotinfo.rotspeed;
-        slave->posinfo.isMoving = master->posinfo.isMoving;
+        //slave->obj.posinfo.velocity = master->obj.posinfo.velocity;
+        //slave->rotatable.rotinfo.rotspeed = master->rotatable.rotinfo.rotspeed;
+        slave->obj.posinfo.isMoving = master->obj.posinfo.isMoving;
 
         physUpdateObjPosVelShip(slave,universe.phystimeelapsed);   //Update slave finally
-        vecSub(tmpvec,slave->posinfo.position,master->posinfo.position);
+        vecSub(tmpvec,slave->obj.posinfo.position,master->obj.posinfo.position);
 
         //'decode' slaves location in world space with respect to masters location
-        matMultiplyMatByVec(&tmpvec,&master->rotinfo.coordsys,&slave->slaveinfo->offset);
-        vecAdd(slave->posinfo.position, master->posinfo.position, tmpvec);
+        matMultiplyMatByVec(&tmpvec,&master->rotatable.rotinfo.coordsys,&slave->slaveinfo->offset);
+        vecAdd(slave->obj.posinfo.position, master->obj.posinfo.position, tmpvec);
 
         //'decode' slaves orientation in world space with respect to Masters.
-        matMultiplyMatByMat(&slave->rotinfo.coordsys,&master->rotinfo.coordsys, &slave->slaveinfo->coordsys);
+        matMultiplyMatByMat(&slave->rotatable.rotinfo.coordsys,&master->rotatable.rotinfo.coordsys, &slave->slaveinfo->coordsys);
 
         univUpdateObjRotInfo((SpaceObjRot *)slave);
 
@@ -2740,7 +2740,7 @@ void JunkYardHQStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -2759,7 +2759,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtJunkYardHQDockInfo),"AtJunkYardHQ",0);
             customdockinfo->size = sizeof(AtJunkYardHQDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             customdockinfo->latchmintime = JUNKYARDHQ_LATCHMINTIME;
             customdockinfo->turnlatchdistsqr = JUNKYARDHQ_LATCHDIST;
@@ -2775,7 +2775,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
             //with this ship if the variable (numshipscan recieve) doesn't
             //work.
 
-            if (dockwith->specialFlags2 & SPECIAL_2_NoMoreDockingAllowed)
+            if (dockwith->shipOrDerelict.specialFlags2 & SPECIAL_2_NoMoreDockingAllowed)
             {
                 aitrackSteadyShip(ship);
                 return FALSE;
@@ -2796,7 +2796,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -2805,7 +2805,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = JUNKYARDHQ_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -2820,7 +2820,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = JUNKYARDHQ_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -2836,17 +2836,17 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
                     AIVar *var;
                     var = aivarCreate("DockedWJydHQ");
                     aivarValueSet(var,TRUE);
-                    bitSet(dockwith->specialFlags2,SPECIAL_2_NoMoreDockingAllowed);
+                    bitSet(dockwith->shipOrDerelict.specialFlags2,SPECIAL_2_NoMoreDockingAllowed);
                 }
             }
             return FALSE;
 
         case JUNKYARDHQ_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
-            ship->rotinfo.rotspeed = dockwith->rotinfo.rotspeed;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
+            ship->rotatable.rotinfo.rotspeed = dockwith->rotatable.rotinfo.rotspeed;
             customdockinfo = ship->dockvars.customdockinfo;
             if ( (universe.totaltimeelapsed > customdockinfo->timestamp) &&
-                 ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
+                 ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
             {
                 ship->dockvars.dockstate2 = JUNKYARDHQ_BACKUP;
                 unClampObj((SpaceObjRotImpTargGuidance *)ship);
@@ -2856,7 +2856,7 @@ bool32 ShipDocksAtJunkYardHQ(struct CommandToDo *docktodo,struct Ship *ship,stru
         case JUNKYARDHQ_BACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -2916,7 +2916,7 @@ void R2RepairCorvetteStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -2935,7 +2935,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtRepairCorvetteDockInfo),"AtRCorvDock",0);
             customdockinfo->size = sizeof(AtRepairCorvetteDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             if (dockwithstatic->shiprace == R1)
             {
@@ -2974,7 +2974,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -2983,7 +2983,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = REPCORV_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -2998,7 +2998,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = REPCORV_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -3018,7 +3018,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
             return FALSE;
 
         case REPCORV_REFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
@@ -3030,7 +3030,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
             return FALSE;
 
         case REPCORV_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (universe.totaltimeelapsed > customdockinfo->timestamp)
             {
@@ -3048,7 +3048,7 @@ bool32 ShipDocksAtRepairCorvette(struct CommandToDo *docktodo,struct Ship *ship,
         case REPCORV_BACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -3115,7 +3115,7 @@ void R2ResourceCollectorStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -3134,7 +3134,7 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtResourceCollectorDockInfo),"AtRColDock",0);
             customdockinfo->size = sizeof(AtResourceCollectorDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             if (dockwithstatic->shiprace == R1)
             {
@@ -3195,7 +3195,7 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -3204,7 +3204,7 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = RESCOL_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -3219,7 +3219,7 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = RESCOL_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -3235,8 +3235,8 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             return FALSE;
 
         case RESCOL_REFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
-            ship->rotinfo.rotspeed = dockwith->rotinfo.rotspeed;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
+            ship->rotatable.rotinfo.rotspeed = dockwith->rotatable.rotinfo.rotspeed;
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
@@ -3248,8 +3248,8 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             return FALSE;
 
         case RESCOL_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
-            ship->rotinfo.rotspeed = dockwith->rotinfo.rotspeed;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
+            ship->rotatable.rotinfo.rotspeed = dockwith->rotatable.rotinfo.rotspeed;
             customdockinfo = ship->dockvars.customdockinfo;
             if (universe.totaltimeelapsed > customdockinfo->timestamp)
             {
@@ -3264,7 +3264,7 @@ bool32 ShipDocksAtResourceCollector(struct CommandToDo *docktodo,struct Ship *sh
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockBackoutOfConeLatchFacingProperly(ship,dockwith,customdockinfo->turnlatchdistsqr))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -3383,7 +3383,7 @@ void R2ASFStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -3402,7 +3402,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtASFDockInfo),"AtASFDock",0);
             customdockinfo->size = sizeof(AtASFDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             if (dockwithstatic->shiprace == R1)
             {
@@ -3461,7 +3461,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -3471,20 +3471,20 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
                 vector desiredHeading,desiredUp,desiredRight;
                 vector conepositionInWorldCoordSys;
 
-                matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-                vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+                matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+                vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
                 GetDirectionVectorOfShip(&desiredHeading,dockstaticpoint->headingdirection,dockwith);
                 GetDirectionVectorOfShip(&desiredUp,dockstaticpoint->updirection,dockwith);
                 vecCrossProduct(desiredRight,desiredHeading,desiredUp);
 
-                ship->posinfo.position = conepositionInWorldCoordSys;
-                ship->posinfo.velocity = dockwith->posinfo.velocity;
-                matCreateMatFromVecs(&ship->rotinfo.coordsys,&desiredUp,&desiredRight,&desiredHeading);
+                ship->obj.posinfo.position = conepositionInWorldCoordSys;
+                ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
+                matCreateMatFromVecs(&ship->rotatable.rotinfo.coordsys,&desiredUp,&desiredRight,&desiredHeading);
 
-                univUpdateObjRotInfo((SpaceObjRot *)ship);
+                univUpdateObjRotInfo(&ship->rotatable);
 
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
                 clampObjToObj((SpaceObjRotImpTargGuidance *)ship,(SpaceObjRotImpTargGuidance *)dockwith);
                 customdockinfo->timestamp = universe.totaltimeelapsed + customdockinfo->latchmintime;
                 ship->dockvars.dockstate2 = ASF_WAIT;
@@ -3495,7 +3495,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = ASF_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -3510,7 +3510,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = ASF_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -3530,7 +3530,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
             return FALSE;
 
         case ASF_REFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
@@ -3542,10 +3542,10 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
             return FALSE;
 
         case ASF_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if ((universe.totaltimeelapsed > customdockinfo->timestamp) &&
-                ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
+                ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
             {
                 CommandToDo *command;
                 command = getShipAndItsCommand(&universe.mainCommandLayer,dockwith);
@@ -3566,7 +3566,7 @@ bool32 ShipDocksAtASF(struct CommandToDo *docktodo,struct Ship *ship,struct Ship
         case ASF_BACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -3671,7 +3671,7 @@ void R2ResControllerStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -3691,7 +3691,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtResControllerDockInfo),"AtResConDock",0);
             customdockinfo->size = sizeof(AtResControllerDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             if (shipstatic->shiptype == ResourceCollector)
             {
@@ -3750,7 +3750,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -3759,7 +3759,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = RESCON_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -3774,7 +3774,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = RESCON_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -3789,7 +3789,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
             return FALSE;
 
         case RESCON_REFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
@@ -3801,7 +3801,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
             return FALSE;
 
         case RESCON_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (universe.totaltimeelapsed > customdockinfo->timestamp)
             {
@@ -3814,7 +3814,7 @@ bool32 ShipDocksAtResController(struct CommandToDo *docktodo,struct Ship *ship,s
         case RESCON_BACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -4097,15 +4097,15 @@ sdword **ResourceLatchPoints[] = {
 bool32 shipStaticIndicatesBigHangerBayForRace(ShipStaticInfo *ship_static, sdword race)
 {
     if (ship_static                    != NULL
-    &&  ship_static->salvageStaticInfo != NULL)
+    &&  ship_static->shipOrDerelict.salvageStaticInfo != NULL)
     {
         if (race == R1)
         {
-            return ship_static->salvageStaticInfo->needBigR1;
+            return ship_static->shipOrDerelict.salvageStaticInfo->needBigR1;
         }
         else if (race == R2) // should be a given but might see P1 et al
         {
-            return ship_static->salvageStaticInfo->needBigR2;
+            return ship_static->shipOrDerelict.salvageStaticInfo->needBigR2;
         }
     }
     
@@ -4238,7 +4238,7 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
 {
     sdword launchpointindex,overide;
     DockStaticPoint *dockstaticpoint;
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     ShipStaticInfo *shipstatic;
     vector conepositionInWorldCoordSys;
     vector heading,up,right;
@@ -4247,7 +4247,7 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
     switch (ship->dockvars.dockstate3)
     {
         case 0:
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             ship->dockvars.launchpoints = GetLaunchPoints(shipstatic,dockwithstatic);
             dbgAssertOrIgnore(ship->dockvars.launchpoints);
@@ -4269,14 +4269,14 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
 
             dockReserveDockPoint(ship,dockwith,launchpointindex);
 
-            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-            vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+            vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
             dockRemoveShipFromInside(ship,dockwith);
 
             if (dockwithstatic->shiptype == Mothership
                 && dockwithstatic->shiprace == R1
-                && ship->specialFlags & SPECIAL_EXITING_DOOR)
+                && ship->shipOrDerelict.specialFlags & SPECIAL_EXITING_DOOR)
             {
                 //need special R1 Mothership door docking procedures..sigh
 
@@ -4291,13 +4291,13 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
                 //need to start and stop here so a) works with current animation scheme, and b)
                 //lets us get teh door position
                 madAnimationStart(dockwith, dockwith->cuedAnimationIndex);  //start 0th cued animation
-                mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship, &conepositionInWorldCoordSys,&coordsysWS,&heading,&up,&right);
+                mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)ship, &conepositionInWorldCoordSys,&coordsysWS,&heading,&up,&right);
                 madAnimationStop(dockwith);
 
                 //put ship outside at wrong orientation..but it will instantly be re-ordered with the attach command
                 //before it is rendered
                 dockPutShipOutside(ship,dockwith,&conepositionInWorldCoordSys,dockstaticpoint->headingdirection,dockstaticpoint->updirection);
-                MothershipAttachObjectToDoor(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship);
+                MothershipAttachObjectToDoor(dockwith,(ShipOrDerelict *)ship);
                 ship->dockvars.dockstate3 = LAUNCH_FROM_MOTHERSHIP_R1_DOOR1;
             }
             else
@@ -4308,8 +4308,8 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
                 {
                     vector tmpvec2;
                     vecAdd(tmpvec2,dockwith->staticinfo->dockOverideInfo->dockOverides[overide].offset,dockstaticpoint->position);
-                    matMultiplyMatByVec(&outpos,&dockwith->rotinfo.coordsys,&tmpvec2);
-                    vecAddTo(outpos,dockwith->posinfo.position);
+                    matMultiplyMatByVec(&outpos,&dockwith->rotatable.rotinfo.coordsys,&tmpvec2);
+                    vecAddTo(outpos,dockwith->obj.posinfo.position);
                 }
                 else
                 {
@@ -4351,7 +4351,7 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
         case LAUNCH_FROM_MOTHERSHIP_R1_DOOR2:
             if (dockFlyAboveMothershipDoor(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -4384,7 +4384,7 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
                 }
                 if (dockFlyOutOfCone(ship,dockwith,h,u))
                 {
-                    ship->dockingship = NULL;
+                    ship->shipOrDerelict.dockingship = NULL;
                     dockFreeDockPoint(ship,dockwith);
                     return TRUE;
                 }
@@ -4402,7 +4402,7 @@ bool32 LaunchShipFromCarrierMother(Ship *ship,Ship *dockwith)
 
 bool32 ShipDocksAtCarrierMother(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -4609,7 +4609,7 @@ bool32 ShipDocksAtCarrierMother(struct CommandToDo *docktodo,struct Ship *ship,s
             else if (ship->staticinfo->shipclass == CLASS_Corvette || ship->shiptype == ProximitySensor)
                 customdockinfo->giveupdockpointat = universe.totaltimeelapsed + CARRIERMOTHERDOCK_DELAY_FLYINSIDE_CORVETTE;
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -4618,7 +4618,7 @@ bool32 ShipDocksAtCarrierMother(struct CommandToDo *docktodo,struct Ship *ship,s
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -4652,7 +4652,7 @@ waitforlatch:
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -4661,7 +4661,7 @@ waitforlatch:
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_LATCHFLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -4681,7 +4681,7 @@ waitforlatch:
             if (dockFlyToConeInside(ship,dockwith,customdockinfo->dockmisc))
             {
                 madLinkInPreDockingShip(ship);
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
                 if(docktodo->dock.dockType & DOCK_FOR_RETIRE)
                 {
                     //docking for retiring...
@@ -4721,10 +4721,10 @@ waitforlatch:
             {
                 if(ship->shiptype == CloakedFighter)
                 {
-                    if(bitTest(ship->flags,SOF_Cloaked)  || bitTest(ship->flags,SOF_Cloaking))
+                    if(bitTest(ship->header.flags,SOF_Cloaked)  || bitTest(ship->header.flags,SOF_Cloaking))
                     {
-                        bitClear(ship->flags,SOF_Cloaking);
-                        bitSet(ship->flags,SOF_DeCloaking);
+                        bitClear(ship->header.flags,SOF_Cloaking);
+                        bitSet(ship->header.flags,SOF_DeCloaking);
                     }
                 }
                 if (customdockinfo->giveupdockpointat > 0.0f)
@@ -4750,10 +4750,10 @@ waitforlatch:
 
                 if ((singlePlayerGame)  &&
                     (ship->shiptype == SalCapCorvette) &&
-                    (bitTest(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology)))
+                    (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology)))
                 {
                     tutGameMessage("Game_TechnologyReturned");
-                    bitClear(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology);
+                    bitClear(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology);
                     salCapClearTechBool();
                 }
 
@@ -4765,7 +4765,7 @@ waitforlatch:
             if (dockFlyToConeInside(ship,dockwith,customdockinfo->dockmisc))
             {
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_LATCHFLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -4800,7 +4800,7 @@ waitforlatch:
             if(dockFlyToBottomOfDoor1(ship,dockwith))
             {
                 madLinkInOpenDoor(dockwith);
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_FLYTODOOR2;
             }
             return FALSE;
@@ -4827,7 +4827,7 @@ waitforlatch:
             if(dockFlyToDoor(ship,dockwith))
             {
                 //in position to be clamped to door!
-                MothershipAttachObjectToDoor(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)ship);
+                MothershipAttachObjectToDoor(dockwith,(ShipOrDerelict *)ship);
                 madLinkInCloseDoor(dockwith);
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_WAIT_FOR_DOOR_TO_CLOSE;
             }
@@ -4856,7 +4856,7 @@ waitforlatch:
             {
                 if ( ( (dockwith->playerowner->autoLaunch & launchmask) || (ShipHasToLaunch(dockwith,ship)) ||
                        (dockwith->playerowner != ship->playerowner) ) &&
-                           ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0)
+                           ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0)
                    )
                 {
 //                    soundEvent(ship, Launch);
@@ -4878,7 +4878,7 @@ waitforlatch:
             return FALSE;
 
         case CARRIERMOTHERDOCK_LATCHREFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
 //                soundEvent(dockwith, Acquire);
@@ -4889,10 +4889,10 @@ waitforlatch:
             return FALSE;
 
         case CARRIERMOTHERDOCK_LATCHWAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if ((universe.totaltimeelapsed > customdockinfo->timestamp) &&
-                ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
+                ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) == 0))
             {
 //                soundEvent(ship, Launch);
                 ship->dockvars.dockstate2 = CARRIERMOTHERDOCK_LATCHBACKUP;
@@ -4903,7 +4903,7 @@ waitforlatch:
         case CARRIERMOTHERDOCK_LATCHBACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -4924,7 +4924,7 @@ waitforlatch:
 
 bool32 LaunchShipFromDDDF(Ship *ship,Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -4940,15 +4940,15 @@ bool32 LaunchShipFromDDDF(Ship *ship,Ship *dockwith)
 
             ship->dockvars.dockstaticpoint = dockstaticpoint;
 
-            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-            vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+            vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
             dockRemoveShipFromInside(ship,dockwith);
             dockPutShipOutside(ship,dockwith,&conepositionInWorldCoordSys,dockstaticpoint->headingdirection,dockstaticpoint->updirection);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
             vecMultiplyByScalar(coneheadingInWorldCoordSys,DRONE_LAUNCH_VELOCITY);
-            vecAddTo(ship->posinfo.velocity,coneheadingInWorldCoordSys);
+            vecAddTo(ship->obj.posinfo.velocity,coneheadingInWorldCoordSys);
 
             ship->dockvars.dockstate3 = 1;
             return FALSE;
@@ -4956,7 +4956,7 @@ bool32 LaunchShipFromDDDF(Ship *ship,Ship *dockwith)
         case 1:
             if (dockFlyOutOfCone(ship,dockwith,-1,-1))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 return TRUE;
             }
             else
@@ -4980,7 +4980,7 @@ typedef struct
 
 bool32 DroneDocksAtDDDF(struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     DroneSpec *dronespec = (DroneSpec *)ship->ShipSpecifics;
     AtDDDFDockInfo *customdockinfo;
@@ -5011,14 +5011,14 @@ bool32 DroneDocksAtDDDF(struct Ship *ship,struct Ship *dockwith)
 
             ship->dockvars.dockstaticpoint = dockstaticpoint;
 
-            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->position);
-            vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+            matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->position);
+            vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
-            vecSub(coneToShip,ship->posinfo.position,conepositionInWorldCoordSys);
+            vecSub(coneToShip,ship->obj.posinfo.position,conepositionInWorldCoordSys);
 
             coneToShipMagSqr = vecMagnitudeSquared(coneToShip);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -5027,7 +5027,7 @@ bool32 DroneDocksAtDDDF(struct Ship *ship,struct Ship *dockwith)
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = DRONEDOCK_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -5041,7 +5041,7 @@ bool32 DroneDocksAtDDDF(struct Ship *ship,struct Ship *dockwith)
             if (dockFlyToConeInside(ship,dockwith,customdockinfo->dockmisc))
             {
                 ship->dockvars.dockstate2 = DRONEDOCK_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -5082,16 +5082,16 @@ bool32 DroneDocksAtDDDF(struct Ship *ship,struct Ship *dockwith)
 
 void bitSetAllSlaves(Ship *ship)
 {
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {
-        bitSet(ship->slaveinfo->Master->specialFlags,SPECIAL_StopForResearchDocking);
+        bitSet(ship->slaveinfo->Master->shipOrDerelict.specialFlags,SPECIAL_StopForResearchDocking);
     }
 }
 void bitClearAllSlaves(Ship *ship)
 {
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {
-        bitClear(ship->slaveinfo->Master->specialFlags,SPECIAL_StopForResearchDocking);
+        bitClear(ship->slaveinfo->Master->shipOrDerelict.specialFlags,SPECIAL_StopForResearchDocking);
     }
 }
 bool32 isThereAMasterForMe(Ship *ship)
@@ -5109,7 +5109,7 @@ bool32 isThereAMasterForMe(Ship *ship)
         {
             if(m->playerowner== ship->playerowner)
             {
-                if(m->flags & SOF_Slaveable)
+                if(m->header.flags & SOF_Slaveable)
                     return TRUE;
                 x++;
             }
@@ -5121,7 +5121,7 @@ bool32 isThereAMasterForMe(Ship *ship)
 
 bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 ANG_TOL, sdword FIT)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
     vector coneheadingInWorldCoordSysDockWith;
     vector DockWithHeading,DockWithUp;
@@ -5134,7 +5134,7 @@ bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 A
 
     vector destination;
     vector destinationoffset;
-    ResearchShipStatics *resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    ResearchShipStatics *resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
 
 
     customdockinfo = ship->dockvars.customdockinfo;
@@ -5142,17 +5142,17 @@ bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 A
     dockwithstaticpoint = &dockwithstatic->dockStaticInfo->dockstaticpoints[customdockinfo->docktoindex];
     ship->dockvars.dockstaticpoint = dockwithstaticpoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
     vecScalarMultiply(destinationoffset,DockWithHeading,500.0f);
     destinationoffset.x = destinationoffset.x + coneheadingInWorldCoordSysDockWith.x*550.0f;
     destinationoffset.y = destinationoffset.y + coneheadingInWorldCoordSysDockWith.y*550.0f;
     destinationoffset.z = destinationoffset.z + coneheadingInWorldCoordSysDockWith.z*550.0f;
-    vecAdd(destination,dockwith->posinfo.position, destinationoffset);
+    vecAdd(destination,dockwith->obj.posinfo.position, destinationoffset);
     if(((ResearchShipSpec *)ship->ShipSpecifics)->pie_plate_num == 0)
     {    //ship is docking on'a'top so add upwards factor
-        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotatable.rotinfo.coordsys);
         vecScalarMultiply(DockWithUp,DockWithUp,resstatics->R1VerticalDockDistance);
         vecAdd(destination,destination,DockWithUp);
     }
@@ -5167,7 +5167,7 @@ bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 A
     }
 
     matMakeRotAboutX(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-    matMultiplyMatByMat(&tmpmat, &dockwith->rotinfo.coordsys, &rotmatrix);
+    matMultiplyMatByMat(&tmpmat, &dockwith->rotatable.rotinfo.coordsys, &rotmatrix);
     flag = 0;
 
     matGetVectFromMatrixCol3(desiredHeading , tmpmat);
@@ -5176,15 +5176,15 @@ bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 A
     if(aitrackHeadingAndUp(ship,&desiredHeading,&desiredUp,ANG_TOL))
     {
         if(FIT)
-            ship->rotinfo.coordsys = tmpmat;
+            ship->rotatable.rotinfo.coordsys = tmpmat;
         flag = 1;
     }
 
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FastAsPossible,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FastAsPossible,0.0f,&dockwith->obj.posinfo.velocity);
     if (MoveReachedDestinationVariable(ship,&destination,POS_TOL))
     {
         if(FIT)
-            ship->posinfo.position = destination;
+            ship->obj.posinfo.position = destination;
         flag += 1;
     }
     if(flag == 2)
@@ -5196,7 +5196,7 @@ bool32 parallelParkStabilize(Ship *ship,Ship *dockwith, real32 POS_TOL, real32 A
 
 bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 POS_TOL, real32 ANG_TOL, sdword FIT)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
     vector coneheadingInWorldCoordSysDockWith;
     vector DockWithHeading,DockWithUp;
@@ -5205,7 +5205,7 @@ bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 PO
     vector destination;
     vector destinationoffset;
 
-    ResearchShipStatics *resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    ResearchShipStatics *resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
     vector desiredHeading,desiredUp;
     matrix tmpmat,rotmatrix;
     real32 theta;
@@ -5217,16 +5217,16 @@ bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 PO
     ship->dockvars.dockstaticpoint = dockwithstaticpoint;
 
     //get stationary research ships position and docking point heading
-    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
     destinationoffset.x = coneheadingInWorldCoordSysDockWith.x*POS_DIS;
     destinationoffset.y = coneheadingInWorldCoordSysDockWith.y*POS_DIS;
     destinationoffset.z = coneheadingInWorldCoordSysDockWith.z*POS_DIS;
-    vecAdd(destination,dockwith->posinfo.position, destinationoffset);
+    vecAdd(destination,dockwith->obj.posinfo.position, destinationoffset);
     if(((ResearchShipSpec *)ship->ShipSpecifics)->pie_plate_num == 0)
     {    //ship is docking on'a'top so add upwards factor
-        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotatable.rotinfo.coordsys);
         vecScalarMultiply(DockWithUp,DockWithUp,resstatics->R1VerticalDockDistance);
         vecAdd(destination,destination,DockWithUp);
     }
@@ -5240,7 +5240,7 @@ bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 PO
     }
 
     matMakeRotAboutX(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-    matMultiplyMatByMat(&tmpmat, &dockwith->rotinfo.coordsys, &rotmatrix);
+    matMultiplyMatByMat(&tmpmat, &dockwith->rotatable.rotinfo.coordsys, &rotmatrix);
     flag = 0;
 
     matGetVectFromMatrixCol3(desiredHeading , tmpmat);
@@ -5249,15 +5249,15 @@ bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 PO
     if(aitrackHeadingAndUp(ship,&desiredHeading,&desiredUp,ANG_TOL))
     {
         if(FIT)
-            ship->rotinfo.coordsys = tmpmat;
+            ship->rotatable.rotinfo.coordsys = tmpmat;
         flag = 1;
     }
 
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FastAsPossible,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FastAsPossible,0.0f,&dockwith->obj.posinfo.velocity);
     if (MoveReachedDestinationVariable(ship,&destination,POS_TOL))
     {
         if(FIT)
-            ship->posinfo.position = destination;
+            ship->obj.posinfo.position = destination;
         flag++;
     }
     if(flag == 2)
@@ -5268,7 +5268,7 @@ bool32 parallelParkPiePlate(Ship *ship,Ship *dockwith, real32 POS_DIS, real32 PO
 }
 bool32 dockFlyToPiePoint(Ship *ship,Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
     vector coneheadingInWorldCoordSysDockWith;
     vector DockWithHeading,DockWithUp;
@@ -5277,7 +5277,7 @@ bool32 dockFlyToPiePoint(Ship *ship,Ship *dockwith)
 
     vector destination;
     vector destinationoffset;
-    ResearchShipStatics *resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    ResearchShipStatics *resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
 
 
     customdockinfo = ship->dockvars.customdockinfo;
@@ -5285,25 +5285,25 @@ bool32 dockFlyToPiePoint(Ship *ship,Ship *dockwith)
     dockwithstaticpoint = &dockwithstatic->dockStaticInfo->dockstaticpoints[customdockinfo->docktoindex];
     ship->dockvars.dockstaticpoint = dockwithstaticpoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
     vecScalarMultiply(destinationoffset,DockWithHeading,900.0f);
     destinationoffset.x = destinationoffset.x + coneheadingInWorldCoordSysDockWith.x*550.0f;
     destinationoffset.y = destinationoffset.y + coneheadingInWorldCoordSysDockWith.y*550.0f;
     destinationoffset.z = destinationoffset.z + coneheadingInWorldCoordSysDockWith.z*550.0f;
-    vecAdd(destination,dockwith->posinfo.position, destinationoffset);
+    vecAdd(destination,dockwith->obj.posinfo.position, destinationoffset);
     if(((ResearchShipSpec *)ship->ShipSpecifics)->pie_plate_num == 0)
     {    //ship is docking on'a'top so add upwards factor
-        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(DockWithUp,dockwith->rotatable.rotinfo.coordsys);
         vecScalarMultiply(DockWithUp,DockWithUp,resstatics->R1VerticalDockDistance);
         vecAdd(destination,destination,DockWithUp);
     }
 
-    if(IS_MOVING_LINEARLY(dockwith->posinfo.isMoving))
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_FastAsPossible,((ShipStaticInfo *)ship->staticinfo)->staticheader.maxvelocity/2,&dockwith->posinfo.velocity);
+    if(IS_MOVING_LINEARLY(dockwith->obj.posinfo.isMoving))
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_FastAsPossible,ship->staticinfo->common.maxvelocity/2,&dockwith->obj.posinfo.velocity);
     else
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_FastAsPossible,0.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_FastAsPossible,0.0f,&dockwith->obj.posinfo.velocity);
 
     return(MoveReachedDestinationVariable(ship,&destination,PIE_POINT_TOLR1));
 }
@@ -5312,12 +5312,12 @@ void FlyToResearchWaitPoint(Ship *ship,Ship *dockwith)
     vector waitpoint;
 
     if( ((ResearchShipSpec *) ship->ShipSpecifics)->masterptr != NULL)
-        waitpoint = ((ResearchShipSpec *) ship->ShipSpecifics)->masterptr->posinfo.position;
+        waitpoint = ((ResearchShipSpec *) ship->ShipSpecifics)->masterptr->obj.posinfo.position;
     else
-        waitpoint = dockwith->posinfo.position;
+        waitpoint = dockwith->obj.posinfo.position;
 
     if(!MoveReachedDestinationVariable(ship,&waitpoint,1500.0f))
-        aishipFlyToPointAvoidingObjsWithVel(ship,&waitpoint,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&waitpoint,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&dockwith->obj.posinfo.velocity);
     else
         aitrackZeroVelocity(ship);
 }
@@ -5331,8 +5331,8 @@ void FlyToResearchWaitPoint(Ship *ship,Ship *dockwith)
 
 bool32 R1ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *shipstatic = (ShipStaticInfo *)ship->staticinfo;
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *shipstatic = ship->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint = NULL;
     Ship *tmpmaster = NULL;
     AtResearchShipDockInfo *customdockinfo = NULL;
@@ -5341,7 +5341,7 @@ bool32 R1ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Shi
     sword shippointindex = 0;
     ResearchShipStatics *resstatics = NULL;
 
-    resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
 
     dbgAssertOrIgnore(ship->shiptype == ResearchShip);          //both should only be research
     dbgAssertOrIgnore(dockwith->shiptype == ResearchShip);  //ships otherwise poo on you
@@ -5376,7 +5376,7 @@ bool32 R1ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Shi
     case RESEARCH_DECIDE_ON_LATCH_POINT:
 dockin_findlatch:
         customdockinfo = ship->dockvars.customdockinfo;     //set customdockinfo...
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5426,7 +5426,7 @@ dockin_findlatch:
         return FALSE;       //not done yet!
     case RESEARCH_DOCK_FLYTOPIEPOINT:
         customdockinfo = ship->dockvars.customdockinfo;
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5434,17 +5434,17 @@ dockin_findlatch:
         {
 nextdockr1res:
             ((ResearchShipSpec *)(ship->ShipSpecifics))->busy_docking = FALSE;    //signifiy that another ship can start docking
-            if(bitTest(dockwith->flags, SOF_Slaveable))
+            if(bitTest(dockwith->header.flags, SOF_Slaveable))
             {   //docked ship is a salve or master
-                ship->dockingship = dockwith->slaveinfo->Master;
+                ship->shipOrDerelict.dockingship = dockwith->slaveinfo->Master;
             }
-            else if(dockwith->dockingship != NULL)
+            else if(dockwith->shipOrDerelict.dockingship != NULL)
             {
-                ship->dockingship = dockwith->dockingship;
+                ship->shipOrDerelict.dockingship = dockwith->shipOrDerelict.dockingship;
             }
             else
             {    //first time...so dockwith 'will be a master' but isn't yet
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
 
             /* speechEvent: Guidance lock confirmed */
@@ -5465,7 +5465,7 @@ nextdockr1res:
         }
         return FALSE;
     case RESEARCH_STEADYSHIP:           //aligns ship to fit in pie plate
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5483,16 +5483,16 @@ nextdockr1res:
         return FALSE;
     case RESEARCH_FLYTOPIVOT_POINT:
         customdockinfo = ship->dockvars.customdockinfo;
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
         bitSetAllSlaves(dockwith);
         if(parallelParkPiePlate(ship,dockwith, resstatics->R1parallel_dock_distance,PARA_POINT_TOL,ANGLE_TOL1,FALSE))
         {
-            ship->posinfo.velocity.x=0.0f;
-            ship->posinfo.velocity.y=0.0f;
-            ship->posinfo.velocity.z=0.0f;
+            ship->obj.posinfo.velocity.x=0.0f;
+            ship->obj.posinfo.velocity.y=0.0f;
+            ship->obj.posinfo.velocity.z=0.0f;
             ship->dockvars.dockstate2 = RESEARCH_FINAL_SQUEEZE;
 #ifdef R1_DEBUG_RESEARCH_DOCKING
         dbgMessagef("Race 1: Final Docking Phaze....");
@@ -5501,7 +5501,7 @@ nextdockr1res:
         return FALSE;
     case RESEARCH_FINAL_SQUEEZE:
         customdockinfo = ship->dockvars.customdockinfo;
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5510,10 +5510,10 @@ nextdockr1res:
         if(parallelParkPiePlate(ship,dockwith, resstatics->R1final_dock_distance,FINAL_POINT_TOL,ANGLE_TOLAC, TRUE))
         {
 morer1resdock:
-            ship->posinfo.velocity.x=0.0f;
-            ship->posinfo.velocity.y=0.0f;
-            ship->posinfo.velocity.z=0.0f;
-            if(!bitTest(dockwith->flags,SOF_Slaveable))
+            ship->obj.posinfo.velocity.x=0.0f;
+            ship->obj.posinfo.velocity.y=0.0f;
+            ship->obj.posinfo.velocity.z=0.0f;
+            if(!bitTest(dockwith->header.flags,SOF_Slaveable))
             {
             //object isn't slaved, might not be a master
                 if(dockwith->playerowner->shiptotals[ResearchShip] > 2)
@@ -5530,7 +5530,7 @@ morer1resdock:
                     //no master so let this guy dock...
                 }
             }
-            if(bitTest(dockwith->flags,SOF_Slaveable))
+            if(bitTest(dockwith->header.flags,SOF_Slaveable))
             {    //object is a master or slave
                 if(bitTest(dockwith->slaveinfo->flags,SF_SLAVE))
                 {    //object is a slave
@@ -5595,7 +5595,7 @@ morer1resdock:
 
 bool32 R2atdockpathstart(Ship *ship, Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
     vector conepositionInWorldCoordSysDockWith;
     vector coneheadingInWorldCoordSysDockWith;
@@ -5611,24 +5611,24 @@ bool32 R2atdockpathstart(Ship *ship, Ship *dockwith)
     dockwithstaticpoint = &dockwithstatic->dockStaticInfo->dockstaticpoints[customdockinfo->docktoindex];
     ship->dockvars.dockstaticpoint = dockwithstaticpoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-    matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->posinfo.position);
-    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+    matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->obj.posinfo.position);
+    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
     destinationoffset.x = coneheadingInWorldCoordSysDockWith.x*600.0f;
     destinationoffset.y = coneheadingInWorldCoordSysDockWith.y*600.0f;
     destinationoffset.z = coneheadingInWorldCoordSysDockWith.z*600.0f;
     vecAdd(destination,conepositionInWorldCoordSysDockWith, destinationoffset);
 
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&dockwith->obj.posinfo.velocity);
 
     return(MoveReachedDestinationVariable(ship,&destination,PIE_POINT_TOLR2));
 }
 
 bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_TOL, sdword FIT)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
     vector conepositionInWorldCoordSysDockWith;
     vector coneheadingInWorldCoordSysDockWith;
@@ -5647,17 +5647,17 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
     udword flag = 0;
 
     ResearchShipStatics *resstatics;
-    resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
 
     customdockinfo = ship->dockvars.customdockinfo;
 
     dockwithstaticpoint = &dockwithstatic->dockStaticInfo->dockstaticpoints[customdockinfo->docktoindex];
     ship->dockvars.dockstaticpoint = dockwithstaticpoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-    matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->posinfo.position);
-    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+    matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+    matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->obj.posinfo.position);
+    matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
     destinationoffset.x = coneheadingInWorldCoordSysDockWith.x*resstatics->R2DockFinalDistance;
     destinationoffset.y = coneheadingInWorldCoordSysDockWith.y*resstatics->R2DockFinalDistance;
@@ -5669,19 +5669,19 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
     {
         //theta = DEG_TO_RAD(30);
         //matMakeRotAboutX(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-        matGetVectFromMatrixCol3(desiredUp,dockwith->rotinfo.coordsys);
-        //matMultiplyMatByVec(&tmpcross, &dockwith->rotinfo.coordsys, &tmpvec);
+        matGetVectFromMatrixCol3(desiredUp,dockwith->rotatable.rotinfo.coordsys);
+        //matMultiplyMatByVec(&tmpcross, &dockwith->rotatable.rotinfo.coordsys, &tmpvec);
         //vecCrossProduct(desiredUp,desiredHeading,tmpcross);
         //desiredUp = tmpcross;
 
     }
     else if(customdockinfo->docktoindex == 1)
     {
-        matGetVectFromMatrixCol3(desiredUp,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(desiredUp,dockwith->rotatable.rotinfo.coordsys);
         //theta = DEG_TO_RAD(-30);
         //matMakeRotAboutX(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-        //matGetVectFromMatrixCol1(tmpvec,dockwith->rotinfo.coordsys);
-        //matMultiplyMatByVec(&tmpcross, &dockwith->rotinfo.coordsys, &tmpvec);
+        //matGetVectFromMatrixCol1(tmpvec,dockwith->rotatable.rotinfo.coordsys);
+        //matMultiplyMatByVec(&tmpcross, &dockwith->rotatable.rotinfo.coordsys, &tmpvec);
         //vecCrossProduct(desiredUp,desiredHeading,tmpcross);
         //desiredUp = tmpcross;
     }
@@ -5694,12 +5694,12 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
         theta = DEG_TO_RAD(60);
         matMakeRotAboutZ(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
 
-        //matGetVectFromMatrixCol1(tmpvec,dockwith->rotinfo.coordsys);
+        //matGetVectFromMatrixCol1(tmpvec,dockwith->rotatable.rotinfo.coordsys);
         //matMultiplyVecByMat(&desiredUp, &tmpvec,&rotmatrix);
 
         //USE THIS CODE FOR ALTERNATING ROTATIONS...
 
-        matMultiplyMatByMat(&tmpmat, &dockwith->rotinfo.coordsys, &rotmatrix);
+        matMultiplyMatByMat(&tmpmat, &dockwith->rotatable.rotinfo.coordsys, &rotmatrix);
         matGetVectFromMatrixCol1(desiredUp,tmpmat);
     }
     else if(customdockinfo->docktoindex == 4)
@@ -5709,7 +5709,7 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
         destinationoffset.z = coneheadingInWorldCoordSysDockWith.z*100;
         vecAdd(destination,conepositionInWorldCoordSysDockWith, destinationoffset);
 
-        matGetVectFromMatrixCol1(desiredUp,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(desiredUp,dockwith->rotatable.rotinfo.coordsys);
         vecScalarMultiply(desiredHeading,desiredHeading,-1.0f);
         dbgMessagef("TRIED TO DOCK WITH SHIPS ASS!! REPORT TO BRYCE.");
     }
@@ -5723,26 +5723,26 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
     {
         if(FIT)
         {
-            matPutVectIntoMatrixCol1(desiredUp,ship->rotinfo.coordsys);
+            matPutVectIntoMatrixCol1(desiredUp,ship->rotatable.rotinfo.coordsys);
             vecCrossProduct(tmpvec,desiredHeading,desiredUp);
-            matPutVectIntoMatrixCol2(tmpvec,ship->rotinfo.coordsys);
-            matPutVectIntoMatrixCol3(desiredHeading,ship->rotinfo.coordsys);
+            matPutVectIntoMatrixCol2(tmpvec,ship->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol3(desiredHeading,ship->rotatable.rotinfo.coordsys);
         }
 
         flag = 1;
     }
 
-    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->posinfo.velocity);
+    aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&dockwith->obj.posinfo.velocity);
     if (MoveReachedDestinationVariable(ship,&destination,POS_TOL))
     {
         if(FIT)
-            ship->posinfo.position = destination;
+            ship->obj.posinfo.position = destination;
         flag += 1;
         if(flag == 2)
         {
-            ship->posinfo.velocity.x = 0.0f;
-            ship->posinfo.velocity.y = 0.0f;
-            ship->posinfo.velocity.z = 0.0f;
+            ship->obj.posinfo.velocity.x = 0.0f;
+            ship->obj.posinfo.velocity.y = 0.0f;
+            ship->obj.posinfo.velocity.z = 0.0f;
             return TRUE;
         }
     }
@@ -5753,8 +5753,8 @@ bool32 R2spinintoplace(Ship *ship, Ship *dockwith, real32 POS_TOL, real32 ANGLE_
 
 bool32 R2ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *shipstatic = (ShipStaticInfo *)ship->staticinfo;
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *shipstatic = ship->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockwithstaticpoint;
 
     AtResearchShipDockInfo *customdockinfo = NULL;
@@ -5766,7 +5766,7 @@ bool32 R2ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Shi
     Ship* tmpmaster;
 
     ResearchShipStatics *resstatics;
-    resstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
+    resstatics = (ResearchShipStatics *) ship->staticinfo->custstatinfo;
 
     switch (ship->dockvars.dockstate2)
     {
@@ -5798,7 +5798,7 @@ bool32 R2ResearchShipDocksAtResearchShip(struct CommandToDo *docktodo,struct Shi
     case R2_FIND_LATCH:
 r2resinstant1:
         customdockinfo = ship->dockvars.customdockinfo;     //set customdockinfo...
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5865,7 +5865,7 @@ r2resinstant1:
         }
         break;
     case R2_FLY_TO_DOCK_PATH_START:
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5874,17 +5874,17 @@ r2resinstant1:
         {
 dockinstantr2yeah1:
             ((ResearchShipSpec *)ship->ShipSpecifics)->busy_docking = FALSE;
-            if(bitTest(dockwith->flags, SOF_Slaveable))
+            if(bitTest(dockwith->header.flags, SOF_Slaveable))
             {   //docked ship is a salve or master
-                ship->dockingship = dockwith->slaveinfo->Master;
+                ship->shipOrDerelict.dockingship = dockwith->slaveinfo->Master;
             }
-            else if(dockwith->dockingship != NULL)
+            else if(dockwith->shipOrDerelict.dockingship != NULL)
             {
-                ship->dockingship = dockwith->dockingship;
+                ship->shipOrDerelict.dockingship = dockwith->shipOrDerelict.dockingship;
             }
             else
             {    //first time...so dockwith 'will be a master' but isn't yet
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             /* speechEvent: coming together... */
             ship->dockvars.dockstate2 = R2_ROTATE_AND_SPIN_INTO_PLACE;
@@ -5902,7 +5902,7 @@ dockinstantr2yeah1:
         }
         break;
     case R2_ROTATE_AND_SPIN_INTO_PLACE:
-        if(dockwith->flags & SOF_Slaveable)
+        if(dockwith->header.flags & SOF_Slaveable)
         {
             ((ResearchShipSpec *)(dockwith->slaveinfo->Master)->ShipSpecifics)->prepshipforanother = TRUE;
         }
@@ -5913,7 +5913,7 @@ dockinstantr2yeah1:
             //should do locking in here
 r2dockinstantfinish:
 
-            if(!bitTest(dockwith->flags,SOF_Slaveable))
+            if(!bitTest(dockwith->header.flags,SOF_Slaveable))
             {
             //object isn't slaved, might not be a master
                 if(dockwith->playerowner->shiptotals[ResearchShip] > 2)
@@ -5926,7 +5926,7 @@ r2dockinstantfinish:
                     //no master so let this guy dock...
                 }
             }
-           if(bitTest(dockwith->flags,SOF_Slaveable))
+           if(bitTest(dockwith->header.flags,SOF_Slaveable))
             {    //object is a master or slave
                 if(bitTest(dockwith->slaveinfo->flags,SF_SLAVE))
                 {    //object is a slave
@@ -5991,26 +5991,26 @@ bool32 LaunchShipFromDefaultShip(Ship *ship,Ship *dockwith)
     {
         case 0:
             dockRemoveShipFromInside(ship,dockwith);
-            dockPutShipOutside(ship,dockwith,&dockwith->posinfo.position,2,0);
+            dockPutShipOutside(ship,dockwith,&dockwith->obj.posinfo.position,2,0);
 
             ship->dockvars.dockstate3 = 1;
 
             return FALSE;
 
         case 1:
-            matGetVectFromMatrixCol3(heading,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(heading,dockwith->rotatable.rotinfo.coordsys);
             vecMultiplyByScalar(heading,1000.0f);
 
-            vecAdd(destination,dockwith->posinfo.position,heading);
+            vecAdd(destination,dockwith->obj.posinfo.position,heading);
 
             if (MoveReachedDestinationVariable(ship,&destination,50.0f))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 return TRUE;
             }
             else
             {
-                aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,-40.0f,&dockwith->posinfo.velocity);
+                aishipFlyToPointAvoidingObjsWithVel(ship,&destination,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,-40.0f,&dockwith->obj.posinfo.velocity);
                 return FALSE;
             }
     }
@@ -6020,14 +6020,14 @@ bool32 LaunchShipFromDefaultShip(Ship *ship,Ship *dockwith)
 
 bool32 ShipDocksAtDefaultShip(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ship->dockingship = dockwith;
-    if (MoveReachedDestinationVariable(ship,&dockwith->posinfo.position,50.0f))
+    ship->shipOrDerelict.dockingship = dockwith;
+    if (MoveReachedDestinationVariable(ship,&dockwith->obj.posinfo.position,50.0f))
     {
         return TRUE;
     }
     else
     {
-        aishipFlyToShipAvoidingObjsWithVel(ship,dockwith,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,-40.0f,&dockwith->posinfo.velocity);
+        aishipFlyToShipAvoidingObjsWithVel(ship,dockwith,AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,-40.0f,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 }
@@ -6063,12 +6063,12 @@ udword ShipDocksAtShip(struct CommandToDo *docktodo,Ship *ship,Ship *dockwith)
 rdest:
                     ship->dockvars.dockstate = DOCKSHIP_NEARSHIP;
                     ship->dockvars.dockstate2 = 0;
-                    vecSub(ship->dockvars.destination,ship->posinfo.position,dockwith->posinfo.position);
+                    vecSub(ship->dockvars.destination,ship->obj.posinfo.position,dockwith->obj.posinfo.position);
                     goto nearship;
                 }
                 else
                 {
-                    if (aishipFlyToShipAvoidingObjsWithVel(ship,dockwith,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_PointInDirectionFlying|AISHIP_CarTurn,0.0f,&dockwith->posinfo.velocity)
+                    if (aishipFlyToShipAvoidingObjsWithVel(ship,dockwith,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_PointInDirectionFlying|AISHIP_CarTurn,0.0f,&dockwith->obj.posinfo.velocity)
                         & AISHIP_FLY_OBJECT_IN_WAY)
                     {
                         goto rdest;
@@ -6082,7 +6082,7 @@ nearship:
                 ship->shipidle = FALSE;
                 if (returnval)
                 {
-                    ship->dockingship = NULL;
+                    ship->shipOrDerelict.dockingship = NULL;
                     if (ship->dockvars.busyingThisShip != NULL)
                     {
                         dockUnbusyThisShip(ship);
@@ -6119,7 +6119,7 @@ nearship:
                     return FINISHED_DOCKING;        // return right away without flying back if harvesting
                 }
 
-                vecAdd(desireddest,dockwith->posinfo.position,ship->dockvars.destination);
+                vecAdd(desireddest,dockwith->obj.posinfo.position,ship->dockvars.destination);
 
                 if (MoveReachedDestinationVariable(ship,&desireddest,BACKTODESTINATION_TOLERANCE))
                 {
@@ -6135,7 +6135,7 @@ reacheddest:
 #ifdef DEBUG_DOCKING
                     dbgMessagef("Returning from docking %x",(udword)ship);
 #endif
-                    if (aishipFlyToPointAvoidingObjsWithVel(ship,&desireddest,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_PointInDirectionFlying,BACKTODESTINATION_MINFLYSPEED,&dockwith->posinfo.velocity)
+                    if (aishipFlyToPointAvoidingObjsWithVel(ship,&desireddest,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_PointInDirectionFlying,BACKTODESTINATION_MINFLYSPEED,&dockwith->obj.posinfo.velocity)
                         & AISHIP_FLY_OBJECT_IN_WAY)
                     {
                         goto reacheddest;
@@ -6204,7 +6204,7 @@ void P2FuelPodStaticDockInit(ShipStaticInfo *staticinfo)
 
 bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct Ship *dockwith)
 {
-    ShipStaticInfo *dockwithstatic = (ShipStaticInfo *)dockwith->staticinfo;
+    ShipStaticInfo *dockwithstatic = dockwith->staticinfo;
     DockStaticPoint *dockstaticpoint;
     vector conepositionInWorldCoordSys;
     vector coneheadingInWorldCoordSys;
@@ -6223,7 +6223,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
             customdockinfo = ship->dockvars.customdockinfo = memAlloc(sizeof(AtFuelPodDockInfo),"AtFuelPodDock",0);
             customdockinfo->size = sizeof(AtFuelPodDockInfo);
 
-            shipstatic = ((ShipStaticInfo *)ship->staticinfo);
+            shipstatic = ship->staticinfo;
 
             if (shipstatic->shiptype != P2Swarmer && shipstatic->shiptype != P2AdvanceSwarmer)
                 dbgAssertOrIgnore(FALSE);
@@ -6254,7 +6254,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
 
             dockReserveDockPoint(ship,dockwith,dockpointindex);
 
-            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockstaticpoint->conenormal);
+            matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockstaticpoint->conenormal);
 
             coneToShipMag = fsqrt(coneToShipMagSqr);
             dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -6263,7 +6263,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
             {
                 // we are in the cone, so fly to centre of cone.
                 ship->dockvars.dockstate2 = FUELPOD_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             else
             {
@@ -6278,7 +6278,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
             {
                 madLinkInPreDockingShip(ship);
                 ship->dockvars.dockstate2 = FUELPOD_FLYTOCONEORIGIN;
-                ship->dockingship = dockwith;
+                ship->shipOrDerelict.dockingship = dockwith;
             }
             return FALSE;
 
@@ -6293,7 +6293,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
             return FALSE;
 
         case FUELPOD_REFUEL:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (dockShipRefuelsAtShip(ship,dockwith))
             {
@@ -6305,7 +6305,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
             return FALSE;
 
         case FUELPOD_WAIT:
-            ship->posinfo.velocity = dockwith->posinfo.velocity;
+            ship->obj.posinfo.velocity = dockwith->obj.posinfo.velocity;
             customdockinfo = ship->dockvars.customdockinfo;
             if (universe.totaltimeelapsed > customdockinfo->timestamp)
             {
@@ -6318,7 +6318,7 @@ bool32 ShipDocksAtFuelPod(struct CommandToDo *docktodo,struct Ship *ship,struct 
         case FUELPOD_BACKUP:
             if (dockBackoutOfConeLatch(ship,dockwith))
             {
-                ship->dockingship = NULL;
+                ship->shipOrDerelict.dockingship = NULL;
                 dockFreeDockPoint(ship,dockwith);
                 return TRUE;
             }
@@ -6659,7 +6659,7 @@ bool32 processDockToDo(CommandToDo *docktodo)
 void dockDrawDockInfo(Ship *ship)
 {
     sdword i;
-    DockStaticInfo *dockStaticInfo = ((ShipStaticInfo *)(ship->staticinfo))->dockStaticInfo;
+    DockStaticInfo *dockStaticInfo = ship->staticinfo->dockStaticInfo;
     sdword numDockPoints;
     DockStaticPoint *dockstaticpoint;
     vector to;

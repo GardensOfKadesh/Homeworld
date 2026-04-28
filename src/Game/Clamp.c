@@ -33,16 +33,16 @@ void clampObjToObj(SpaceObjRotImpTargGuidance *obj,SpaceObjRotImpTargGuidance *d
 
     obj->clampInfo->host = (SpaceObjRotImpTarg *)dest;
 
-    vecSub(tmpvec,obj->posinfo.position,dest->posinfo.position);
-    matMultiplyVecByMat(&obj->clampInfo->clampOffset,&tmpvec,&dest->rotinfo.coordsys);
+    vecSub(tmpvec,obj->obj.posinfo.position,dest->obj.posinfo.position);
+    matMultiplyVecByMat(&obj->clampInfo->clampOffset,&tmpvec,&dest->rotatable.rotinfo.coordsys);
 
     //Store slaves coordsys with respect to MASTER's object space
-    tmpmat = obj->rotinfo.coordsys;
+    tmpmat = obj->rotatable.rotinfo.coordsys;
     matTranspose(&tmpmat);
-    matMultiplyMatByMat(&obj->clampInfo->clampCoordsys,&tmpmat,&dest->rotinfo.coordsys);
+    matMultiplyMatByMat(&obj->clampInfo->clampCoordsys,&tmpmat,&dest->rotatable.rotinfo.coordsys);
     matTranspose(&obj->clampInfo->clampCoordsys);
 
-    bitSet(obj->flags,SOF_Clamped);
+    bitSet(obj->header.flags,SOF_Clamped);
 
     //later, allow for some looseness in clamp
     //(will allow for 1 univupdate frame of loosness as is
@@ -61,7 +61,7 @@ void unClampObj(SpaceObjRotImpTargGuidance *obj)
     {
         memFree(obj->clampInfo);
         obj->clampInfo = NULL;
-        bitClear(obj->flags,SOF_Clamped);
+        bitClear(obj->header.flags,SOF_Clamped);
     }
 }
 
@@ -79,7 +79,7 @@ void updateClampedObject(SpaceObjRotImpTargGuidance *obj)
     dbgAssertOrIgnore(obj->clampInfo != NULL);
 
     //Update slave finally
-    switch (obj->objtype)
+    switch (obj->header.objtype)
     {
         case OBJ_DerelictType:  physUpdateObjPosVelDerelicts((Derelict *)obj,universe.phystimeelapsed);  break;
         case OBJ_ShipType:      physUpdateObjPosVelShip((Ship *)obj,universe.phystimeelapsed);  break;
@@ -87,12 +87,12 @@ void updateClampedObject(SpaceObjRotImpTargGuidance *obj)
     }
 
     //'decode' clamped ship's location in world space with respect to targets
-    matMultiplyMatByVec(&tmpvec,&obj->clampInfo->host->rotinfo.coordsys,&obj->clampInfo->clampOffset);
-    vecAdd(obj->posinfo.position, obj->clampInfo->host->posinfo.position, tmpvec);
+    matMultiplyMatByVec(&tmpvec,&obj->clampInfo->host->rotatable.rotinfo.coordsys,&obj->clampInfo->clampOffset);
+    vecAdd(obj->obj.posinfo.position, obj->clampInfo->host->obj.posinfo.position, tmpvec);
 
     //'decode' slaves orientation in world space with respect to Masters.
-    matMultiplyMatByMat(&obj->rotinfo.coordsys,&obj->clampInfo->host->rotinfo.coordsys, &obj->clampInfo->clampCoordsys);
-    obj->posinfo.velocity = obj->clampInfo->host->posinfo.velocity;
+    matMultiplyMatByMat(&obj->rotatable.rotinfo.coordsys,&obj->clampInfo->host->rotatable.rotinfo.coordsys, &obj->clampInfo->clampCoordsys);
+    obj->obj.posinfo.velocity = obj->clampInfo->host->obj.posinfo.velocity;
 
     univUpdateObjRotInfo((SpaceObjRot *)obj);
 }

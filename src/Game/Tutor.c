@@ -1305,9 +1305,9 @@ void tutDrawTextPointers(rectangle *pRect)
                 break;
 
             case TUT_PointerTypeShip:
-                rad = pointer->ship->collInfo.selCircleRadius;
-                x = pointer->ship->collInfo.selCircleX;
-                y = pointer->ship->collInfo.selCircleY;
+                rad = pointer->ship->impactable.collInfo.selCircleRadius;
+                x = pointer->ship->impactable.collInfo.selCircleX;
+                y = pointer->ship->impactable.collInfo.selCircleY;
                 goto shipsCase;                             //rest of code is common
 
             case TUT_PointerTypeShips:
@@ -1318,8 +1318,8 @@ shipsCase:
                     real32 sx, sy, deltx, delty, len;
 
                     rad = max(rad, TUT_ShipCircleSizeMin);
-                    //x = pointer->ship->collInfo.selCircleX;
-                    //y = pointer->ship->collInfo.selCircleY;
+                    //x = pointer->ship->impactable.collInfo.selCircleX;
+                    //y = pointer->ship->impactable.collInfo.selCircleY;
 
                     primGLCircleOutline2(x, y, rad, pieCircleSegmentsCompute(rad), colRGB(tutPulse/2, tutPulse, tutPulse/2));
 
@@ -1348,7 +1348,7 @@ shipsCase:
                 break;
 
             case TUT_PointerTypeShipHealth:
-                rad = pointer->ship->collInfo.selCircleRadius;
+                rad = pointer->ship->impactable.collInfo.selCircleRadius;
                 if(rad > 0.0)
                 {                                           //if ship on-screen
                     x0 = (pRect->x0 + pRect->x1) / 2;
@@ -1364,7 +1364,7 @@ shipsCase:
                 break;
 
             case TUT_PointerTypeShipGroup:
-                rad = pointer->ship->collInfo.selCircleRadius;
+                rad = pointer->ship->impactable.collInfo.selCircleRadius;
                 if(rad > 0.0)
                 {                                           //if ship on-screen
                     x0 = (pRect->x0 + pRect->x1) / 2;

@@ -70,7 +70,7 @@ void CloakGeneratorAddObj(Ship *ship,  SpaceObj *objtoadd)
     CloakGeneratorSpec *spec = (CloakGeneratorSpec *)ship->ShipSpecifics;
     CloakStruct *newcloakstruct;
 
-    if (bitTest(objtoadd->flags,SOF_Cloaked) || bitTest(objtoadd->flags, SOF_Cloaking) || bitTest(objtoadd->flags, SOF_DeCloaking))
+    if (bitTest(objtoadd->header.flags,SOF_Cloaked) || bitTest(objtoadd->header.flags, SOF_Cloaking) || bitTest(objtoadd->header.flags, SOF_DeCloaking))
     {               //if object is cloaked, don't add it...don't even think about it.
         return;
     }
@@ -82,12 +82,12 @@ void CloakGeneratorAddObj(Ship *ship,  SpaceObj *objtoadd)
     listAddNode(&spec->CloakList,&newcloakstruct->cloaknode,newcloakstruct);
 
     //temporary...later make 'cloaking'
-    bitSet(objtoadd->flags, SOF_Cloaking);
-    bitSet(objtoadd->flags, SOF_CloakGenField);  //indicate object is in cloak field
+    bitSet(objtoadd->header.flags, SOF_Cloaking);
+    bitSet(objtoadd->header.flags, SOF_CloakGenField);  //indicate object is in cloak field
 
     //should not have to clear the cloaked flag
-    bitClear(objtoadd->flags, SOF_Cloaked);       //
-    bitClear(objtoadd->flags, SOF_DeCloaking);
+    bitClear(objtoadd->header.flags, SOF_Cloaked);       //
+    bitClear(objtoadd->header.flags, SOF_DeCloaking);
 }
 void CloakGeneratorClose(Ship *ship)
 {
@@ -106,11 +106,11 @@ void CloakGeneratorDied(Ship *ship)
     while(cloaknode != NULL)
     {
         cloakstruct = (CloakStruct *)listGetStructOfNode(cloaknode);
-        if(bitTest(cloakstruct->spaceobj->flags,SOF_Cloaked))
+        if(bitTest(cloakstruct->spaceobj->header.flags,SOF_Cloaked))
         {
-            bitClear(cloakstruct->spaceobj->flags,SOF_Cloaked);
+            bitClear(cloakstruct->spaceobj->header.flags,SOF_Cloaked);
                           //Force instant decloaking
-            if(cloakstruct->spaceobj->objtype == OBJ_ShipType)
+            if(cloakstruct->spaceobj->header.objtype == OBJ_ShipType)
             {
                 //if object was a ship set objects decloaking time for cloak advagtage effect
                 SpawnCloakingEffect((Ship *)cloakstruct->spaceobj, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
@@ -118,9 +118,9 @@ void CloakGeneratorDied(Ship *ship)
             }
         }
 
-        bitClear(cloakstruct->spaceobj->flags,SOF_Cloaking);
-        bitClear(cloakstruct->spaceobj->flags,SOF_DeCloaking);
-        bitClear(cloakstruct->spaceobj->flags,SOF_CloakGenField);
+        bitClear(cloakstruct->spaceobj->header.flags,SOF_Cloaking);
+        bitClear(cloakstruct->spaceobj->header.flags,SOF_DeCloaking);
+        bitClear(cloakstruct->spaceobj->header.flags,SOF_CloakGenField);
         cloaknode = cloaknode->next;
     }
     listDeleteAll(&spec->CloakList);        //delete the list
@@ -135,9 +135,9 @@ void CloakGeneratorRemoveShipReferences(Ship *ship,Ship *shiptoremove)
 
     cloaknode = spec->CloakList.head;
 
-    if (bitTest(objtoremove->flags,SOF_Cloaked) ||     //if object inquestion isn't cloaked, cloaking
-       bitTest(objtoremove->flags,SOF_Cloaking) ||   //or decloaking, then we don't walk this list
-       bitTest(objtoremove->flags,SOF_DeCloaking))   //If a cloaked fighter is passed, and it isn't in the list, it will waste time, but this is good enough :)
+    if (bitTest(objtoremove->header.flags,SOF_Cloaked) ||     //if object inquestion isn't cloaked, cloaking
+       bitTest(objtoremove->header.flags,SOF_Cloaking) ||   //or decloaking, then we don't walk this list
+       bitTest(objtoremove->header.flags,SOF_DeCloaking))   //If a cloaked fighter is passed, and it isn't in the list, it will waste time, but this is good enough :)
     {
         while(cloaknode != NULL)
         {
@@ -150,10 +150,10 @@ void CloakGeneratorRemoveShipReferences(Ship *ship,Ship *shiptoremove)
             cloaknode = cloaknode->next;
         }
 
-        if(bitTest(objtoremove->flags, SOF_Cloaked))
+        if(bitTest(objtoremove->header.flags, SOF_Cloaked))
         {
-            bitClear(objtoremove->flags,SOF_Cloaked);
-            if(objtoremove->objtype == OBJ_ShipType)
+            bitClear(objtoremove->header.flags,SOF_Cloaked);
+            if(objtoremove->header.objtype == OBJ_ShipType)
             {
                 //if object was a ship set objects decloaking time for cloak advagtage effect
                 SpawnCloakingEffect((Ship *)objtoremove, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
@@ -161,9 +161,9 @@ void CloakGeneratorRemoveShipReferences(Ship *ship,Ship *shiptoremove)
                 ((Ship *) (objtoremove))->shipDeCloakTime = universe.totaltimeelapsed;
             }
         }
-    bitClear(objtoremove->flags,SOF_Cloaking);
-    bitClear(objtoremove->flags,SOF_DeCloaking);
-    bitClear(objtoremove->flags,SOF_CloakGenField);
+    bitClear(objtoremove->header.flags,SOF_Cloaking);
+    bitClear(objtoremove->header.flags,SOF_DeCloaking);
+    bitClear(objtoremove->header.flags,SOF_CloakGenField);
     }
 }
 
@@ -182,7 +182,7 @@ void CloakAddObjectsInProximity(Ship *cloakship)
     {
         spaceobj = (Ship *)listGetStructOfNode(objnode);
         //Rejections...
-        dbgAssertOrIgnore(spaceobj->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(spaceobj->header.objtype == OBJ_ShipType);
 
         if (spaceobj->playerowner != playerowner)
         {
@@ -195,11 +195,11 @@ void CloakAddObjectsInProximity(Ship *cloakship)
                 goto nextnode;
             }
         }
-        if (bitTest(spaceobj->flags,SOF_Cloaked))
+        if (bitTest(spaceobj->header.flags,SOF_Cloaked))
         {
             goto nextnode;      // if object is cloaked
         }
-        if(bitTest(spaceobj->flags,SOF_Dead))
+        if(bitTest(spaceobj->header.flags,SOF_Dead))
         {
             goto nextnode;
         }
@@ -210,7 +210,7 @@ void CloakAddObjectsInProximity(Ship *cloakship)
         }
 
         //add more rejections...like collision model.
-        vecSub(diff,spaceobj->posinfo.position,cloakship->posinfo.position);
+        vecSub(diff,spaceobj->obj.posinfo.position,cloakship->obj.posinfo.position);
         distanceSqr = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
         if(distanceSqr <= cloakgeneratorstatics->CloakingRadiusSqr)
         {
@@ -232,11 +232,11 @@ void DeCloakAllObjects(Ship *ship)
     while(cloaknode != NULL)
     {
         cloakstruct = (CloakStruct *)listGetStructOfNode(cloaknode);
-        bitSet(cloakstruct->spaceobj->flags,SOF_DeCloaking);
-        if(bitTest(cloakstruct->spaceobj->flags, SOF_Cloaked))
+        bitSet(cloakstruct->spaceobj->header.flags,SOF_DeCloaking);
+        if(bitTest(cloakstruct->spaceobj->header.flags, SOF_Cloaked))
         {
-            bitClear(cloakstruct->spaceobj->flags,SOF_Cloaked);
-            if(cloakstruct->spaceobj->objtype == OBJ_ShipType)
+            bitClear(cloakstruct->spaceobj->header.flags,SOF_Cloaked);
+            if(cloakstruct->spaceobj->header.objtype == OBJ_ShipType)
             {
                 //if object was a ship set objects decloaking time for cloak advagtage effect
                 SpawnCloakingEffect((Ship *)cloakstruct->spaceobj, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
@@ -244,7 +244,7 @@ void DeCloakAllObjects(Ship *ship)
                 ((Ship *) (cloakstruct->spaceobj))->shipDeCloakTime = universe.totaltimeelapsed;
             }
         }
-        bitClear(cloakstruct->spaceobj->flags,SOF_Cloaking);
+        bitClear(cloakstruct->spaceobj->header.flags,SOF_Cloaking);
         cloaknode = cloaknode->next;
     }
 }
@@ -394,7 +394,7 @@ void CloakGeneratorHouseKeep(Ship *ship)
 		}
 
 		//if spaceobj is dead for some reason, remove its references and stop bothering with it
-        if (bitTest(spaceobj->flags,SOF_Dead))
+        if (bitTest(spaceobj->header.flags,SOF_Dead))
         {   //dead so get rid of quickly...
             cloaknode=cloaknode->next;                  //we're about to delete this node so move to next
             CloakGeneratorRemoveShipReferences(ship,(Ship *)spaceobj);  //delete everything about it
@@ -405,15 +405,15 @@ void CloakGeneratorHouseKeep(Ship *ship)
         //this seems like a waste because we are AGAIN calculating distances.  Do better later!
         if (UNIVERSE_WOODPECKER(CLOAKGENERATOR_CLOAKCHECK_RATE, ship->shipID.shipNumber & CLOAKGENERATOR_CLOAKCHECK_RATE))
         {
-            vecSub(diff,spaceobj->posinfo.position,ship->posinfo.position);
+            vecSub(diff,spaceobj->posinfo.position,ship->obj.posinfo.position);
             distanceSqr = vecMagnitudeSquared(diff);
 
             if(distanceSqr > cloakgeneratorstatics->CloakingRadiusSqr)     //maybe add fuzzy logic so thing doesn't always pop in and out in and out in and out...
             {
-                if(bitTest(spaceobj->flags,SOF_Cloaked))
+                if(bitTest(spaceobj->header.flags,SOF_Cloaked))
                 {
-                    bitClear(spaceobj->flags,SOF_Cloaked);
-                    if(spaceobj->objtype == OBJ_ShipType)
+                    bitClear(spaceobj->header.flags,SOF_Cloaked);
+                    if(spaceobj->header.objtype == OBJ_ShipType)
                     {
                         //if object was a ship set objects decloaking time for cloak advagtage effect
                         SpawnCloakingEffect((Ship *)spaceobj, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
@@ -421,25 +421,25 @@ void CloakGeneratorHouseKeep(Ship *ship)
                         ((Ship *) (spaceobj))->shipDeCloakTime = universe.totaltimeelapsed;
                     }
                 }
-                bitClear(spaceobj->flags,SOF_Cloaking);
-                bitSet(spaceobj->flags,SOF_DeCloaking);
+                bitClear(spaceobj->header.flags,SOF_Cloaking);
+                bitSet(spaceobj->header.flags,SOF_DeCloaking);
             }       //potential problem..ship flys into field..flys out..
                     //starts to decloak...flys back in, ship will decloak
                     //fully before recloaking...don't worry about since
                     //cloak times too fast too care
         }
 
-        if(spaceobj->objtype == OBJ_ShipType)
+        if(spaceobj->header.objtype == OBJ_ShipType)
         {
             if( ((Ship *)spaceobj)->shiptype == SalCapCorvette)
             {
                 if(((SalCapCorvetteSpec *)((Ship *)spaceobj)->ShipSpecifics)->tractorBeam)
                 {
                     //attached so decloak
-                    if(bitTest(spaceobj->flags,SOF_Cloaked))
+                    if(bitTest(spaceobj->header.flags,SOF_Cloaked))
                     {
-                        bitClear(spaceobj->flags,SOF_Cloaked);
-                        if(spaceobj->objtype == OBJ_ShipType)
+                        bitClear(spaceobj->header.flags,SOF_Cloaked);
+                        if(spaceobj->header.objtype == OBJ_ShipType)
                         {
                             //if object was a ship set objects decloaking time for cloak advagtage effect
                             SpawnCloakingEffect((Ship *)spaceobj, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
@@ -447,14 +447,14 @@ void CloakGeneratorHouseKeep(Ship *ship)
                             ((Ship *) (spaceobj))->shipDeCloakTime = universe.totaltimeelapsed;
                         }
                     }
-                    bitClear(spaceobj->flags,SOF_Cloaking);
-                    bitSet(spaceobj->flags,SOF_DeCloaking);
+                    bitClear(spaceobj->header.flags,SOF_Cloaking);
+                    bitSet(spaceobj->header.flags,SOF_DeCloaking);
                 }
             }
         }
 
         //Case 1, object is cloaking
-        if(bitTest(spaceobj->flags,SOF_Cloaking))
+        if(bitTest(spaceobj->header.flags,SOF_Cloaking))
         {
             //object is cloaking..so keep cloaking it
 /***** calculated the inverse of CloakingTime in CloakGeneratorStaticInit and multiply instead of divide *****/
@@ -463,22 +463,22 @@ void CloakGeneratorHouseKeep(Ship *ship)
             {
                 //object is now cloaked...so stop cloaking it and make it fully 'cloaked'
                 cloakstruct->CloakStatus = 1.0f;          //set for assurance
-                bitSet(spaceobj->flags,SOF_Cloaked);      //make cloaked
-                bitClear(spaceobj->flags,SOF_Cloaking);   //stop from cloaking
-                if(spaceobj->objtype == OBJ_ShipType)
+                bitSet(spaceobj->header.flags,SOF_Cloaked);      //make cloaked
+                bitClear(spaceobj->header.flags,SOF_Cloaking);   //stop from cloaking
+                if(spaceobj->header.objtype == OBJ_ShipType)
                 {
                     shipHasJustCloaked((Ship *)spaceobj);
                     SpawnCloakingEffect((Ship *)spaceobj, etgSpecialPurposeEffectTable[EGT_CLOAK_ON]);
                     //RemoveShipFromBeingTargeted(&universe.mainCommandLayer,(Ship *)spaceobj,FALSE);
                 }
-                else if(spaceobj->objtype == OBJ_AsteroidType)
+                else if(spaceobj->header.objtype == OBJ_AsteroidType)
                 {
                     //need to remove the asteroid from resource collectors
                     dbgMessagef("Make Bryce remove asteroids from game info since you just cloaked one.");
                 }
             }
         }
-        else if(bitTest(spaceobj->flags,SOF_DeCloaking))
+        else if(bitTest(spaceobj->header.flags,SOF_DeCloaking))
         {
             //object is decloaking, so keep decloaking it
 /***** calculated the inverse of DeCloakingTime in CloakGeneratorStaticInit and multiply instead of divide *****/

@@ -23,10 +23,10 @@ bool32 ShipAlreadyHyperspaceOut(Ship *ship);      // don't include singleplayer.
 #define sizeof_blob_array(x)            sizeof(blob_array) + ((x) - 1) * sizeof(blob *)
 #define sizeof_aiblob_array(x)          sizeof(aiblob_array) + ((x) - 1) * sizeof(aiblob *)
 #define sizeof_Path(x)                  sizeof(Path) + ((x) - 1) * sizeof(vector)
-#define aiuShipIsHidden(x)              bitTest((x)->flags, SOF_Hide)
-#define aiuShipIsntSelectable(x)        (bitTest((x)->flags, SOF_Hide|SOF_Disabled|SOF_Crazy) || ShipAlreadyHyperspaceOut(x))
-#define aiuShipIsntTargetable(x,player) (bitTest((x)->flags, SOF_Hide|SOF_Hyperspace) || \
-                                         ((bitTest((x)->flags, SOF_Cloaked) && (!proximityCanPlayerSeeShip((player), (x))))))
+#define aiuShipIsHidden(x)              bitTest((x)->header.flags, SOF_Hide)
+#define aiuShipIsntSelectable(x)        (bitTest((x)->header.flags, SOF_Hide|SOF_Disabled|SOF_Crazy) || ShipAlreadyHyperspaceOut(x))
+#define aiuShipIsntTargetable(x,player) (bitTest((x)->header.flags, SOF_Hide|SOF_Hyperspace) || \
+                                         ((bitTest((x)->header.flags, SOF_Cloaked) && (!proximityCanPlayerSeeShip((player), (x))))))
 
 #define aiuShipIsWorthCapturing(x)      ((!isShipOfClass(x, CLASS_Fighter)) && (!isShipOfClass(x, CLASS_Corvette)))
 
@@ -43,7 +43,7 @@ bool32 ShipAlreadyHyperspaceOut(Ship *ship);      // don't include singleplayer.
                                         (aiblob)->goodGuyvalue         = 0;
 
 #define aiuFuelAbove(ship, level)       ((100.0 * ((ship)->fuel/(ship)->staticinfo->maxfuel)) > (level))
-#define aiuHealthAbove(ship, level)     ((100.0 * ((ship)->health*(ship)->staticinfo->oneOverMaxHealth)) > (level))
+#define aiuHealthAbove(ship, level)     ((100.0 * ((ship)->targetable.health*(ship)->staticinfo->health.oneOverMaxHealth)) > (level))
 
 #define aiuNewSelection(sel, size, string)  \
                                         (sel) = (SelectCommand *)memAlloc(sizeofSelectCommand((size)), (string), 0);\

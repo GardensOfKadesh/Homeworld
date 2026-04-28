@@ -314,9 +314,9 @@ void AddRandomRotationToAsteroid(Asteroid *asteroid)
     {
         real32 lorotate = ASTEROID_LO_ROTATE[asteroid->asteroidtype];
         real32 hirotate = ASTEROID_HI_ROTATE[asteroid->asteroidtype];
-        asteroid->rotinfo.rotspeed.x = frandombetween(lorotate,hirotate);
-        asteroid->rotinfo.rotspeed.y = frandombetween(lorotate,hirotate);
-        asteroid->rotinfo.rotspeed.z = frandombetween(lorotate,hirotate);
+        asteroid->rotatable.rotinfo.rotspeed.x = frandombetween(lorotate,hirotate);
+        asteroid->rotatable.rotinfo.rotspeed.y = frandombetween(lorotate,hirotate);
+        asteroid->rotatable.rotinfo.rotspeed.z = frandombetween(lorotate,hirotate);
     }
 }
 
@@ -379,11 +379,11 @@ bool32 AddResourceToVolumeAtPosition(struct ResourceVolume *volume,bool32 regrow
             }
 
             asteroid = univAddAsteroid(asteroidtype,position);
-            asteroid->attributes = volume->attributes;
-            asteroid->attributesParam = volume->attributesParam;
+            asteroid->obj.attributes = volume->attributes;
+            asteroid->obj.attributesParam = volume->attributesParam;
             if (volume->attributes & ATTRIBUTES_Regrow)
             {
-                asteroid->resourceVolume = volume;
+                asteroid->resource.resourceVolume = volume;
             }
             AddRandomRotationToAsteroid(asteroid);
             if (volume->attributes & ATTRIBUTES_VelToMothership)
@@ -391,14 +391,14 @@ bool32 AddResourceToVolumeAtPosition(struct ResourceVolume *volume,bool32 regrow
                 hvector dirvector;
 
                 GetPointOfName(&dirvector,"TowardsVector");
-                AddRandomVelocityDirection((SpaceObj *)asteroid,(vector *)&dirvector,attrVELOCITY_TOWARDS,attrVELOCITY_TOWARDS_DEVIATION);
+                AddRandomVelocityDirection(&asteroid->obj,(vector *)&dirvector,attrVELOCITY_TOWARDS,attrVELOCITY_TOWARDS_DEVIATION);
             }
             if (volume->attributes & ATTRIBUTES_HeadShotVelToMothership)
             {
                 hvector startpoint;
 
                 GetPointOfName(&startpoint,"TowardsPoint");
-                AddRandomVelocityTowards((SpaceObj *)asteroid,&asteroid->posinfo.position,(vector *)&startpoint,attrHEADSHOTVELOCITY_TOWARDS,attrHEADSHOTVELOCITY_TOWARDS_DEVIATION);
+                AddRandomVelocityTowards(&asteroid->obj,&asteroid->obj.posinfo.position,(vector *)&startpoint,attrHEADSHOTVELOCITY_TOWARDS,attrHEADSHOTVELOCITY_TOWARDS_DEVIATION);
             }
         }
         break;
@@ -410,11 +410,11 @@ bool32 AddResourceToVolumeAtPosition(struct ResourceVolume *volume,bool32 regrow
             dusttype = (DustCloudType)GetRandomResourceType(&volume->resourceDistribution,regrowing);
             dbgAssertOrIgnore(dusttype < NUM_DUSTCLOUDTYPES);
             dustcloud = univAddDustCloud(dusttype,position);
-            dustcloud->attributes = volume->attributes;
-            dustcloud->attributesParam = volume->attributesParam;
-            if (dustcloud->attributes & ATTRIBUTES_Regrow)
+            dustcloud->obj.attributes = volume->attributes;
+            dustcloud->obj.attributesParam = volume->attributesParam;
+            if (dustcloud->obj.attributes & ATTRIBUTES_Regrow)
             {
-                dustcloud->resourceVolume = volume;
+                dustcloud->resource.resourceVolume = volume;
             }
         }
         break;
@@ -426,11 +426,11 @@ bool32 AddResourceToVolumeAtPosition(struct ResourceVolume *volume,bool32 regrow
             gastype = (GasCloudType)GetRandomResourceType(&volume->resourceDistribution,regrowing);
             dbgAssertOrIgnore(gastype < NUM_GASCLOUDTYPES);
             gascloud = univAddGasCloud(gastype,position);
-            gascloud->attributes = volume->attributes;
-            gascloud->attributesParam = volume->attributesParam;
-            if (gascloud->attributes & ATTRIBUTES_Regrow)
+            gascloud->obj.attributes = volume->attributes;
+            gascloud->obj.attributesParam = volume->attributesParam;
+            if (gascloud->obj.attributes & ATTRIBUTES_Regrow)
             {
-                gascloud->resourceVolume = volume;
+                gascloud->resource.resourceVolume = volume;
             }
         }
         break;
@@ -783,8 +783,8 @@ static void scriptSetDerelictCB(char *directory,char *field,void *dataToFillIn)
     }
 
     derelict = univAddDerelict(derelicttype,&rotatedposition);
-    derelict->attributes = attributes;
-    derelict->attributesParam = (sword)attributesParam;
+    derelict->obj.attributes = attributes;
+    derelict->obj.attributesParam = (sword)attributesParam;
     if (attributes & ATTRIBUTES_Anomaly)
     {
         pingAnomalyObjectPingAdd("Anomaly",(SpaceObj *)derelict);
@@ -796,19 +796,19 @@ static void scriptSetDerelictCB(char *directory,char *field,void *dataToFillIn)
         switch (derelict->derelicttype)
         {
             case Scaffold_scarred:
-                derelict->rotinfo.rotspeed.x = SCAFFOLD_SCARRED_ROTX;
-                derelict->rotinfo.rotspeed.y = SCAFFOLD_SCARRED_ROTY;
-                derelict->rotinfo.rotspeed.z = SCAFFOLD_SCARRED_ROTZ;
+                derelict->rotatable.rotinfo.rotspeed.x = SCAFFOLD_SCARRED_ROTX;
+                derelict->rotatable.rotinfo.rotspeed.y = SCAFFOLD_SCARRED_ROTY;
+                derelict->rotatable.rotinfo.rotspeed.z = SCAFFOLD_SCARRED_ROTZ;
                 break;
             case ScaffoldFingerA_scarred:
-                derelict->rotinfo.rotspeed.x = SCAFFOLDFINGERA_SCARRED_ROTX;
-                derelict->rotinfo.rotspeed.y = SCAFFOLDFINGERA_SCARRED_ROTY;
-                derelict->rotinfo.rotspeed.z = SCAFFOLDFINGERA_SCARRED_ROTZ;
+                derelict->rotatable.rotinfo.rotspeed.x = SCAFFOLDFINGERA_SCARRED_ROTX;
+                derelict->rotatable.rotinfo.rotspeed.y = SCAFFOLDFINGERA_SCARRED_ROTY;
+                derelict->rotatable.rotinfo.rotspeed.z = SCAFFOLDFINGERA_SCARRED_ROTZ;
                 break;
             case ScaffoldFingerB_scarred:
-                derelict->rotinfo.rotspeed.x = SCAFFOLDFINGERB_SCARRED_ROTX;
-                derelict->rotinfo.rotspeed.y = SCAFFOLDFINGERB_SCARRED_ROTY;
-                derelict->rotinfo.rotspeed.z = SCAFFOLDFINGERB_SCARRED_ROTZ;
+                derelict->rotatable.rotinfo.rotspeed.x = SCAFFOLDFINGERB_SCARRED_ROTX;
+                derelict->rotatable.rotinfo.rotspeed.y = SCAFFOLDFINGERB_SCARRED_ROTY;
+                derelict->rotatable.rotinfo.rotspeed.z = SCAFFOLDFINGERB_SCARRED_ROTZ;
                 break;
         }
 
@@ -903,7 +903,7 @@ bool32 PlayerDoesntHaveCapturableCapitalShip(Player *player)
     for (node=universe.ShipList.head;node != NULL;node=node->next)
     {
         ship = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -926,7 +926,7 @@ void GivePlayerCapitalShip(Player *player)
     if (player->PlayerMothership)
     {
         ShipStaticInfo *testStatic = GetShipStaticInfo(shiptype,shiprace);
-        dbgAssertOrIgnore(bitTest(testStatic->staticheader.infoFlags, IF_InfoLoaded));  // we want it to crash if ship not loaded
+        dbgAssertOrIgnore(bitTest(testStatic->common.infoFlags, IF_InfoLoaded));  // we want it to crash if ship not loaded
         {
             vector zerovector = { 0.0f, 0.0f, 0.0f };
             ship = univAddShip(shiptype,shiprace,&zerovector,player,0);
@@ -1152,16 +1152,16 @@ static void scriptSetShipsCB(char *directory,char *field,void *dataToFillIn)
             sdword slab = 0;
             real32 roll = 0.0f;
             ShipStaticInfo *testStatic = GetShipStaticInfo(shiptype,shiprace);
-            dbgAssertOrIgnore(bitTest(testStatic->staticheader.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
+            dbgAssertOrIgnore(bitTest(testStatic->common.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
             {
                 //if info for this ship isn't loaded, we'll skip trying to add it
                 for (slab=0;slab<8;slab++,roll+=(TWOPI/8))
                 {
                     ship = univAddShip(shiptype,shiprace,&rotatedposition,player,0);
                     gameStatsAddShip(ship,player->playerIndex);
-                    ship->attributes = attributes;
-                    ship->attributesParam = (sword)attributesParam;
-                    ship->rotinfo.rotspeed.z = MINING_BASE_ROTATION_SPEED;
+                    ship->obj.attributes = attributes;
+                    ship->obj.attributesParam = (sword)attributesParam;
+                    ship->rotatable.rotinfo.rotspeed.z = MINING_BASE_ROTATION_SPEED;
                     SetShipColorScheme(colorScheme);
                     univRotateObjYaw((SpaceObjRot *)ship,rot);
                     univRotateObjRoll((SpaceObjRot *)ship,roll);
@@ -1182,12 +1182,12 @@ static void scriptSetShipsCB(char *directory,char *field,void *dataToFillIn)
         {
             {
                 ShipStaticInfo *testStatic = GetShipStaticInfo(shiptype,shiprace);
-                dbgAssertOrIgnore(bitTest(testStatic->staticheader.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
+                dbgAssertOrIgnore(bitTest(testStatic->common.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
                 {
                     ship = univAddShip(shiptype,shiprace,&rotatedposition,player,0);
                     gameStatsAddShip(ship,player->playerIndex);
-                    ship->attributes = attributes;
-                    ship->attributesParam = (sword)attributesParam;
+                    ship->obj.attributes = attributes;
+                    ship->obj.attributesParam = (sword)attributesParam;
                     SetShipColorScheme(colorScheme);
                     univRotateObjYaw((SpaceObjRot *)ship,rot);
 
@@ -1258,12 +1258,12 @@ static void scriptSetShipsCB(char *directory,char *field,void *dataToFillIn)
             for (i=0;i<numShips;i++)
             {
                 ShipStaticInfo *testStatic = GetShipStaticInfo(shiptype,shiprace);
-                dbgAssertOrIgnore(bitTest(testStatic->staticheader.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
+                dbgAssertOrIgnore(bitTest(testStatic->common.infoFlags, IF_InfoLoaded)); // we want it to crash if ship not loaded
                 {
                     ship = univAddShip(shiptype,shiprace,&rotatedposition,player,0);
                     gameStatsAddShip(ship,player->playerIndex);
-                    ship->attributes = attributes;
-                    ship->attributesParam = (sword)attributesParam;
+                    ship->obj.attributes = attributes;
+                    ship->obj.attributesParam = (sword)attributesParam;
                     SetShipColorScheme(colorScheme);
 
                     // Update ship totals for player
@@ -1322,12 +1322,12 @@ static void scriptSetShipsCB(char *directory,char *field,void *dataToFillIn)
             for (i=0;i<numShips;i++)
             {
                 ShipStaticInfo *testStatic = GetShipStaticInfo(shiptype,shiprace);
-                dbgAssertOrIgnore(bitTest(testStatic->staticheader.infoFlags, IF_InfoLoaded));  // we want it to crash if ship not loaded
+                dbgAssertOrIgnore(bitTest(testStatic->common.infoFlags, IF_InfoLoaded));  // we want it to crash if ship not loaded
                 {
                     ship = univAddShip(shiptype,shiprace,&rotatedposition,player,0);
                     gameStatsAddShip(ship,player->playerIndex);
-                    ship->attributes = attributes;
-                    ship->attributesParam = (sword)attributesParam;
+                    ship->obj.attributes = attributes;
+                    ship->obj.attributesParam = (sword)attributesParam;
                     SetShipColorScheme(colorScheme);
                     univRotateObjYaw((SpaceObjRot *)ship,rot);
 
@@ -1363,7 +1363,7 @@ static void scriptSetShipsCB(char *directory,char *field,void *dataToFillIn)
                     }
                     else
                     {
-                        rotatedposition.z += (ship->staticinfo->staticheader.staticCollInfo.collspheresize * 2.0f);
+                        rotatedposition.z += (ship->staticinfo->common.staticCollInfo.collspheresize * 2.0f);
                     }
                 }
             }
@@ -1739,7 +1739,7 @@ static void scriptPreMissionSphereCB(char *directory,char *field,void *dataToFil
 
     if (singlePlayerGame)
     {
-        bitSet(derelictStaticInfos[HyperspaceGate].staticheader.infoFlags, IF_InfoNeeded);
+        bitSet(derelictStaticInfos[HyperspaceGate].common.infoFlags, IF_InfoNeeded);
     }
 }
 
@@ -1806,21 +1806,21 @@ ShipRace GetSinglePlayerRaceEquivalent(ShipRace race)
 void SetInfoNeededForShipAndRelatedStaticInfo(ShipType type,ShipRace race,bool8 dataToFillIn)
 {
     ShipStaticInfo *info = GetShipStaticInfo(type, race);
-    bitSetTo(info->staticheader.infoFlags, IF_InfoNeeded, dataToFillIn);
+    bitSetTo(info->common.infoFlags, IF_InfoNeeded, dataToFillIn);
 
     if (type == MissileDestroyer || type == P1MissileCorvette)
     {
-        bitSetTo(missileStaticInfos[race].staticheader.infoFlags, IF_InfoNeeded, dataToFillIn);
+        bitSetTo(missileStaticInfos[race].common.infoFlags, IF_InfoNeeded, dataToFillIn);
     }
     else if (type == MinelayerCorvette)
     {
-        bitSetTo(mineStaticInfos[race].staticheader.infoFlags, IF_InfoNeeded, dataToFillIn);
+        bitSetTo(mineStaticInfos[race].common.infoFlags, IF_InfoNeeded, dataToFillIn);
     }
     else if (race == R1 && type == DDDFrigate)
     {
         ShipStaticInfo *shipstatic;
         shipstatic = GetShipStaticInfo(Drone,R1);
-        bitSetTo(shipstatic->staticheader.infoFlags, IF_InfoNeeded, dataToFillIn);
+        bitSetTo(shipstatic->common.infoFlags, IF_InfoNeeded, dataToFillIn);
     }
 }
 
@@ -1842,7 +1842,7 @@ void SetTeamColorForShipAndRelatedStaticInfo(ShipType type,ShipRace race,bool8 s
     }
 
     shipstaticinfo = GetShipStaticInfo(type,race);
-    memcpy(shipstaticinfo->teamColor, schemes, sizeof(shipstaticinfo->teamColor));
+    memcpy(shipstaticinfo->shipOrDerelict.teamColor, schemes, sizeof(shipstaticinfo->shipOrDerelict.teamColor));
     if (type == MissileDestroyer || type == P1MissileCorvette)
     {
         memcpy(missileStaticInfos[race].teamColor, schemes, sizeof(missileStaticInfos[race].teamColor));
@@ -1856,7 +1856,7 @@ void SetTeamColorForShipAndRelatedStaticInfo(ShipType type,ShipRace race,bool8 s
         ShipStaticInfo *ss;
         dbgAssertOrIgnore(race == R1);
         ss = GetShipStaticInfo(Drone,R1);
-        memcpy(ss->teamColor, schemes, sizeof(ss->teamColor));
+        memcpy(ss->shipOrDerelict.teamColor, schemes, sizeof(ss->shipOrDerelict.teamColor));
     }
 }
 
@@ -1923,7 +1923,7 @@ static void llExcludeAsteroid(char *directory,char *field,void *dataToFillIn)
         return;
     }
 
-    bitSetTo(asteroidStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+    bitSetTo(asteroidStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
 }
 static void llExcludeDustCloud(char *directory,char *field,void *dataToFillIn)
 {
@@ -1932,7 +1932,7 @@ static void llExcludeDustCloud(char *directory,char *field,void *dataToFillIn)
     type = StrToDustCloudType(field);
     dbgAssertOrIgnore(type != 0xffffffff);
 
-    bitSetTo(dustcloudStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+    bitSetTo(dustcloudStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
 }
 static void llExcludeGasCloud(char *directory,char *field,void *dataToFillIn)
 {
@@ -1941,7 +1941,7 @@ static void llExcludeGasCloud(char *directory,char *field,void *dataToFillIn)
     type = StrToGasCloudType(field);
     dbgAssertOrIgnore(type != 0xffffffff);
 
-    bitSetTo(gascloudStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+    bitSetTo(gascloudStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
 }
 static void llExcludeNebula(char *directory,char *field,void *dataToFillIn)
 {
@@ -1950,7 +1950,7 @@ static void llExcludeNebula(char *directory,char *field,void *dataToFillIn)
     type = StrToNebulaType(field);
     dbgAssertOrIgnore(type != 0xffffffff);
 
-    bitSetTo(nebulaStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+    bitSetTo(nebulaStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
 }
 static void llExcludeDerelict(char *directory,char *field,void *dataToFillIn)
 {
@@ -1960,14 +1960,14 @@ static void llExcludeDerelict(char *directory,char *field,void *dataToFillIn)
     {                                                       //if we should do this to all ships for this race
         for (type = 0; type < NUM_DERELICTTYPES; type++)
         {
-            bitSetTo(derelictStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+            bitSetTo(derelictStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
         }
     }
     else
     {
         type = StrToDerelictType(field);
         dbgAssertOrIgnore(type != 0xffffffff);
-        bitSetTo(derelictStaticInfos[type].staticheader.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
+        bitSetTo(derelictStaticInfos[type].common.infoFlags, IF_InfoNeeded, (bool8)(size_t)dataToFillIn);
     }
 }
 /*-----------------------------------------------------------------------------
@@ -2005,7 +2005,7 @@ static void llAvailableColorScheme(char *directory,char *field,void *dataToFillI
             dbgAssertOrIgnore(index >= 0 && index < MAX_MULTIPLAYER_PLAYERS);
             schemes[index] = TRUE;
         }                                                   //set the color scheme list
-        memcpy(derelictStaticInfos[type].teamColor, schemes, sizeof(derelictStaticInfos[type].teamColor));
+        memcpy(derelictStaticInfos[type].shipOrDerelict.teamColor, schemes, sizeof(derelictStaticInfos[type].shipOrDerelict.teamColor));
         return;                                             //done
     }
     race = StrToShipRace(string);
@@ -2147,10 +2147,10 @@ static void scriptSetShipsToBeNeeded(char *directory,char *field,void *dataToFil
         else if (player->race == R2)
             needR2CapitalShip = FALSE;
     }
-    bitSet(shipstaticinfo->staticheader.infoFlags, IF_InfoNeeded);//this ship will have to be loaded
+    bitSet(shipstaticinfo->common.infoFlags, IF_InfoNeeded);//this ship will have to be loaded
     if (colorScheme >= 0)
     {
-        memcpy(teamCol,shipstaticinfo->teamColor,sizeof(teamCol));//make sure the right team colors are loaded
+        memcpy(teamCol,shipstaticinfo->shipOrDerelict.teamColor,sizeof(teamCol));//make sure the right team colors are loaded
         teamCol[colorScheme] = TRUE;                            // make sure this ship's color scheme gets loaded
         SetTeamColorForShipAndRelatedStaticInfo(shiptype,shiprace,teamCol);
     }
@@ -2178,7 +2178,7 @@ static void scriptSetDerelictToBeNeeded(char *directory,char *field,void *dataTo
     {
         dbgFatalf(DBG_Loc,"Bad derelict type in %s",field);
     }
-    bitSet(derelictStaticInfos[derelicttype].staticheader.infoFlags, IF_InfoNeeded);
+    bitSet(derelictStaticInfos[derelicttype].common.infoFlags, IF_InfoNeeded);
 }
 
 /*-----------------------------------------------------------------------------
@@ -2226,9 +2226,9 @@ void levelPreInit(char *directory,char *pickedMission)
     {
         insideship = (InsideShip*)listGetStructOfNode(node);
         ship = insideship->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         SetInfoNeededForShipAndRelatedStaticInfo(ship->shiptype,ship->shiprace,TRUE);
-        memcpy(teamCol,ship->staticinfo->teamColor,sizeof(teamCol));
+        memcpy(teamCol,ship->staticinfo->shipOrDerelict.teamColor,sizeof(teamCol));
         teamCol[ship->colorScheme] = TRUE;                          // preserve color schemes
         SetTeamColorForShipAndRelatedStaticInfo(ship->shiptype,ship->shiprace,teamCol);
 
@@ -2244,10 +2244,10 @@ void levelPreInit(char *directory,char *pickedMission)
             {
                 insideship2 = (InsideShip *)listGetStructOfNode(insidenode);
                 tiship = insideship2->ship;
-                dbgAssertOrIgnore(tiship->objtype == OBJ_ShipType);
+                dbgAssertOrIgnore(tiship->header.objtype == OBJ_ShipType);
 
                 SetInfoNeededForShipAndRelatedStaticInfo(tiship->shiptype,tiship->shiprace,TRUE);
-                memcpy(teamCol,tiship->staticinfo->teamColor,sizeof(teamCol));
+                memcpy(teamCol,tiship->staticinfo->shipOrDerelict.teamColor,sizeof(teamCol));
                 teamCol[tiship->colorScheme] = TRUE;                          // preserve color schemes
                 SetTeamColorForShipAndRelatedStaticInfo(tiship->shiptype,tiship->shiprace,teamCol);
 
@@ -2293,7 +2293,7 @@ void levelPreInit(char *directory,char *pickedMission)
 
         if (bitTest(tpGameCreated.flag,MG_CratesEnabled))
         {
-            bitSet(derelictStaticInfos[Crate].staticheader.infoFlags, IF_InfoNeeded);
+            bitSet(derelictStaticInfos[Crate].common.infoFlags, IF_InfoNeeded);
         }
     }
 }
@@ -2393,7 +2393,7 @@ bool32 AnyShipOverlapsAsteroid(vector *position,AsteroidType asteroidtype)
     Ship *ship;
     vector checkpos = *position;
     real32 consider,negconsider;
-    real32 asteroidr = asteroidStaticInfos[asteroidtype].staticheader.staticCollInfo.collspheresize;
+    real32 asteroidr = asteroidStaticInfos[asteroidtype].common.staticCollInfo.collspheresize;
     vector diff;
 
     node = universe.ShipList.head;
@@ -2401,15 +2401,15 @@ bool32 AnyShipOverlapsAsteroid(vector *position,AsteroidType asteroidtype)
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             if (ship->shiptype == MiningBase)
             {
                 goto next;      // MiningBase doesn't interfere with regrowing...
             }
-            consider = asteroidr + ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+            consider = asteroidr + ship->staticinfo->common.staticCollInfo.collspheresize;
             negconsider = -consider;
-            vecSub(diff,ship->posinfo.position,checkpos);
+            vecSub(diff,ship->obj.posinfo.position,checkpos);
 
             if (!isBetweenInclusive(diff.x,negconsider,consider))
             {

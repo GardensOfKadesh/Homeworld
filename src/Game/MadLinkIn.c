@@ -304,7 +304,7 @@ void madOpenGunsShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numGunOpenDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numGunOpenDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well
@@ -391,7 +391,7 @@ void madLinkInCloseGunsShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numGunCloseDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numGunCloseDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well
@@ -467,7 +467,7 @@ void madLinkInPostDockingShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madWingOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numPostDockDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madWingOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numPostDockDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well
@@ -542,7 +542,7 @@ void madLinkInPreDockingShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madWingOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numDockDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madWingOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numDockDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well
@@ -675,10 +675,10 @@ bool32 madLinkInGetDoorInfo(Ship *ship, matrix *coordsys, vector *position)
     dbgAssertOrIgnore(gunIndex != -1);
     madAnimBindingMatrix(&coordsyst,&positiont,ship,gunIndex, madIndex);
 
-    matMultiplyMatByMat(coordsys,&ship->rotinfo.coordsys,&coordsyst);
-    //matMultiplyVecByMat(position,&positionSS,&ship->rotinfo.coordsys);
-    matMultiplyMatByVec(position,&ship->rotinfo.coordsys,&positiont);
-    vecAddTo(*position,ship->posinfo.position);
+    matMultiplyMatByMat(coordsys,&ship->rotatable.rotinfo.coordsys,&coordsyst);
+    //matMultiplyVecByMat(position,&positionSS,&ship->rotatable.rotinfo.coordsys);
+    matMultiplyMatByVec(position,&ship->rotatable.rotinfo.coordsys,&positiont);
+    vecAddTo(*position,ship->obj.posinfo.position);
     return TRUE;
 }
 
@@ -720,7 +720,7 @@ void madLinkInOpenSpecialShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numSpecialOpenDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numSpecialOpenDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well
@@ -778,7 +778,7 @@ void madLinkInCloseSpecialShip(Ship *ship)
         //signal that an animation has been added to the ships cue
         bitSet(ship->madAnimationFlags,MAD_ANIMATION_NEED_PROC);
 
-        if(ship->health*ship->staticinfo->oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numSpecialCloseDamagedIndexes > 0)
+        if(ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth < ship->staticinfo->madGunOpenDamagedHealthThreshold && ship->staticinfo->madStatic->numSpecialCloseDamagedIndexes > 0)
         {
             //ships health is below threshold
             //and ship has damaged animations as well

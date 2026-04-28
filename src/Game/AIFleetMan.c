@@ -180,7 +180,7 @@ void BuildShip(ShipStaticInfo *shipstatic,Player *player,sdword *incRUs,sdword *
 		ship = (Ship *)listGetStructOfNode(shipnode);
 
         if((ship->playerowner->playerIndex == player->playerIndex) &&
-		   (!bitTest(ship->flags, SOF_Dead)))
+		   (!bitTest(ship->header.flags, SOF_Dead)))
 		{
 		  if(ship->shiptype == shipstatic->shiptype)
 			{
@@ -281,7 +281,7 @@ ShipStaticInfo *GetSubstituteShipStatic(ShipRace race)
 
     if (shipstatic)
     {
-        if (!bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded))
+        if (!bitTest(shipstatic->common.infoFlags, IF_InfoLoaded))
         {
             shipstatic = NULL;
         }
@@ -334,7 +334,7 @@ void aifBuildRequestedShips(RequestShips *scriptrequest,RequestShips *attrequest
         if ((RacesAllowedForGivenShip[scriptrequest->shiptype] & RaceToRaceBits(race)))
         {
             scriptshipstatic = GetShipStaticInfo(scriptrequest->shiptype,race);
-            if (!bitTest(scriptshipstatic->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(scriptshipstatic->common.infoFlags, IF_InfoLoaded))
             {
                 scriptshipstatic = NULL;
             }
@@ -356,7 +356,7 @@ void aifBuildRequestedShips(RequestShips *scriptrequest,RequestShips *attrequest
         if ((RacesAllowedForGivenShip[attrequest->shiptype] & RaceToRaceBits(race)))
         {
             attshipstatic = GetShipStaticInfo(attrequest->shiptype,race);
-            if (!bitTest(attshipstatic->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(attshipstatic->common.infoFlags, IF_InfoLoaded))
             {
                 attshipstatic = NULL;
             }
@@ -378,7 +378,7 @@ void aifBuildRequestedShips(RequestShips *scriptrequest,RequestShips *attrequest
         if ((RacesAllowedForGivenShip[defrequest->shiptype] & RaceToRaceBits(race)))
         {
             defshipstatic = GetShipStaticInfo(defrequest->shiptype,race);
-            if (!bitTest(defshipstatic->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(defshipstatic->common.infoFlags, IF_InfoLoaded))
             {
                 defshipstatic = NULL;
             }
@@ -400,7 +400,7 @@ void aifBuildRequestedShips(RequestShips *scriptrequest,RequestShips *attrequest
         if ((RacesAllowedForGivenShip[resourcerequest->shiptype] & RaceToRaceBits(race)))
         {
             resourceshipstatic = GetShipStaticInfo(resourcerequest->shiptype,race);
-            if (!bitTest(resourceshipstatic->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(resourceshipstatic->common.infoFlags, IF_InfoLoaded))
             {
                 resourceshipstatic = NULL;
             }

@@ -1048,22 +1048,22 @@ void kasDebugDraw(void)
         {
             Ship *m0p = aiuFindEnemyMothership(&universe.players[0]),
                  *m1p = aiuFindEnemyMothership(&universe.players[1]);
-            primCircleOutline3(&m0p->posinfo.position,
+            primCircleOutline3(&m0p->obj.posinfo.position,
                                10000,
                                32, 4, KAS_DEBUG_TEXTCOLOR, X_AXIS);
-            primCircleOutline3(&m0p->posinfo.position,
+            primCircleOutline3(&m0p->obj.posinfo.position,
                                10000,
                                32, 4, KAS_DEBUG_TEXTCOLOR, Y_AXIS);
-            primCircleOutline3(&m0p->posinfo.position,
+            primCircleOutline3(&m0p->obj.posinfo.position,
                                10000,
                                32, 8, KAS_DEBUG_TEXTCOLOR, Z_AXIS);
-            primCircleOutline3(&m1p->posinfo.position,
+            primCircleOutline3(&m1p->obj.posinfo.position,
                                10000,
                                32, 0, KAS_DEBUG_TEXTCOLOR, X_AXIS);
-            primCircleOutline3(&m1p->posinfo.position,
+            primCircleOutline3(&m1p->obj.posinfo.position,
                                10000,
                                32, 0, KAS_DEBUG_TEXTCOLOR, Y_AXIS);
-            primCircleOutline3(&m1p->posinfo.position,
+            primCircleOutline3(&m1p->obj.posinfo.position,
                                10000,
                                32, 8, KAS_DEBUG_TEXTCOLOR, Z_AXIS);
 

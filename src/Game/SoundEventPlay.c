@@ -100,7 +100,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
         }
         else
         {
-            objtype = spaceobject->objtype;
+            objtype = spaceobject->header.objtype;
         }
 
         dist = fsqrt(spaceobject->cameraDistanceSquared);
@@ -164,7 +164,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					priority = SOUND_PRIORITY_MAX;
 					vol = (sdword)(SEequalize(gun->gunstatic->gunsoundtype + GUNSHOT_OFFSET, dist, tempEQ)
 								   * (1.0f - (ship->soundevent.coverage * 0.5)));
-					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+					pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 					
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 					ship->soundevent.burstHandle = handle;
@@ -180,7 +180,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					priority = SOUND_PRIORITY_HIGH;
 					vol = (sdword)(SEequalize(gun->gunstatic->gunsoundtype + GUNSHOT_OFFSET, dist, tempEQ)
 								   * (1.0f - ship->soundevent.coverage));
-					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+					pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 					
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 					ship->soundevent.gunHandle = handle;
@@ -195,7 +195,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					priority = SOUND_PRIORITY_MIN;
 					vol = (sdword)(SEequalize(gun->gunstatic->gunsoundtype + GUNMOVE_OFFSET, dist, tempEQ)
 								   * (1.0f - ship->soundevent.coverage));
-					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+					pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 					handle = splayEPRV(GunBank, GunEventsLUT->lookup[GetPatch(GunEventsLUT, gun->gunstatic->gunsoundtype, event)], tempEQ, pan, priority, vol);
 				}
 				break;
@@ -251,7 +251,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 						vol = (sword)(vol * (1.0f - ship->soundevent.coverage));
 					}
 	
-					pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+					pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 	
 					if (ship->shiptype < ShipCmnEventsLUT->numobjects)
 					{
@@ -307,7 +307,7 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					}
 				}
 				
-				pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+				pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 				priority = SOUND_PRIORITY_NORMAL;
 
 				if ((event == Ship_Hyperdrive) || (event == Ship_HyperdriveOff))
@@ -337,11 +337,11 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 				}
 				dbgMessagef("SoundEventPlay: Explosion event %d", event);
 				effect = (Effect *)object;
-				dist = (real32)fsqrt(effect->cameraDistanceSquared);
+				dist = fsqrt(effect->obj.cameraDistanceSquared);
 				if (SEinrange((event - Exp_Flag) + EXPLOSION_OFFSET, dist))
 				{
 					vol = SEequalize((event - Exp_Flag) + EXPLOSION_OFFSET, dist, tempEQ);
-					pan = getPanAngle(effect->posinfo.position, EFFECT_SIZE, dist);
+					pan = getPanAngle(effect->obj.posinfo.position, EFFECT_SIZE, dist);
 	
 					handle = splayEPRV(SpecialEffectBank, SpecExpEventsLUT->lookup[GetPatch(SpecExpEventsLUT, 0, event)], tempEQ, pan, SOUND_PRIORITY_MAX + 1, vol);
 				}
@@ -354,16 +354,16 @@ sdword soundEventPlay(void *object, sdword event, Gun *gun)
 					break;
 				}
 				effect = (Effect *)object;
-				if (SEinrangeSqr((event - Hit_Flag) + HIT_OFFSET, effect->cameraDistanceSquared)) // &&
+				if (SEinrangeSqr((event - Hit_Flag) + HIT_OFFSET, effect->obj.cameraDistanceSquared)) // &&
 //					soundover(effectHandle))
 				{
 					for (i = 0; i < effectHandle[event & SFX_Event_Mask].max; i++)
 					{
 						if (soundover(effectHandle[event & SFX_Event_Mask].handle[i]))
 						{
-							dist = (real32)fsqrt(effect->cameraDistanceSquared);
+							dist = fsqrt(effect->obj.cameraDistanceSquared);
 							vol = SEequalize((event - Hit_Flag) + HIT_OFFSET, dist, tempEQ);
-							pan = getPanAngle(effect->posinfo.position, EFFECT_SIZE, dist);
+							pan = getPanAngle(effect->obj.posinfo.position, EFFECT_SIZE, dist);
 		
 							handle = splayEPRV(SpecialEffectBank, SpecHitEventsLUT->lookup[GetPatch(SpecHitEventsLUT, 0, event)], tempEQ, pan, SOUND_PRIORITY_HIGH, vol);
 							effectHandle[event & SFX_Event_Mask].handle[i] = handle;
@@ -434,11 +434,11 @@ sdword soundEffectType(Effect *effect, sdword event, sdword objecttype)
 					// don't want to play this sound from the manager screens
 					break;
 				}
-                if (SEinrangeSqr((event - Hit_Flag) + HIT_OFFSET, effect->cameraDistanceSquared))
+                if (SEinrangeSqr((event - Hit_Flag) + HIT_OFFSET, effect->obj.cameraDistanceSquared))
                 {
-                    dist = (real32)fsqrt(effect->cameraDistanceSquared);
+                    dist = fsqrt(effect->obj.cameraDistanceSquared);
                     vol = SEequalize((event - Hit_Flag) + HIT_OFFSET, dist, tempEQ);
-                    pan = getPanAngle(effect->posinfo.position, EFFECT_SIZE, dist);
+                    pan = getPanAngle(effect->obj.posinfo.position, EFFECT_SIZE, dist);
 
                     handle = splayEPRV(SpecialEffectBank, SpecHitEventsLUT->lookup[GetPatch(SpecHitEventsLUT, objecttype, event)], tempEQ, pan, SOUND_PRIORITY_NORMAL, vol);
                 }

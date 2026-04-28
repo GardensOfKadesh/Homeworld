@@ -268,8 +268,9 @@ sdword lodDrawingMode = FALSE;
 lod *lodLevelGet(void *spaceObj, vector *camera, vector *ship)
 {
     real32 distance;
+    //TODO(type safety, 2026-04-24): Take SpaceObj* instead of void*
     SpaceObj *obj = (SpaceObj *)spaceObj;
-    lodinfo *info = obj->staticinfo->staticheader.LOD;
+    lodinfo *info = obj->staticinfo->LOD;
 
     dbgAssertOrIgnore(info != NULL);                                //verify the LOD table exists
 
@@ -339,8 +340,9 @@ lod *lodLevelGet(void *spaceObj, vector *camera, vector *ship)
 ----------------------------------------------------------------------------*/
 lod* lodPanicLevelGet(void* spaceObj, vector* camera, vector* ship)
 {
+    //TODO(type safety, 2026-04-24): Take SpaceObj* as param instead of void*
     SpaceObj* obj = (SpaceObj*)spaceObj;
-    lodinfo* info = obj->staticinfo->staticheader.LOD;
+    lodinfo* info = obj->staticinfo->LOD;
 
     if (obj->currentLOD == 3)
     {

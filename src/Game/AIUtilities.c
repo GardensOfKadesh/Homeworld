@@ -461,13 +461,13 @@ ShipPtr aiuRescueShipType(SelectCommand *selection, struct AITeam *team, ShipTyp
 {
     real32 dist = REALlyBig, tempdist;
     ShipPtr ShipInDistress, ChosenShip = NULL;
-    vector teamPos = team->shipList.selection->ShipPtr[0]->posinfo.position;
+    vector teamPos = team->shipList.selection->ShipPtr[0]->obj.posinfo.position;
 
     ShipInDistress = FindFirstInstanceOfShipType(selection, type);
 
     while (ShipInDistress)
     {
-        if ((tempdist = aiuFindDistanceSquared(ShipInDistress->posinfo.position, teamPos)) < dist)
+        if ((tempdist = aiuFindDistanceSquared(ShipInDistress->obj.posinfo.position, teamPos)) < dist)
         {
             ChosenShip = ShipInDistress;
         }
@@ -550,13 +550,13 @@ ShipPtr aiuTakeoutShipType(SelectCommand *selection, struct AITeam *team, ShipTy
 {
     real32 tempdist;
     ShipPtr InvaderShip, ChosenShip = NULL;
-    vector teamPos = team->shipList.selection->ShipPtr[0]->posinfo.position;
+    vector teamPos = team->shipList.selection->ShipPtr[0]->obj.posinfo.position;
 
     InvaderShip = FindFirstInstanceOfShipType(selection, type);
 
     while (InvaderShip)
     {
-        if ((tempdist = aiuFindDistanceSquared(InvaderShip->posinfo.position, teamPos)))
+        if ((tempdist = aiuFindDistanceSquared(InvaderShip->obj.posinfo.position, teamPos)))
         {
             ChosenShip = InvaderShip;
         }
@@ -767,7 +767,7 @@ udword aiuFilterDisabledShips(SelectCommand *selection, MaxSelection *filtered)
 
     for (i = 0; i < selection->numShips; i++)
     {
-        if (!bitTest(selection->ShipPtr[0]->flags, SOF_Disabled|SOF_Crazy))
+        if (!bitTest(selection->ShipPtr[0]->header.flags, SOF_Disabled|SOF_Crazy))
         {
             selSelectionAddSingleShip(filtered, selection->ShipPtr[i]);
         }
@@ -1110,7 +1110,7 @@ ShipPtr aiuFindNearestMothershipAttacker(SelectCommand *teamShips)
 
     dbgAssertOrIgnore(teamShips->numShips);
 
-    approxTeamPosition = teamShips->ShipPtr[0]->posinfo.position;
+    approxTeamPosition = teamShips->ShipPtr[0]->obj.posinfo.position;
 
     enemyships = selectMemDupSelection(aiCurrentAIPlayer->shipsattackingmothership, "fnma", Pyrophoric);
 
@@ -1129,11 +1129,11 @@ ShipPtr aiuFindNearestMothershipAttacker(SelectCommand *teamShips)
         if (!nearestship)
         {
             nearestship     = enemyships->ShipPtr[i];
-            nearestshipdist = aiuFindDistanceSquared(nearestship->posinfo.position, approxTeamPosition);
+            nearestshipdist = aiuFindDistanceSquared(nearestship->obj.posinfo.position, approxTeamPosition);
         }
         else
         {
-            newshipdist = aiuFindDistanceSquared(enemyships->ShipPtr[i]->posinfo.position, approxTeamPosition);
+            newshipdist = aiuFindDistanceSquared(enemyships->ShipPtr[i]->obj.posinfo.position, approxTeamPosition);
 
             if (nearestshipdist > newshipdist)
             {
@@ -1160,7 +1160,7 @@ vector aiuPlayerMothershipCoords(Player *player)
 
     if (player->PlayerMothership)
     {
-        return player->PlayerMothership->posinfo.position;
+        return player->PlayerMothership->obj.posinfo.position;
     }
     return originvect;
 }
@@ -1212,7 +1212,7 @@ vector aiuFindEnemyMothershipCoords(Player *player)
 
     if (ship != NULL)
     {
-        return ship->posinfo.position;
+        return ship->obj.posinfo.position;
     }
     else
     {
@@ -1251,8 +1251,8 @@ bool32 aiuShipsCloseToEnemyMothership(Player *player, SelectCommand *ships, real
         if ((testship->shiptype == Mothership) &&
             (!allianceArePlayersAllied(testship->playerowner, player)))
         {
-            moshipDistSq = aiuFindDistanceSquared(testship->posinfo.position,
-                                                  ships->ShipPtr[0]->posinfo.position);
+            moshipDistSq = aiuFindDistanceSquared(testship->obj.posinfo.position,
+                                                  ships->ShipPtr[0]->obj.posinfo.position);
             if (moshipDistSq < (dist*dist))
             {
                 return TRUE;
@@ -1355,8 +1355,8 @@ Path *aiuGeneratePatrolPath(udword patroltype)
         return aiuCreatePathStruct(0, FALSE);
     }
 
-    enemyMothershipPos = enemyMothership->posinfo.position;
-    aiMothershipPos    = aiMothership->posinfo.position;
+    enemyMothershipPos = enemyMothership->obj.posinfo.position;
+    aiMothershipPos    = aiMothership->obj.posinfo.position;
 
     switch (patroltype)
     {
@@ -1379,7 +1379,7 @@ Path *aiuGeneratePatrolPath(udword patroltype)
         patrol_path = aiuCreatePathStruct(vulnerable_ships->numShips, FALSE);
         for (i = 0; i < vulnerable_ships->numShips; i++)
         {
-            patrol_point = aiuFindRangeStandoffPoint(vulnerable_ships->ShipPtr[i]->posinfo.position, enemyMothershipPos, FASTPATROL_STANDOFFDIST);
+            patrol_point = aiuFindRangeStandoffPoint(vulnerable_ships->ShipPtr[i]->obj.posinfo.position, enemyMothershipPos, FASTPATROL_STANDOFFDIST);
             aiuAddPointToPath(patrol_point, i, patrol_path);
         }
         memFree(vulnerable_ships);
@@ -1666,7 +1666,7 @@ bool32 aiuDestinationNotNearOtherMothership(vector destination, real32 radiussq)
             // if the destination is near the destination of the ship,
             //  or near the ship itself
             if (((!vecIsZero(ship->moveTo)) && (aiuFindDistanceSquared(destination, ship->moveTo) < radiussq)) ||
-                (aiuFindDistanceSquared(destination, ship->posinfo.position) < radiussq))
+                (aiuFindDistanceSquared(destination, ship->obj.posinfo.position) < radiussq))
             {
                 return FALSE;
             }
@@ -1716,7 +1716,7 @@ real32 aiuFindSlowestShipMaxSpeed(SelectCommand *ships)
 ----------------------------------------------------------------------------*/
 ShipPtr aiuGetClosestShip(SelectCommand *selection, ShipPtr ship)
 {
-    vector  shippos = ship->posinfo.position;
+    vector  shippos = ship->obj.posinfo.position;
     real32  closest_distance, distance;
     ShipPtr closest_ship = NULL;
     udword  i;
@@ -1728,11 +1728,11 @@ ShipPtr aiuGetClosestShip(SelectCommand *selection, ShipPtr ship)
 
     closest_ship = selection->ShipPtr[0];
 
-    closest_distance = aiuFindDistanceSquared(shippos, closest_ship->posinfo.position);
+    closest_distance = aiuFindDistanceSquared(shippos, closest_ship->obj.posinfo.position);
 
     for (i = 1; i < selection->numShips; i++)
     {
-        if ((distance = aiuFindDistanceSquared(shippos, selection->ShipPtr[i]->posinfo.position)) < closest_distance)
+        if ((distance = aiuFindDistanceSquared(shippos, selection->ShipPtr[i]->obj.posinfo.position)) < closest_distance)
         {
             closest_ship = selection->ShipPtr[i];
         }
@@ -1805,7 +1805,7 @@ SelectCommand *aiuFindClosestVulnerableGoodGuyShips(ShipPtr ship, udword type)
     SelectCommand *targets, *blobShipsPtr;
     ShipPtr tempship, bubbleship;
     udword i, j;
-    vector ship_pos = ship->posinfo.position;
+    vector ship_pos = ship->obj.posinfo.position;
     real32 dist, tempdist;
 
     //initialize structures
@@ -1857,12 +1857,12 @@ SelectCommand *aiuFindClosestVulnerableGoodGuyShips(ShipPtr ship, udword type)
 
         bubbleship = tempsel.ShipPtr[0];
         clRemoveShipFromSelection(&tempsel, bubbleship);
-        dist = aiuFindDistanceSquared(bubbleship->posinfo.position, ship_pos);
+        dist = aiuFindDistanceSquared(bubbleship->obj.posinfo.position, ship_pos);
 
         //use a bubble sort to find the closest ship in tempsel
         for (i = 0; i < tempsel.numShips; i++)
         {
-            if ((tempdist = aiuFindDistanceSquared(tempsel.ShipPtr[i]->posinfo.position, ship_pos))
+            if ((tempdist = aiuFindDistanceSquared(tempsel.ShipPtr[i]->obj.posinfo.position, ship_pos))
                  < dist)
             {
                 //found a closer ship, switch the two
@@ -1912,7 +1912,7 @@ SelectCommand *aiuRejectShipsPastLocation(SelectCommand *selection, vector refer
 
     for (i = 0; i < selection->numShips;)
     {
-        dist = aiuFindDistanceSquared(selection->ShipPtr[i]->posinfo.position, reference);
+        dist = aiuFindDistanceSquared(selection->ShipPtr[i]->obj.posinfo.position, reference);
 
         if (dist > refdist)
         {
@@ -2151,7 +2151,7 @@ ShipPtr aiuFindHarassTarget(SelectCommand *teamShips)
 {
     ShipPtr target1 = NULL, target2 = NULL, target3 = NULL;
     real32 target1_dist = REALlyBig, target2_dist = REALlyBig, target3_dist = REALlyBig;
-    vector teamPos = teamShips->ShipPtr[0]->posinfo.position;
+    vector teamPos = teamShips->ShipPtr[0]->obj.posinfo.position;
     ShipPtr enemyMothership = NULL;
 
     target1 = aiuFindClosestUnarmedUndefendedEnemyShip(teamShips->ShipPtr[0]);
@@ -2162,25 +2162,25 @@ ShipPtr aiuFindHarassTarget(SelectCommand *teamShips)
     if (target1 &&
         !(enemyMothership &&
           (target1->shiptype == ResourceCollector) &&
-          (aiuFindDistanceSquared(target1->posinfo.position, enemyMothership->posinfo.position) < 4500)))
+          (aiuFindDistanceSquared(target1->obj.posinfo.position, enemyMothership->obj.posinfo.position) < 4500)))
     {
-        target1_dist  = aiuFindDistanceSquared(target1->posinfo.position, teamPos);
+        target1_dist  = aiuFindDistanceSquared(target1->obj.posinfo.position, teamPos);
         target1_dist *= AIU_UNARMED_UNDEFENDED_MODIFIER;
     }
     if (target2 &&
         !(enemyMothership &&
           (target2->shiptype == ResourceCollector) &&
-          (aiuFindDistanceSquared(target2->posinfo.position, enemyMothership->posinfo.position) < 4500)))
+          (aiuFindDistanceSquared(target2->obj.posinfo.position, enemyMothership->obj.posinfo.position) < 4500)))
     {
-        target2_dist  = aiuFindDistanceSquared(target2->posinfo.position, teamPos);
+        target2_dist  = aiuFindDistanceSquared(target2->obj.posinfo.position, teamPos);
         target2_dist *= AIU_UNARMED_MODIFIER;
     }
     if (target3 &&
         !(enemyMothership &&
           (target3->shiptype == ResourceCollector) &&
-          (aiuFindDistanceSquared(target3->posinfo.position, enemyMothership->posinfo.position) < 4500)))
+          (aiuFindDistanceSquared(target3->obj.posinfo.position, enemyMothership->obj.posinfo.position) < 4500)))
     {
-        target3_dist  = aiuFindDistanceSquared(target3->posinfo.position, teamPos);
+        target3_dist  = aiuFindDistanceSquared(target3->obj.posinfo.position, teamPos);
         target3_dist *= AIU_FIGHTER_VULNERABLE_MODIFIER;
     }
 
@@ -2227,7 +2227,7 @@ ShipPtr aiuFindClosestEnemyShipWorthCapturing(aiblob *blob)
 
                 if ((!allianceArePlayersAllied(ship->playerowner, aiCurrentAIPlayer->player)) &&
                     (aiuShipIsWorthCapturing(ship)) &&
-                    ((distsq = aiuFindDistanceSquared(blob->centre, ship->posinfo.position)) < closestshipdistsq))
+                    ((distsq = aiuFindDistanceSquared(blob->centre, ship->obj.posinfo.position)) < closestshipdistsq))
                 {
                     closestshipdistsq = distsq;
                     closestshipworth  = ship;
@@ -2305,7 +2305,7 @@ SelectCommand *aiuFindCaptureTarget(SelectCommand *capturingShips)
 
             //find the closet of the highest cost sighted primary enemy ships
             if ((aiuEnemyShipIsVisible(ship)) &&
-                ((pridistsq = aiuFindDistanceSquared(dablob->centre, ship->posinfo.position)) < closestPriDistSq))
+                ((pridistsq = aiuFindDistanceSquared(dablob->centre, ship->obj.posinfo.position)) < closestPriDistSq))
             {
                 closestPriDistSq          = pridistsq;
                 highestPriCostClosestShip = highestPriCostSelection->ShipPtr[i];
@@ -2324,7 +2324,7 @@ SelectCommand *aiuFindCaptureTarget(SelectCommand *capturingShips)
 
             //find the closet of the highest cost sighted enemy ships
             if ((aiuEnemyShipIsVisible(ship)) &&
-                ((nondistsq = aiuFindDistanceSquared(dablob->centre, ship->posinfo.position)) < closestNonDistSq))
+                ((nondistsq = aiuFindDistanceSquared(dablob->centre, ship->obj.posinfo.position)) < closestNonDistSq))
             {
                 closestNonDistSq          = nondistsq;
                 highestNonCostClosestShip = highestNonCostSelection->ShipPtr[i];
@@ -2380,7 +2380,7 @@ SelectCommand *aiuFindSwarmerTarget(AITeam *team)
         while ((target) &&
                (enemyMothership) &&
                (target->shiptype == ResourceCollector) &&
-               (aiuFindDistanceSquared(target->posinfo.position, enemyMothership->posinfo.position) < 4500))
+               (aiuFindDistanceSquared(target->obj.posinfo.position, enemyMothership->obj.posinfo.position) < 4500))
         {
             clRemoveShipFromSelection(aiCurrentAIPlayer->Targets, target);
             target = aiuGetClosestShip(aiCurrentAIPlayer->Targets, teamShips->ShipPtr[0]);
@@ -2565,7 +2565,7 @@ SelectCommand *aiuFindLeadShipInSphereOfInfluence(vector centre, real32 radiussq
                 //find a ship in the blob that has actually crossed into the sphere
                 //reject it if it is a fighter among a small group of ships (the other ships will
                 //be checked to make sure that we're not being fooled
-                if ((aiuFindDistanceSquared(temp_sel.ShipPtr[k]->posinfo.position, centre) < radiussq) &&
+                if ((aiuFindDistanceSquared(temp_sel.ShipPtr[k]->obj.posinfo.position, centre) < radiussq) &&
                     (!((isShipOfClass(temp_sel.ShipPtr[k], CLASS_Fighter) && temp_sel.numShips < 4))))
                 {
                     temp_return_sel.ShipPtr[j] = temp_sel.ShipPtr[k];
@@ -2610,7 +2610,7 @@ bool32 aiuFindDecloakedShipInSphereOfInfluence(void)
         return FALSE;
     }
 
-    center = aiCurrentAIPlayer->player->PlayerMothership->posinfo.position;
+    center = aiCurrentAIPlayer->player->PlayerMothership->obj.posinfo.position;
     radiussq = aiCurrentAIPlayer->sphereofinfluence;
 
     for (i = 0, j = 0; i < aiuEnemyBlobs->numBlobs; i++)
@@ -2630,10 +2630,10 @@ bool32 aiuFindDecloakedShipInSphereOfInfluence(void)
                 //that is cloak capable and uncloaked, or a ship that is in the process
                 //of decloaking
                 if ((!allianceArePlayersAllied(ship->playerowner, aiCurrentAIPlayer->player)) &&
-                    (aiuFindDistanceSquared(ship->posinfo.position, center) < radiussq) &&
+                    (aiuFindDistanceSquared(ship->obj.posinfo.position, center) < radiussq) &&
                     ((ship->shiptype == CloakedFighter) ||
                      (ship->shiptype == CloakGenerator) ||
-                     (bitTest(ship->flags, SOF_DeCloaking))))
+                     (bitTest(ship->header.flags, SOF_DeCloaking))))
                 {
                     return TRUE;
                 }
@@ -2659,7 +2659,7 @@ vector aiuFindStandoffOfNextNearestBlobOut(ShipPtr source, ShipPtr holder)
     real32 ref_distsq,  //distance squared between source and holder
         blob_distsq,    //distance squared between source and test blob
         nearest_distsq = REALlyBig; //smallest distance squared recorded so far
-    blob *source_blob = source->collMyBlob, *holder_blob = holder->collMyBlob;
+    blob *source_blob = source->obj.collMyBlob, *holder_blob = holder->obj.collMyBlob;
     blob *current_nearest = NULL, *tempBlob;
     Node *blobnode = universe.collBlobList.head;
     vector done_position = ORIGIN_VECTOR;
@@ -2691,7 +2691,7 @@ vector aiuFindStandoffOfNextNearestBlobOut(ShipPtr source, ShipPtr holder)
     if (current_nearest)
     {
         return aiuGenerateRandomStandoffPoint(current_nearest->centre, current_nearest->radius/2,
-                                              holder->posinfo.position, RSP_NORMAL);
+                                              holder->obj.posinfo.position, RSP_NORMAL);
     }
     else
     {
@@ -2712,7 +2712,7 @@ vector aiuFindStandoffOfNextNearestBlobOut(ShipPtr source, ShipPtr holder)
 vector aiuFindStandoffOfNextNearestBlobIn(ShipPtr source, ShipPtr holder)
 {
     real32 ref_distsq, blob_distsq, farthest_distsq = 0;
-    blob *source_blob = source->collMyBlob, *holder_blob = holder->collMyBlob;
+    blob *source_blob = source->obj.collMyBlob, *holder_blob = holder->obj.collMyBlob;
     blob *current_farthest = NULL, *tempBlob;
     Node *blobnode = universe.collBlobList.head;
     vector done_position = ORIGIN_VECTOR;
@@ -2744,7 +2744,7 @@ vector aiuFindStandoffOfNextNearestBlobIn(ShipPtr source, ShipPtr holder)
     if (current_farthest)
     {
         return aiuGenerateRandomStandoffPoint(current_farthest->centre, current_farthest->radius/2,
-                                              holder->posinfo.position, RSP_NORMAL);
+                                              holder->obj.posinfo.position, RSP_NORMAL);
     }
     else
     {
@@ -2768,7 +2768,7 @@ vector aiuFindStandoffOfNextNearestEnemyBlobOut(ShipPtr source, ShipPtr holder)
         blob_distsq,    //distance squared between source and test blob
         holder_distsq,  //distance squared between holder and test blob
         nearest_distsq = REALlyBig; //smallest distance squared recorded so far
-    blob   *source_blob = source->collMyBlob, *holder_blob = holder->collMyBlob;
+    blob   *source_blob = source->obj.collMyBlob, *holder_blob = holder->obj.collMyBlob;
     aiblob *current_nearest = NULL, *tempBlob;
     vector done_position = ORIGIN_VECTOR;
     udword i;
@@ -2801,11 +2801,11 @@ vector aiuFindStandoffOfNextNearestEnemyBlobOut(ShipPtr source, ShipPtr holder)
         if (current_nearest->mothership)
         {
             return aiuGenerateRandomStandoffPoint(current_nearest->centre, 15000 /*RECON_STANDOFF_DISTANCE*/,
-                                                  holder->posinfo.position, RSP_NEAR);
+                                                  holder->obj.posinfo.position, RSP_NEAR);
         }
 
         return aiuGenerateRandomStandoffPoint(current_nearest->centre, current_nearest->radius/2,
-                                              holder->posinfo.position, RSP_NORMAL);
+                                              holder->obj.posinfo.position, RSP_NORMAL);
     }
     else
     {
@@ -2826,7 +2826,7 @@ vector aiuFindStandoffOfNextNearestEnemyBlobOut(ShipPtr source, ShipPtr holder)
 vector aiuFindStandoffOfNextNearestEnemyBlobIn(ShipPtr source, ShipPtr holder)
 {
     real32 ref_distsq, blob_distsq, farthest_distsq = 0;
-    blob *source_blob = source->collMyBlob, *holder_blob = holder->collMyBlob;
+    blob *source_blob = source->obj.collMyBlob, *holder_blob = holder->obj.collMyBlob;
     aiblob *current_farthest = NULL, *tempBlob;
     vector done_position = ORIGIN_VECTOR;
     udword i;
@@ -2856,7 +2856,7 @@ vector aiuFindStandoffOfNextNearestEnemyBlobIn(ShipPtr source, ShipPtr holder)
     if (current_farthest)
     {
         return aiuGenerateRandomStandoffPoint(current_farthest->centre, current_farthest->radius/2,
-                                              holder->posinfo.position, RSP_NORMAL);
+                                              holder->obj.posinfo.position, RSP_NORMAL);
     }
     else
     {
@@ -2893,7 +2893,7 @@ ResourceSelection *aiuFindResourcesInVolume(Volume volume)
             for (i=0; i < testBlob->blobResources->numResources; i++)
             {
                 //if the resource is in the volume
-                if (volPointInside(&volume, &testBlob->blobResources->ResourcePtr[i]->posinfo.position))
+                if (volPointInside(&volume, &testBlob->blobResources->ResourcePtr[i]->obj.posinfo.position))
                 {
                     //add it to the temporary selection
                     selSelectionAddSingleShip((MaxSelection *)&tempSel, (ShipPtr)testBlob->blobResources->ResourcePtr[i]);
@@ -2927,7 +2927,7 @@ bool32 aiuShipIsResourcingOrSomething(ShipPtr ship)
     return ((ship->rcstate1) ||
             (ship->rcstate2) ||
             (ship->dockvars.dockship) ||
-            (bitTest(ship->specialFlags, SPECIAL_Resourcing)));
+            (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_Resourcing)));
 }
 
 
@@ -2944,24 +2944,24 @@ Resource *aiuFindBestResource(Resource **biggestResource, ShipPtr ship, Resource
     udword ResourceRoom, i, biggest_resValue = 0; //, best_resValue = 0;
     real32 distsq, shortest_distsq = REALlyBig;
     Resource *best_resource = NULL;
-    vector shippos = ship->posinfo.position;
+    vector shippos = ship->obj.posinfo.position;
 
     ResourceRoom = ship->staticinfo->maxresources - ship->resources;
 
     for (i=0; i < resources->numResources;i++)
     {
-        if ((distsq = aiuFindDistanceSquared(resources->ResourcePtr[i]->posinfo.position, shippos)) < shortest_distsq)
+        if ((distsq = aiuFindDistanceSquared(resources->ResourcePtr[i]->obj.posinfo.position, shippos)) < shortest_distsq)
         {
             shortest_distsq = distsq;
             best_resource = resources->ResourcePtr[i];
         }
 
 //this code is to find the best fit resource for the ship
-//        if ((resources->ResourcePtr[i]->resourcevalue > best_resValue) &&
-//            (resources->ResourcePtr[i]->resourcevalue < ResourceRoom))
+//        if ((resources->ResourcePtr[i]->resource.resourcevalue > best_resValue) &&
+//            (resources->ResourcePtr[i]->resource.resourcevalue < ResourceRoom))
 //        {
 //            best_resource = resources->ResourcePtr[i];
-//            best_resValue = best_resource->resourcevalue;
+//            best_resValue = best_resource->resource.resourcevalue;
 //        }
         if (resources->ResourcePtr[i]->resourcevalue > biggest_resValue)
         {
@@ -3004,9 +3004,9 @@ real32 aiuBlobInbetweenMothershipAndEnemyFactor(blob *thisBlob)
         return 1.0f;
     }
 
-    vecSub(MotherToEnemy,enemymothership->posinfo.position,mothership->posinfo.position);
-    vecSub(MotherToBlob,thisBlob->centre,mothership->posinfo.position);
-    vecSub(EnemyToBlob,thisBlob->centre,enemymothership->posinfo.position);
+    vecSub(MotherToEnemy,enemymothership->obj.posinfo.position,mothership->obj.posinfo.position);
+    vecSub(MotherToBlob,thisBlob->centre,mothership->obj.posinfo.position);
+    vecSub(EnemyToBlob,thisBlob->centre,enemymothership->obj.posinfo.position);
 
     if ( (vecDotProduct(MotherToBlob,MotherToEnemy) > 0) &&
          (vecDotProduct(EnemyToBlob,MotherToEnemy) < 0) )
@@ -3326,14 +3326,14 @@ bool32 aiuShipsInGunRangeOfTargets(SelectCommand *selection)
 //    vector midselection1, distvec;
 //    udword i;
 
-//    minrange = RangeToTarget(selection1->ShipPtr[0], (SpaceObjRotImpTarg *)selection2->ShipPtr[0], selection2->ShipPtr[0]->posinfo.position);
+//    minrange = RangeToTarget(selection1->ShipPtr[0], (SpaceObjRotImpTarg *)selection2->ShipPtr[0], selection2->ShipPtr[0]->obj.posinfo.position);
 //    vecSub(distvec,selection1->ShipPtr[0]
 //    minrange = aiuFindMinimumGunRangeSquared(selection1);
 //    midselection1 = selCentrePointComputeGeneral((MaxSelection *)selection1, &dummy);
 
 //    for (i=0;i<selection2->numShips;i++)
 //    {
-//        vecSub(distvec,midselection1,selection2->ShipPtr[i]->posinfo.position);
+//        vecSub(distvec,midselection1,selection2->ShipPtr[i]->obj.posinfo.position);
 //        distSqr = vecMagnitudeSquared(distvec);
 
 //        if (distSqr*0.90 < minrange)  //may need to tweak this a little
@@ -3369,9 +3369,9 @@ bool32 aiuShipsInGunRangeOfTargets(SelectCommand *selection)
         breaker = FALSE;
         for(j = 0; j<command->attack->numTargets;j++)
         {
-//            vecSub(distvec,ship->posinfo.position,command->attack->TargetPtr[j]->posinfo.position);
+//            vecSub(distvec,ship->obj.posinfo.position,command->attack->TargetPtr[j]->obj.posinfo.position);
 //            distSqr = vecMagnitudeSquared(distvec);
-            vecSub(distvec, command->attack->TargetPtr[j]->posinfo.position, ship->posinfo.position);
+            vecSub(distvec, command->attack->TargetPtr[j]->obj.posinfo.position, ship->obj.posinfo.position);
             distSqr = RangeToTarget(ship, command->attack->TargetPtr[j], &distvec);
             distSqr *= distSqr;
 
@@ -4061,7 +4061,7 @@ void aiuSwarmDock(SelectCommand *ships, SelectCommand *pods)
         {
             dockat = pods->ShipPtr[j];
 
-            vecSub(diff,dockat->posinfo.position,ship->posinfo.position);
+            vecSub(diff,dockat->obj.posinfo.position,ship->obj.posinfo.position);
             dist = fsqrt(vecMagnitudeSquared(diff));
             busyadddist = BUSY_ADD_TO_DISTANCE;
 
@@ -4132,7 +4132,7 @@ bool32 aiuWrapMove(SelectCommand *ships, vector destination)
 
     if (aiuFilterSelectableShips(ships, &filtered))
     {
-        clWrapMove(&universe.mainCommandLayer,(SelectCommand *)&filtered, ships->ShipPtr[0]->posinfo.position, destination);
+        clWrapMove(&universe.mainCommandLayer,(SelectCommand *)&filtered, ships->ShipPtr[0]->obj.posinfo.position, destination);
         return TRUE;
     }
     return FALSE;
@@ -4312,7 +4312,7 @@ blob *aiuWrapGetCollBlob(SelectCommand *ships)
 
     for (i=0; i<ships->numShips;i++)
     {
-        collBlob = ships->ShipPtr[i]->collMyBlob;
+        collBlob = ships->ShipPtr[i]->obj.collMyBlob;
 
         if (collBlob)
         {
@@ -4493,7 +4493,7 @@ void aiuFillInArrays(blob_array *goodGuy_blob_array, blob_array *enemy_blob_arra
             //as soon as an enemy ship is found, stick the blob into the blob array, don't do this more than once per blob
             if ((!enemyFound) && (ship->playerowner != player) &&
                 (ship->shiptype != Drone) &&
-                (!(bitTest(ship->flags, SOF_Cloaked) && (!proximityCanPlayerSeeShip(aiCurrentAIPlayer->player, ship)))))
+                (!(bitTest(ship->header.flags, SOF_Cloaked) && (!proximityCanPlayerSeeShip(aiCurrentAIPlayer->player, ship)))))
             {
                 enemy_blob_array->blob[enemy_blob_array->numBlobs] = tempBlob;
                 enemy_blob_array->numBlobs++;

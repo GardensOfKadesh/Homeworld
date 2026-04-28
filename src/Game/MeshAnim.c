@@ -503,7 +503,7 @@ foundOne:
 void madAnimBindingsDupe(Ship *ship, ShipStaticInfo *staticInfo,bool32 LoadingGame)
 {
     shipbindings *bindings = &ship->madBindings->bindings;
-    lodinfo *LOD = staticInfo->staticheader.LOD;
+    lodinfo *LOD = staticInfo->common.LOD;
     sdword index, j, level;
     meshdata * mesh;
     splinecurve *curve;
@@ -719,8 +719,8 @@ sdword madAnimIndexFindByName(madheader *header, char *name)
 sdword madGunBindingIndexFindByName(ShipStaticInfo *info, char *name)
 {
     sdword index;
-    mhbinding *list = info->staticheader.LOD->level[0].hBindings;
-    meshdata *mesh = (meshdata *)info->staticheader.LOD->level[0].pData;
+    mhbinding *list = info->common.LOD->level[0].hBindings;
+    meshdata *mesh = (meshdata *)info->common.LOD->level[0].pData;
 
     dbgAssertOrIgnore(list != NULL);
     dbgAssertOrIgnore(mesh != NULL);
@@ -892,7 +892,7 @@ void madAnimBindingMatrix(matrix *destMatrix, vector *destPos, Ship *ship, sdwor
     }
     else
     {                                                       //no animation playing
-        lodInfo = ship->staticinfo->staticheader.LOD;
+        lodInfo = ship->staticinfo->common.LOD;
         dbgAssertOrIgnore((lodInfo->level[0].flags & LM_LODType) == LT_Mesh);//make sure right type
         mesh = (meshdata *)lodInfo->level[0].pData;
         bindingListSource = lodInfo->level[0].hBindings;    //pointer to LOD0 bindings

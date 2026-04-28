@@ -540,7 +540,7 @@ void pieAllShipsToPiePlateDraw(real32 distance)
     while (objnode != NULL)
     {                                                       //for every ship
         ship = (Ship *)listGetStructOfNode(objnode);
-        if (ship->flags & SOF_Dead)
+        if (ship->header.flags & SOF_Dead)
         {
             goto nextnode;
         }
@@ -550,12 +550,12 @@ void pieAllShipsToPiePlateDraw(real32 distance)
             goto nextnode;
         }
 
-        if (ship->objtype != OBJ_ShipType)
+        if (ship->header.objtype != OBJ_ShipType)
         {
             goto nextnode;
         }
 
-        if (bitTest(ship->flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
+        if (bitTest(ship->header.flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
         {                                            //if ship is cloaked, don't draw this stuff
             if(!proximityCanPlayerSeeShip(universe.curPlayerPtr, ship))
             {
@@ -563,9 +563,9 @@ void pieAllShipsToPiePlateDraw(real32 distance)
             }
         }
 
-        shipPoint.x = planePoint.x = ship->posinfo.position.x;
-        shipPoint.y = planePoint.y = ship->posinfo.position.y;
-        shipPoint.z = ship->posinfo.position.z;
+        shipPoint.x = planePoint.x = ship->obj.posinfo.position.x;
+        shipPoint.y = planePoint.y = ship->obj.posinfo.position.y;
+        shipPoint.z = ship->obj.posinfo.position.z;
         planePoint.z = selCentrePoint.z;
 
         if (ship == pieLastClosestShip)
@@ -581,9 +581,9 @@ void pieAllShipsToPiePlateDraw(real32 distance)
                  (shipPoint.y - selCentrePoint.y) * (shipPoint.y - selCentrePoint.y)));
         //now draw circle on the plane
         bHeightPointDrawn = FALSE;
-        if (ABS(shipPoint.z - planePoint.z) > ship->staticinfo->staticheader.staticCollInfo.collspheresize)
+        if (ABS(shipPoint.z - planePoint.z) > ship->staticinfo->common.staticCollInfo.collspheresize)
         {
-            radius = ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+            radius = ship->staticinfo->common.staticCollInfo.collspheresize;
             selCircleComputeGeneral(&rndCameraMatrix, &rndProjectionMatrix,
                                 &planePoint, radius, &screenX, &screenY, &screenRadius);
             if (screenRadius > 0.0f)
@@ -780,7 +780,7 @@ bool32 pieDestinationInGunRangeOfTargets(void)
         breaker = FALSE;
         for(j = 0; j<command->attack->numTargets;j++)
         {
-            vecSub(distvec,pieHeightPoint,command->attack->TargetPtr[j]->posinfo.position);
+            vecSub(distvec,pieHeightPoint,command->attack->TargetPtr[j]->obj.posinfo.position);
             distSqr = vecMagnitudeSquared(distvec);
             if(distSqr < selSelected.ShipPtr[i]->staticinfo->bulletRangeSquared[selSelected.ShipPtr[i]->tacticstype])
             {
@@ -847,7 +847,7 @@ void piePlaneDraw(real32 distance)
     mothership = universe.curPlayerPtr->PlayerMothership;
     if (mothership != NULL)
     {
-        matGetVectFromMatrixCol3(pieMotherShipHeading, mothership->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(pieMotherShipHeading, mothership->rotatable.rotinfo.coordsys);
         //handle an unlikely case: mothership pointing just about straight 'down'
         if (pieMotherShipHeading.z >= (1.0f - (real32)1e-6))
         {
@@ -1273,7 +1273,7 @@ void piePointSpecDraw(void)
     //make the ship under cursor glow as a destination of the 'move near to' command
     if (selClosestTarget != NULL)
     {                                                       //if there is a ship under cursor
-        selClosestTarget->flashtimer = taskTimeElapsed+FLASH_TIMER/2;                  //just glow for the next frame only
+        selClosestTarget->targetable.flashtimer = taskTimeElapsed+FLASH_TIMER/2;                  //just glow for the next frame only
     }
 #endif //PIE_MOVE_NEARTO
 }

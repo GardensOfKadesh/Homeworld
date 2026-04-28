@@ -41,7 +41,7 @@ real32 ProbeGetMaxVelocity(Ship *ship)
         return probestatics->ProbeDispatchMaxVelocity;
     }
 
-    return ship->staticinfo->staticheader.maxvelocity;
+    return ship->staticinfo->common.maxvelocity;
 }
 
 void ProbeStaticInit(char *directory,char *filename,struct ShipStaticInfo *statinfo)
@@ -94,9 +94,9 @@ void ProbeHouseKeep(Ship *ship)
         if(command != NULL && command->ordertype.order == COMMAND_DOCK)
         {
             //probe is docking
-            if(ship->dockingship != NULL)
+            if(ship->shipOrDerelict.dockingship != NULL)
             {
-                vecSub(testvec,ship->dockingship->posinfo.position,ship->posinfo.position);
+                vecSub(testvec,ship->shipOrDerelict.dockingship->obj.posinfo.position,ship->obj.posinfo.position);
                 if(vecMagnitudeSquared(testvec) < 25000000)
                 {
                     if(ship->madSpecialStatus == MAD_STATUS_SPECIAL_OPEN)
@@ -116,14 +116,14 @@ void ProbeHouseKeep(Ship *ship)
         }
         */
         bitClear(ship->dontrotateever,1);
-        if(IS_MOVING_LINEARLY(ship->posinfo.isMoving))
+        if(IS_MOVING_LINEARLY(ship->obj.posinfo.isMoving))
         {
             //if above a certain velocity lets rotate like its 1492...
-            if(vecMagnitudeSquared(ship->posinfo.velocity) > 10000.0f)      //later optimize by normalizing ourselves below...
+            if(vecMagnitudeSquared(ship->obj.posinfo.velocity) > 10000.0f)      //later optimize by normalizing ourselves below...
             {
-                //matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
-                vecCopyAndNormalize(&ship->posinfo.velocity,&heading);
+                //matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
+                vecCopyAndNormalize(&ship->obj.posinfo.velocity,&heading);
                 aitrackHeadingAndUp(ship,&heading,&right,0.99f);
                 bitSet(ship->dontrotateever,1);
             }

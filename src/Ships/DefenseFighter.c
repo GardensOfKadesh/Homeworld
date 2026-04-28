@@ -125,12 +125,12 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     laser = memAlloc(sizeof(Bullet),"Bullet",0);
     memset(laser,0,sizeof(Bullet));      // for safety
 
-    laser->objtype = OBJ_BulletType;
-    laser->flags = 0;
-    laser->staticinfo = NULL;
-    ClearNode(laser->renderlink);
-    laser->currentLOD = ship->currentLOD;
-    laser->cameraDistanceSquared = ship->cameraDistanceSquared;
+    laser->header.objtype = OBJ_BulletType;
+    laser->header.flags = 0;
+    laser->obj.staticinfo = NULL;
+    ClearNode(laser->obj.renderlink);
+    laser->obj.currentLOD = ship->obj.currentLOD;
+    laser->obj.cameraDistanceSquared = ship->obj.cameraDistanceSquared;
 
     laser->soundType = gunstatic->gunsoundtype;
     laser->bulletType = BULLET_Laser;
@@ -150,23 +150,23 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     laser->traveldist = gunstatic->bulletlength;
     laser->beamtraveldist = gunstatic->bulletlength;
 
-    //SET_MOVING_LINEARLY(laser->posinfo.isMoving);
-    //laser->posinfo.haventCalculatedDist = TRUE;
+    //SET_MOVING_LINEARLY(laser->obj.posinfo.isMoving);
+    //laser->obj.posinfo.haventCalculatedDist = TRUE;
     laser->DFGFieldEntryTime = 0.0f;
 
-    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotinfo.coordsys,&gunstatic->position);
-    vecAdd(laser->posinfo.position,positionInWorldCoordSys,ship->posinfo.position);
-    vecSub(laser->lengthvec, bullettotarget->posinfo.position, laser->posinfo.position);
+    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gunstatic->position);
+    vecAdd(laser->obj.posinfo.position,positionInWorldCoordSys,ship->obj.posinfo.position);
+    vecSub(laser->lengthvec, bullettotarget->obj.posinfo.position, laser->obj.posinfo.position);
     // heading
     tempvec = laser->lengthvec;
     vecNormalize(&tempvec);
 
-    //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotinfo.coordsys, &tempvec);
+    //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotatable.rotinfo.coordsys, &tempvec);
     //laser->bulletheading = gunheadingInWorldCoordSys;
     laser->bulletheading = tempvec;
-    matCreateCoordSysFromHeading(&laser->rotinfo.coordsys,&tempvec);
+    matCreateCoordSysFromHeading(&laser->rotatable.rotinfo.coordsys,&tempvec);
 
-    vecZeroVector(laser->posinfo.velocity);
+    vecZeroVector(laser->obj.posinfo.velocity);
 
     //Laser effect...
     floatDamage = (real32)laser->damage;
@@ -182,11 +182,11 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     {
         if (bullettotarget != NULL)
         {
-          LOD = min(ship->currentLOD, bullettotarget->currentLOD);
+          LOD = min(ship->obj.currentLOD, bullettotarget->obj.currentLOD);
         }
         else
         {
-          LOD = ship->currentLOD;
+          LOD = ship->obj.currentLOD;
         }
         if (LOD >= etgLOD->nLevels)
         {
@@ -230,7 +230,7 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     etgLOD = etgGunEventTable[shipstatic->shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get pointer to bullet effect
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -268,7 +268,7 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
     //etgLOD = etgGunEventTable[shipstatic->shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get pointer to bullet effect
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -293,35 +293,35 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
         size = stat->effectSize;
         newEffect = memAlloc(size, "DefenseFHittingEffect", 0);          //allocate the new effect
 
-        newEffect->objtype = OBJ_EffectType;
-        newEffect->flags = SOF_Rotatable | SOF_AttachVelocity | SOF_AttachPosition | SOF_AttachCoordsys;
+        newEffect->header.objtype = OBJ_EffectType;
+        newEffect->header.flags = SOF_Rotatable | SOF_AttachVelocity | SOF_AttachPosition | SOF_AttachCoordsys;
         newEffect->staticinfo = (StaticInfo *)stat;
-        ClearNode(newEffect->renderlink);
-        newEffect->currentLOD = LOD;
-        newEffect->cameraDistanceSquared = ship->cameraDistanceSquared;
+        ClearNode(newEffect->obj.renderlink);
+        newEffect->obj.currentLOD = LOD;
+        newEffect->obj.cameraDistanceSquared = ship->obj.cameraDistanceSquared;
 
         newEffect->timeElapsed = 0.0f;                          //brand new heavies
 
         floatDamage = 30.0f;
         intDamage = TreatAsUdword(floatDamage);
 
-        newEffect->rotinfo.coordsys = bullettotarget->rotinfo.coordsys;
-        newEffect->posinfo.position = bullettotarget->posinfo.position; //start at same spot as bullet
-        newEffect->posinfo.velocity = bullettotarget->posinfo.velocity; //start at same spot as bullet
+        newEffect->rotatable.rotinfo.coordsys = bullettotarget->rotatable.rotinfo.coordsys;
+        newEffect->obj.posinfo.position = bullettotarget->obj.posinfo.position; //start at same spot as bullet
+        newEffect->obj.posinfo.velocity = bullettotarget->obj.posinfo.velocity; //start at same spot as bullet
         etgEffectCodeStart(stat, newEffect, 1, intDamage);//get the code a-runnin'
-        SET_MOVING_IMMOBILE(newEffect->posinfo.isMoving);
-        newEffect->posinfo.haventCalculatedDist = TRUE;
+        SET_MOVING_IMMOBILE(newEffect->obj.posinfo.isMoving);
+        newEffect->obj.posinfo.haventCalculatedDist = TRUE;
         univUpdateObjRotInfo((SpaceObjRot *)newEffect);
 
 //        newEffect->owner = NULL;                               // nothing owns this effect
         newEffect->owner = (Ship *) bullettotarget;
-        listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
+        listAddNode(&universe.SpaceObjList,&(newEffect->header.objlink),newEffect);
         univAddObjToRenderListIf((SpaceObj *)newEffect,(SpaceObj *)ship);     // add to render list if parent ship is in render list
     }
 */
     //Not sure If I need to add...
 
-    listAddNode(&universe.SpaceObjList,&(laser->objlink),laser);
+    listAddNode(&universe.SpaceObjList,&(laser->header.objlink),laser);
     listAddNode(&universe.BulletList,&(laser->bulletlink),laser);
     univAddObjToRenderListIf((SpaceObj *)laser,(SpaceObj *)ship);     // add to render list if parent ship is in render list
 
@@ -335,11 +335,11 @@ void defensefightertargetbullet(Ship *ship, Bullet *bullettotarget)
 
 
 
-    if(bitTest(ship->flags,SOF_CloakGenField))
+    if(bitTest(ship->header.flags,SOF_CloakGenField))
     {
-        bitSet(ship->flags,SOF_DeCloaking);
-        bitClear(ship->flags,SOF_Cloaked);
-        bitClear(ship->flags,SOF_Cloaking);
+        bitSet(ship->header.flags,SOF_DeCloaking);
+        bitClear(ship->header.flags,SOF_Cloaked);
+        bitClear(ship->header.flags,SOF_Cloaking);
     }
 }
 
@@ -387,9 +387,9 @@ bool32 defensefighterCheckInFront(Ship *ship, Bullet *bullet)
 {
     vector shipheading; //ship velocity
     vector shiptobullet;
-    vecSub(shiptobullet, bullet->posinfo.position, ship->posinfo.position);
-    //vecSub(shipheading, ship->posinfo.position, ship->enginePosition);
-    matGetVectFromMatrixCol3(shipheading,ship->rotinfo.coordsys);
+    vecSub(shiptobullet, bullet->obj.posinfo.position, ship->obj.posinfo.position);
+    //vecSub(shipheading, ship->obj.posinfo.position, ship->enginePosition);
+    matGetVectFromMatrixCol3(shipheading,ship->rotatable.rotinfo.coordsys);
 
     if(vecDotProduct(shiptobullet, shipheading) > 0)
     {
@@ -422,9 +422,9 @@ void DefenseFighterReportBullet(Ship *ship, Bullet *bullet)
         dbgMessagef(" N ");
 
     dbgMessagef("(%f %f %f) [%f %f] %f <%f %f> %f %f",
-            bullet->posinfo.position.x,
-            bullet->posinfo.position.y,
-            bullet->posinfo.position.z,
+            bullet->obj.posinfo.position.x,
+            bullet->obj.posinfo.position.y,
+            bullet->obj.posinfo.position.z,
             bullet->timelived,
             bullet->totallifetime,
             bullet->traveldist,
@@ -433,8 +433,8 @@ void DefenseFighterReportBullet(Ship *ship, Bullet *bullet)
             bullet->DFGFieldEntryTime,
             bullet->BulletSpeed);
 
-    if (bullet->collMyBlob)
-        dbgMessagef( "%f", bullet->collMyBlob->sortDistance);
+    if (bullet->obj.collMyBlob)
+        dbgMessagef( "%f", bullet->obj.collMyBlob->sortDistance);
     else
         dbgMessagef( "N");*/
 
@@ -487,7 +487,7 @@ void DefenseFighterReportBullet(Ship *ship, Bullet *bullet)
             else
             {
                 #ifdef HW_BUILD_FOR_DEBUGGING
-  //                  dbgMessagef("Dfighter: owner null @ %d - f %x",universe.univUpdateCounter,bullet->flags);
+  //                  dbgMessagef("Dfighter: owner null @ %d - f %x",universe.univUpdateCounter,bullet->header.flags);
                 #endif
             }
         }
@@ -528,7 +528,7 @@ void DefenseFighterDestroyedABullet(Ship *ship, Bullet *bullet, Bullet *laser)
     //play the imact effect
     if (laser->hitEffect != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD < laser->hitEffect->nLevels)
         {
             stat = laser->hitEffect->level[LOD];
@@ -553,11 +553,11 @@ void DefenseFighterDestroyedABullet(Ship *ship, Bullet *bullet, Bullet *laser)
         floatDamage = bullet->damageFull;
         intDamage = TreatAsUdword(floatDamage);
 
-//        vecScalarMultiply(newVelocity,bullet->posinfo.velocity,0.3f);
+//        vecScalarMultiply(newVelocity,bullet->obj.posinfo.velocity,0.3f);
 //        velMagnitude = fsqrt(vecMagnitudeSquared(newVelocity));
 //        velMagnitudeDword = TreatAsUdword(velMagnitude);
 
-        etgEffectCreate(stat, NULL, &bullet->posinfo.position, &bullet->posinfo.velocity, &bullet->rotinfo.coordsys, 1.0f, 0, 1, intDamage);
+        etgEffectCreate(stat, NULL, &bullet->obj.posinfo.position, &bullet->obj.posinfo.velocity, &bullet->rotatable.rotinfo.coordsys, 1.0f, 0, 1, intDamage);
     }
     */
 }
@@ -589,7 +589,7 @@ void DefenseFighterHouseKeep(Ship *ship)
 /*        if (defensestruct->bullet)
             dbgMessagef("DS: %d %f %d %f %d %d",
                         universe.univUpdateCounter,
-                        defensestruct->bullet->collOptimizeDist,
+                        defensestruct->bullet->obj.collOptimizeDist,
                         defensestruct->laser ? 1:0,
                         defensestruct->CoolDownTime,
                         defensestruct->CoolDown ? 1:0,
@@ -650,7 +650,7 @@ void DefenseFighterHouseKeep(Ship *ship)
                 if(UNIVERSE_WOODPECKER(defensefighterstatics->RangeCheckRate, 0))
                 {
                     //time to check if in front
-                    vecSub(seperationvector, ship->posinfo.position, defensestruct->bullet->posinfo.position);
+                    vecSub(seperationvector, ship->obj.posinfo.position, defensestruct->bullet->obj.posinfo.position);
                     if(vecMagnitudeSquared(seperationvector) > ship->staticinfo->bulletRangeSquared[ship->tacticstype])
                     {
                         //bullet is out of range
@@ -694,18 +694,18 @@ void DefenseFighterHouseKeep(Ship *ship)
             if(defensestruct->laser != NULL)
             {   //update bullent info...for visual effect
                 dbgAssertOrIgnore(defensestruct->bullet != NULL);
-                matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotinfo.coordsys,&gunstatic->position);
-                vecAdd(defensestruct->laser->posinfo.position,positionInWorldCoordSys,ship->posinfo.position);
-                vecSub(defensestruct->laser->lengthvec, defensestruct->bullet->posinfo.position, defensestruct->laser->posinfo.position);
+                matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gunstatic->position);
+                vecAdd(defensestruct->laser->obj.posinfo.position,positionInWorldCoordSys,ship->obj.posinfo.position);
+                vecSub(defensestruct->laser->lengthvec, defensestruct->bullet->obj.posinfo.position, defensestruct->laser->obj.posinfo.position);
 
                 // heading
                 tempvec = defensestruct->laser->lengthvec;
                 vecNormalize(&tempvec);
 
-                //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotinfo.coordsys, &tempvec);
+                //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotatable.rotinfo.coordsys, &tempvec);
                 //laser->bulletheading = gunheadingInWorldCoordSys;
                 defensestruct->laser->bulletheading = tempvec;
-                matCreateCoordSysFromHeading(&defensestruct->laser->rotinfo.coordsys,&tempvec);
+                matCreateCoordSysFromHeading(&defensestruct->laser->rotatable.rotinfo.coordsys,&tempvec);
                 if(defensestruct->laser->effect != NULL)
                 {    //adjust length
                     ((real32 *)defensestruct->laser->effect->variable)[ETG_LengthVariable] =
@@ -737,10 +737,10 @@ void DefenseFighterHouseKeep(Ship *ship)
     //do special rotation if neccessary
     if(bitTest(ship->dontrotateever,1))
     {
-        //matGetVectFromMatrixCol3(rot_vector,ship->rotinfo.coordsys);
+        //matGetVectFromMatrixCol3(rot_vector,ship->rotatable.rotinfo.coordsys);
         vecSet(rot_vector,100.0f,0.0f,0.0f);
-        vecAddTo(ship->rotinfo.torque, rot_vector);
-        vecCapVectorSloppy(&ship->rotinfo.rotspeed, defensefighterstatics->max_rot_speed );
+        vecAddTo(ship->rotatable.rotinfo.torque, rot_vector);
+        vecCapVectorSloppy(&ship->rotatable.rotinfo.rotspeed, defensefighterstatics->max_rot_speed );
         spec->rotate_time_counter -= universe.phystimeelapsed;
         if(spec->rotate_time_counter <= 0.0f)
         {
@@ -812,18 +812,18 @@ void defenseFighterAdjustLaser(Bullet *laser)
         if(laser == defensestruct->laser)
         {
             dbgAssertOrIgnore(defensestruct->bullet != NULL);
-            matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotinfo.coordsys,&gunstatic->position);
-            vecAdd(laser->posinfo.position,positionInWorldCoordSys,ship->posinfo.position);
-            vecSub(laser->lengthvec, defensestruct->bullet->posinfo.position, laser->posinfo.position);
+            matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gunstatic->position);
+            vecAdd(laser->obj.posinfo.position,positionInWorldCoordSys,ship->obj.posinfo.position);
+            vecSub(laser->lengthvec, defensestruct->bullet->obj.posinfo.position, laser->obj.posinfo.position);
 
             // heading
             tempvec = defensestruct->laser->lengthvec;
             vecNormalize(&tempvec);
 
-            //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotinfo.coordsys, &tempvec);
+            //matMultiplyMatByVec(&gunheadingInWorldCoordSys, &ship->rotatable.rotinfo.coordsys, &tempvec);
             //laser->bulletheading = gunheadingInWorldCoordSys;
             defensestruct->laser->bulletheading = tempvec;
-            matCreateCoordSysFromHeading(&defensestruct->laser->rotinfo.coordsys,&tempvec);
+            matCreateCoordSysFromHeading(&defensestruct->laser->rotatable.rotinfo.coordsys,&tempvec);
             if(defensestruct->laser->effect != NULL)
             {    //adjust length
                 ((real32 *)defensestruct->laser->effect->variable)[ETG_LengthVariable] =
@@ -912,9 +912,9 @@ void DefenseFighterDied(Ship *ship)
             {
                 univRemoveObjFromRenderList((SpaceObj *) defensestruct->laser);
                 defensestruct->laser->timelived = 10000.0f;
-                bitSet(defensestruct->laser->flags,SOF_Hide);
+                bitSet(defensestruct->laser->header.flags,SOF_Hide);
             }
-            //listDeleteNode(&defensestruct->laser->objlink);
+            //listDeleteNode(&defensestruct->laser->header.objlink);
             //dbgMessagef("Defense Dead: Deleting Laser from existance");
             soundEventBurstStop(ship, &ship->gunInfo->guns[0]);
         }
@@ -964,7 +964,7 @@ void DefenseFighterAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdist)
     }
     else
     {
-        aishipFlyToPointAvoidingObjs(ship,&target->posinfo.position,AISHIP_PointInDirectionFlying,0.0f);
+        aishipFlyToPointAvoidingObjs(ship,&target->obj.posinfo.position,AISHIP_PointInDirectionFlying,0.0f);
     }
 }
 
@@ -973,7 +973,7 @@ void DefenseFighterPassiveAttack(Ship *ship,Ship *target,bool32 rotate)
     vector heading;
     if(!rotate)
         return;
-    vecSub(heading,target->posinfo.position,ship->posinfo.position);
+    vecSub(heading,target->obj.posinfo.position,ship->obj.posinfo.position);
     vecNormalize(&heading);
     aitrackHeading(ship,&heading,0.9999f);
 }

@@ -59,11 +59,11 @@ Ship *CreateDroneInside(Ship *ship,udword droneNumber)
 
     dbgAssertOrIgnore(ship->shiptype == DDDFrigate);
 
-    droneship = univCreateShip(Drone,ship->shiprace,&ship->posinfo.position,ship->playerowner,1);
+    droneship = univCreateShip(Drone,ship->shiprace,&ship->obj.posinfo.position,ship->playerowner,1);
 
     gameStatsAddShip(droneship,ship->playerowner->playerIndex);
 
-    bitClear(droneship->flags,SOF_Selectable);
+    bitClear(droneship->header.flags,SOF_Selectable);
     dronespec = (DroneSpec *)droneship->ShipSpecifics;
     dronespec->droneNumber = droneNumber;
     dronespec->droneState = DRONE_STATE_DORMANT;
@@ -127,7 +127,7 @@ void DDDFrigateDied(Ship *ship)
     {
         deleteme = spec->DronePtrs[i];
 
-        if ((deleteme != NULL) && ((deleteme->flags & SOF_Dead) == 0))
+        if ((deleteme != NULL) && ((deleteme->header.flags & SOF_Dead) == 0))
         {
             if (deleteme->shiplink.belongto != NULL)
             {
@@ -136,7 +136,7 @@ void DDDFrigateDied(Ship *ship)
                 deleteme->whoKilledMe = ship->whoKilledMe;
                 univDeleteDeadShip(deleteme,EDT_AccumDamage);
                 listRemoveNode(&deleteme->shiplink);
-                listRemoveNode(&deleteme->impactablelink);
+                listRemoveNode(&deleteme->impactable.impactablelink);
 
 #if ETG_DISABLEABLE
                 if (!etgEffectsEnabled)
@@ -167,9 +167,9 @@ void DDDFrigateSwitchSides(Ship *dddf,sdword player)
         {
             ship->playerowner = &universe.players[player];
             if (player)
-                ship->attributes |= ATTRIBUTES_Defector;
+                ship->obj.attributes |= ATTRIBUTES_Defector;
             else
-                bitClear(ship->attributes,ATTRIBUTES_Defector);
+                bitClear(ship->obj.attributes,ATTRIBUTES_Defector);
         }
     }
 }
@@ -505,12 +505,12 @@ void DDDFrigateAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdist)
     if (range > dddstatics->attackRange)
     {
         // too far away, so fly in
-        aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FirstPointInDirectionFlying+AISHIP_PointInDirectionFlying+AISHIP_CarTurn+AISHIP_FastAsPossible,0.0f,&target->posinfo.velocity);
+        aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FirstPointInDirectionFlying+AISHIP_PointInDirectionFlying+AISHIP_CarTurn+AISHIP_FastAsPossible,0.0f,&target->obj.posinfo.velocity);
     }
     else if (range > dddstatics->tooCloseRange)
     {
         // about right range
-        aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FirstPointInDirectionFlying+AISHIP_PointInDirectionFlying+AISHIP_CarTurn+AISHIP_FastAsPossible,0.0f,&target->posinfo.velocity);
+        aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FirstPointInDirectionFlying+AISHIP_PointInDirectionFlying+AISHIP_CarTurn+AISHIP_FastAsPossible,0.0f,&target->obj.posinfo.velocity);
         inRange = TRUE;
     }
     else

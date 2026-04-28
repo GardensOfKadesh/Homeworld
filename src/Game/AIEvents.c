@@ -477,15 +477,15 @@ sdword aieCheckHealthLow(AITeam *team)
     {
         if (watchIndividual)
         {
-            if ((100 * team->shipList.selection->ShipPtr[i]->health)
+            if ((100 * team->shipList.selection->ShipPtr[i]->targetable.health)
                 < (team->curMove->events.healthLow.watchPercentage *
-                   team->shipList.selection->ShipPtr[i]->staticinfo->maxhealth))
+                   team->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth))
                 return TRUE;
         }
         else // accummulate
         {
-            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->maxhealth;
-            actualHealth += team->shipList.selection->ShipPtr[i]->health;
+            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth;
+            actualHealth += team->shipList.selection->ShipPtr[i]->targetable.health;
         }
     }
     if (!watchIndividual)
@@ -511,15 +511,15 @@ sdword aieCheckHealthHigh(AITeam *team)
     {
         if (watchIndividual)
         {
-            if ((100 * team->shipList.selection->ShipPtr[i]->health) >
+            if ((100 * team->shipList.selection->ShipPtr[i]->targetable.health) >
                 (team->curMove->events.healthHigh.watchPercentage *
-                 team->shipList.selection->ShipPtr[i]->staticinfo->maxhealth))
+                 team->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth))
                 return TRUE;
         }
         else // accummulate
         {
-            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->maxhealth;
-            actualHealth += team->shipList.selection->ShipPtr[i]->health;
+            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth;
+            actualHealth += team->shipList.selection->ShipPtr[i]->targetable.health;
         }
     }
     if (!watchIndividual)

@@ -1204,7 +1204,7 @@ void tbMothershipIndicator(featom *atom, regionhandle region)
     }
     else
     {
-        percent = mommy->health / mommy->staticinfo->maxhealth;
+        percent = mommy->targetable.health / mommy->staticinfo->health.maxhealth;
     }
 
     backcol  = colRGB(30,30,30);

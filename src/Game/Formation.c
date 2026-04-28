@@ -206,8 +206,8 @@ int compareSizeThenDist(const void *arg1,const void *arg2)
 {
     ShipDistInfo *a1 = (ShipDistInfo *)arg1;
     ShipDistInfo *a2 = (ShipDistInfo *)arg2;
-    real32 size1 = a1->ShipPtr->staticinfo->staticheader.staticCollInfo.collspheresize;
-    real32 size2 = a2->ShipPtr->staticinfo->staticheader.staticCollInfo.collspheresize;
+    real32 size1 = a1->ShipPtr->staticinfo->common.staticCollInfo.collspheresize;
+    real32 size2 = a2->ShipPtr->staticinfo->common.staticCollInfo.collspheresize;
 
     if (size1 == size2)
     {
@@ -251,7 +251,7 @@ void formationBiggestThenClosestOptimum(SelectCommand *selection,TypeOfFormation
 
     for (i=0;i<numShips;i++)
     {
-        contender = (selection->ShipPtr[i])->staticinfo->staticheader.staticCollInfo.collspheresize;
+        contender = (selection->ShipPtr[i])->staticinfo->common.staticCollInfo.collspheresize;
         if (contender > biggestship)
         {
             biggestship = contender;
@@ -269,21 +269,21 @@ void formationBiggestThenClosestOptimum(SelectCommand *selection,TypeOfFormation
     {
         for (i=0;i<numShips;i++)            // so find average position of all ships
         {
-            vecAddTo(avgpos,(selection->ShipPtr[i])->posinfo.position);
+            vecAddTo(avgpos,(selection->ShipPtr[i])->obj.posinfo.position);
         }
         vecDivideByScalar(avgpos,(real32)numShips,temp);
     }
     else                                    // ships are not same size
     {
         // so let average position be position of biggest ship
-        avgpos = (selection->ShipPtr[biggestshipindex])->posinfo.position;
+        avgpos = (selection->ShipPtr[biggestshipindex])->obj.posinfo.position;
     }
 
     shipdist = memAlloc(sizeof(ShipDistInfo)*selection->numShips,"TmpShipDistArray",0);
 
     for (i=0;i<selection->numShips;i++)
     {
-        vecSub(diff,(selection->ShipPtr[i])->posinfo.position,avgpos);
+        vecSub(diff,(selection->ShipPtr[i])->obj.posinfo.position,avgpos);
         shipdist[i].distance = vecMagnitudeSquared(diff);
         shipdist[i].ShipPtr = selection->ShipPtr[i];
     }
@@ -574,7 +574,7 @@ void formationSpecificsSphere(CommandToDo *command)
     }
     else
     {
-        shipRadius = centreship->staticinfo->staticheader.staticCollInfo.collspheresize;
+        shipRadius = centreship->staticinfo->common.staticCollInfo.collspheresize;
 
     }
 //    totalDeclinations = numDeclinations + numDeclinations + 2;
@@ -684,11 +684,11 @@ void formationSpecificsSphere(CommandToDo *command)
 #define FormationShipJustMoveSteady(desiredpos) \
     if (MoveReachedDestinationVariable(ship,&desiredpos,100.0f))                                                                                                                                                                \
     {                                                                                                                                                                                                                           \
-        ship->flags |= SOF_DontDrawTrails;                                                                                                                                                                                      \
+        ship->header.flags |= SOF_DontDrawTrails;                                                                                                                                                                                      \
     }                                                                                                                                                                                                                           \
     if (!MoveReachedDestinationVariable(ship,&desiredpos,10.0f))                                                                                                                                                                \
     {                                                                                                                                                                                                                           \
-        if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints|AISHIP_FastAsPossible,0.0f,&leader->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)             \
+        if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints|AISHIP_FastAsPossible,0.0f,&leader->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)             \
         {                                                                                                                                                                                                                       \
             aitrackSteadyShipDriftOnly(ship);                                                                                                           \
         }                                                                                                                                                                                                                       \
@@ -702,14 +702,14 @@ void formationSpecificsSphere(CommandToDo *command)
 #define FormationShipJustMove(desiredpos) \
     if (!MoveReachedDestinationVariable(ship,&desiredpos,10.0f))                                                                                                                                                                \
     {                                                                                                                                                                                                                           \
-        aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_FastAsPossible,0.0f,&leader->posinfo.velocity);             \
+        aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_FastAsPossible,0.0f,&leader->obj.posinfo.velocity);             \
     }
 
 // define for a ship moving into formation, without changing heading, and not trying to fly to obscured points
 #define FormationShipJustMoveNotToObscuredPoints(desiredpos) \
     if (!MoveReachedDestinationVariable(ship,&desiredpos,10.0f))                                                                                                                                                                \
     {                                                                                                                                                                                                                           \
-        if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints|AISHIP_FastAsPossible,0.0f,&leader->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)             \
+        if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints|AISHIP_FastAsPossible,0.0f,&leader->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)             \
         {                                                                                                                                                                                                                                                            \
             aitrackSteadyShipDriftOnly(ship);                                                                                                           \
         }                                                                                                                                                                                                                                                            \
@@ -725,25 +725,25 @@ void formationSpecificsSphere(CommandToDo *command)
         {                                                                                                                                                   \
             if (tmpdistaway <= 500.0f)                                                                                                                      \
             {                                                                                                                                               \
-                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                           \
+                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                           \
                 tmpuseflags = AISHIP_FastAsPossible|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints;  \
-                if (tmpdistaway <= 100.0f) ship->flags |= SOF_DontDrawTrails;                                                                               \
+                if (tmpdistaway <= 100.0f) ship->header.flags |= SOF_DontDrawTrails;                                                                               \
             }                                                                                                                                               \
         }                                                                                                                                                   \
         else if (tmpdistaway <= 100.0f)                                                                                                                     \
         {                                                                                                                                                   \
-            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                               \
+            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                               \
             tmpuseflags = AISHIP_FastAsPossible|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints;      \
-            ship->flags |= SOF_DontDrawTrails;                                                                                                              \
+            ship->header.flags |= SOF_DontDrawTrails;                                                                                                              \
         }                                                                                                                                                   \
                                                                                                                                                             \
         if (tmpdistaway >= 10.0f)                                                                                                                           \
         {                                                                                                                                                   \
-            if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)                \
+            if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)                \
             {                                                                                                                                               \
                 if (tmpuseflags & AISHIP_PointInDirectionFlying)                                                                                            \
                 {                                                                                                                                           \
-                    aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                       \
+                    aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                       \
                 }                                                                                                                                           \
                 aitrackSteadyShipDriftOnly(ship);                                                                                                           \
             }                                                                                                                                               \
@@ -764,23 +764,23 @@ void formationSpecificsSphere(CommandToDo *command)
         {                                                                                                                                                   \
             if (tmpdistaway <= 500.0f)                                                                                                                      \
             {                                                                                                                                               \
-                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                           \
+                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                           \
                 tmpuseflags = AISHIP_FastAsPossible|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints;  \
             }                                                                                                                                               \
         }                                                                                                                                                   \
         else if (tmpdistaway <= 100.0f)                                                                                                                     \
         {                                                                                                                                                   \
-            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                               \
+            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                               \
             tmpuseflags = AISHIP_FastAsPossible|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_IgnoreFormationObscuredPoints;      \
         }                                                                                                                                                   \
                                                                                                                                                             \
         if (tmpdistaway >= 10.0f)                                                                                                                           \
         {                                                                                                                                                   \
-            if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)                \
+            if (aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)                \
             {                                                                                                                                               \
                 if (tmpuseflags & AISHIP_PointInDirectionFlying)                                                                                            \
                 {                                                                                                                                           \
-                    aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                       \
+                    aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                       \
                 }                                                                                                                                           \
                 aitrackSteadyShipDriftOnly(ship);                                                                                                           \
             }                                                                                                                                               \
@@ -797,19 +797,19 @@ void formationSpecificsSphere(CommandToDo *command)
         {                                                                                                                                                   \
             if (tmpdistaway <= 500.0f)                                                                                                                      \
             {                                                                                                                                               \
-                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                           \
+                aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                           \
                 tmpuseflags = AISHIP_FastAsPossible;                                                                                                        \
             }                                                                                                                                               \
         }                                                                                                                                                   \
         else if (tmpdistaway <= 100.0f)                                                                                                                     \
         {                                                                                                                                                   \
-            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);                                                               \
+            aitrackHeadingWithBank(ship,&(head),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);                                                               \
             tmpuseflags = AISHIP_FastAsPossible;                                                                                                            \
         }                                                                                                                                                   \
                                                                                                                                                             \
         if (tmpdistaway >= 10.0f)                                                                                                                           \
         {                                                                                                                                                   \
-            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->posinfo.velocity);                                               \
+            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->obj.posinfo.velocity);                                               \
         }                                                                                                                                                   \
     }
 
@@ -822,17 +822,17 @@ void formationWingmanTrackLeader(struct Ship *ship,struct Ship *leader,bool32 ro
     vector desiredpos;
     real32 sepdist;
 
-    matGetVectFromMatrixCol2(right,leader->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,leader->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
 
-    sepdist = leader->staticinfo->staticheader.staticCollInfo.collspheresize;
-    sepdist += ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+    sepdist = leader->staticinfo->common.staticCollInfo.collspheresize;
+    sepdist += ship->staticinfo->common.staticCollInfo.collspheresize;
     sepdist *= DELTA_FORMATION_PADDING_SCALE;
 
     vecSub(rightback,right,heading);
     vecMultiplyByScalar(rightback,sepdist);
 
-    vecAdd(desiredpos,leader->posinfo.position,rightback);
+    vecAdd(desiredpos,leader->obj.posinfo.position,rightback);
 
 //    FormationShipMoveTo(desiredpos,heading);
     if (rotate)
@@ -842,20 +842,20 @@ void formationWingmanTrackLeader(struct Ship *ship,struct Ship *leader,bool32 ro
 
         if (tmpdistaway <= 100.0f)
         {
-            aitrackHeadingWithBank(ship,&(heading),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);
+            aitrackHeadingWithBank(ship,&(heading),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);
             tmpuseflags = AISHIP_FastAsPossible;
         }
 
         if (tmpdistaway >= 10.0f)
         {
-            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,tmpuseflags,0.0f,&leader->obj.posinfo.velocity);
         }
     }
     else
     {
         if (!MoveReachedDestinationVariable(ship,&desiredpos,10.0f))
         {
-            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_FastAsPossible,0.0f,&leader->posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel(ship,&desiredpos,AISHIP_FastAsPossible,0.0f,&leader->obj.posinfo.velocity);
         }
     }
 }
@@ -915,7 +915,7 @@ void setFormationToDo(struct CommandToDo *formationtodo)
         return;
     }
 
-    position = leader->posinfo.position;
+    position = leader->obj.posinfo.position;
 
     /*  Setup formations coordinate system */
     if(formationtodo->formation.formationLocked)
@@ -925,8 +925,8 @@ void setFormationToDo(struct CommandToDo *formationtodo)
     }
     else
     {
-        coordsys = &leader->rotinfo.coordsys;
-        matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+        coordsys = &leader->rotatable.rotinfo.coordsys;
+        matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
     }
 
     switch (formationtodo->formation.formationtype)
@@ -945,8 +945,8 @@ void setFormationToDo(struct CommandToDo *formationtodo)
                 matMultiplyMatByVec(&desiredposition,coordsys,&ship->formationOffset);
                 vecAddTo(desiredposition,position);
 
-                ship->posinfo.position = desiredposition;
-                ship->rotinfo.coordsys = *coordsys;
+                ship->obj.posinfo.position = desiredposition;
+                ship->rotatable.rotinfo.coordsys = *coordsys;
                 univUpdateObjRotInfo((SpaceObjRot *)ship);
             }
             break;
@@ -957,8 +957,8 @@ void setFormationToDo(struct CommandToDo *formationtodo)
                 ship = selection->ShipPtr[i];
                 shipstatic = (ShipStaticInfo *)ship->staticinfo;
 
-                vecAdd(ship->posinfo.position,position,ship->formationOffset);
-                ship->rotinfo.coordsys = *coordsys;
+                vecAdd(ship->obj.posinfo.position,position,ship->formationOffset);
+                ship->rotatable.rotinfo.coordsys = *coordsys;
                 univUpdateObjRotInfo((SpaceObjRot *)ship);
             }
             break;
@@ -996,7 +996,7 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
         return;
     }
 
-    position = leader->posinfo.position;
+    position = leader->obj.posinfo.position;
 
     /*  Setup formations coordinate system */
     if(formationtodo->formation.formationLocked)
@@ -1006,8 +1006,8 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
     }
     else
     {
-        coordsys = &leader->rotinfo.coordsys;
-        matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+        coordsys = &leader->rotatable.rotinfo.coordsys;
+        matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
     }
 
     switch (formationtodo->formation.formationtype)
@@ -1030,11 +1030,11 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
 
                 if (calcError)
                 {
-                    vecSub(errorvect,desiredposition,ship->posinfo.position);
+                    vecSub(errorvect,desiredposition,ship->obj.posinfo.position);
                     error += vecMagnitudeSquared(errorvect);
                 }
 
-                if(!bitTest(ship->specialFlags,SPECIAL_BrokenFormation))
+                if(!bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation))
                 {
                     if (dontrotate)
                     {
@@ -1075,8 +1075,8 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
             {
                 dbgAssertOrIgnore(formationtodo->protect->numShips > 0);
                 leader = formationtodo->protect->ShipPtr[0];
-                position = leader->posinfo.position;       // override position
-                matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+                position = leader->obj.posinfo.position;       // override position
+                matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
                 protectsurround = TRUE;
                 i = 0;
             }
@@ -1105,7 +1105,7 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
                     }
                     //protectship = formationtodo->selection->ShipPtr[0]->attackvars.attacktarget;
                     leader = protectship;
-                    position = leader->posinfo.position;       // override position
+                    position = leader->obj.posinfo.position;       // override position
                     protectsurround = TRUE;
                     i = 0;
                 }
@@ -1131,11 +1131,11 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
 
                 if (calcError)
                 {
-                    vecSub(errorvect,desiredposition,ship->posinfo.position);
+                    vecSub(errorvect,desiredposition,ship->obj.posinfo.position);
                     error += vecMagnitudeSquared(errorvect);
                 }
 
-                if(!bitTest(ship->specialFlags,SPECIAL_BrokenFormation))
+                if(!bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation))
                 {
                     if (dontrotate)
                     {
@@ -1165,7 +1165,7 @@ void processFormationToDo(struct CommandToDo *formationtodo,bool32 steadyFormati
                         {
                             if (protectsurround)
                             {
-                                if (IS_MOVING_LINEARLY(leader->posinfo.isMoving))
+                                if (IS_MOVING_LINEARLY(leader->obj.posinfo.isMoving))
                                 {
                                     FormationShipMoveToNotToObscuredPoints(desiredposition,heading);
                                 }
@@ -1458,7 +1458,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
             }
             else
             {
-                leftsepdist = leaderstatic->staticheader.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
+                leftsepdist = leaderstatic->common.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
             }
             rightsepdist = leftsepdist;
 
@@ -1473,7 +1473,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 }
                 else
                 {
-                    thissepdist = shipstatic->staticheader.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
+                    thissepdist = shipstatic->common.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
                 }
 
                 if (i & 1)
@@ -1529,7 +1529,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
             }
             else
             {
-                leftsepdist = leaderstatic->staticheader.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
+                leftsepdist = leaderstatic->common.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
             }
             rightsepdist = leftsepdist;
 
@@ -1544,7 +1544,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 }
                 else
                 {
-                    thissepdist = shipstatic->staticheader.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
+                    thissepdist = shipstatic->common.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
                 }
 
                 if (i & 1)
@@ -1600,7 +1600,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
             }
             else
             {
-                uprightsepdist = leaderstatic->staticheader.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
+                uprightsepdist = leaderstatic->common.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
             }
 
             upleftsepdist = uprightsepdist;
@@ -1618,7 +1618,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 }
                 else
                 {
-                    thissepdist = shipstatic->staticheader.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
+                    thissepdist = shipstatic->common.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
                 }
 
                 switch (i & 3)
@@ -1718,7 +1718,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
             }
             else
             {
-                uprightsepdist = leaderstatic->staticheader.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
+                uprightsepdist = leaderstatic->common.staticCollInfo.collspheresize*leaderstatic->formationPaddingModifier*tacticsFormationPadding;
             }
 
             upleftsepdist = uprightsepdist;
@@ -1736,7 +1736,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 }
                 else
                 {
-                    thissepdist = shipstatic->staticheader.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
+                    thissepdist = shipstatic->common.staticCollInfo.collspheresize*shipstatic->formationPaddingModifier*tacticsFormationPadding;
                 }
 
                 switch (i & 3)
@@ -1842,7 +1842,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
             }
             else
             {
-                sepdist = leaderstatic->staticheader.staticCollInfo.collspheresize*tacticsFormationPadding*
+                sepdist = leaderstatic->common.staticCollInfo.collspheresize*tacticsFormationPadding*
                             leaderstatic->formationPaddingModifier*WALL_FORMATION_PADDING_SCALE + WALL_FORMATION_PADDING;
             }
 
@@ -1892,7 +1892,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 //get center point
                 for(i=0;i<numShips;i++)
                 {
-                    vecAddTo(averagepos,selection->ShipPtr[i]->posinfo.position);
+                    vecAddTo(averagepos,selection->ShipPtr[i]->obj.posinfo.position);
                 }
                 vecScalarMultiply(averagepos,averagepos,1.0f/numShips);
 
@@ -1901,7 +1901,7 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 minErrorIndex = 0;
                 for(i=0;i<numShips;i++)
                 {
-                    vecSub(error,selection->ShipPtr[i]->posinfo.position,averagepos);
+                    vecSub(error,selection->ShipPtr[i]->obj.posinfo.position,averagepos);
                     error.x = ABS(error.x);
                     error.y = ABS(error.y);
                     error.z = ABS(error.z);
@@ -1926,8 +1926,8 @@ void FormationCalculateOffsets(struct CommandToDo *formationtodo)
                 {
                     ship = (Ship *) selection->ShipPtr[i];
 
-                    vecSub(desiredpos,ship->posinfo.position,leader->posinfo.position);
-                    matMultiplyVecByMat(&ship->formationOffset,&desiredpos,&leader->rotinfo.coordsys);
+                    vecSub(desiredpos,ship->obj.posinfo.position,leader->obj.posinfo.position);
+                    matMultiplyVecByMat(&ship->formationOffset,&desiredpos,&leader->rotatable.rotinfo.coordsys);
                 }
             }
         break;
@@ -1950,8 +1950,8 @@ real32 calculateTravelDistance(CommandToDo *formationtodo)
     real32  distanceSqr=0.0f;
     vector distvec;
 
-    position = leader->posinfo.position;
-    coordsys = &leader->rotinfo.coordsys;
+    position = leader->obj.posinfo.position;
+    coordsys = &leader->rotatable.rotinfo.coordsys;
 
     switch (formationtodo->formation.formationtype)
     {
@@ -1970,7 +1970,7 @@ real32 calculateTravelDistance(CommandToDo *formationtodo)
                 vecAddTo(desiredposition,position);
 
                 //calculate distance ship must go
-                vecSub(distvec,ship->posinfo.position,desiredposition);
+                vecSub(distvec,ship->obj.posinfo.position,desiredposition);
                 distanceSqr += vecMagnitudeSquared(distvec);
             }
         case SPHERE_FORMATION:
@@ -2041,21 +2041,21 @@ void formationArrageCrazyOptimum(CommandToDo *formationcommand)
     optimumSel->numShips = numShips;
 
     formationArrangeOptimum(formationcommand);
-    biggestToSmallestRatio = selection->ShipPtr[numShips-1]->staticinfo->staticheader.staticCollInfo.collspheresize/selection->ShipPtr[0]->staticinfo->staticheader.staticCollInfo.collspheresize;
+    biggestToSmallestRatio = selection->ShipPtr[numShips-1]->staticinfo->common.staticCollInfo.collspheresize/selection->ShipPtr[0]->staticinfo->common.staticCollInfo.collspheresize;
     if(biggestToSmallestRatio > BIG_SMALL_RATIO_TO_BE_EQUAL_FOR_LEADER)
     {
         redo=TRUE;
 /*
         for(i=0;i<numShips;i++)
         {
-            vecAddTo(center,selection->ShipPtr[i]->posinfo.position);
+            vecAddTo(center,selection->ShipPtr[i]->obj.posinfo.position);
         }
         tempdist = 1.0f/numShips;
         vecScalarMultiply(center,center,tempdist);
         minDist = REALlyBig;
         for(i=0;i<numShips;i++)
         {
-            vecSub(tempvec,selection->ShipPtr[i]->posinfo.position,center);
+            vecSub(tempvec,selection->ShipPtr[i]->obj.posinfo.position,center);
             tempdist = vecMagnitudeSquared(tempvec);
             if(tempdist < minDist)
             {
@@ -2097,12 +2097,12 @@ void formationArrageCrazyOptimum(CommandToDo *formationcommand)
         selection->ShipPtr[a] = originalSel->ShipPtr[0];
 
         FormationCalculateOffsets(formationcommand);
-        coordsys = &selection->ShipPtr[0]->rotinfo.coordsys;
+        coordsys = &selection->ShipPtr[0]->rotatable.rotinfo.coordsys;
         for(i=1;i<numShips;i++)
         {
             ship = selection->ShipPtr[i];
             matMultiplyMatByVec(&positions[i],coordsys,&ship->formationOffset);
-            vecAddTo(positions[i],selection->ShipPtr[0]->posinfo.position);
+            vecAddTo(positions[i],selection->ShipPtr[0]->obj.posinfo.position);
 
             // This line doesn't do anything but it was probably intended to do something...
             // I've left it here in case someone debugging this code needs this as part of the solution!
@@ -2121,7 +2121,7 @@ void formationArrageCrazyOptimum(CommandToDo *formationcommand)
             minDist = REALlyBig;
             for(j=1;j<numShips;j++)
             {
-                vecSub(tempvec,ship->posinfo.position,positions[j]);
+                vecSub(tempvec,ship->obj.posinfo.position,positions[j]);
                 tempdist = vecMagnitudeSquared(tempvec);
                 if(tempdist < minDist)
                 {
@@ -2167,7 +2167,7 @@ void formationArrageCrazyOptimum(CommandToDo *formationcommand)
                     ship = selection->ShipPtr[j];
                     if(shipWantsPosition[j] == poswanted)
                     {
-                        vecSub(tempvec,ship->posinfo.position,positions[poswanted]);
+                        vecSub(tempvec,ship->obj.posinfo.position,positions[poswanted]);
                         tempdist = vecMagnitudeSquared(tempvec);
                         if(tempdist < minDist)
                         {
@@ -2202,7 +2202,7 @@ void formationArrageCrazyOptimum(CommandToDo *formationcommand)
                 {
                     if(positionTaken[j] == FALSE)
                     {
-                        vecSub(tempvec,ship->posinfo.position,positions[j]);
+                        vecSub(tempvec,ship->obj.posinfo.position,positions[j]);
                         tempdist = vecMagnitudeSquared(tempvec);
                         if(tempdist < minDist)
                         {
@@ -2645,7 +2645,7 @@ void clFormation(CommandLayer *comlayer,SelectCommand *selectcom,TypeOfFormation
 
     if (majorityshipsare == COMMAND_MOVE)
     {
-        ChangeOrderToMove(newcommand,selectcom->ShipPtr[0]->posinfo.position,majorityshipsmoveto);
+        ChangeOrderToMove(newcommand,selectcom->ShipPtr[0]->obj.posinfo.position,majorityshipsmoveto);
     }
     else if (majorityshipsare == COMMAND_ATTACK)
     {
@@ -2791,11 +2791,11 @@ void processMilitaryParadeToDo(struct CommandToDo *command,bool32 passiveAttacke
     dbgAssertOrIgnore(paradeType >= 0);
     dbgAssertOrIgnore(paradeType < NUMBER_PARADE_TYPES);
 
-    matGetVectFromMatrixCol1(up,leader->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,leader->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,leader->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,leader->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
 
-    if (vecMagnitudeSquared(leader->posinfo.velocity) >= PARADE_CONSIDERED_STEADY_VELSQR)
+    if (vecMagnitudeSquared(leader->obj.posinfo.velocity) >= PARADE_CONSIDERED_STEADY_VELSQR)
     {
         steadyFormation = FALSE;
     }
@@ -2814,7 +2814,7 @@ void processMilitaryParadeToDo(struct CommandToDo *command,bool32 passiveAttacke
         thisslotinfo = &paradeTypeInfo->slotinfos[slot];
 
         // calculate starting positonat of this slot
-        positionat = leader->posinfo.position;
+        positionat = leader->obj.posinfo.position;
         vecAddToScalarMultiply(positionat,up,thisslotinfo->upoffset);
         vecAddToScalarMultiply(positionat,right,thisslotinfo->rightoffset);
         vecAddToScalarMultiply(positionat,heading,thisslotinfo->headingoffset);
@@ -2880,30 +2880,30 @@ void processMilitaryParadeToDo(struct CommandToDo *command,bool32 passiveAttacke
                 {
                     if (steadyFormation && MoveReachedDestinationVariable(ship,&positionat,100.0f))
                     {
-                        ship->flags |= SOF_DontDrawTrails;
+                        ship->header.flags |= SOF_DontDrawTrails;
                     }
                     if (!MoveReachedDestinationVariable(ship,&positionat,10.0f))
                     {
                         if(ship->shiptype == ResearchShip)
                         {
-                            if(ship->flags & SOF_Slaveable)
+                            if(ship->header.flags & SOF_Slaveable)
                             {
                                 real32 tmpdistaway = MoveLeftToGo(ship,&positionat);
-                                if(tmpdistaway < 50.0 || (tmpdistaway <300.0f && !bitTest(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser)))
+                                if(tmpdistaway < 50.0 || (tmpdistaway <300.0f && !bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser)))
                                 {
                                     //less that 50, or less than 300, but we are have been doing this already
-                                    bitClear(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser);
+                                    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser);
                                     aitrackSteadyShipDriftOnly(ship);
                                     goto dontmovecloser;
                                 }
                                 else
                                 {
                                     //greater than 50.0f && we're driving for 50, set flag, and then drive in
-                                    bitSet(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser);
+                                    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser);
                                 }
                             }
                         }
-                        aishipFlyToPointAvoidingObjsWithVel(ship,&positionat,AISHIP_FastAsPossible,0.0f,&leader->posinfo.velocity);
+                        aishipFlyToPointAvoidingObjsWithVel(ship,&positionat,AISHIP_FastAsPossible,0.0f,&leader->obj.posinfo.velocity);
                     }
                     else if (steadyFormation)
                     {
@@ -2925,7 +2925,7 @@ void processMilitaryParadeToDo(struct CommandToDo *command,bool32 passiveAttacke
                     {
                         if (tmpdistaway <= 500.0f)
                         {
-                            if ((tmpdistaway <= 100.0f) && (steadyFormation)) ship->flags |= SOF_DontDrawTrails;
+                            if ((tmpdistaway <= 100.0f) && (steadyFormation)) ship->header.flags |= SOF_DontDrawTrails;
                             trackheading = TRUE;
                         }
                     }
@@ -2933,13 +2933,13 @@ void processMilitaryParadeToDo(struct CommandToDo *command,bool32 passiveAttacke
                     {
                         if (steadyFormation)
                         {
-                            ship->flags |= SOF_DontDrawTrails;
+                            ship->header.flags |= SOF_DontDrawTrails;
                             //no choice special case ResearchShip code
                             if(ship->shiptype == ResearchShip)
                             {
                                 //researchship, and we're in a 'steady' state
                                 //lets skip the adjustment of our heading
-                                if(ship->flags & SOF_Slaveable)
+                                if(ship->header.flags & SOF_Slaveable)
                                 {
                                     goto dontadjustheading;
                                 }
@@ -2952,7 +2952,7 @@ dontadjustheading:;
 
                     if (trackheading)
                     {
-                        aitrackHeadingWithBank(ship,&(faceheading),FLYSHIP_HEADINGACCURACY,shipstatic->sinbank);
+                        aitrackHeadingWithBank(ship,&(faceheading),FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank);
                         tmpuseflags = AISHIP_FastAsPossible;
                     }
 
@@ -2960,23 +2960,23 @@ dontadjustheading:;
                     {
                         if(ship->shiptype == ResearchShip)
                         {
-                            if(ship->flags & SOF_Slaveable)
+                            if(ship->header.flags & SOF_Slaveable)
                             {
-                                if(tmpdistaway < 50.0 || (tmpdistaway <300.0f && !bitTest(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser)))
+                                if(tmpdistaway < 50.0 || (tmpdistaway <300.0f && !bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser)))
                                 {
                                     //less that 50, or less than 300, but we are have been doing this already
-                                    bitClear(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser);
+                                    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser);
                                     aitrackSteadyShipDriftOnly(ship);
                                     goto dontmovecloser;
                                 }
                                 else
                                 {
                                     //greater than 50.0f && we're driving for 50, set flag, and then drive in
-                                    bitSet(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser);
+                                    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser);
                                 }
                             }
                         }
-                        aishipFlyToPointAvoidingObjsWithVel(ship,&positionat,tmpuseflags,0.0f,&leader->posinfo.velocity);
+                        aishipFlyToPointAvoidingObjsWithVel(ship,&positionat,tmpuseflags,0.0f,&leader->obj.posinfo.velocity);
 dontmovecloser:;
                     }
                     else if (steadyFormation)
@@ -3023,9 +3023,9 @@ void setMilitaryParade(struct CommandToDo *command)
     dbgAssertOrIgnore(paradeType >= 0);
     dbgAssertOrIgnore(paradeType < NUMBER_PARADE_TYPES);
 
-    matGetVectFromMatrixCol1(up,leader->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,leader->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,leader->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,leader->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,leader->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,leader->rotatable.rotinfo.coordsys);
 
     // for each slot, position the ship correctly
 
@@ -3041,7 +3041,7 @@ void setMilitaryParade(struct CommandToDo *command)
         thisslotinfo = &paradeTypeInfo->slotinfos[slot];
 
         // calculate starting positonat of this slot
-        positionat = leader->posinfo.position;
+        positionat = leader->obj.posinfo.position;
         vecAddToScalarMultiply(positionat,up,thisslotinfo->upoffset);
         vecAddToScalarMultiply(positionat,right,thisslotinfo->rightoffset);
         vecAddToScalarMultiply(positionat,heading,thisslotinfo->headingoffset);
@@ -3057,29 +3057,29 @@ void setMilitaryParade(struct CommandToDo *command)
             ship = thisslot->subslots[subslot].ship;
             if (ship != NULL)
             {
-                ship->posinfo.position = positionat;
+                ship->obj.posinfo.position = positionat;
                 switch (thisslotinfo->facedirection)
                 {
                     vector temp1,temp2;
 
                     case 0:     // forward
-                        ship->rotinfo.coordsys = leader->rotinfo.coordsys;
+                        ship->rotatable.rotinfo.coordsys = leader->rotatable.rotinfo.coordsys;
                         break;
 
                     case 1:     // back
                         vecCopyAndNegate(temp1,heading);
                         vecCopyAndNegate(temp2,right);
-                        matCreateMatFromVecs(&ship->rotinfo.coordsys,&up,&temp2,&temp1);
+                        matCreateMatFromVecs(&ship->rotatable.rotinfo.coordsys,&up,&temp2,&temp1);
                         break;
 
                     case 2:     // right
                         vecCopyAndNegate(temp1,heading);
-                        matCreateMatFromVecs(&ship->rotinfo.coordsys,&up,&temp1,&right);
+                        matCreateMatFromVecs(&ship->rotatable.rotinfo.coordsys,&up,&temp1,&right);
                         break;
 
                     case 3:     // left
                         vecCopyAndNegate(temp2,right);
-                        matCreateMatFromVecs(&ship->rotinfo.coordsys,&up,&heading,&temp2);
+                        matCreateMatFromVecs(&ship->rotatable.rotinfo.coordsys,&up,&heading,&temp2);
                         break;
 
                     default:
@@ -3543,7 +3543,7 @@ void lockFormation(CommandToDo *formationcommand,udword specialEffect)
     //maybe...but probably don't want to relock formations over and over
     vector heading;
     //dbgAssertOrIgnore(formationcommand->formation.formationLocked == FALSE);
-    formationcommand->formation.coordsys = formationcommand->selection->ShipPtr[0]->rotinfo.coordsys;
+    formationcommand->formation.coordsys = formationcommand->selection->ShipPtr[0]->rotatable.rotinfo.coordsys;
     if(specialEffect == 1)
     {
         //reverse Heading

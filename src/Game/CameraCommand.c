@@ -147,9 +147,9 @@ vector   Vect, LookAt;
 
    for(i=0; i<pFocus->numShips; i++)
    {
-      if(pFocus->ShipPtr[i]->objtype == OBJ_ShipType && allianceIsShipAlly(pFocus->ShipPtr[i], pPlayer))
+      if(pFocus->ShipPtr[i]->header.objtype == OBJ_ShipType && allianceIsShipAlly(pFocus->ShipPtr[i], pPlayer))
       {
-         vecSub(Vect, LookAt, pFocus->ShipPtr[i]->posinfo.position);
+         vecSub(Vect, LookAt, pFocus->ShipPtr[i]->obj.posinfo.position);
          if( vecMagnitudeSquared(Vect) < MaxCamDistSquared )
          {
             return TRUE;
@@ -161,9 +161,9 @@ vector   Vect, LookAt;
    while (pShipNode != NULL)
    {
       pShip = (Ship *)listGetStructOfNode(pShipNode);
-      if(pShip->objtype == OBJ_ShipType && allianceIsShipAlly(pShip, pPlayer))
+      if(pShip->header.objtype == OBJ_ShipType && allianceIsShipAlly(pShip, pPlayer))
       {
-         vecSub(Vect, LookAt, pShip->posinfo.position);
+         vecSub(Vect, LookAt, pShip->obj.posinfo.position);
          if( vecMagnitudeSquared(Vect) < MaxCamDistSquared )
          {
             return TRUE;
@@ -232,16 +232,16 @@ Node *slavenode;
 vector   center, distvec;
 float dist;
 
-   if(bitTest(ship->flags, SOF_Slaveable) && bitTest(ship->slaveinfo->flags, SF_MASTER))
+   if(bitTest(ship->header.flags, SOF_Slaveable) && bitTest(ship->slaveinfo->flags, SF_MASTER))
    {  //object is a master...so calculate Biggey selection circle based on all slave circles
       master = ship;
       slavenode = master->slaveinfo->slaves.head;
-      center = master->collInfo.collPosition;
+      center = master->impactable.collInfo.collPosition;
 
       while(slavenode != NULL)
       {
          slave = (Ship *) listGetStructOfNode(slavenode);
-         vecAddTo(center, slave->collInfo.collPosition);
+         vecAddTo(center, slave->impactable.collInfo.collPosition);
 
          slavenode = slavenode->next;
       }
@@ -250,16 +250,16 @@ float dist;
       center.y /= (real32 )(master->slaveinfo->slaves.num+1);
       center.z /= (real32 )(master->slaveinfo->slaves.num+1);
 
-      vecSub(distvec, center, master->collInfo.collPosition);
+      vecSub(distvec, center, master->impactable.collInfo.collPosition);
       dist = fsqrt(vecMagnitudeSquared(distvec));
 
       *pos = center;
-      *rad = dist + (master->staticinfo->staticheader.staticCollInfo.collspheresize);
+      *rad = dist + (master->staticinfo->common.staticCollInfo.collspheresize);
    }
    else
    {
-      *pos = ship->collInfo.collPosition;
-      *rad = ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+      *pos = ship->impactable.collInfo.collPosition;
+      *rad = ship->staticinfo->common.staticCollInfo.collspheresize;
    }
 }
 
@@ -345,11 +345,11 @@ DVect LookToObj, LookToCam, nLookToObj, nLookToCam;
             Rad = ObjZ = ObjRad = 0.0;
         }
 
-        if (ship->objtype == OBJ_ShipType)
+        if (ship->header.objtype == OBJ_ShipType)
         {
             minimumZoom = ship->staticinfo->minimumZoomDistance;
         }
-        else if (ship->objtype == OBJ_DerelictType)
+        else if (ship->header.objtype == OBJ_DerelictType)
         {
             DerelictStaticInfo* derelictstaticinfo = (DerelictStaticInfo*)ship->staticinfo;
             minimumZoom = derelictstaticinfo->minimumZoomDistance;
@@ -962,7 +962,7 @@ void ccFocusOnPlayersMothership(CameraCommand *cameracommand,uword playerindex)
 // Old Version -------------------------------
 // entry = currentCameraStackEntry(cameracommand);
 // dbgAssertOrIgnore(entry);
-// cameraChangeLookatpoint(&cameracommand->actualcamera,&mothership->posinfo.position);
+// cameraChangeLookatpoint(&cameracommand->actualcamera,&mothership->obj.posinfo.position);
 // entry->remembercam = cameracommand->actualcamera;
 // cameracommand->UserControlled = 0;
 // Old Version -------------------------------
@@ -1397,7 +1397,7 @@ bool32 ccFocusOnFleet(CameraCommand *cameracommand)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        if (ship->objtype == OBJ_ShipType && !(ship->flags & SOF_Dead))
+        if (ship->header.objtype == OBJ_ShipType && !(ship->header.flags & SOF_Dead))
         {
             if (ship->playerowner == universe.curPlayerPtr)
             {
@@ -1421,7 +1421,7 @@ bool32 ccFocusOnFleet(CameraCommand *cameracommand)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        if (ship->objtype == OBJ_ShipType && !(ship->flags & SOF_Dead))
+        if (ship->header.objtype == OBJ_ShipType && !(ship->header.flags & SOF_Dead))
         {
             if (ship->playerowner == universe.curPlayerPtr)
             {
@@ -1693,9 +1693,9 @@ sdword ccFocusCullRadiusGeneral(FocusCommand *out, FocusCommand *in, real32 radi
 
     for (out->numShips = index = 0; index < in->numShips; index++)
     {
-        dx = ABS(in->ShipPtr[index]->posinfo.position.x - centre->x);
-        dy = ABS(in->ShipPtr[index]->posinfo.position.y - centre->y);
-        dz = ABS(in->ShipPtr[index]->posinfo.position.z - centre->z);
+        dx = ABS(in->ShipPtr[index]->obj.posinfo.position.x - centre->x);
+        dy = ABS(in->ShipPtr[index]->obj.posinfo.position.y - centre->y);
+        dz = ABS(in->ShipPtr[index]->obj.posinfo.position.z - centre->z);
         distanceSqr = dx * dx + dy * dy + dz * dz;          //compute distance from centre
         if (distanceSqr <= radiusSqr)
         {                                                   //if this ship close enough to the mean
@@ -1730,7 +1730,7 @@ sdword ccFocusCullRadiusMean(FocusCommand *selection, real32 radiusSqr, vector *
     //get average position
     for (index = 0; index < selection->numShips; index++)
     {
-        vecAddTo(centre, selection->ShipPtr[index]->posinfo.position);
+        vecAddTo(centre, selection->ShipPtr[index]->obj.posinfo.position);
     }
     vecMultiplyByScalar(centre, (1.0f / (real32)index));
 
@@ -1744,7 +1744,7 @@ sdword ccFocusCullRadiusMean(FocusCommand *selection, real32 radiusSqr, vector *
         maxFocussed = 0;
         for (iOuter = 0; iOuter < selection->numShips; iOuter++)
         {
-            centre = selection->ShipPtr[iOuter]->posinfo.position;
+            centre = selection->ShipPtr[iOuter]->obj.posinfo.position;
             ccFocusCullRadiusGeneral((FocusCommand *)&localSelection, selection, radiusSqr, &centre);
             if (localSelection.numShips > maxFocussed)
             {                                               //keep track of the best selection
@@ -1753,7 +1753,7 @@ sdword ccFocusCullRadiusMean(FocusCommand *selection, real32 radiusSqr, vector *
             }
         }
         dbgAssertOrIgnore(maxFocussed > 0);                         //one selection combo should have worked
-        centre = selection->ShipPtr[iMaxFocussed]->posinfo.position;//use the best selection we found
+        centre = selection->ShipPtr[iMaxFocussed]->obj.posinfo.position;//use the best selection we found
         ccFocusCullRadiusGeneral((FocusCommand *)&localSelection, selection, radiusSqr, &centre);
     }
     selSelectionCopy((MaxAnySelection *)selection, (MaxAnySelection *)&localSelection);

@@ -89,7 +89,7 @@ sdword NumberOfEasilyAccesibleRUs(Player *player)
     while (objnode != NULL)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(resource->flags & SOF_Resource);
+        dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
 
         numRUs += resource->resourcevalue;
 
@@ -198,7 +198,7 @@ void airClose(AIPlayer *aiplayer)
 ----------------------------------------------------------------------------*/
 bool32 airShipDied(AIPlayer *aiplayer,ShipPtr ship)
 {
-//    if ((ship->playerowner == aiplayer->player) || (ship->attributes & ATTRIBUTES_Defector)) // do all checks for defector
+//    if ((ship->playerowner == aiplayer->player) || (ship->obj.attributes & ATTRIBUTES_Defector)) // do all checks for defector
 //    {
         if (growSelectRemoveShip(&aiplayer->airResourceReserves, ship))
         {
@@ -332,11 +332,11 @@ bool32 FindBestPlaceForAdvanceSupportFrigate(vector *destination)
         return FALSE;
     }
 
-    vecSub(diff,enemyMothership->posinfo.position,myMothership->posinfo.position);
+    vecSub(diff,enemyMothership->obj.posinfo.position,myMothership->obj.posinfo.position);
 
     vecMultiplyByScalar(diff,ASF_POSITION_TO_ENEMY_MOTHERSHIP);
 
-    vecAdd(*destination,myMothership->posinfo.position,diff);
+    vecAdd(*destination,myMothership->obj.posinfo.position,diff);
 
     return TRUE;
 }
@@ -538,7 +538,7 @@ bool32 aiuCanBuildShipType(ShipType shiptype,bool32 scriptteam)
     }
 
     teststatic = GetShipStaticInfo(shiptype,race);
-    if (!bitTest(teststatic->staticheader.infoFlags, IF_InfoLoaded))
+    if (!bitTest(teststatic->common.infoFlags, IF_InfoLoaded))
     {
         return FALSE;       // this ship static info not loaded, so can't build
     }

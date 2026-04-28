@@ -410,7 +410,7 @@ bool32 salCapCorvetteInSelection(SelectCommand *selection)
 
     for(i=0;i<selection->numShips;i++)
     {
-        if(selection->ShipPtr[i]->specialFlags & SPECIAL_IsASalvager)
+        if(selection->ShipPtr[i]->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
         {
             return TRUE;
         }
@@ -432,7 +432,7 @@ void mrRemoveDerelictsAndAllPlayerShipsFromSelecting()
     for(i=0;i<selSelecting.numTargets;)
     {
         target = selSelecting.TargetPtr[i];
-        if (target->objtype == OBJ_DerelictType)
+        if (target->header.objtype == OBJ_DerelictType)
         {
             if (((Derelict *)target)->derelicttype != HyperspaceGate)
             {
@@ -443,7 +443,7 @@ void mrRemoveDerelictsAndAllPlayerShipsFromSelecting()
                 }
             }
         }
-        if (target->objtype == OBJ_ShipType)
+        if (target->header.objtype == OBJ_ShipType)
         {
             if ((((Ship *)target)->playerowner == universe.curPlayerPtr) ||
                 (allianceIsShipAlly((Ship *)target, universe.curPlayerPtr)) ||
@@ -685,7 +685,7 @@ void mrHarvestResources(char *string, featom *atom)
             if (nearestresource != NULL)
             {
                 soundEvent(NULL, UI_ClickAccept);
-                speechEvent(tempSelection.ShipPtr[0], COMM_ResCol_Harvest, (nearestresource->objtype - OBJ_AsteroidType));
+                speechEvent(tempSelection.ShipPtr[0], COMM_ResCol_Harvest, (nearestresource->header.objtype - OBJ_AsteroidType));
                 clWrapCollectResource(&universe.mainCommandLayer,(SelectCommand *)&tempSelection,NULL);
                 soundEventStartEngine(tempSelection.ShipPtr[0]);
             }
@@ -878,7 +878,7 @@ void mrScuttle(char *string, featom *atom)
             //event num: COMM_F_ScuttleReaffirm
             if(battleCanChatterAtThisTime(BCE_COMM_F_ScuttleReaffirm, selSelected.ShipPtr[0]))
             {
-                battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_COMM_F_ScuttleReaffirm, SOUND_EVENT_DEFAULT, &selSelected.ShipPtr[0]->posinfo.position);
+                battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_COMM_F_ScuttleReaffirm, SOUND_EVENT_DEFAULT, &selSelected.ShipPtr[0]->obj.posinfo.position);
             }
             //speechEventFleet(COMM_F_ScuttleReaffirm,0,universe.curPlayerIndex);
             ////////////////////
@@ -1530,7 +1530,7 @@ Ship *mrNextMothershipPtr(Ship *mothership)
         }
         if (ship->playerowner == universe.curPlayerPtr &&
             memchr(mrMothershipShipTypes, ship->shiptype, MR_NumberMothershipTypes) &&
-            bitTest(ship->flags, SOF_Selectable))
+            bitTest(ship->header.flags, SOF_Selectable))
         {                                                   //if it's the player's ship and it's a mothership type
             break;                                          //use this one as the mothership
         }
@@ -1754,8 +1754,8 @@ altCase:
 
                 for (index = selHotKeyGroup[NUMKEYNUM(ID)].numShips - 1; index >= 0; index--)
                 {                                           //for all ships in hot key group
-                    if( selHotKeyGroup[NUMKEYNUM(ID)].ShipPtr[index]->collMyBlob != NULL &&
-                        selHotKeyGroup[NUMKEYNUM(ID)].ShipPtr[index]->flags & SOF_Selectable )
+                    if( selHotKeyGroup[NUMKEYNUM(ID)].ShipPtr[index]->obj.collMyBlob != NULL &&
+                        selHotKeyGroup[NUMKEYNUM(ID)].ShipPtr[index]->header.flags & SOF_Selectable )
                     {
                         selSelectionAddSingleShip(&selSelected, selHotKeyGroup[NUMKEYNUM(ID)].ShipPtr[index]);
                     }
@@ -2153,7 +2153,7 @@ cancelfocus:
                     {
                         if (lodTuningMode)
                         {
-                            LOD = selSelected.ShipPtr[0]->staticinfo->staticheader.LOD;
+                            LOD = selSelected.ShipPtr[0]->staticinfo->common.LOD;
                             lodAutoSave(LOD);
                             dbgMessagef("LOD file '%s' saved.", LOD->fileName);
                         }
@@ -2163,10 +2163,10 @@ cancelfocus:
                 {                                           //ctrl-L - remember LOD
                     if (selSelected.numShips == 1)
                     {
-                        LOD = selSelected.ShipPtr[0]->staticinfo->staticheader.LOD;
+                        LOD = selSelected.ShipPtr[0]->staticinfo->common.LOD;
                         if (rndLOD >= 0 && rndLOD < LOD->nLevels)
                         {
-                            vector shippos = selSelected.ShipPtr[0]->posinfo.position;
+                            vector shippos = selSelected.ShipPtr[0]->obj.posinfo.position;
                             vector length;
 
                             vecSub(length,mrCamera->eyeposition,shippos);
@@ -2301,7 +2301,7 @@ cancelfocus:
                     {                                       //if focussed on nothing or on a mothership
                         mrMothershipPtr = mrNextMothershipPtr(mrMothershipPtr);
                     }
-                    if (mrMothershipPtr != NULL && !bitTest(mrMothershipPtr->flags, SOF_Dead))
+                    if (mrMothershipPtr != NULL && !bitTest(mrMothershipPtr->header.flags, SOF_Dead))
                     {                                       //if there's a mothership to focus upon
                         focus.ShipPtr[0] = mrMothershipPtr;
                         focus.numShips = 1;
@@ -2477,7 +2477,7 @@ forwardfocus:
                 matrix *identity = (matrix *)&IdentityMatrix;
                 if ((selSelected.numShips > 0) && (!multiPlayerGame))
                 {
-                    nisTest(&selSelected.ShipPtr[0]->posinfo.position, identity);
+                    nisTest(&selSelected.ShipPtr[0]->obj.posinfo.position, identity);
                 }
             }
             else
@@ -3099,7 +3099,7 @@ void mrRightClickMenu(void)
     {                                                       //if right clicked on a ship
         if (ship->playerowner == universe.curPlayerPtr)
         {
-            if (ship->flags & SOF_Selectable)               // make sure it is selectable
+            if (ship->header.flags & SOF_Selectable)               // make sure it is selectable
             {
                 if (selSelected.numShips == 0)
                 {                                           //if no ships selected
@@ -3201,7 +3201,7 @@ void mrBankHold(void)
 #endif
 
 // later put in shipselect.c
-#define ShipIsntSelectable(x)        bitTest((x)->flags, SOF_Hide|SOF_Disabled|SOF_Crazy)
+#define ShipIsntSelectable(x)        bitTest((x)->header.flags, SOF_Hide|SOF_Disabled|SOF_Crazy)
 
 /*-----------------------------------------------------------------------------
     Name        : MakeShipsSelectable
@@ -3220,7 +3220,7 @@ void MakeShipsSelectable(SelectCommand *selection)
     for (i=0;i<selection->numShips;)
     {
         ship = selection->ShipPtr[i];
-        if (ShipIsntSelectable(ship) || !(ship->flags & SOF_Selectable) || ship->playerowner != universe.curPlayerPtr)
+        if (ShipIsntSelectable(ship) || !(ship->header.flags & SOF_Selectable) || ship->playerowner != universe.curPlayerPtr)
         {
             // to remove ShipPtr from list, decrement numShips and put last member
             // of array into slot being deleted.
@@ -3367,8 +3367,8 @@ void mrObjectClick(Ship *ship)
     bool32 bFriendlies, bEnemies;
     bool32 bForceAttackEnemies = FALSE;
 
-//    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-    if (guardKeyIsHit() && ship->objtype == OBJ_ShipType) {
+//    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+    if (guardKeyIsHit() && ship->header.objtype == OBJ_ShipType) {
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
@@ -3396,9 +3396,9 @@ void mrObjectClick(Ship *ship)
         }
     } else if (keyIsHit(ALTKEY) || keyIsHit(RALTKEY)) { // alt-click: focus on a ship
 #if MR_CAN_FOCUS_ROIDS
-        if ((mrCanFocusRoids && !multiPlayerGame) || ship->objtype == OBJ_ShipType || ship->objtype == OBJ_DerelictType)
+        if ((mrCanFocusRoids && !multiPlayerGame) || ship->header.objtype == OBJ_ShipType || ship->header.objtype == OBJ_DerelictType)
 #else
-        if (ship->objtype == OBJ_ShipType || ship->objtype == OBJ_DerelictType)
+        if (ship->header.objtype == OBJ_ShipType || ship->header.objtype == OBJ_DerelictType)
 #endif
         {
             selSelecting.TargetPtr[0] = (SpaceObjRotImpTarg *)ship; //make a temporary dummy selection
@@ -3449,15 +3449,15 @@ void mrObjectClick(Ship *ship)
             }
             selSelecting.numTargets = 0;
         }
-    } else if ((ship->objtype == OBJ_DerelictType ||
-                (ship->objtype == OBJ_ShipType && (!allianceIsShipAlly(ship, universe.curPlayerPtr)))) &&
+    } else if ((ship->header.objtype == OBJ_DerelictType ||
+                (ship->header.objtype == OBJ_ShipType && (!allianceIsShipAlly(ship, universe.curPlayerPtr)))) &&
                keyIsHit(CONTROLKEY) && keyIsHit(SHIFTKEY)) { // control-shift-click on derelict or enemy:attack
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
         }
         goto regularEnemyCase;
-    } else if (((ship->objtype == OBJ_DerelictType) || (ship->objtype == OBJ_ShipType)) &&
+    } else if (((ship->header.objtype == OBJ_DerelictType) || (ship->header.objtype == OBJ_ShipType)) &&
                (MakeShipsSingleClickSpecialCapable((SelectCommand *)&tempSelection,
                                                    (SelectCommand *)&selSelected))) { // single-click special ships
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
@@ -3483,7 +3483,7 @@ void mrObjectClick(Ship *ship)
             selSelecting.numTargets = 0;
             goto regularEnemyCase;
         }
-        else if (ship->objtype != OBJ_DerelictType)
+        else if (ship->header.objtype != OBJ_DerelictType)
         {
             if (ship->playerowner == universe.curPlayerPtr)
             {
@@ -3494,39 +3494,39 @@ void mrObjectClick(Ship *ship)
                 goto regularEnemyCase;
             }
         }
-    } else if ((ship->objtype == OBJ_AsteroidType || ship->objtype == OBJ_DustType) && keyIsHit(CONTROLKEY) &&
+    } else if ((ship->header.objtype == OBJ_AsteroidType || ship->header.objtype == OBJ_DustType) && keyIsHit(CONTROLKEY) &&
                keyIsHit(SHIFTKEY)) { // ctrl-shift-click resource: force attack
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
         }
         goto regularEnemyCase;
-    } else if ((ship->objtype == OBJ_AsteroidType || ship->objtype == OBJ_DustType) &&
+    } else if ((ship->header.objtype == OBJ_AsteroidType || ship->header.objtype == OBJ_DustType) &&
                MakeShipsHarvestCapable((SelectCommand *)&tempSelection,
                                        (SelectCommand *)&selSelected)) { // there are harvesters present
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
         }
-        speechEvent(tempSelection.ShipPtr[0], COMM_ResCol_Harvest, (ship->objtype - OBJ_AsteroidType));
+        speechEvent(tempSelection.ShipPtr[0], COMM_ResCol_Harvest, (ship->header.objtype - OBJ_AsteroidType));
         clWrapCollectResource(&universe.mainCommandLayer,(SelectCommand *)&tempSelection,(Resource *)ship);
         soundEventStartEngine(tempSelection.ShipPtr[0]);
         tutGameMessage("Game_ClickHarvest");
-    } else if ((ship->objtype == OBJ_AsteroidType) &&
-               (ship->attributes & (ATTRIBUTES_KillerCollDamage | ATTRIBUTES_HeadShotKillerCollDamage))) {
+    } else if ((ship->header.objtype == OBJ_AsteroidType) &&
+               (ship->obj.attributes & (ATTRIBUTES_KillerCollDamage | ATTRIBUTES_HeadShotKillerCollDamage))) {
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
         }
         goto regularEnemyCase;
-    } else if ((ship->objtype == OBJ_DerelictType) && (((Derelict *)ship)->derelicttype == HyperspaceGate)) {
+    } else if ((ship->header.objtype == OBJ_DerelictType) && (((Derelict *)ship)->derelicttype == HyperspaceGate)) {
         if ((playPackets) || (universePause && !opPauseOrders) || (mrDisabled))
         {
             return;  // playing back a recorded game do nothing!
         }
         goto regularEnemyCase;
     } else if (!mrDisabled) {
-        if (ship->objtype == OBJ_ShipType)
+        if (ship->header.objtype == OBJ_ShipType)
         {
             if (ship->playerowner == universe.curPlayerPtr)
             {                                               //clicked on a friendly ship
@@ -3540,7 +3540,7 @@ regularFriendlyCase:
                     bForceAttackEnemies = TRUE;
                     goto regularEnemyCase;
                 }
-                else if (ship->flags & SOF_Selectable)
+                else if (ship->header.flags & SOF_Selectable)
                 {
                     if (keyIsHit(SHIFTKEY))
                     {                                       //shift click:add/remove to/from selection
@@ -3776,7 +3776,7 @@ udword mrRegionProcess(regionhandle reg, sdword ID, udword event, udword data)
 #if PIE_MOVE_NEARTO
                     if (selClosestTarget != NULL)
                     {                                       //if there's a ship under the mouse
-                        destination = selClosestTarget->posinfo.position;
+                        destination = selClosestTarget->obj.posinfo.position;
                     }
                     else
 #endif //PIE_MOVE_NEARTO
@@ -4025,7 +4025,7 @@ plainOldClickAction:
                         else
                         {                                       //else select nothing
                             if (mouseCursorObjLast != NULL &&   //if mouse recently over an object
-                                mouseCursorObjLast->objtype == OBJ_ShipType &&//a ship to be particular
+                                mouseCursorObjLast->header.objtype == OBJ_ShipType &&//a ship to be particular
                                 mouseCursorLastObjTime + mrFastMoveShipClickTime >= universe.totaltimeelapsed && //recently enough
                                 abs(mouseCursorX() - mouseCursorLastX) < mrFastMoveShipClickX && //in roughly it's current position
                                 abs(mouseCursorY() - mouseCursorLastY) < mrFastMoveShipClickY)
@@ -4454,13 +4454,13 @@ void toDrawMoveToLine(ShipPtr ship, color linecolor, color pulsecolor)
     bool32 pulse = FALSE;
 
     //initialize a bunch of vectors and distances
-    shipradius  = ship->magnitudeSquared*ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize;
+    shipradius  = ship->magnitudeSquared*ship->staticinfo->common.staticCollInfo.approxcollspheresize;
     pulsesize   = 2*shipradius;
 
-    matGetVectFromMatrixCol3(shipfront, ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(shipright, ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(shipfront, ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(shipright, ship->rotatable.rotinfo.coordsys);
 
-    vecSub(dirvect, ship->moveTo, ship->collInfo.collPosition);
+    vecSub(dirvect, ship->moveTo, ship->impactable.collInfo.collPosition);
     distance = (real32) fsqrt(vecMagnitudeSquared(dirvect));
 
     //find the moveto starting point
@@ -4478,7 +4478,7 @@ void toDrawMoveToLine(ShipPtr ship, color linecolor, color pulsecolor)
     vecAddTo(negdir, ship->moveTo);
 
     vecMultiplyByScalar(dirproj, (shipradius)*TO_MOVE_LINE_RADIUS_STRETCH);
-    vecAddTo(dirproj, ship->collInfo.collPosition);
+    vecAddTo(dirproj, ship->impactable.collInfo.collPosition);
 
 
     //if the ship is pretty close to the end of the move, don't draw the line
@@ -4508,12 +4508,12 @@ void toDrawMoveFromLine(ShipPtr ship)
     vector shipback, shippos, dirvect;
     real32 distance,shipradius;
 
-    shipradius = TO_MOVE_LINE_RADIUS_STRETCH*ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize;
+    shipradius = TO_MOVE_LINE_RADIUS_STRETCH*ship->staticinfo->common.staticCollInfo.approxcollspheresize;
 
     //calculate the line
-    matGetVectFromMatrixCol3(shipback, ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(shipback, ship->rotatable.rotinfo.coordsys);
     vecMultiplyByScalar(shipback, (shipradius));
-    shippos = ship->collInfo.collPosition;
+    shippos = ship->impactable.collInfo.collPosition;
     vecSubFrom(shippos, shipback);
     shipback = shippos;
 
@@ -4555,13 +4555,13 @@ void toDrawMoveCircle(ShipPtr ship, real32 scale, color linecolor, color pulseco
     hmatrix rotmat;
     vector origin = {0.0, 0.0, 0.0};
 
-    hmatMakeHMatFromMat(&rotmat, &ship->rotinfo.coordsys);
-    hmatPutVectIntoHMatrixCol4(ship->collInfo.collPosition, rotmat);
+    hmatMakeHMatFromMat(&rotmat, &ship->rotatable.rotinfo.coordsys);
+    hmatPutVectIntoHMatrixCol4(ship->impactable.collInfo.collPosition, rotmat);
 
     glPushMatrix();
     glMultMatrixf((GLfloat *)&rotmat);
 
-    shipradius = ship->magnitudeSquared*TO_MOVE_LINE_RADIUS_STRETCH*ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize;
+    shipradius = ship->magnitudeSquared*TO_MOVE_LINE_RADIUS_STRETCH*ship->staticinfo->common.staticCollInfo.approxcollspheresize;
 
     if ((ship->formationcommand)&&(ship->formationcommand->formation.pulse))
     {
@@ -4686,9 +4686,9 @@ void toFieldSphereDraw(ShipPtr ship, real32 radius, real32 scale,color passedCol
     rndTextureEnable(FALSE);
 
     //Draw the circles
-    //    hmatMakeHMatFromMat(&rotmat, &ship->rotinfo.coordsys);
-        //hmatPutVectIntoHMatrixCol4(ship->collInfo.collPosition, rotmat);
-    //     hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+    //    hmatMakeHMatFromMat(&rotmat, &ship->rotatable.rotinfo.coordsys);
+        //hmatPutVectIntoHMatrixCol4(ship->impactable.collInfo.collPosition, rotmat);
+    //     hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
     matPutVectIntoMatrixCol1(up,tmpmat);
@@ -4696,7 +4696,7 @@ void toFieldSphereDraw(ShipPtr ship, real32 radius, real32 scale,color passedCol
     matPutVectIntoMatrixCol3(head,tmpmat);
 
     hmatMakeHMatFromMat(&rotmat, &tmpmat);
-    hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+    hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
     glPushMatrix();
@@ -4729,9 +4729,9 @@ void toFieldSphereDrawGeneral(vector position, real32 radius,color passedColour)
     rndTextureEnable(FALSE);
 
     //Draw the circles
-    //    hmatMakeHMatFromMat(&rotmat, &ship->rotinfo.coordsys);
-        //hmatPutVectIntoHMatrixCol4(ship->collInfo.collPosition, rotmat);
-    //     hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+    //    hmatMakeHMatFromMat(&rotmat, &ship->rotatable.rotinfo.coordsys);
+        //hmatPutVectIntoHMatrixCol4(ship->impactable.collInfo.collPosition, rotmat);
+    //     hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
     matPutVectIntoMatrixCol1(up,tmpmat);
@@ -4794,15 +4794,15 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
    matPutVectIntoMatrixCol3(head,tmpmat);
 
    hmatMakeHMatFromMat(&rotmat, &tmpmat);
-   //hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+   //hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
    glPushMatrix();
    glMultMatrixf((GLfloat *)&rotmat);
 
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Z_AXIS);
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Z_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
 
    vecScalarMultiply(tmpvecup1,up,CROSS_HALF_HIGHT);
    vecScalarMultiply(tmpvecup2,up,-CROSS_HALF_HIGHT);
@@ -4821,8 +4821,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
     }
 ////
    vecScalarMultiply(lineend,right,radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -4833,8 +4833,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR1);
 
    vecScalarMultiply(lineend,right,-radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -4846,8 +4846,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
 
 ////
    vecScalarMultiply(lineend,up, radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecright1);
    vecAdd(tmpvec2,lineend,tmpvecright2);
@@ -4858,8 +4858,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR1);
 
    vecScalarMultiply(lineend,up, -radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecright1);
    vecAdd(tmpvec2,lineend,tmpvecright2);
@@ -4871,8 +4871,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
 
 ////
    vecScalarMultiply(lineend,head, radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -4883,8 +4883,8 @@ void toDrawRadialIndicator1(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR1);
 
    vecScalarMultiply(lineend,head, -radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse1(ship->posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse1(ship->obj.posinfo.position, lineend, TO_PULSE1_SIZE       , TO_PULSE1_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -5010,15 +5010,15 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
    matPutVectIntoMatrixCol3(head,tmpmat);
 
    hmatMakeHMatFromMat(&rotmat, &tmpmat);
-   //hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+   //hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
    glPushMatrix();
    glMultMatrixf((GLfloat *)&rotmat);
 
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Z_AXIS);
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
-   //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Z_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
+   //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
 
    vecScalarMultiply(tmpvecup1,up,CROSS_HALF_HIGHT);
    vecScalarMultiply(tmpvecup2,up,-CROSS_HALF_HIGHT);
@@ -5037,8 +5037,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
     }
 ////
    vecScalarMultiply(lineend,right,radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -5049,8 +5049,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR2);
 
    vecScalarMultiply(lineend,right,-radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -5062,8 +5062,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
 
 ////
    vecScalarMultiply(lineend,up, radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecright1);
    vecAdd(tmpvec2,lineend,tmpvecright2);
@@ -5074,8 +5074,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR2);
 
    vecScalarMultiply(lineend,up, -radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecright1);
    vecAdd(tmpvec2,lineend,tmpvecright2);
@@ -5087,8 +5087,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
 
 ////
    vecScalarMultiply(lineend,head, radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -5099,8 +5099,8 @@ void toDrawRadialIndicator2(ShipPtr ship, real32 radius, real32 scale,color pass
    primLine3(&tmpvec1,&tmpvec2,TO_CROSS_COLOR2);
 
    vecScalarMultiply(lineend,head, -radius);
-   vecAddTo(lineend,ship->posinfo.position);
-   toPulse2(ship->posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
+   vecAddTo(lineend,ship->obj.posinfo.position);
+   toPulse2(ship->obj.posinfo.position, lineend, TO_PULSE2_SIZE       , TO_PULSE2_COLOR);
 
    vecAdd(tmpvec1,lineend,tmpvecup1);
    vecAdd(tmpvec2,lineend,tmpvecup2);
@@ -5244,7 +5244,7 @@ void toDrawRadialIndicator3(ShipPtr ship, real32 radius, real32 scale,color pass
 
         vecScalarMultiply(circlestart2,head,-circle3distance[count]);
         vecAddTo(circlestart,circlestart2);
-        vecAddTo(circlestart,ship->posinfo.position);
+        vecAddTo(circlestart,ship->obj.posinfo.position);
         if(circle3distance[count] > radius)
         {
             newrad = 2*radius - circle3distance[count];
@@ -5265,15 +5265,15 @@ void toDrawRadialIndicator3(ShipPtr ship, real32 radius, real32 scale,color pass
        matPutVectIntoMatrixCol3(head,tmpmat);
 
        hmatMakeHMatFromMat(&rotmat, &tmpmat);
-       //hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+       //hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
        glPushMatrix();
        glMultMatrixf((GLfloat *)&rotmat);
 
        primCircleOutline3(&circlestart, newrad, 32, 0, passedColour, Z_AXIS);
-       //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
-       //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
+       //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
+       //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
 
        glPopMatrix();
        //stop drawing circles
@@ -5349,7 +5349,7 @@ void toDrawRadialIndicator4(ShipPtr ship, real32 radius, real32 scale,color pass
 
         vecScalarMultiply(circlestart2,head,-circle4distance[count]);
         vecAddTo(circlestart,circlestart2);
-        vecAddTo(circlestart,ship->posinfo.position);
+        vecAddTo(circlestart,ship->obj.posinfo.position);
         if(circle3distance[count] > radius)
         {
             newrad = 2*radius - circle4distance[count];
@@ -5370,15 +5370,15 @@ void toDrawRadialIndicator4(ShipPtr ship, real32 radius, real32 scale,color pass
        matPutVectIntoMatrixCol3(head,tmpmat);
 
        hmatMakeHMatFromMat(&rotmat, &tmpmat);
-       //hmatPutVectIntoHMatrixCol4(ship->posinfo.position, rotmat);
+       //hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, rotmat);
 
 
        glPushMatrix();
        glMultMatrixf((GLfloat *)&rotmat);
 
        primCircleOutline3(&circlestart, newrad, 32, 0, passedColour, Z_AXIS);
-       //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
-       //primCircleOutline3(&ship->posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
+       //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, X_AXIS);
+       //primCircleOutline3(&ship->obj.posinfo.position, radius, 32, 0, TO_CROSS_COLOR1, Y_AXIS);
 
        glPopMatrix();
        //stop drawing circles

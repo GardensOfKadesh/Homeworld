@@ -724,7 +724,7 @@ long hrShipsToLoadForRace(ShipRace shiprace)
     {
         shipstaticinfo = GetShipStaticInfo(shiptype,shiprace);
 
-        if( bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoNeeded) && !bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded) )
+        if( bitTest(shipstaticinfo->common.infoFlags, IF_InfoNeeded) && !bitTest(shipstaticinfo->common.infoFlags, IF_InfoLoaded) )
             ShipsToLoad++;
     }
 

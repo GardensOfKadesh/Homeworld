@@ -216,7 +216,7 @@ bool32 MissileDestroyerSpecialTarget(Ship *ship,void *custom)
         gunstatic = &shipstaticinfo->gunStaticInfo->gunstatics[i];
         if (gunstatic->guntype == GUN_MissileLauncher)
         {
-            vecSub(trajectory,ship->collInfo.collPosition,targets->TargetPtr[spec->curTargetIndex]->collInfo.collPosition);
+            vecSub(trajectory,ship->impactable.collInfo.collPosition,targets->TargetPtr[spec->curTargetIndex]->impactable.collInfo.collPosition);
             range = RangeToTarget(ship,targets->TargetPtr[spec->curTargetIndex],&trajectory);
             gun = &ship->gunInfo->guns[i];
             if(range < (gun->gunstatic->bulletrange*0.9f))

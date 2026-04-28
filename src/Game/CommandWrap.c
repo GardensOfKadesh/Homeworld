@@ -61,7 +61,7 @@ void clFlashShips(SelectCommand *selection)
 
     for (i = 0; i < selection->numShips; i++)
     {
-        selection->ShipPtr[i]->flashtimer = taskTimeElapsed;
+        selection->ShipPtr[i]->targetable.flashtimer = taskTimeElapsed;
     }
 }
 
@@ -154,7 +154,7 @@ void clWrapMpHyperspace(CommandLayer *comlayer,SelectCommand *selectcom,vector f
     }
     for(i=0;i<selectcom->numShips;)
     {
-        bitClear(selectcom->ShipPtr[i]->flags,SOF_Selectable);
+        bitClear(selectcom->ShipPtr[i]->header.flags,SOF_Selectable);
         if(clRemoveShipFromSelection(&selSelected, selectcom->ShipPtr[i]))
         {
             ioUpdateShipTotals();
@@ -373,7 +373,7 @@ void clWrapCollectResource(CommandLayer *comlayer,SelectCommand *selectcom,Resou
 
         if (resource != NULL)
         {
-            resource->flashtimer = taskTimeElapsed;
+            resource->targetable.flashtimer = taskTimeElapsed;
         }
 #if CL_TEXTFEEDBACK
         if (enableTextFeedback) clCommandMessage("Harvest Command Received");
@@ -467,16 +467,17 @@ void clWrapSpecial(CommandLayer *comlayer,SelectCommand *selectcom,SpecialComman
         {
             //some salcaps in list
             //make sure sals > numNeededToSalvage of first target...
-            if(targets->TargetPtr[0]->objtype == OBJ_ShipType)
+            if(targets->TargetPtr[0]->header.objtype == OBJ_ShipType)
 			{
-				if(!(targets->TargetPtr[0]->attributes & ATTRIBUTES_StripTechnology))
+                Ship* targetShip = (Ship*)targets->TargetPtr[0];
+				if(!(targetShip->obj.attributes & ATTRIBUTES_StripTechnology))
                 {
                     //target isn't a technology whore.
-                    if(((Ship *)targets->TargetPtr[0])->salvageInfo != NULL)
+                    if(targetShip->shipOrDerelict.salvageInfo != NULL)
     				{
     					//if it is NULL we wouldn't care because you would only need
     					//one salcap which we for sure have
-    					if(((Ship *)targets->TargetPtr[0])->salvageInfo->numNeededForSalvage - ((Ship *)targets->TargetPtr[0])->salvageNumTagged[universe.curPlayerIndex] > sals)
+    					if(targetShip->shipOrDerelict.salvageInfo->numNeededForSalvage - targetShip->shipOrDerelict.salvageNumTagged[universe.curPlayerIndex] > sals)
     					{
     						//number still needed minus number
     						//already going for target is more than just ordered

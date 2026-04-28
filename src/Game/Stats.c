@@ -327,7 +327,7 @@ ShipStaticInfo *ConvertStatIndexToShipStatic(sdword i)
 
     ConvertStatIndexToShipRaceType(i,&shiptype,&shiprace);
     shipstatic = GetShipStaticInfo(shiptype,shiprace);
-    if (bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded))
+    if (bitTest(shipstatic->common.infoFlags, IF_InfoLoaded))
     {
         return shipstatic;
     }
@@ -487,7 +487,7 @@ void GetPostCombatStats(FightStats *fightStats)
             fightStats->numShipsAfter[playerindex] = (uword)numShips;
             for (i=0;i<numShips;i++)
             {
-                fightStats->totalHPAfter[playerindex] += selection->ShipPtr[i]->health;
+                fightStats->totalHPAfter[playerindex] += selection->ShipPtr[i]->targetable.health;
             }
         }
 
@@ -568,7 +568,7 @@ void GatherFightStatsFor(sdword i,sdword j,bool32 actuallyDoFight)
         // ship 0 is more powerful
 
         real32 hpleftperc = ((real32)fightStats->totalHPAfter[0]) /
-                            ((real32)GetShipStaticInfoValidate(fightStats->shiptype[0],fightStats->shiprace[0])->maxhealth);
+                            ((real32)GetShipStaticInfoValidate(fightStats->shiptype[0],fightStats->shiprace[0])->health.maxhealth);
 
         if (hpleftperc < CONSIDER_SHIPS_EVEN_PERC_HP_LEFT)
         {
@@ -586,7 +586,7 @@ void GatherFightStatsFor(sdword i,sdword j,bool32 actuallyDoFight)
         // ship 1 is more powerful
 
         real32 hpleftperc = ((real32)fightStats->totalHPAfter[1]) /
-                            ((real32)GetShipStaticInfoValidate(fightStats->shiptype[1],fightStats->shiprace[1])->maxhealth);
+                            ((real32)GetShipStaticInfoValidate(fightStats->shiptype[1],fightStats->shiprace[1])->health.maxhealth);
 
         if (hpleftperc < CONSIDER_SHIPS_EVEN_PERC_HP_LEFT)
         {
@@ -1521,7 +1521,7 @@ Ship *statsGetMostDangerousShipNonStatConstraints(SelectCommand *selection,ShipC
     for (i=0;i<numShips;i++)
     {
         ship = selection->ShipPtr[i];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (constraintsCB(ship))
         {
@@ -1682,7 +1682,7 @@ Ship *statsBestShipToUseToKillShip(SelectCommand *freeShips,ShipStaticInfo *targ
     for (i=0;i<numShips;i++)
     {
         ship = freeShips->ShipPtr[i];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         Killratio = statsGetShipKillRatingAgainstShip(ship->staticinfo,targetstatic);
 
@@ -1708,7 +1708,7 @@ Ship *statsBestShipToUseToKillFleet(SelectCommand *freeShips,SelectCommand *targ
     for (i=0;i<numShips;i++)
     {
         ship = freeShips->ShipPtr[i];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         Killratio = statsGetKillRatingAgainstFleet(ship->staticinfo,targetFleet);
 

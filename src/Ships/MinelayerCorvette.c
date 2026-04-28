@@ -191,14 +191,13 @@ void SetAIVecHeading(Ship *ship, SpaceObjRotImpTarg *target, vector *trajectory)
     sdword randeg;
     matrix tmpmat;
     vector targetheading;
-    MinelayerCorvetteSpec *spec = (MinelayerCorvetteSpec *)ship->ShipSpecifics;
-    MinelayerCorvetteStatics *minelayercorvettestatics;
-    minelayercorvettestatics = (MinelayerCorvetteStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
-    matGetVectFromMatrixCol3(targetheading,target->rotinfo.coordsys)
+    MinelayerCorvetteSpec* spec = (MinelayerCorvetteSpec*)ship->ShipSpecifics;
+    MinelayerCorvetteStatics* minelayercorvettestatics = (MinelayerCorvetteStatics*)ship->staticinfo->custstatinfo;
+    matGetVectFromMatrixCol3(targetheading, target->rotatable.rotinfo.coordsys);
 
     if(target != NULL)
     {
-        if(target->objtype == OBJ_ShipType)
+        if(target->header.objtype == OBJ_ShipType)
             target_class = ((Ship *)target)->staticinfo->shipclass;
         else
             target_class = CLASS_NonCombat;
@@ -223,7 +222,7 @@ void SetAIVecHeading(Ship *ship, SpaceObjRotImpTarg *target, vector *trajectory)
         vecAddTo(spec->aivec, *trajectory);
         vecScalarMultiply(spec->aivec,spec->aivec,minelayercorvettestatics->FlyAwayDist[target_class]);
     }
-    if(!IS_MOVING_LINEARLY(target->posinfo.isMoving))
+    if(!IS_MOVING_LINEARLY(target->obj.posinfo.isMoving))
     {    //if target isn't moving, randomize trajectory
         randeg = randombetween(5,30);
         randegf = (real32) ((randeg & 1) ? randeg : -randeg);
@@ -234,7 +233,7 @@ void SetAIVecHeading(Ship *ship, SpaceObjRotImpTarg *target, vector *trajectory)
         matMultiplyMatByVec(&tmpvec,&tmpmat,&spec->aivec);
         spec->aivec = tmpvec;
     }
-    vecAddTo(spec->aivec,target->posinfo.position);
+    vecAddTo(spec->aivec,target->obj.posinfo.position);
 
     //need change
     aishipFlyToPointAvoidingObjs(ship,&spec->aivec,AISHIP_FastAsPossible | AISHIP_PointInDirectionFlying,INTERCEPTORBREAK_MINVELOCITY);
@@ -268,7 +267,7 @@ void MineLayerAttackRun(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *at
     gun = &guninfo->guns[0];
     if(target != NULL)
     {
-        if(target->objtype == OBJ_ShipType)
+        if(target->header.objtype == OBJ_ShipType)
             target_class = ((Ship *)target)->staticinfo->shipclass;
         else
             target_class = CLASS_NonCombat;
@@ -286,14 +285,14 @@ void MineLayerAttackRun(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *at
             range = RangeToTarget(ship,target,&trajectory);
 
 			//lets check if we want to force drop...
-			if(target->objtype == OBJ_ShipType)
+			if(target->header.objtype == OBJ_ShipType)
 			{
 				if(((Ship *)target)->shiptype == Mothership)
 				{
 					//its a mothership
 					vector tempvec;
 					real32 tempreal;
-					vecSub(tempvec,target->collInfo.collPosition,ship->collInfo.collPosition);
+					vecSub(tempvec,target->impactable.collInfo.collPosition,ship->impactable.collInfo.collPosition);
 					tempreal = vecMagnitudeSquared(tempvec);
 					if(tempreal < mothershipDistSqr)
 					{
@@ -319,7 +318,7 @@ void MineLayerAttackRun(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *at
 			{
 				vector tempvec;
 				real32 tempreal;
-				vecSub(tempvec,ship->collInfo.collPosition,target->collInfo.collPosition);
+				vecSub(tempvec,ship->impactable.collInfo.collPosition,target->impactable.collInfo.collPosition);
 				tempreal = vecMagnitudeSquared(tempvec);
 				vecNormalize(&tempvec);
 				if(tempreal > mothershipDistSqr2)
@@ -358,7 +357,7 @@ void MineLayerAttackRun(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *at
 
 
             //aishipFlyToPointAvoidingObjs(ship,&spec->aivec,AISHIP_FastAsPossible | AISHIP_PointInDirectionFlying,INTERCEPTORBREAK_MINVELOCITY);
-            aishipFlyToPointAvoidingObjs(ship,&target->posinfo.position,AISHIP_FastAsPossible | AISHIP_PointInDirectionFlying,INTERCEPTORBREAK_MINVELOCITY);
+            aishipFlyToPointAvoidingObjs(ship,&target->obj.posinfo.position,AISHIP_FastAsPossible | AISHIP_PointInDirectionFlying,INTERCEPTORBREAK_MINVELOCITY);
             if(range < minelayercorvettestatics->DropRange)
             {
                 //temp
@@ -519,13 +518,13 @@ bool32 MinelayerCorvetteStaticMineDrop(Ship *ship,SpaceObjRotImpTarg *target)
                 spec->MiningStatus = BEGIN_WALL_DROP_RIGHT;
                 spec->MiningSideMax = 1;
                 spec->MiningSideCount = 0;
-                matGetVectFromMatrixCol1(spec->formation_up,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol2(spec->formation_right,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol1(spec->formation_up,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol2(spec->formation_right,ship->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(spec->formation_up, spec->formation_up, minelayercorvettestatics->MineSpacing);
                 vecScalarMultiply(spec->formation_down, spec->formation_up, -1.0f);
                 vecScalarMultiply(spec->formation_right,spec->formation_right,minelayercorvettestatics->MineSpacing);
                 vecScalarMultiply(spec->formation_left,spec->formation_right,-1.0f);
-                matGetVectFromMatrixCol3(spec->formation_heading,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol3(spec->formation_heading,ship->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(spec->formation_heading,spec->formation_heading,-minelayercorvettestatics->MineDropDistance);
 
                 //Create Formation Entity Here
@@ -544,7 +543,7 @@ bool32 MinelayerCorvetteStaticMineDrop(Ship *ship,SpaceObjRotImpTarg *target)
                 spec->formation_number_X = 0;
                 spec->formation_number_Y = 0;
 
-                vecAdd(spec->formation_position,ship->posinfo.position,spec->formation_heading);
+                vecAdd(spec->formation_position,ship->obj.posinfo.position,spec->formation_heading);
                 spec->mineaistate = MINE_DROP_FORMATION;
                 MinelayerCorvetteFire(ship,target);
                 spec->MineDropNumber = 1;
@@ -758,7 +757,7 @@ void univUpdateMineWallFormations()
                 {
                     minestart = (Missile *) listGetStructOfNode(minenode);
 
-                    vecSub(tempvec, minestart->posinfo.position, minestart->formation_position);
+                    vecSub(tempvec, minestart->obj.posinfo.position, minestart->formation_position);
                     if(vecMagnitudeSquared(tempvec) > MINE_GONE_TOO_FAR_SQR)
                     {
                         tempnode = minenode->next;

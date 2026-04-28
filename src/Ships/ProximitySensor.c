@@ -119,7 +119,7 @@ void proximityPlayerSeesShip(Ship *ship,Ship *enemy)
     if(ship->playerowner->playerIndex == universe.curPlayerIndex)
     {
         //local machines ship
-        if(enemy->flags & SOF_Cloaked)
+        if(enemy->header.flags & SOF_Cloaked)
         {
             //enemy is cloaked
             ////////////////////
@@ -128,7 +128,7 @@ void proximityPlayerSeesShip(Ship *ship,Ship *enemy)
             //battle chatter!
             if (battleCanChatterAtThisTime(BCE_STAT_F_CloakedShipsDetected, ship))
             {
-                battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_F_CloakedShipsDetected, SOUND_EVENT_DEFAULT, &enemy->posinfo.position);
+                battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_F_CloakedShipsDetected, SOUND_EVENT_DEFAULT, &enemy->obj.posinfo.position);
             }
 
             ///////////////
@@ -201,12 +201,12 @@ bool32 DetectShips(Ship *ship)
     //Optimize detection...
     //Use collision avoidence to 'tell' proximity sensors of ships near it???
 
-    if(ship->collMyBlob == NULL)
+    if(ship->obj.collMyBlob == NULL)
     {
         return FALSE;   //not outside...so don't detect anything
     }
 
-    selection = ship->collMyBlob->blobShips;
+    selection = ship->obj.collMyBlob->blobShips;
     numShips = selection->numShips;
 
     i=0;
@@ -218,7 +218,7 @@ bool32 DetectShips(Ship *ship)
 
         if(!allianceIsShipAlly(enemy, ship->playerowner))
         {    //Enemy ship...later add check here for ALLIANCE
-            vecSub(dist,enemy->posinfo.position,ship->posinfo.position);
+            vecSub(dist,enemy->obj.posinfo.position,ship->obj.posinfo.position);
             if(vecMagnitudeSquared(dist) < proximitysensorstatics->SearchRadiusSqr)
             {   //enemy is within detection radius
                 proximityPlayerSeesShip(ship,enemy);
@@ -291,10 +291,10 @@ void ProximitySensorHouseKeep(Ship *ship)
     //    return;                                         //if this prox sensor isn't the local users
                                                         // don't do anything
     //deal with the mesh animations cleverlike!
-    if(IS_MOVING_LINEARLY(ship->posinfo.isMoving))
+    if(IS_MOVING_LINEARLY(ship->obj.posinfo.isMoving))
     {
         //if prox is going above a reasonable speed..and not just being moved a bit!
-        if(vecMagnitudeSquared(ship->posinfo.velocity) > 40000.0f)
+        if(vecMagnitudeSquared(ship->obj.posinfo.velocity) > 40000.0f)
         {
             if(ship->madSpecialStatus == MAD_STATUS_SPECIAL_OPEN)
             {
@@ -344,7 +344,7 @@ void ProximitySensorHouseKeep(Ship *ship)
                     //speechEventFleetSpec(ship, STAT_F_ProxSensor_Detection, 0, ship->playerowner->playerIndex);
                     if(battleCanChatterAtThisTime(BCE_STAT_F_ProxSensor_Detection, ship))
                     {
-                        battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_F_ProxSensor_Detection, SOUND_EVENT_DEFAULT, &ship->posinfo.position);
+                        battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_F_ProxSensor_Detection, SOUND_EVENT_DEFAULT, &ship->obj.posinfo.position);
                     }
                     newPing = pingCreate(
                         NULL,

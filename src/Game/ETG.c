@@ -1420,7 +1420,7 @@ udword etgEffectTest(regionhandle reg, sdword ID, udword event, udword data)
     shipStatic = (ShipStaticInfo *)ship->staticinfo;
 
     //find the light
-    mexChunk = mexGetChunk(shipStatic->staticheader.pMexData, etgTestKey[ID].type, etgTestKey[ID].lightName);
+    mexChunk = mexGetChunk(shipStatic->common.pMexData, etgTestKey[ID].type, etgTestKey[ID].lightName);
     if (mexChunk == NULL)
     {
 #if ETG_VERBOSE_LEVEL >= 1
@@ -1456,44 +1456,44 @@ udword etgEffectTest(regionhandle reg, sdword ID, udword event, udword data)
 
     //now we've found everything we need, let's make a matrix
     mexVecToVec(&LOFTemp, LOFChunk);
-    matMultiplyMatByVec(&LOF, &ship->rotinfo.coordsys, &LOFTemp);//LOF in world coords
+    matMultiplyMatByVec(&LOF, &ship->rotatable.rotinfo.coordsys, &LOFTemp);//LOF in world coords
     matCreateCoordSysFromHeading(&coordSystem, &LOF);
     //now we have a coordinate system, let's create an effect
 //    size = etgEffectSize(stat->nParticleBlocks);            //compute size of effect
     size = stat->effectSize;
     newEffect = memAlloc(size, "TestingEffect", 0);         //allocate the new effect
-    newEffect->objtype = OBJ_EffectType;
-    newEffect->flags = SOF_Rotatable | SOF_AttachPosition | SOF_AttachVelocity | SOF_AttachCoordsys;
-    newEffect->staticinfo = (StaticInfo *)stat;
-    ClearNode(newEffect->renderlink);
-    newEffect->currentLOD = ship->currentLOD;
-    newEffect->cameraDistanceSquared = ship->cameraDistanceSquared;
+    newEffect->header.objtype = OBJ_EffectType;
+    newEffect->header.flags = SOF_Rotatable | SOF_AttachPosition | SOF_AttachVelocity | SOF_AttachCoordsys;
+    newEffect->staticinfo = stat;
+    ClearNode(newEffect->obj.renderlink);
+    newEffect->obj.currentLOD = ship->obj.currentLOD;
+    newEffect->obj.cameraDistanceSquared = ship->obj.cameraDistanceSquared;
     newEffect->timeElapsed = 0.0f;                          //brand new !!! how about time-offsets?
 
-//    vecAdd(newEffect->posinfo.position, position, ship->posinfo.position);
-    newEffect->posinfo.position = ship->posinfo.position;
-    vecAddToScalarMultiply(newEffect->posinfo.position, ship->posinfo.velocity, universe.phystimeelapsed);
+//    vecAdd(newEffect->obj.posinfo.position, position, ship->obj.posinfo.position);
+    newEffect->obj.posinfo.position = ship->obj.posinfo.position;
+    vecAddToScalarMultiply(newEffect->obj.posinfo.position, ship->obj.posinfo.velocity, universe.phystimeelapsed);
     etgEffectCodeStart(stat, newEffect, 0);                 //get the code a-runnin'
     if (bitTest(stat->specialOps, ESO_SortForward))
     {                                                       //make it sort forward, if applicable
-        bitSet(newEffect->flags, SOF_AlwaysSortFront);
+        bitSet(newEffect->header.flags, SOF_AlwaysSortFront);
     }
-    SET_MOVING_IMMOBILE(newEffect->posinfo.isMoving);
-    newEffect->posinfo.haventCalculatedDist = TRUE;
-    newEffect->rotinfo.coordsys = coordSystem;
+    SET_MOVING_IMMOBILE(newEffect->obj.posinfo.isMoving);
+    newEffect->obj.posinfo.haventCalculatedDist = TRUE;
+    newEffect->rotatable.rotinfo.coordsys = coordSystem;
     univUpdateObjRotInfo((SpaceObjRot *)newEffect);
 
-    newEffect->posinfo.velocity = ship->posinfo.velocity;
+    newEffect->obj.posinfo.velocity = ship->obj.posinfo.velocity;
     newEffect->drag = 1.0f;                                 //default is no drag at all
 //    newEffect->owner = ship;                                // ship that hosts this effect
     newEffect->owner = NULL;
     newEffect->nSpawnedAttachedToOwner = 0;
     newEffect->magnitudeSquared = 1.0f;
-    listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
+    listAddNode(&universe.SpaceObjList,&(newEffect->header.objlink),newEffect);
     listAddNode(&universe.effectList,&(newEffect->effectLink),newEffect);
     if (bitTest(stat->specialOps, ESO_WorldRender))
     {
-        bitSet(newEffect->flags, SOF_Hide);
+        bitSet(newEffect->header.flags, SOF_Hide);
         univAddToWorldList((Derelict *)newEffect);
     }
     else
@@ -2099,7 +2099,7 @@ void etgEffectDelete(Effect *effect)
             memFree(effect->particleBlock[index]);
         }
     }
-    if (bitTest(((etgeffectstatic *)effect->staticinfo)->specialOps, ESO_WorldRender))
+    if (bitTest(effect->staticinfo->specialOps, ESO_WorldRender))
     {
         univRemoveFromWorldList((Derelict *)effect);
     }
@@ -2191,7 +2191,7 @@ real32 etgTimeElapsed;
 real32 etgTotalTimeElapsed;
 bool32 etgEffectUpdate(Effect *effect, real32 timeElapsed)
 {
-    etgeffectstatic *stat = (etgeffectstatic *)effect->staticinfo;
+    etgeffectstatic *stat = effect->staticinfo;
     matrix tempMatrix, rotMatrix;
     real32 spin;
 
@@ -2218,41 +2218,41 @@ bool32 etgEffectUpdate(Effect *effect, real32 timeElapsed)
     //update the physics of the effect
     if (effect->owner)
     {
-        if (bitTest(effect->flags, SOF_AttachCoordsys))
+        if (bitTest(effect->header.flags, SOF_AttachCoordsys))
         {
-            effect->rotinfo.coordsys = effect->owner->rotinfo.coordsys;
+            effect->rotatable.rotinfo.coordsys = effect->owner->rotatable.rotinfo.coordsys;
         }
-        if (bitTest(effect->flags, SOF_AttachPosition))
+        if (bitTest(effect->header.flags, SOF_AttachPosition))
         {
-            effect->posinfo.position = effect->owner->posinfo.position;
+            effect->obj.posinfo.position = effect->owner->obj.posinfo.position;
         }
-        if (bitTest(effect->flags, SOF_AttachVelocity))
+        if (bitTest(effect->header.flags, SOF_AttachVelocity))
         {
-            effect->posinfo.velocity = effect->owner->posinfo.velocity;
+            effect->obj.posinfo.velocity = effect->owner->obj.posinfo.velocity;
         }
         else
         {
-            vecMultiplyByScalar(effect->posinfo.velocity, effect->drag);
+            vecMultiplyByScalar(effect->obj.posinfo.velocity, effect->drag);
         }
-        if (bitTest(effect->flags, SOF_AttachNLips))
+        if (bitTest(effect->header.flags, SOF_AttachNLips))
         {
             effect->magnitudeSquared = effect->owner->magnitudeSquared;
         }
     }
     else
     {
-        vecMultiplyByScalar(effect->posinfo.velocity, effect->drag);
+        vecMultiplyByScalar(effect->obj.posinfo.velocity, effect->drag);
     }
-    vecAddToScalarMultiply(effect->posinfo.position, effect->posinfo.velocity, timeElapsed);
+    vecAddToScalarMultiply(effect->obj.posinfo.position, effect->obj.posinfo.velocity, timeElapsed);
     effect->spin += effect->deltaSpin;
     if (effect->spin != 0.0f)
     {
         //build a rotation matrix
         spin = effect->spin * etgTimeElapsed;
         matMakeRotAboutZ(&rotMatrix, (real32)sin((double)spin), (real32)cos((double)spin));
-        tempMatrix = effect->rotinfo.coordsys;
+        tempMatrix = effect->rotatable.rotinfo.coordsys;
         //rotate the effect
-        matMultiplyMatByMat(&effect->rotinfo.coordsys, &rotMatrix, &tempMatrix);
+        matMultiplyMatByMat(&effect->rotatable.rotinfo.coordsys, &rotMatrix, &tempMatrix);
         //rotate all particle systems
     }
     //return the proper flag to ensure the effect was rendered at least once
@@ -2297,19 +2297,19 @@ void etgEffectDraw(Effect *effect)
     //make sure the effect's N-Lips is up-to-date
     if (effect->owner)
     {
-        if (bitTest(effect->flags, SOF_AttachNLips))
+        if (bitTest(effect->header.flags, SOF_AttachNLips))
         {
             effect->magnitudeSquared = effect->owner->magnitudeSquared;
         }
     }
     //compute a N-Lipped effect coord sys
     partNLips = effect->magnitudeSquared;
-    matCopyAndScale(&scaledEffectSys, &effect->rotinfo.coordsys, partNLips);
+    matCopyAndScale(&scaledEffectSys, &effect->rotatable.rotinfo.coordsys, partNLips);
     //compute inverse of that coord sys
-    //matMultiplyVecByMat(&velInverse, &effect->posinfo.velocity, &effect->rotinfo.coordsys);
-    matMultiplyVecByMat(&velInverse, &effect->posinfo.velocity, &scaledEffectSys);
+    //matMultiplyVecByMat(&velInverse, &effect->obj.posinfo.velocity, &effect->rotatable.rotinfo.coordsys);
+    matMultiplyVecByMat(&velInverse, &effect->obj.posinfo.velocity, &scaledEffectSys);
     hmatMakeHMatFromMat(&coordMatrixX,&scaledEffectSys);
-    hmatPutVectIntoHMatrixCol4(effect->posinfo.position,coordMatrixX);
+    hmatPutVectIntoHMatrixCol4(effect->obj.posinfo.position,coordMatrixX);
     for (index = 0; index < effect->iParticleBlock; index++)
     {
         if (effect->particleBlock[index] != NULL)
@@ -2325,26 +2325,26 @@ void etgEffectDraw(Effect *effect)
             if (bitTest(part->flags, PART_WORLDSPACE))
             {
                 if ((effect->owner != NULL) &&
-                    (effect->owner->objtype == OBJ_ShipType))
+                    (effect->owner->header.objtype == OBJ_ShipType))
                 {
                     //this is for the benefit of the hyperspace effect
                     partEffectOwnerSystem   = scaledEffectSys;
-                    partEffectOwnerPosition = effect->posinfo.position;
+                    partEffectOwnerPosition = effect->obj.posinfo.position;
                     partEffectColor         = effect->owner->staticinfo->hyperspaceColor;
                 }
                 partRenderSystem((psysPtr)effect->particleBlock[index]);
             }
-            else if (bitTest(effect->flags, EAF_OwnerCoordSys))
+            else if (bitTest(effect->header.flags, EAF_OwnerCoordSys))
             {
                 hmatrix ownerCoordMatrix;
                 matrix tempMatrix;
 
                 dbgAssertOrIgnore(effect->owner != NULL);
 
-                matCopyAndScale(&tempMatrix, &effect->owner->rotinfo.coordsys, effect->owner->magnitudeSquared);
-                //hmatMakeHMatFromMat(&ownerCoordMatrix, &effect->owner->rotinfo.coordsys);
+                matCopyAndScale(&tempMatrix, &effect->owner->rotatable.rotinfo.coordsys, effect->owner->magnitudeSquared);
+                //hmatMakeHMatFromMat(&ownerCoordMatrix, &effect->owner->rotatable.rotinfo.coordsys);
                 hmatMakeHMatFromMat(&ownerCoordMatrix, &tempMatrix);
-                hmatPutVectIntoHMatrixCol4(effect->owner->posinfo.position, ownerCoordMatrix);
+                hmatPutVectIntoHMatrixCol4(effect->owner->obj.posinfo.position, ownerCoordMatrix);
 
                 glPushMatrix();
                 glMultMatrixf((GLfloat*)&ownerCoordMatrix);
@@ -2359,7 +2359,7 @@ void etgEffectDraw(Effect *effect)
                 if (partTypeof(effect->particleBlock[index]) == PART_BILLBOARD)
                 {
                     partModifyBillPosition((psysPtr)effect->particleBlock[index],
-                                       &effect->posinfo.position);
+                                       &effect->obj.posinfo.position);
                 }
                 glPushMatrix();
                 glMultMatrixf((float *)&coordMatrixX);      //effect's rotation matrix
@@ -5426,8 +5426,9 @@ void etgCreationCallback(sdword userValue, ubyte *userData)
     udword opcode;
     sdword size;
     ubyte *pOpcode;
-#define effect          ((Effect *)userData)
-    etgeffectstatic *stat = (etgeffectstatic *)effect->staticinfo;
+    //TODO(type safety, 2026-04-24): Take an Effect* as argument instead of a ubyte*
+    Effect* effect = (Effect*)userData;
+    etgeffectstatic* stat = effect->staticinfo;
 
     //save the code block info for later restoration
     codeBlock = etgExecStack.etgCodeBlockIndex;
@@ -5458,7 +5459,6 @@ void etgCreationCallback(sdword userValue, ubyte *userData)
     etgExecStack.etgCodeBlockIndex = codeBlock;
     etgExecStack.etgCodeBlock[codeBlock].offset = offset;
     //p-code back to normal, keep creating particles
-#undef effect
 }
 
 /*-----------------------------------------------------------------------------
@@ -6985,7 +6985,7 @@ sdword etgDetatchThisOwner(Effect *effect, Ship *owner, sdword nToFind)
             nWalks++;
 #endif
             thisEffect = listGetStructOfNode(fNode);
-            if (thisEffect->objtype == OBJ_EffectType && thisEffect->owner == owner)
+            if (thisEffect->header.objtype == OBJ_EffectType && thisEffect->owner == owner)
             {
 #if ETG_DETATCH_STATS
                 nTotalDetached++;
@@ -7005,7 +7005,7 @@ sdword etgDetatchThisOwner(Effect *effect, Ship *owner, sdword nToFind)
             nWalks++;
 #endif
             thisEffect = listGetStructOfNode(bNode);
-            if (thisEffect->objtype == OBJ_EffectType && thisEffect->owner == owner)
+            if (thisEffect->header.objtype == OBJ_EffectType && thisEffect->owner == owner)
             {
 #if ETG_DETATCH_STATS
                 nTotalDetached++;
@@ -7037,7 +7037,7 @@ void etgParentShipDelete(Effect *effect)
 {
     if (effect->owner != NULL)
     {                                                       //if properly attached
-        if (effect->owner->objtype == OBJ_ShipType)
+        if (effect->owner->header.objtype == OBJ_ShipType)
         {                                                   //to a ship (could be attached to another effect)
             if (bitTest(effect->effectFlags, EAF_PlayingSpeech))
             {                                                   //if the ship is screaming out in pain
@@ -7046,7 +7046,7 @@ void etgParentShipDelete(Effect *effect)
             }
             univWipeShipOutOfExistence(effect->owner);
         }
-        else if (effect->owner->objtype == OBJ_DerelictType)
+        else if (effect->owner->header.objtype == OBJ_DerelictType)
         {
             univWipeDerelictOutOfExistance((Derelict *)effect->owner);
         }
@@ -7059,7 +7059,7 @@ void etgParentShipDelete(Effect *effect)
     else
     {
 #if ETG_VERBOSE_LEVEL >= 1
-        dbgMessagef("Effect '%s' tried to delete ship more than once.", ((etgeffectstatic *)effect->staticinfo)->name);
+        dbgMessagef("Effect '%s' tried to delete ship more than once.", effect->staticinfo->name);
 #endif
     }
 }
@@ -7108,7 +7108,7 @@ sdword etgDeleteEffectsOwnedBy(Ship *owner)
         {
             etgEffectDelete(effect);                        //delete the effect
             univRemoveObjFromRenderList((SpaceObj *)effect);//remove from render list
-            listDeleteNode(&effect->objlink);               //remove from object list
+            listDeleteNode(&effect->header.objlink);               //remove from object list
             nFreed++;
         }
     }
@@ -7126,7 +7126,7 @@ void etgDamageDone(Effect *effect)
     else
     {
 #if ETG_VERBOSE_LEVEL >= 1
-        dbgMessagef("Effect '%s' tried to call a damage callback with no owner.", ((etgeffectstatic*)effect->staticinfo)->name);
+        dbgMessagef("Effect '%s' tried to call a damage callback with no owner.", effect->staticinfo->name);
 #endif
     }
     etgExecStack.etgDeleteFlag = TRUE;
@@ -7151,11 +7151,11 @@ udword etgEffectVelocityGet(Effect *effect)
 
     if (effect->owner != NULL)
     {
-        velVector = &effect->owner->posinfo.velocity;
+        velVector = &effect->owner->obj.posinfo.velocity;
     }
     else
     {
-        velVector = &effect->posinfo.velocity;
+        velVector = &effect->obj.posinfo.velocity;
     }
     velocity = vecMagnitudeSquared(*velVector);
     velocity = fsqrt(velocity);
@@ -7173,7 +7173,7 @@ void etgParentShipHide(Effect *effect)
     else
     {
 #if ETG_VERBOSE_LEVEL >= 1
-        dbgMessagef("Effect '%s' at 0x%x tried to hide ship which was deleted.", ((etgeffectstatic *)effect->staticinfo)->name, effect);
+        dbgMessagef("Effect '%s' at 0x%x tried to hide ship which was deleted.", effect->staticinfo->name, effect);
 #endif
     }
 }
@@ -7229,9 +7229,9 @@ ubyte *etgCreateSprites(Effect *effect, sdword number, sdword dist)
         dbgFatalf(DBG_Loc, "etgCreateCircles: exceeded %d particle blocks", effect->iParticleBlock);
     }
 #endif
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     effect->particleBlock[effect->iParticleBlock] =
         (ubyte *)partCreateSystemWithDelta(PART_BILLBOARD, number, dist);
     effect->iParticleBlock++;
@@ -7251,9 +7251,9 @@ ubyte *etgCreateCircles(Effect *effect, sdword number, sdword dist)
     }
 #endif
     partSetTrHandle(TR_Invalid, 0, 0, 0, 0);
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     effect->particleBlock[effect->iParticleBlock] =
         (ubyte *)partCreateSystemWithDelta(PART_BILLBOARD, number, dist);
     effect->iParticleBlock++;
@@ -7272,9 +7272,9 @@ ubyte *etgCreatePoints(Effect *effect, sdword number, sdword dist)
         dbgFatalf(DBG_Loc, "etgCreateCircles: exceeded %d particle blocks", effect->iParticleBlock);
     }
 #endif
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     effect->particleBlock[effect->iParticleBlock] =
         (ubyte *)partCreateSystemWithDelta(PART_POINTS, number, dist);
     effect->iParticleBlock++;
@@ -7293,9 +7293,9 @@ ubyte *etgCreateMeshes(Effect *effect, sdword number, sdword dist)
         dbgFatalf(DBG_Loc, "etgCreateCircles: exceeded %d particle blocks", effect->iParticleBlock);
     }
 #endif
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     effect->particleBlock[effect->iParticleBlock] =
         (ubyte*)partCreateSystemWithDelta(PART_MESH, number, dist);
     effect->iParticleBlock++;
@@ -7314,9 +7314,9 @@ ubyte *etgCreateLines(Effect *effect, sdword number, sdword dist)
         dbgFatalf(DBG_Loc, "etgCreateCircles: exceeded %d particle blocks", effect->iParticleBlock);
     }
 #endif
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     effect->particleBlock[effect->iParticleBlock] =
         (ubyte *)partCreateSystemWithDelta(PART_LINES, number, dist);
     effect->iParticleBlock++;
@@ -7334,7 +7334,7 @@ void etgCreateEffects(Effect *effect, etgeffectstatic *stat, sdword number, sdwo
     smemsize arg[ETG_NumberParameters];
     va_list argList;
 
-    matGetVectFromMatrixCol1(up, effect->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up, effect->rotatable.rotinfo.coordsys);
 
 #if ETG_VERBOSE_LEVEL >= 2
     dbgMessagef("Creating %d +- %d effect-particles for 0x%x", number, dist, effect);
@@ -7343,9 +7343,9 @@ void etgCreateEffects(Effect *effect, etgeffectstatic *stat, sdword number, sdwo
     {
         number = ranRandom(RANDOM_ETG) % (dist * 2) + number - dist;
     }
-    partSetPosition(&effect->posinfo.position);
-    partSetCoordSys(&effect->rotinfo.coordsys);
-    partSetWorldVel(&effect->posinfo.velocity);
+    partSetPosition(&effect->obj.posinfo.position);
+    partSetCoordSys(&effect->rotatable.rotinfo.coordsys);
+    partSetWorldVel(&effect->obj.posinfo.velocity);
     system = partCreateSystem(PART_POINTS, number);
     for (index = 0, part = (particle*)(system + partHeaderSize(system));
          index < partNumberof(system); index++, part++)
@@ -7356,16 +7356,16 @@ void etgCreateEffects(Effect *effect, etgeffectstatic *stat, sdword number, sdwo
         }
         size = stat->effectSize;
         newEffect = memAlloc(size, "Ef(Effect)", Pyrophoric);   //allocate the new effect
-        newEffect->objtype = OBJ_EffectType;
-        newEffect->flags = SOF_Rotatable;
-        newEffect->staticinfo = (StaticInfo *)stat;
-        ClearNode(newEffect->renderlink);
-        newEffect->currentLOD = effect->currentLOD;
-        newEffect->cameraDistanceSquared = effect->cameraDistanceSquared;
+        newEffect->header.objtype = OBJ_EffectType;
+        newEffect->header.flags = SOF_Rotatable;
+        newEffect->staticinfo = stat;
+        ClearNode(newEffect->obj.renderlink);
+        newEffect->obj.currentLOD = effect->obj.currentLOD;
+        newEffect->obj.cameraDistanceSquared = effect->obj.cameraDistanceSquared;
         newEffect->timeElapsed = -part->waitspan;           //use delay from the particle
 
-        SET_MOVING_IMMOBILE(newEffect->posinfo.isMoving);
-        newEffect->posinfo.haventCalculatedDist = TRUE;
+        SET_MOVING_IMMOBILE(newEffect->obj.posinfo.isMoving);
+        newEffect->obj.posinfo.haventCalculatedDist = TRUE;
         newEffect->drag = ((pointSystem*)system)->drag;
         //compute new velocity vector
         if (part->velR != 0.0f)
@@ -7375,30 +7375,30 @@ void etgCreateEffects(Effect *effect, etgeffectstatic *stat, sdword number, sdwo
         part->rvec.z = part->velLOF;
         if (bitTest(((pointSystem *)system)->flags, PART_WORLDSPACE))
         {
-            newEffect->posinfo.velocity = part->wVel;
-            newEffect->posinfo.position = part->position;
+            newEffect->obj.posinfo.velocity = part->wVel;
+            newEffect->obj.posinfo.position = part->position;
         }
         else
         {
             //!!! this is inconsistent with the velocity vector stuff in particle.c !!!
-            matMultiplyMatByVec(&newEffect->posinfo.velocity,   //convert to world space
-                                &effect->rotinfo.coordsys, &part->rvec);
-            matMultiplyMatByVec(&newEffect->posinfo.position,   //position in world coords
-                                &effect->rotinfo.coordsys, &part->position);
-            vecAdd(newEffect->posinfo.position,                 //position not relative to parent effect
-                   newEffect->posinfo.position, effect->posinfo.position);
+            matMultiplyMatByVec(&newEffect->obj.posinfo.velocity,   //convert to world space
+                                &effect->rotatable.rotinfo.coordsys, &part->rvec);
+            matMultiplyMatByVec(&newEffect->obj.posinfo.position,   //position in world coords
+                                &effect->rotatable.rotinfo.coordsys, &part->position);
+            vecAdd(newEffect->obj.posinfo.position,                 //position not relative to parent effect
+                   newEffect->obj.posinfo.position, effect->obj.posinfo.position);
         }
         //velocity vector is new LOF, create a coordinate system for it
-        matMultiplyMatByVec(&LOF, &effect->rotinfo.coordsys, &part->rvec);
+        matMultiplyMatByVec(&LOF, &effect->rotatable.rotinfo.coordsys, &part->rvec);
         vecCrossProduct(right, LOF, up);
         vecCrossProduct(tempVector, LOF, right);
         vecNormalize(&LOF);
         vecNormalize(&right);
         vecNormalize(&tempVector);
 
-        matPutVectIntoMatrixCol1(tempVector, newEffect->rotinfo.coordsys);
-        matPutVectIntoMatrixCol2(right, newEffect->rotinfo.coordsys);
-        matPutVectIntoMatrixCol3(LOF, newEffect->rotinfo.coordsys);
+        matPutVectIntoMatrixCol1(tempVector, newEffect->rotatable.rotinfo.coordsys);
+        matPutVectIntoMatrixCol2(right, newEffect->rotatable.rotinfo.coordsys);
+        matPutVectIntoMatrixCol3(LOF, newEffect->rotatable.rotinfo.coordsys);
 
         if (!bitTest(((pointSystem *)system)->flags, PART_WORLDSPACE))
         {
@@ -7419,18 +7419,18 @@ void etgCreateEffects(Effect *effect, etgeffectstatic *stat, sdword number, sdwo
 
         if (bitTest(stat->specialOps, ESO_SortForward))
         {                                                   //make it sort forward, if applicable
-            bitSet(newEffect->flags, SOF_AlwaysSortFront);
+            bitSet(newEffect->header.flags, SOF_AlwaysSortFront);
         }
         newEffect->owner = NULL;                            // no host for this effect
         newEffect->nSpawnedAttachedToOwner = 0;
         newEffect->magnitudeSquared = effect->magnitudeSquared;
         newEffect->spin = etgEffOffset.spin;
         newEffect->deltaSpin = etgEffOffset.deltaSpin;
-        listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
+        listAddNode(&universe.SpaceObjList,&(newEffect->header.objlink),newEffect);
         listAddNode(&universe.effectList,&(newEffect->effectLink),newEffect);
         if (bitTest(stat->specialOps, ESO_WorldRender))
         {
-            bitSet(newEffect->flags, SOF_Hide);
+            bitSet(newEffect->header.flags, SOF_Hide);
             univAddToWorldList((Derelict *)newEffect);
         }
         else
@@ -7465,12 +7465,12 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
 
     newEffect = memAlloc(stat->effectSize, "GE(GenEffect)", Pyrophoric);//allocate the new effect
 
-    newEffect->objtype = OBJ_EffectType;                    //type of spaceobj
-    newEffect->flags = SOF_Rotatable | flags;               //basic flags
-    newEffect->staticinfo = (StaticInfo *)stat;             //save static info
-    ClearNode(newEffect->renderlink);                       //no in render list
-    newEffect->currentLOD = 0;//owner ? ((Ship *)owner)->currentLOD : 0;
-    newEffect->cameraDistanceSquared = owner ? owner->cameraDistanceSquared : REALlyBig;
+    newEffect->header.objtype = OBJ_EffectType;                    //type of spaceobj
+    newEffect->header.flags = SOF_Rotatable | flags;               //basic flags
+    newEffect->staticinfo = stat;             //save static info
+    ClearNode(newEffect->obj.renderlink);                       //no in render list
+    newEffect->obj.currentLOD = 0;//owner ? ((Ship *)owner)->obj.currentLOD : 0;
+    newEffect->obj.cameraDistanceSquared = owner ? owner->obj.cameraDistanceSquared : REALlyBig;
     newEffect->timeElapsed = 0.0f;                          //effect just now starting
     newEffect->drag = 1.0f;                                 //default is no drag at all
 
@@ -7480,12 +7480,12 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
         dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachPosition))
         {
-            newEffect->posinfo.position = owner->posinfo.position;
+            newEffect->obj.posinfo.position = owner->obj.posinfo.position;
         }
     }
     else
     {
-        newEffect->posinfo.position = *pos;
+        newEffect->obj.posinfo.position = *pos;
     }
 
     //velocity
@@ -7494,12 +7494,12 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
         dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachVelocity))
         {
-            newEffect->posinfo.velocity = owner->posinfo.velocity;
+            newEffect->obj.posinfo.velocity = owner->obj.posinfo.velocity;
         }
     }
     else
     {
-        newEffect->posinfo.velocity = *vel;
+        newEffect->obj.posinfo.velocity = *vel;
     }
 
     //coordinate system
@@ -7508,12 +7508,12 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
         dbgAssertOrIgnore(owner != NULL);
 //        if (!bitTest(flags, SOF_AttachCoordsys))
         {
-            newEffect->rotinfo.coordsys = owner->rotinfo.coordsys;
+            newEffect->rotatable.rotinfo.coordsys = owner->rotatable.rotinfo.coordsys;
         }
     }
     else
     {
-        newEffect->rotinfo.coordsys = *coordsys;
+        newEffect->rotatable.rotinfo.coordsys = *coordsys;
     }
     newEffect->owner = owner;                       // ((Ship *)owner) that effect is attached to
     newEffect->nSpawnedAttachedToOwner = 0;
@@ -7538,15 +7538,15 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
             arg[0], arg[1], arg[2], arg[3], arg[4], arg[5], arg[6], arg[7]);
     if (bitTest(stat->specialOps, ESO_SortForward))
     {                                                       //make it sort forward, if applicable
-        bitSet(newEffect->flags, SOF_AlwaysSortFront);
+        bitSet(newEffect->header.flags, SOF_AlwaysSortFront);
     }
-    listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
+    listAddNode(&universe.SpaceObjList,&(newEffect->header.objlink),newEffect);
     listAddNode(&universe.effectList,&(newEffect->effectLink),newEffect);
     if (owner != NULL)
     {
         if (bitTest(stat->specialOps, ESO_WorldRender))
         {
-            bitSet(newEffect->flags, SOF_Hide);
+            bitSet(newEffect->header.flags, SOF_Hide);
             univAddToWorldList((Derelict *)newEffect);
         }
         else
@@ -7558,7 +7558,7 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     {
         if (bitTest(stat->specialOps, ESO_WorldRender))
         {
-            bitSet(newEffect->flags, SOF_Hide);
+            bitSet(newEffect->header.flags, SOF_Hide);
             univAddToWorldList((Derelict *)newEffect);
         }
         else
@@ -7568,7 +7568,7 @@ Effect* etgEffectCreate(etgeffectstatic* stat, Ship* owner, vector* pos, vector*
     }
     if (bitTest(stat->specialOps, ESO_SortForward))
     {                                                       //make it sort forward, if applicable
-        bitSet(newEffect->flags, SOF_AlwaysSortFront);
+        bitSet(newEffect->header.flags, SOF_AlwaysSortFront);
     }
 
     return newEffect;
@@ -7675,22 +7675,22 @@ memsize etgSpawnNewEffect(Effect *effect, etgeffectstatic *stat, sdword nParams,
 //    size = etgEffectSize(stat->nParticleBlocks);            //compute size of effect
     size = stat->effectSize;
     newEffect = memAlloc(size, "Ef(Effect)", Pyrophoric);       //allocate the new effect
-    newEffect->objtype = OBJ_EffectType;
+    newEffect->header.objtype = OBJ_EffectType;
     if (etgEffOffset.attachParent && effect->owner != NULL)
     {
-        newEffect->flags = SOF_Rotatable | SOF_AttachPosition | SOF_AttachVelocity;
+        newEffect->header.flags = SOF_Rotatable | SOF_AttachPosition | SOF_AttachVelocity;
         newEffect->owner = effect->owner;                   // no host for this effect
         effect->nSpawnedAttachedToOwner++;
     }
     else
     {
-        newEffect->flags = SOF_Rotatable;
+        newEffect->header.flags = SOF_Rotatable;
         newEffect->owner = NULL;                            // no host for this effect
     }
-    newEffect->staticinfo = (StaticInfo *)stat;
-    ClearNode(newEffect->renderlink);
-    newEffect->currentLOD = effect->currentLOD;
-    newEffect->cameraDistanceSquared = effect->cameraDistanceSquared;
+    newEffect->staticinfo = stat;
+    ClearNode(newEffect->obj.renderlink);
+    newEffect->obj.currentLOD = effect->obj.currentLOD;
+    newEffect->obj.cameraDistanceSquared = effect->obj.cameraDistanceSquared;
     newEffect->timeElapsed = -etgEffOffset.offsetTime;      //brand new !!! how about time-offsets?
 
     //determine new position in space of current effect
@@ -7700,15 +7700,15 @@ memsize etgSpawnNewEffect(Effect *effect, etgeffectstatic *stat, sdword nParams,
         sinTheta = (real32)sin((double)etgEffOffset.offsetTheta);
         cosTheta = (real32)cos((double)etgEffOffset.offsetTheta);
         matMakeRotAboutZ(&rotTheta, cosTheta, sinTheta);
-//        matMultiplyMatByMat(&rotMu, &rotTheta, &effect->rotinfo.coordsys);
+//        matMultiplyMatByMat(&rotMu, &rotTheta, &effect->rotatable.rotinfo.coordsys);
         matMultiplyVecByMat(&newPos, &position, &rotTheta);    //new radial offset
         position = newPos;
     }
 
     vecAdd(newPos, position, etgEffOffset.offsetXYZ);       //add in the XYZ offset
-    matMultiplyMatByVec(&position, &effect->rotinfo.coordsys, &newPos);//get offset vector in world space
-    vecAdd(newEffect->posinfo.position, position,             //and get position in world space
-           effect->posinfo.position);
+    matMultiplyMatByVec(&position, &effect->rotatable.rotinfo.coordsys, &newPos);//get offset vector in world space
+    vecAdd(newEffect->obj.posinfo.position, position,             //and get position in world space
+           effect->obj.posinfo.position);
 
     //create new coordinate system using current effects matrix and the new LOF
     //offsets from current
@@ -7723,24 +7723,24 @@ memsize etgSpawnNewEffect(Effect *effect, etgeffectstatic *stat, sdword nParams,
         matMakeRotAboutY(&rotMu, cosMu, sinMu);
         matMakeRotAboutZ(&rotTheta, cosTheta, sinTheta);
         matMultiplyMatByMat(&tempMatrix, &rotTheta, &rotMu);//concat the two rotations
-        matMultiplyMatByMat(&newEffect->rotinfo.coordsys,   //matrix in world space
-                            &effect->rotinfo.coordsys, &tempMatrix);
+        matMultiplyMatByMat(&newEffect->rotatable.rotinfo.coordsys,   //matrix in world space
+                            &effect->rotatable.rotinfo.coordsys, &tempMatrix);
     }
     else
     {
-        newEffect->rotinfo.coordsys = effect->rotinfo.coordsys;
+        newEffect->rotatable.rotinfo.coordsys = effect->rotatable.rotinfo.coordsys;
     }
-    SET_MOVING_IMMOBILE(newEffect->posinfo.isMoving);
-    newEffect->posinfo.haventCalculatedDist = TRUE;
+    SET_MOVING_IMMOBILE(newEffect->obj.posinfo.isMoving);
+    newEffect->obj.posinfo.haventCalculatedDist = TRUE;
     newEffect->drag = effect->drag;
-//    newEffect->rotinfo.coordsys = coordSystem;
+//    newEffect->rotatable.rotinfo.coordsys = coordSystem;
 
     //create new compound velocity vector
 //    position.x = 0.0f; position.y = 0.0f; position.z = etgEffOffset.offsetVelLOF;
-//    matMultiplyVecByMat(&newEffect->posinfo.velocity, &position, &newEffect->rotinfo.coordsys);
-//    vecAdd(newEffect->posinfo.velocity,
-//           newEffect->posinfo.velocity, effect->posinfo.velocity);
-    newEffect->posinfo.velocity = effect->posinfo.velocity;
+//    matMultiplyVecByMat(&newEffect->obj.posinfo.velocity, &position, &newEffect->rotatable.rotinfo.coordsys);
+//    vecAdd(newEffect->obj.posinfo.velocity,
+//           newEffect->obj.posinfo.velocity, effect->obj.posinfo.velocity);
+    newEffect->obj.posinfo.velocity = effect->obj.posinfo.velocity;
 
     univUpdateObjRotInfo((SpaceObjRot *)newEffect);
 
@@ -7757,14 +7757,14 @@ memsize etgSpawnNewEffect(Effect *effect, etgeffectstatic *stat, sdword nParams,
 
     if (bitTest(stat->specialOps, ESO_SortForward))
     {                                                       //make it sort forward, if applicable
-        bitSet(newEffect->flags, SOF_AlwaysSortFront);
+        bitSet(newEffect->header.flags, SOF_AlwaysSortFront);
     }
     //newEffect->owner = effect->owner;                       // no host for this effect
     newEffect->nSpawnedAttachedToOwner = 0;
     newEffect->magnitudeSquared = effect->magnitudeSquared;
     newEffect->spin = etgEffOffset.spin;
     newEffect->deltaSpin = etgEffOffset.deltaSpin;
-    listAddNode(&universe.SpaceObjList,&(newEffect->objlink),newEffect);
+    listAddNode(&universe.SpaceObjList,&(newEffect->header.objlink),newEffect);
     listAddNode(&universe.effectList,&(newEffect->effectLink),newEffect);
     univAddObjToRenderListIf((SpaceObj *)newEffect,(SpaceObj *)effect);// add to render list if parent ship is in render list
 
@@ -7860,7 +7860,7 @@ void etgThisOffsetVelR(Effect *effect, real32 R, real32 theta)
 */
 void etgThisScaleVelocity(Effect *effect, real32 factor)
 {
-    vecMultiplyByScalar(effect->posinfo.velocity, factor);
+    vecMultiplyByScalar(effect->obj.posinfo.velocity, factor);
     dbgMessagef("etgThisScaleVelocity not implemented yet!");
 }
 //spin an effect about it's axis

@@ -1072,12 +1072,12 @@ void aimResourceVolumeResourceDied(AITeam *team, AITeamMove *move, Resource *res
     {
         for (i=0;i<team->shipList.selection->numShips;i++)
         {
-            if (bitTest(team->shipList.selection->ShipPtr[i]->specialFlags, SPECIAL_Finished_Resource))
+            if (bitTest(team->shipList.selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_Finished_Resource))
             {
                 SelectCommand selone;
                 selone.numShips = 1;
                 selone.ShipPtr[0] = team->shipList.selection->ShipPtr[i];
-                bitClear(selone.ShipPtr[0]->specialFlags, SPECIAL_Finished_Resource);
+                bitClear(selone.ShipPtr[0]->shipOrDerelict.specialFlags, SPECIAL_Finished_Resource);
                 aiuWrapHalt(&selone);
             }
         }
@@ -1302,7 +1302,7 @@ sdword aimProcessHyperspace(AITeam *team)
     {
         for (i=0;i<team->shipList.selection->numShips;i++)
         {
-            if (!bitTest(team->shipList.selection->ShipPtr[0]->flags, SOF_Selectable))
+            if (!bitTest(team->shipList.selection->ShipPtr[0]->header.flags, SOF_Selectable))
             {
                 return FALSE;
             }
@@ -1345,13 +1345,13 @@ sdword aimProcessIntercept(AITeam *team)
             //make destination halfway point between target ship and it's destination
             //later add code to deal with when the intercepting team is directly
             // in the path of the ship it's intercepting
-            vecAdd(thisMove->params.intercept.destination, ship->moveTo, ship->posinfo.position);
+            vecAdd(thisMove->params.intercept.destination, ship->moveTo, ship->obj.posinfo.position);
             vecMultiplyByScalar(thisMove->params.intercept.destination, 0.5);
             thisMove->params.intercept.moving = TRUE;
         }
         else
         {
-            thisMove->params.intercept.destination = ship->posinfo.position;
+            thisMove->params.intercept.destination = ship->obj.posinfo.position;
             thisMove->params.intercept.moving = FALSE;
         }
 
@@ -1364,7 +1364,7 @@ sdword aimProcessIntercept(AITeam *team)
     else
     {
         //if the team has arrived
-        if (aiuFindDistanceSquared(ship->posinfo.position, team->shipList.selection->ShipPtr[0]->posinfo.position) < AIM_INTERCEPT_FINISH_DISTSQ)
+        if (aiuFindDistanceSquared(ship->obj.posinfo.position, team->shipList.selection->ShipPtr[0]->obj.posinfo.position) < AIM_INTERCEPT_FINISH_DISTSQ)
         {
             return TRUE;
         }
@@ -1377,7 +1377,7 @@ sdword aimProcessIntercept(AITeam *team)
 
         //if the intercept target has started moving or changed course, recalculate destination
         if ((!thisMove->params.intercept.moving) &&
-            (aiuFindDistanceSquared(ship->posinfo.position, thisMove->params.intercept.destination) > AIM_INTERCEPT_RECALC_DISTSQ))
+            (aiuFindDistanceSquared(ship->obj.posinfo.position, thisMove->params.intercept.destination) > AIM_INTERCEPT_RECALC_DISTSQ))
         {
             thisMove->processing = FALSE;
         }
@@ -1713,8 +1713,8 @@ sdword aimProcessHarassAttack(AITeam *team)
         if (target.ShipPtr[0] != NULL)
         {
             //find distance to target
-            approx_team_pos    = team->shipList.selection->ShipPtr[0]->posinfo.position;
-            target_pos         = target.ShipPtr[0]->posinfo.position;
+            approx_team_pos    = team->shipList.selection->ShipPtr[0]->obj.posinfo.position;
+            target_pos         = target.ShipPtr[0]->obj.posinfo.position;
             target_distance_sq = aiuFindDistanceSquared(approx_team_pos, target_pos);
 
             if (target_distance_sq > AIM_MIN_HARASS_ATTACK_DIST_SQ)
@@ -1820,8 +1820,8 @@ sdword aimProcessDock(AITeam *team)
         //determine if the ships' health is low
         for (i = 0; i < team->shipList.selection->numShips; i++)
         {
-            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->maxhealth;
-            actualHealth += team->shipList.selection->ShipPtr[i]->health;
+            maxHealth += team->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth;
+            actualHealth += team->shipList.selection->ShipPtr[i]->targetable.health;
         }
 
         //if the ships' health is low, dock for refuel and repair
@@ -1866,7 +1866,7 @@ sdword aimProcessDock(AITeam *team)
             ship = teamselection->ShipPtr[i];
 
             if ( (((ship->dockvars.dockship == NULL) && (!aiuShipIsHidden(ship)))) ||
-                 ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && ShipIsWaitingForSoftLaunch(ship)) )
+                 ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && ShipIsWaitingForSoftLaunch(ship)) )
             {
                 clRemoveShipFromSelection(thisMove->params.dock.shipsDocking, ship);
             }
@@ -2094,7 +2094,7 @@ sdword aimProcessTempGuard(AITeam *team)
         {
             distance = AIM_TEMP_GUARD_MOVE_LOCATION_MULT*(fsqrt(aiCurrentAIPlayer->sphereofinfluence));
 
-/*            guardLocation = aiuFindRangeStandoffPoint(aiCurrentAIPlayer->player->PlayerMothership->posinfo.position,
+/*            guardLocation = aiuFindRangeStandoffPoint(aiCurrentAIPlayer->player->PlayerMothership->obj.posinfo.position,
                                                       origin, AIM_TEMP_GUARD_MOVE_LOCATION_MULT*(fsqrt(aiCurrentAIPlayer->sphereofinfluence)));
 
             newMove = aimCreateMoveTeamNoAdd(team, guardLocation, AIM_TEMP_GUARD_MOVE_FORMATION, FALSE, TRUE);
@@ -2170,8 +2170,8 @@ sdword aimProcessReinforce(AITeam *team)
     {
         //first move the reinforcing team to the location of the team to be reinforced
         if ((reinforceTeam->shipList.selection->numShips) &&
-            (aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->posinfo.position,
-                                   reinforceTeam->shipList.selection->ShipPtr[0]->posinfo.position) > AIM_INTERCEPT_FINISH_DISTSQ))
+            (aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->obj.posinfo.position,
+                                   reinforceTeam->shipList.selection->ShipPtr[0]->obj.posinfo.position) > AIM_INTERCEPT_FINISH_DISTSQ))
         {
             newMove = aimCreateInterceptNoAdd(team, reinforceTeam->shipList.selection->ShipPtr[0], 5.0,DELTA_FORMATION,Evasive, TRUE, TRUE);
             newMove->events = thisMove->events;
@@ -2278,7 +2278,7 @@ sdword aimProcessSupport(AITeam *team)
     if ((!ships) || (!ships->numShips))
     {
         //move back to the mothership
-        dist = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->posinfo.position,
+        dist = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->obj.posinfo.position,
                                       aiuPlayerMothershipCoords(aiCurrentAIPlayer->player));
         if (dist > 100000000)
         {
@@ -2335,7 +2335,7 @@ sdword aimProcessActiveRecon(AITeam *team)
     {
         //if a probe is farther than 5km from the mothership,
         //it is considered launched and can't move again.
-        if (playerMothership && (aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->posinfo.position, playerMothership->posinfo.position) > 25000000))
+        if (playerMothership && (aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->obj.posinfo.position, playerMothership->obj.posinfo.position) > 25000000))
         {
             return TRUE;
         }
@@ -2465,7 +2465,7 @@ sdword aimProcessShipRecon(AITeam *team)
     }
 
     //first check to see if any of the ships are nearby
-    nearbyships = selectSelectionIntersection(teamships->ShipPtr[0]->collMyBlob->blobShips, moveships);
+    nearbyships = selectSelectionIntersection(teamships->ShipPtr[0]->obj.collMyBlob->blobShips, moveships);
     if (nearbyships)
     {
         for (i=0;i<nearbyships->numShips;i++)
@@ -2608,7 +2608,7 @@ sdword aimProcessControlResources(AITeam *team)
         destination = aiuFindResourceControllerDestination();
     }
 
-    dist = aiuFindDistanceSquared(destination, team->shipList.selection->ShipPtr[0]->posinfo.position);
+    dist = aiuFindDistanceSquared(destination, team->shipList.selection->ShipPtr[0]->obj.posinfo.position);
 
     if (dist > 100000000) //10 km
     {
@@ -3009,7 +3009,7 @@ sdword aimProcessSwarmPod(AITeam *team)
             thisMove->processing = TRUE;
         }
         destination = selCentrePointComputeGeneral((MaxSelection *)attackSwarm->shipList.selection, &avg_size);
-        dist = aiuFindDistanceSquared(destination, team->shipList.selection->ShipPtr[0]->posinfo.position);
+        dist = aiuFindDistanceSquared(destination, team->shipList.selection->ShipPtr[0]->obj.posinfo.position);
 
         if (dist > 225000000)
         {
@@ -3126,7 +3126,7 @@ sdword aimProcessResourceVolume(AITeam *team)
 
                     //maybe this isn't the best way to do it... what if the resource collector gets killed?
                     selSelectionAddSingleShip((MaxSelection *)thisMove->params.resvolume.takenResources, (ShipPtr)resource);
-                    bitSet(ship->specialFlags, SPECIAL_Resourcing);
+                    bitSet(ship->shipOrDerelict.specialFlags, SPECIAL_Resourcing);
 //                    aiplayerLog((aiIndex, "Resourcer %i harvesting best fit", i));
                 }
                 else
@@ -3142,7 +3142,7 @@ sdword aimProcessResourceVolume(AITeam *team)
                     {
                         selone.ShipPtr[0] = ship;
                         aiuWrapCollectResource(&selone, biggestResource);
-                        bitSet(ship->specialFlags, SPECIAL_Resourcing);
+                        bitSet(ship->shipOrDerelict.specialFlags, SPECIAL_Resourcing);
 //                        aiplayerLog((aiIndex, "Resourcer %i harvesting biggest", i));
                     }
                 }
@@ -3152,7 +3152,7 @@ sdword aimProcessResourceVolume(AITeam *team)
                 //want to avoid having the ships go dock - so only do that when they're
                 //reasonably full
             }
-            else if (bitTest(ship->specialFlags, SPECIAL_Finished_Resource))
+            else if (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_Finished_Resource))
             {
                 if (100*ship->resources/ship->staticinfo->maxresources > 90)
                 {
@@ -3160,7 +3160,7 @@ sdword aimProcessResourceVolume(AITeam *team)
                     aiuWrapDock(&selone, DOCK_TO_DEPOSIT_RESOURCES, NULL);
 //                    aiplayerLog((aiIndex, "Resourcer %i docking", i));
                 }
-                bitClear(ship->specialFlags, SPECIAL_Finished_Resource);
+                bitClear(ship->shipOrDerelict.specialFlags, SPECIAL_Finished_Resource);
             }
         }
     }
@@ -5204,12 +5204,12 @@ sdword aimProcessLaunch(AITeam *team)
         thisMove->processing = TRUE;
         return TRUE;
     }
-    else if ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && (ShipIsWaitingForSoftLaunch(ship)))
+    else if ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && (ShipIsWaitingForSoftLaunch(ship)))
     {
         // we're on the ASF, so let's do a "soft" launch
         for (i=0;i<selection->numShips;i++)
         {
-            bitClear(selection->ShipPtr[i]->specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH);
+            bitClear(selection->ShipPtr[i]->shipOrDerelict.specialFlags,SPECIAL_STAY_TILL_EXPLICITLAUNCH);
         }
 
         thisMove->processing = TRUE;

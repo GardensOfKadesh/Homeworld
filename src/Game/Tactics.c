@@ -662,17 +662,17 @@ void tacticsSetShipToDoDodge(Ship *ship)
                 }
             }
         }
-        if(ship->dockingship != NULL)
+        if(ship->shipOrDerelict.dockingship != NULL)
         {
             //don't dock if in this stage of docking!
             return;
         }
-        if (ship->flags & SOF_Cloaked)
+        if (ship->header.flags & SOF_Cloaked)
         {
             return;     // cloaked ships don't dodge!
         }
 
-        if (ship->specialFlags & SPECIAL_Kamikaze)
+        if (ship->shipOrDerelict.specialFlags & SPECIAL_Kamikaze)
         {
             return;     // kamikaze ships don't dodge!
         }
@@ -726,7 +726,7 @@ void tacticsDoDodge(Ship *ship)
     dbgAssertOrIgnore(tacticsOn);
 #endif
 
-    physApplyForceToObj((SpaceObj *)ship,ship->staticinfo->thruststrengthstat[ship->DodgeDir]*tacticsInfo.DodgeInfo[DODGE_THRUST_MULT][ship->staticinfo->shiptype],ship->DodgeDir);
+    physApplyForceToObj(&ship->obj,ship->staticinfo->guidance.thruststrengthstat[ship->DodgeDir]*tacticsInfo.DodgeInfo[DODGE_THRUST_MULT][ship->staticinfo->shiptype],ship->DodgeDir);
     if(universe.totaltimeelapsed > ship->DodgeTime)
     {
         //dodge time elapsed...stop dodging
@@ -1221,7 +1221,7 @@ void setAveragePosition(vector *vec, SelectCommand *selection)
 
     for(i = 0; i < selection->numShips; i++)
     {
-        vecAddTo(*vec,selection->ShipPtr[i]->posinfo.position);
+        vecAddTo(*vec,selection->ShipPtr[i]->obj.posinfo.position);
     }
     oneOverShips = 1.0f/selection->numShips;
     vecScalarMultiply(*vec,*vec,oneOverShips);
@@ -1275,7 +1275,7 @@ void tacticsReportMove(CommandLayer *comlayer,SelectCommand *selection)
                 //ship(s) aren't in formation...
                 //mustn't let ships retreat if not close enough!
                 //!!! Ships must be within RetreatGetAwayDistSqr
-                vecSub(testdistvec,command->selection->ShipPtr[0]->posinfo.position,selection->ShipPtr[0]->posinfo.position);
+                vecSub(testdistvec,command->selection->ShipPtr[0]->obj.posinfo.position,selection->ShipPtr[0]->obj.posinfo.position);
                 if(vecMagnitudeSquared(testdistvec) > tacticsInfo.RetreatGetAwayDistSqr[selection->ShipPtr[0]->staticinfo->shipclass])
                 {
                     //too far away to be considered for retreating
@@ -1298,7 +1298,7 @@ void tacticsReportMove(CommandLayer *comlayer,SelectCommand *selection)
 
                         setAveragePosition(&tempRetFrom, (SelectCommand *)command->attack);
 
-                        vecSub(tempvec,selection->ShipPtr[j]->posinfo.position,tempRetFrom);
+                        vecSub(tempvec,selection->ShipPtr[j]->obj.posinfo.position,tempRetFrom);
                         tempdistanceStartSqr = vecMagnitudeSquared(tempvec);
 
                         oldretreat = tacticsShipIsRetreatingFromThisCommand(selection->ShipPtr[j], command);
@@ -1311,7 +1311,7 @@ void tacticsReportMove(CommandLayer *comlayer,SelectCommand *selection)
                             //lets choose the more advantagous retreat plan.
 
                             /*
-                            vecSub(oldvec,selection->ShipPtr[j]->posinfo.position,oldretreat->retreatFrom);
+                            vecSub(oldvec,selection->ShipPtr[j]->obj.posinfo.position,oldretreat->retreatFrom);
                             olddistanceStartSqr = vecMagnitudeSquared(tempvec);
                             if(olddistanceStartSqr < oldretreat->distanceStartSqr)
                             {
@@ -1586,7 +1586,7 @@ bool32 tacticsAreStrikeCraftInSelection(SelectCommand *selection)
     sdword i;
     for(i = 0; i< selection->numShips; i++)
     {
-        if(selection->ShipPtr[i]->objtype == OBJ_ShipType)
+        if(selection->ShipPtr[i]->header.objtype == OBJ_ShipType)
         {
             if(selection->ShipPtr[i]->staticinfo->shipclass == CLASS_Fighter ||
               selection->ShipPtr[i]->staticinfo->shipclass == CLASS_Corvette)
@@ -1612,13 +1612,13 @@ real32 tacticsMaxDistToTarget(SelectCommand *selection,SpaceObjRotImpTarg *targe
 
     //could use camera distacne squared maybe?
 
-    vecSub(tempvec,selection->ShipPtr[0]->posinfo.position,target->posinfo.position);
+    vecSub(tempvec,selection->ShipPtr[0]->obj.posinfo.position,target->obj.posinfo.position);
     maxdistsqr = vecMagnitudeSquared(tempvec);
 
 
     for(i=1;i<selection->numShips;i++)
     {
-        vecSub(tempvec,selection->ShipPtr[i]->posinfo.position,target->posinfo.position);
+        vecSub(tempvec,selection->ShipPtr[i]->obj.posinfo.position,target->obj.posinfo.position);
         newdistsqr = vecMagnitudeSquared(tempvec);
         if(newdistsqr > maxdistsqr)
         {
@@ -1778,7 +1778,7 @@ void tacticsManeuvUpdate(Ship *ship)
     manMult = 1.0f;
     if(shipstaticinfo->shipclass == CLASS_Fighter)
     {
-        if(bitTest(ship->specialFlags,SPECIAL_SpeedBurst))
+        if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst))
             manMult = speedBurstThrustMult;
         classType = Tactics_Fighter;
     }
@@ -1789,15 +1789,15 @@ void tacticsManeuvUpdate(Ship *ship)
 
     for(i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-        ship->nonstatvars.thruststrength[i] = shipstaticinfo->thruststrengthstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
+        ship->guidance.nonstatvars.thruststrength[i] = shipstaticinfo->guidance.thruststrengthstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
     }
     for(i=0;i<NUM_ROT_DEGOFFREEDOM;i++)
     {
-        ship->nonstatvars.rotstrength[i] = shipstaticinfo->rotstrengthstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
+        ship->guidance.nonstatvars.rotstrength[i] = shipstaticinfo->guidance.rotstrengthstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
     }
     for(i=0;i<NUM_TURN_TYPES;i++)
     {
-        ship->nonstatvars.turnspeed[i] = shipstaticinfo->turnspeedstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
+        ship->guidance.nonstatvars.turnspeed[i] = shipstaticinfo->guidance.turnspeedstat[i]*tacticsInfo.ManeuvBonus[ship->tactics_ordertype][classType][ship->tacticstype]*manMult;
     }
 }
 
@@ -1895,8 +1895,8 @@ void tacticsGlobalUpdate()
             retreater = ratom->retreater;
 
             //tacticsSetRetreatFrom(&tempvec, (SelectCommand *)ratom->fleeingfrom->attack);
-            //vecSub(tempvec2,tempvec,retreater->posinfo.position);
-            vecSub(tempvec2,retreater->posinfo.position,ratom->retreatFrom);
+            //vecSub(tempvec2,tempvec,retreater->obj.posinfo.position);
+            vecSub(tempvec2,retreater->obj.posinfo.position,ratom->retreatFrom);
 
             distsqr = vecMagnitudeSquared(tempvec2);
 
@@ -1907,7 +1907,7 @@ void tacticsGlobalUpdate()
                 real32 gotawaydistsqr;
 
                 setAveragePosition(&retreatFromAvgPos, (SelectCommand *)ratom->fleeingfrom->selection);
-                vecSub(tmpvec3,retreatFromAvgPos,retreater->posinfo.position);
+                vecSub(tmpvec3,retreatFromAvgPos,retreater->obj.posinfo.position);
                 gotawaydistsqr = vecMagnitudeSquared(tmpvec3);
 
                 if (gotawaydistsqr > tacticsInfo.RetreatGetAwayDistSqr[retreater->staticinfo->shipclass])
@@ -2014,7 +2014,7 @@ void tacticsGlobalUpdate()
 bool32 tacticsAreEnemiesNearby(Ship *leadership,Ship *thisship, real32 retaliateZone)
 {
     Player *playerowner = thisship->playerowner;
-    blob *thisblob = thisship->collMyBlob;
+    blob *thisblob = thisship->obj.collMyBlob;
     sdword objindex = 0;
     SelectCommand *blobships = thisblob->blobShips;
     udword num = blobships->numShips;
@@ -2024,7 +2024,7 @@ bool32 tacticsAreEnemiesNearby(Ship *leadership,Ship *thisship, real32 retaliate
     real32 negRetaliateZone = -retaliateZone;
 
     if ((thisship->shiptype == FloatingCity) || (thisship->shiptype == TargetDrone) ||
-        (bitTest(thisship->specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
+        (bitTest(thisship->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
     {
         return FALSE;      // traders get special status, not considered enemy to anyone
     }
@@ -2038,11 +2038,11 @@ bool32 tacticsAreEnemiesNearby(Ship *leadership,Ship *thisship, real32 retaliate
             goto nextnode;      // must be enemy ship
         }
         if ((ship->shiptype == FloatingCity) || (ship->shiptype == TargetDrone) ||
-            (bitTest(ship->specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
+            (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
         {
             goto nextnode;      // traders get special status, not considered enemy to anyone
         }
-        if (bitTest(ship->flags,SOF_Cloaked))
+        if (bitTest(ship->header.flags,SOF_Cloaked))
         {
             if(!proximityCanPlayerSeeShip(thisship->playerowner,ship))
             {
@@ -2075,13 +2075,13 @@ bool32 tacticsAreEnemiesNearby(Ship *leadership,Ship *thisship, real32 retaliate
                 }
             }
         }
-        if(bitTest(ship->flags,SOF_Disabled|SOF_Hide))
+        if(bitTest(ship->header.flags,SOF_Disabled|SOF_Hide))
         {
             //don't attack disabled ships.
             goto nextnode;
         }
 
-        vecSub(diff,ship->posinfo.position,leadership->posinfo.position);
+        vecSub(diff,ship->obj.posinfo.position,leadership->obj.posinfo.position);
 
         if (isBetweenExclusive(diff.x,negRetaliateZone,retaliateZone) &&
             isBetweenExclusive(diff.y,negRetaliateZone,retaliateZone) &&
@@ -2099,20 +2099,20 @@ nextnode:
 
 void speedBurstUpdate(Ship *ship)
 {
-    if(bitTest(ship->specialFlags,SPECIAL_SpeedBurst))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst))
     {
         if(ship->speedBurstTime < universe.totaltimeelapsed)
         {
-            bitClear(ship->specialFlags,SPECIAL_SpeedBurst);
-            bitSet(ship->specialFlags,SPECIAL_SpeedBurstCooling);
+            bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurstCooling);
             ship->speedBurstTime = universe.totaltimeelapsed+speedBurstCoolDown;
         }
     }
-    else if(bitTest(ship->specialFlags,SPECIAL_SpeedBurstCooling))
+    else if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurstCooling))
     {
         if(ship->speedBurstTime < universe.totaltimeelapsed)
         {
-            bitClear(ship->specialFlags,SPECIAL_SpeedBurstCooling);
+            bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurstCooling);
         }
     }
 
@@ -2137,7 +2137,7 @@ bool32 tacticsCheckGuardConditionsDuringAttack(CommandToDo *command)
     vecSet(defendAv,0.0f,0.0f,0.0f);
     for(i=0;i<command->selection->numShips;i++)
     {
-        vecAddTo(defendAv,command->selection->ShipPtr[i]->posinfo.position);
+        vecAddTo(defendAv,command->selection->ShipPtr[i]->obj.posinfo.position);
     }
     tempreal = 1.0f/((real32)i);
     vecScalarMultiply(defendAv,defendAv,tempreal);
@@ -2146,7 +2146,7 @@ bool32 tacticsCheckGuardConditionsDuringAttack(CommandToDo *command)
     vecSet(protectAv,0.0f,0.0f,0.0f);
     for(i=0;i<command->protect->numShips;i++)
     {
-        vecAddTo(protectAv,command->protect->ShipPtr[i]->posinfo.position);
+        vecAddTo(protectAv,command->protect->ShipPtr[i]->obj.posinfo.position);
     }
     tempreal = 1.0f/((real32)i);
     vecScalarMultiply(protectAv,protectAv,tempreal);
@@ -2170,9 +2170,9 @@ real32 tacticsGetShipsMaxVelocity(Ship *ship)
 {
     real32 speedmult = 1.0f;
 
-    if(ship->objtype != OBJ_ShipType)
+    if(ship->header.objtype != OBJ_ShipType)
     {
-        return(ship->staticinfo->staticheader.maxvelocity);
+        return(ship->staticinfo->common.maxvelocity);
     }
 
     if (ship->shiptype == Probe)
@@ -2180,20 +2180,20 @@ real32 tacticsGetShipsMaxVelocity(Ship *ship)
         return ProbeGetMaxVelocity(ship);
     }
 
-    if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
     {
         //ship is in kamikaze mode
-        if(bitTest(ship->specialFlags,SPECIAL_KamikazeCrazyFast))
+        if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast))
         {
             //in a state where extra speed boost is needed
             speedmult = kamikazeSpeedBurst;
         }
     }
-    if(bitTest(ship->specialFlags,SPECIAL_SpeedBurst))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst))
     {
         speedmult *= speedBurstMaxVelocityMultiplier;
     }
-    else if(bitTest(ship->specialFlags,SPECIAL_SpeedBurstCooling))
+    else if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurstCooling))
     {
         //slow deceleration
         real32 temp;
@@ -2212,16 +2212,16 @@ real32 tacticsGetShipsMaxVelocity(Ship *ship)
         }
     }
 
-    if (bitTest(ship->specialFlags,SPECIAL_SinglePlayerLimitSpeed))
+    if (bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerLimitSpeed))
     {
         //Falko: removed because we want to be able to increase the maximum speed
         //       of ships as well as decreasing it.
-//        if (ship->singlePlayerSpeedLimiter < ship->staticinfo->staticheader.maxvelocity)
+//        if (ship->singlePlayerSpeedLimiter < ship->staticinfo->common.maxvelocity)
 //        {
             return ship->singlePlayerSpeedLimiter;      // deliberately override other considerations - we want this to be the final word
 //        }
     }
-    if(bitTest(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse))
     {
         SalCapCorvetteStatics *salcapcorvettestatics = ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
         return(salcapcorvettestatics->maxPushingVelocitySingle);
@@ -2230,11 +2230,11 @@ real32 tacticsGetShipsMaxVelocity(Ship *ship)
     switch(ship->staticinfo->shipclass)
     {
     case CLASS_Fighter:
-        return(ship->staticinfo->staticheader.maxvelocity*tacticsInfo.MaxVelocityBonus[ship->tactics_ordertype][Tactics_Fighter][ship->tacticstype]*speedmult);
+        return(ship->staticinfo->common.maxvelocity*tacticsInfo.MaxVelocityBonus[ship->tactics_ordertype][Tactics_Fighter][ship->tacticstype]*speedmult);
     case CLASS_Corvette:
-        return(ship->staticinfo->staticheader.maxvelocity*tacticsInfo.MaxVelocityBonus[ship->tactics_ordertype][Tactics_Corvette][ship->tacticstype]*speedmult);
+        return(ship->staticinfo->common.maxvelocity*tacticsInfo.MaxVelocityBonus[ship->tactics_ordertype][Tactics_Corvette][ship->tacticstype]*speedmult);
     default:
-        return(ship->staticinfo->staticheader.maxvelocity*speedmult);
+        return(ship->staticinfo->common.maxvelocity*speedmult);
     }
 
 }

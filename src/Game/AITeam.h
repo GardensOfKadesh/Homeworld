@@ -506,7 +506,7 @@ typedef struct AITeamMove {
     (move)->moveShipDiedFunction     = (moveshipdiedfunc);     \
     (move)->moveCloseFunction        = (moveclosefunc)
 
-#define aitApproxTeamPos(team)          ((team)->shipList.selection->ShipPtr[0]->posinfo.position)
+#define aitApproxTeamPos(team)          ((team)->shipList.selection->ShipPtr[0]->obj.posinfo.position)
 #define aitNumTeamShips(team)           ((team)->shipList.selection->numShips)
 #define aitTeamShipTypeIs(type, team)   (((team)->shipList.selection->numShips) && ((team)->shipList.selection->ShipPtr[0]->shiptype == (type)))
 #define aitTeamShipClassIs(cls, team)   (((team)->shipList.selection->numShips) && ((team)->shipList.selection->ShipPtr[0]->staticinfo->shipclass == (cls)))

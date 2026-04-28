@@ -78,8 +78,8 @@
 
 //prototyped here to avoid warning!!!
 void clLaunchShip(CommandLayer *comlayer,SelectCommand *selectcom,ShipPtr receiverShip);
-void startTractorBeam(Ship *ship, SpaceObjRotImpTargGuidanceShipDerelict *target);
-bool32 salCapAreEnoughSalvagersTargettingThisTarget(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target);
+void startTractorBeam(Ship *ship, ShipOrDerelict *target);
+bool32 salCapAreEnoughSalvagersTargettingThisTarget(Ship *ship,ShipOrDerelict *target);
 
 SalCapCorvetteStatics SalCapCorvetteStatic;
 SalCapCorvetteStatics SalCapCorvetteStaticRace1;
@@ -142,7 +142,7 @@ void CleanSalCapSpec(Ship *ship)
     spec->getTechTime=0.0f;
     spec->tractorBeam=FALSE;
     spec->noAvoid=FALSE;
-    bitClear(ship->specialFlags,SPECIAL_BrokenFormation);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation);
 }
 
 
@@ -154,7 +154,7 @@ void SalCapCorvetteInit(Ship *ship)
     CleanSalCapSpec(ship);
     spec->noDamageTarget = NULL;
     spec->noDamageTargetTime = 0.0f;
-    ship->specialFlags |= SPECIAL_IsASalvager;       // set flag for the dawg and salcap ships
+    ship->shipOrDerelict.specialFlags |= SPECIAL_IsASalvager;       // set flag for the dawg and salcap ships
 }
 
 /*
@@ -181,10 +181,10 @@ void SalCapCorvetteAttackPassive(Ship *ship,Ship *target,bool32 rotate)
 bool32 SalCapCorvetteSpecialActivate(Ship *ship)
 {
     vector place;
-    matGetVectFromMatrixCol3(place,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(place,ship->rotatable.rotinfo.coordsys);
     vecScalarMultiply(place,place, 2000.0f);
 
-    vecAddTo(place, ship->posinfo.position);
+    vecAddTo(place, ship->obj.posinfo.position);
 
     univAddDerelict(Ghostship,&place);
     return TRUE;
@@ -199,7 +199,7 @@ bool32 SalCapCorvetteSpecialActivate(Ship *ship)
     Return      :
 ----------------------------------------------------------------------------*/
 //make tractor beam originate from 'tractor beam light'
-void startTractorBeam(Ship *ship, SpaceObjRotImpTargGuidanceShipDerelict *target)
+void startTractorBeam(Ship *ship, ShipOrDerelict *target)
 {
     //ShipStaticInfo *shipstatic = (ShipStaticInfo *)ship->staticinfo;
     //TractorBeamStatic *tractorBeamStatic = shipstatic->tractorEmitterStatic;
@@ -216,12 +216,12 @@ void startTractorBeam(Ship *ship, SpaceObjRotImpTargGuidanceShipDerelict *target
 
     spec->tractorBeam = TRUE;
     //get tractor beams world coords...not yet known if there is a guide light for that though
-    //matMultiplyMatByVec(&beamposition,&ship->rotinfo.coordsys,&resNozzleStatic->position);
+    //matMultiplyMatByVec(&beamposition,&ship->rotatable.rotinfo.coordsys,&resNozzleStatic->position);
 
-    //beamposition = ship->posinfo.position;
+    //beamposition = ship->obj.posinfo.position;
 
-    //matMultiplyMatByVec(&beamposition,&ship->rotinfo.coordsys,&tractorBeamStatic->position);
-    //vecAddTo(beamposition,ship->posinfo.position);
+    //matMultiplyMatByVec(&beamposition,&ship->rotatable.rotinfo.coordsys,&tractorBeamStatic->position);
+    //vecAddTo(beamposition,ship->obj.posinfo.position);
 /*
     vecDivideByScalar(beamtrajectory,beamtrajectorydist,temp);
 
@@ -231,7 +231,7 @@ void startTractorBeam(Ship *ship, SpaceObjRotImpTargGuidanceShipDerelict *target
     etgLOD = etgTractorBeamEffectTable[ship->shiprace];
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -252,7 +252,7 @@ void startTractorBeam(Ship *ship, SpaceObjRotImpTargGuidanceShipDerelict *target
     #endif
     {
         ship->rceffect = etgEffectCreate(stat, ship, NULL, NULL, NULL, ship->magnitudeSquared, SOF_AttachPosition|SOF_AttachCoordsys|SOF_AttachNLips, 0);
-        ship->rceffect->posinfo.velocity.x = ship->rceffect->posinfo.velocity.y = ship->rceffect->posinfo.velocity.z = 0.0f;
+        ship->rceffect->obj.posinfo.velocity.x = ship->rceffect->obj.posinfo.velocity.y = ship->rceffect->obj.posinfo.velocity.z = 0.0f;
         ((SalCapCorvetteSpec *)ship->ShipSpecifics)->tractorBeam = TRUE;
         univUpdateObjRotInfo((SpaceObjRot *)ship->rceffect);
         ship->soundevent.specialHandle = soundEvent(ship, Ship_Salvage);
@@ -275,7 +275,7 @@ void StopTractorBeam(Ship *ship)
 {
     etgEffectDelete(ship->rceffect);
     univRemoveObjFromRenderList((SpaceObj *)ship->rceffect);
-    listDeleteNode(&ship->rceffect->objlink);
+    listDeleteNode(&ship->rceffect->header.objlink);
     ship->rceffect = NULL;
 }
 
@@ -290,18 +290,18 @@ void StopTractorBeam(Ship *ship)
 real32 salCapGetMaxPushingVelocity(Ship *ship,Ship *target)
 {
     real32 ratio;
-    if(target->salvageInfo == NULL)
+    if(target->shipOrDerelict.salvageInfo == NULL)
     {
-        if(target->objtype == OBJ_ShipType)
+        if(target->header.objtype == OBJ_ShipType)
             return(tacticsGetShipsMaxVelocity(target));
         else
-            return(target->staticinfo->staticheader.maxvelocity);
+            return(target->staticinfo->common.maxvelocity);
     }
-    ratio = (1-(((real32)target->salvageInfo->numSalvagePointsFree)/((real32)target->salvageInfo->numSalvagePoints)));
-    if(target->objtype == OBJ_ShipType)
+    ratio = (1-(((real32)target->shipOrDerelict.salvageInfo->numSalvagePointsFree)/((real32)target->shipOrDerelict.salvageInfo->numSalvagePoints)));
+    if(target->header.objtype == OBJ_ShipType)
         ratio*=tacticsGetShipsMaxVelocity(target);
     else
-        ratio*=target->staticinfo->staticheader.maxvelocity;
+        ratio*=target->staticinfo->common.maxvelocity;
     return ratio;
 }
 
@@ -315,7 +315,7 @@ real32 salCapGetMaxPushingVelocity(Ship *ship,Ship *target)
 #define SALCAP_DOCK1_DISTANCE   1000.0f
 #define DOCK1_INSIDE_TOLERANCE         200.0f
 
-sdword salCapFlyToWithInCone(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapFlyToWithInCone(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     vector coneheadingInWorldCoordSys;
@@ -327,12 +327,12 @@ sdword salCapFlyToWithInCone(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *
 
     SalvageStaticPoint *salvagestaticpoint = target->salvageInfo->salvagePoints[spec->salvageIndex].salvageStaticPoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,target->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,target->obj.posinfo.position);
 
-    vecSub(coneToShip,ship->posinfo.position,conepositionInWorldCoordSys);
+    vecSub(coneToShip,ship->obj.posinfo.position,conepositionInWorldCoordSys);
     coneToShipMag = fsqrt(vecMagnitudeSquared(coneToShip));
 
     dotprod = vecDotProduct(coneheadingInWorldCoordSys,coneToShip);  // 1.0*coneToShipMag*cos(theta)
@@ -364,7 +364,7 @@ sdword salCapFlyToWithInCone(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *
     Return      :
 ----------------------------------------------------------------------------*/
 #define SALCAP_FINAL_DOCK_TOLERANCE 25.0f
-sdword salCapFlyToConeOrigin(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapFlyToConeOrigin(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     vector coneheadingInWorldCoordSys;
@@ -373,15 +373,15 @@ sdword salCapFlyToConeOrigin(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *
 
     SalvageStaticPoint *salvagestaticpoint = target->salvageInfo->salvagePoints[spec->salvageIndex].salvageStaticPoint;
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,target->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,target->obj.posinfo.position);
 
 
     if (MoveReachedDestinationVariable(ship,&conepositionInWorldCoordSys,SALCAP_FINAL_DOCK_TOLERANCE))
     {
-        ship->posinfo.velocity = target->posinfo.velocity;
+        ship->obj.posinfo.velocity = target->obj.posinfo.velocity;
         return TRUE;
     }
     else
@@ -401,7 +401,7 @@ sdword salCapFlyToConeOrigin(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *
 ----------------------------------------------------------------------------*/
 #define SALCAP_BACKOUT_TOLERANCE 250.0f
 #define SALCAP_BACKOUT_DISTANCE  1300.0f
-sdword salCapFlyOutOfCone(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target,sdword trackheading)
+sdword salCapFlyOutOfCone(Ship *ship,ShipOrDerelict *target,sdword trackheading)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     vector coneheadingInWorldCoordSys;
@@ -411,29 +411,29 @@ sdword salCapFlyOutOfCone(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *tar
 
     SalvageStaticPoint *salvagestaticpoint = target->salvageInfo->salvagePoints[spec->salvageIndex].salvageStaticPoint;
 
-    if (target->staticinfo->staticheader.staticCollInfo.collspheresize > backoutdist)
+    if (target->staticinfo->common.staticCollInfo.collspheresize > backoutdist)
     {
-        backoutdist = target->staticinfo->staticheader.staticCollInfo.collspheresize + SALCAP_BACKOUT_TOLERANCE;   // make sure we clear it
+        backoutdist = target->staticinfo->common.staticCollInfo.collspheresize + SALCAP_BACKOUT_TOLERANCE;   // make sure we clear it
     }
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->conenormal);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->conenormal);
 
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotinfo.coordsys,&salvagestaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,target->posinfo.position);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&target->rotatable.rotinfo.coordsys,&salvagestaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,target->obj.posinfo.position);
 
     vecScalarMultiply(destination,coneheadingInWorldCoordSys,backoutdist);
-    vecAddTo(destination,target->posinfo.position);
+    vecAddTo(destination,target->obj.posinfo.position);
 
     if (MoveReachedDestinationVariable(ship,&destination,SALCAP_BACKOUT_TOLERANCE))
     {
-        ship->posinfo.velocity = target->posinfo.velocity;
+        ship->obj.posinfo.velocity = target->obj.posinfo.velocity;
         return TRUE;
     }
     else
     {
         if(trackheading)
             aitrackHeading(ship,&coneheadingInWorldCoordSys,1.0);
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,-50.0f,&target->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,-50.0f,&target->obj.posinfo.velocity);
         return FALSE;
     }
 
@@ -450,15 +450,16 @@ bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets)
     for(i=0;i<targets->numTargets;i++)
     {
         t = targets->TargetPtr[i];
-        if(t->objtype == OBJ_ShipType)
+        if(t->header.objtype == OBJ_ShipType)
         {
-            if(bitTest(((Ship *)t)->specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip))
+            Ship* ship = (Ship*)t;
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip))
             {
                 //ship is docking having been salvaged...
                 //let it dock and don't target it!
                 continue;
             }
-            switch( ((Ship *)t)->shiptype)
+            switch(ship->shiptype)
             {
             case Mothership:
             case HeadShotAsteroid:
@@ -480,7 +481,7 @@ bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets)
                 continue;
             case SalCapCorvette:
                 {
-                    SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)((Ship *)t)->ShipSpecifics;
+                    SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
                     if(spec->salvageState > SAL_WL_FLYTOCONEORIGIN)
                     {
                         continue;
@@ -492,27 +493,25 @@ bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets)
                 break;
             }
         }
-        else if(t->objtype == OBJ_DerelictType)
+        else if(t->header.objtype == OBJ_DerelictType)
         {
             if(!multiPlayerGame)
             {
+                Derelict* derelict = (Derelict*)t;
                 //don't salavage derelicts in single player game!
-                if(!((Derelict *)t)->staticinfo->salvageable)
+                if(!derelict->staticinfo->salvageable)
                 {
                     continue;
                 }
-                if(t->objtype == OBJ_DerelictType)
+                if(derelict->obj.attributes & ATTRIBUTES_StripTechnology)
                 {
-                    if(((Derelict *)t)->attributes & ATTRIBUTES_StripTechnology)
+                    //derelict is to be stripped of TECH !!
+                    //so only let ONE ship attach to it lest we
+                    //have to add other code...
+                    if(derelict->shipOrDerelict.salvageNumTagged[ship->playerowner->playerIndex] > 0)
                     {
-                        //derelict is to be stripped of TECH !!
-                        //so only let ONE ship attach to it lest we
-                        //have to add other code...
-                        if(((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex] > 0)
-                        {
-                            //no good....its been targetted already by this player
-                            continue;
-                        }
+                        //no good....its been targetted already by this player
+                        continue;
                     }
                 }
             }
@@ -521,18 +520,16 @@ bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets)
         {
             continue;   //bad target in list..ok though
         }
-        if(((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageInfo != NULL)
-        {
-            numFree =((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageInfo->numSalvagePoints - ((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex];
+        ShipOrDerelict* shipOrDerelict = (ShipOrDerelict*)t;
+        if (shipOrDerelict->salvageInfo != NULL) {
+            numFree = shipOrDerelict->salvageInfo->numSalvagePoints -
+                      shipOrDerelict->salvageNumTagged[ship->playerowner->playerIndex];
+        } else {
+            // no salvage lights, so only 1 possible spot
+            numFree = 1 - shipOrDerelict->salvageNumTagged[ship->playerowner->playerIndex];
         }
-        else
-        {
-            //no salvage lights, so only 1 possible spot
-            numFree = 1 - ((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex];
-        }
-        if(numFree == 0)
-        {
-            //no spots...so shouldn't head to ship
+        if (numFree == 0) {
+            // no spots...so shouldn't head to ship
             continue;
         }
         return TRUE;
@@ -549,7 +546,7 @@ bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets)
     Return      :
 ----------------------------------------------------------------------------*/
 
-SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyCommand *targets, sdword worry, sdword *flyandwait)
+ShipOrDerelict *salCapGetTarget(Ship *ship,SelectAnyCommand *targets, sdword worry, sdword *flyandwait)
 {
     sdword i,index;
     SpaceObjRotImpTarg *t;
@@ -567,15 +564,16 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
     for(i=0;i<targets->numTargets;i++)
     {
         t = targets->TargetPtr[i];
-        if(t->objtype == OBJ_ShipType)
+        if(t->header.objtype == OBJ_ShipType)
         {
-            if(bitTest(((Ship *)t)->specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip))
+            Ship* ship = (Ship*)t;
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip))
             {
                 //ship is docking having been salvaged...
                 //let it dock and don't target it!
                 continue;
             }
-            switch( ((Ship *)t)->shiptype)
+            switch( ship->shiptype)
             {
             case Mothership:
             case HeadShotAsteroid:
@@ -595,7 +593,7 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
                 //fix later! negatory speech event!
                 continue;
             case GravWellGenerator:
-                if(((GravWellGeneratorSpec *)((Ship *)t)->ShipSpecifics)->GravDerelict)
+                if(((GravWellGeneratorSpec *)ship->ShipSpecifics)->GravDerelict)
                 {
                     //gravwell is a derelict
                     //don't salavage it
@@ -603,37 +601,32 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
                     //maybe put speech event?
                     continue;
                 }
-            case SalCapCorvette:
-                {
-                    SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)((Ship *)t)->ShipSpecifics;
-                    if(spec->salvageState > SAL_WL_FLYTOCONEORIGIN)
-                    {
-                        continue;
-                    }
-                }
-                break;
+            case SalCapCorvette: {
+                if (((SalCapCorvetteSpec*)ship->ShipSpecifics)->salvageState > SAL_WL_FLYTOCONEORIGIN) continue;
+            } break;
             default:
                 //valid ship
                 break;
             }
         }
-        else if(t->objtype == OBJ_DerelictType)
+        else if(t->header.objtype == OBJ_DerelictType)
         {
             if(!multiPlayerGame)
             {
+                Derelict* derelict = (Derelict *)t;
                 //don't salavage derelicts in single player game!
-                if(!((Derelict *)t)->staticinfo->salvageable)
+                if(!derelict->staticinfo->salvageable)
                 {
                     continue;
                 }
-                if(t->objtype == OBJ_DerelictType)
+                if(t->header.objtype == OBJ_DerelictType)
                 {
-                    if(((Derelict *)t)->attributes & ATTRIBUTES_StripTechnology)
+                    if(derelict->obj.attributes & ATTRIBUTES_StripTechnology)
                     {
                         //derelict is to be stripped of TECH !!
                         //so only let ONE ship attach to it lest we
                         //have to add other code...
-                        if(((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex] > 0)
+                        if(derelict->shipOrDerelict.salvageNumTagged[ship->playerowner->playerIndex] > 0)
                         {
                             //no good....its been targetted already by this player
                             continue;
@@ -649,14 +642,15 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
             targets->TargetPtr[i]=targets->TargetPtr[targets->numTargets];
             continue;
         }
-        if(((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageInfo != NULL)
+        ShipOrDerelict* shipOrDerelict= (ShipOrDerelict*)t; // Guaranteed by ifs above
+        if(shipOrDerelict->salvageInfo != NULL)
         {
-            numFree =((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageInfo->numSalvagePoints - ((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex];
+            numFree =shipOrDerelict->salvageInfo->numSalvagePoints - shipOrDerelict->salvageNumTagged[ship->playerowner->playerIndex];
         }
         else
         {
             //no salvage lights, so only 1 possible spot
-            numFree = 1 - ((SpaceObjRotImpTargGuidanceShipDerelict *)t)->salvageNumTagged[ship->playerowner->playerIndex];
+            numFree = 1 - shipOrDerelict->salvageNumTagged[ship->playerowner->playerIndex];
         }
         if(numFree == 0)
         {
@@ -668,7 +662,7 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
             }
             continue;
         }
-        vecSub(sep,t->posinfo.position,ship->posinfo.position);
+        vecSub(sep,t->obj.posinfo.position,ship->obj.posinfo.position);
         tempdist = vecMagnitudeSquared(sep);
         if(tempdist < dist)
         {
@@ -686,7 +680,7 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
         //}
         if((*flyandwait) && worry)
         {
-            return((SpaceObjRotImpTargGuidanceShipDerelict *)targets->TargetPtr[flyandwaitvar]);
+            return((ShipOrDerelict *)targets->TargetPtr[flyandwaitvar]);
         }
         else
         {
@@ -694,9 +688,11 @@ SpaceObjRotImpTargGuidanceShipDerelict *salCapGetTarget(Ship *ship,SelectAnyComm
         }
     }
     *flyandwait = FALSE;    //reset to FALSE here incase multiple targets in list.
-    ((SpaceObjRotImpTargGuidanceShipDerelict *)targets->TargetPtr[index])->salvageNumTagged[ship->playerowner->playerIndex]++;
+    // If the target at that index was something else then a Ship or a Derelict, it would have been skipped
+    ShipOrDerelict* shipOrDerelict= (ShipOrDerelict*)targets->TargetPtr[index];
+    shipOrDerelict->salvageNumTagged[ship->playerowner->playerIndex]++;
 
-    return((SpaceObjRotImpTargGuidanceShipDerelict *)targets->TargetPtr[index]);
+    return shipOrDerelict;
 }
 
 void docapture(Ship *ship,Ship *target)
@@ -716,7 +712,7 @@ void docapture(Ship *ship,Ship *target)
         MothershipSpec *spec = (MothershipSpec *)ship->ShipSpecifics;
         if(spec->CAP_NumInBuildCue < (SALVAGE_MAX_CAPTURABLE-1))
         {
-            spec->CAPTimeToBuildShip[spec->CAP_NumInBuildCue] = max(SALVAGE_MIN_RETROFIT_TIME,SALVAGE_MAX_RETROFIT_TIME*(1.0f - target->health/target->staticinfo->maxhealth));
+            spec->CAPTimeToBuildShip[spec->CAP_NumInBuildCue] = max(SALVAGE_MIN_RETROFIT_TIME,SALVAGE_MAX_RETROFIT_TIME*(1.0f - target->targetable.health/target->staticinfo->health.maxhealth));
             spec->CAPshiptype[spec->CAP_NumInBuildCue] = target->shiptype;
             spec->CAPshiprace[spec->CAP_NumInBuildCue] = target->staticinfo->shiprace;
             spec->CAPcolorScheme[spec->CAP_NumInBuildCue] = target->colorScheme;
@@ -728,7 +724,7 @@ void docapture(Ship *ship,Ship *target)
         CarrierSpec *spec = (CarrierSpec *)ship->ShipSpecifics;
         if(spec->CAP_NumInBuildCue < (SALVAGE_MAX_CAPTURABLE-1))
         {
-            spec->CAPTimeToBuildShip[spec->CAP_NumInBuildCue] = max(SALVAGE_MIN_RETROFIT_TIME,SALVAGE_MAX_RETROFIT_TIME*(1.0f - target->health/target->staticinfo->maxhealth));
+            spec->CAPTimeToBuildShip[spec->CAP_NumInBuildCue] = max(SALVAGE_MIN_RETROFIT_TIME,SALVAGE_MAX_RETROFIT_TIME*(1.0f - target->targetable.health/target->staticinfo->health.maxhealth));
             spec->CAPshiptype[spec->CAP_NumInBuildCue] = target->shiptype;
             spec->CAPshiprace[spec->CAP_NumInBuildCue] = target->staticinfo->shiprace;
             spec->CAPcolorScheme[spec->CAP_NumInBuildCue] = target->colorScheme;
@@ -749,11 +745,11 @@ void docapture(Ship *ship,Ship *target)
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void salCapHarvestTarget(SpaceObjRotImpTargGuidanceShipDerelict *target,Ship *dockwith)
+void salCapHarvestTarget(ShipOrDerelict *target,Ship *dockwith)
 {
     bool32 spm3AlreadySalvaged = FALSE;   // TRUE if the player has already salvaged a frigate in Mission 3
 
-    switch(target->objtype)
+    switch(target->header.objtype)
     {
     case OBJ_ShipType:
         if (!singlePlayerGame)
@@ -864,7 +860,7 @@ void salCapHarvestTarget(SpaceObjRotImpTargGuidanceShipDerelict *target,Ship *do
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-sdword salCapGetAndBusySalvageIndex(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapGetAndBusySalvageIndex(Ship *ship,ShipOrDerelict *target)
 {
     sdword i;
     SalvagePoint *salvagePoint;
@@ -896,17 +892,17 @@ sdword salCapGetAndBusySalvageIndex(Ship *ship,SpaceObjRotImpTargGuidanceShipDer
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void salCapUnBusySalvagePoint(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+void salCapUnBusySalvagePoint(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     if(spec->target->salvageInfo != NULL)
     {
         target->salvageInfo->salvagePoints[spec->salvageIndex].busy = 0;
         target->salvageInfo->numSalvagePointsFree++;
-        if(ship->clampInfo != NULL)
+        if(ship->guidance.clampInfo != NULL)
         {
             //don't decrease this quantity unless we're clamped to the ship!
-            dbgAssertOrIgnore(ship->clampInfo->host == ((SpaceObjRotImpTarg *)target));
+            dbgAssertOrIgnore(ship->guidance.clampInfo->host == &target->targetable);
             target->salvageInfo->numNeededForSalvage++;
             if(spec->target->salvageInfo->numNeededForSalvage > spec->target->staticinfo->salvageStaticInfo->numNeededForSalvage)
             {
@@ -917,7 +913,7 @@ void salCapUnBusySalvagePoint(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict 
     spec->salvageIndex = NO_INDEX;
 }
 
-sdword salCapFitCarrier(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapFitCarrier(Ship *ship,ShipOrDerelict *target)
 {
     sdword needBig;
 
@@ -927,7 +923,7 @@ sdword salCapFitCarrier(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *targe
     }
     else
     {
-        if(target->objtype==OBJ_DerelictType)
+        if(target->header.objtype==OBJ_DerelictType)
         {
             needBig = FALSE;
         }
@@ -955,7 +951,7 @@ sdword salCapFitCarrier(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *targe
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-sdword salCapNeedBig(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapNeedBig(Ship *ship,ShipOrDerelict *target)
 {
     sdword needBig;
 
@@ -972,7 +968,7 @@ sdword salCapNeedBig(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
     }
     else
     {
-        if(target->objtype==OBJ_DerelictType)
+        if(target->header.objtype==OBJ_DerelictType)
         {
             needBig = TRUE;
         }
@@ -998,7 +994,7 @@ sdword salCapNeedBig(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-Ship *salCapFindDockWith(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+Ship *salCapFindDockWith(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     Node *node = universe.ShipList.head;
@@ -1040,7 +1036,7 @@ Ship *salCapFindDockWith(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *targ
 
         //found players carrier
 
-        vecSub(distvec,dockwithpos->posinfo.position,spec->target->posinfo.position);
+        vecSub(distvec,dockwithpos->obj.posinfo.position,spec->target->obj.posinfo.position);
         distsqr = vecMagnitudeSquared(distvec);
         if(distsqr < mindist)
         {
@@ -1062,19 +1058,19 @@ nextnode:
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void salCapSetNewCoordSys(SpaceObjRotImpTargGuidanceShipDerelict *target,vector *heading,vector *velocityN)
+void salCapSetNewCoordSys(ShipOrDerelict *target,vector *heading,vector *velocityN)
 {
     sdword i;
     sdword good = FALSE;
 
-    *velocityN = target->posinfo.velocity;
+    *velocityN = target->obj.posinfo.velocity;
     vecNormalize(velocityN);
 
     for(i=0;i<target->salvageInfo->numSalvagePoints;i++)
     {
         if(target->salvageInfo->salvagePoints[i].salvageStaticPoint->type == Heading)
         {
-            matMultiplyMatByVec(heading,&target->rotinfo.coordsys,&target->salvageInfo->salvagePoints[i].salvageStaticPoint->conenormal);
+            matMultiplyMatByVec(heading,&target->rotatable.rotinfo.coordsys,&target->salvageInfo->salvagePoints[i].salvageStaticPoint->conenormal);
             good = TRUE;
             break;
         }
@@ -1097,7 +1093,7 @@ void salCapSetNewCoordSys(SpaceObjRotImpTargGuidanceShipDerelict *target,vector 
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-sdword salCapTrackHeadingAndUp(SpaceObjRotImpTargGuidanceShipDerelict *target,real32 withinAngle)
+sdword salCapTrackHeadingAndUp(ShipOrDerelict *target,real32 withinAngle)
 {
     matrix rotMatrix;
     vector fakeHeading,velocityN;
@@ -1106,13 +1102,13 @@ sdword salCapTrackHeadingAndUp(SpaceObjRotImpTargGuidanceShipDerelict *target,re
 
     //create coordsys from salvage heading lights...
     //salCapSetNewCoordSys(target,&fakeHeading,&velocityN);
-    velocityN = target->posinfo.velocity;
+    velocityN = target->obj.posinfo.velocity;
     vecNormalize(&velocityN);
 
     aitrackHeadingWithFlags((Ship *)target,&velocityN,0.999f,0);
     return FALSE;
 
-    matGetVectFromMatrixCol1(realHeading,target->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(realHeading,target->rotatable.rotinfo.coordsys);
 
     cosAngle = vecDotProduct(fakeHeading,velocityN);
     if(cosAngle > 1.0f)
@@ -1155,7 +1151,7 @@ sdword salCapFlyToWithinDockingRange(Ship *ship)
     real32 maxpushvelocity;
 
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
-    if(MoveReachedDestinationVariable((Ship *)spec->target,&spec->dockwith->posinfo.position,SAL_WITHIN_DOCKING_RANGE))
+    if(MoveReachedDestinationVariable((Ship *)spec->target,&spec->dockwith->obj.posinfo.position,SAL_WITHIN_DOCKING_RANGE))
     {
         return TRUE;
     }
@@ -1164,24 +1160,24 @@ sdword salCapFlyToWithinDockingRange(Ship *ship)
     //fly to point
 
     maxpushvelocity = salCapGetMaxPushingVelocity(ship,(Ship *)spec->target);
-    if(spec->target->objtype == OBJ_ShipType)
+    if(spec->target->header.objtype == OBJ_ShipType)
     {
-        if(((Ship *)spec->target)->specialFlags2 & SPECIAL_2_SalvageTargetAlreadyDriven)
+        if(spec->target->specialFlags2 & SPECIAL_2_SalvageTargetAlreadyDriven)
         {
             goto dontflyme1;
         }
     }
-    aishipFlyToPointAvoidingObjs((Ship *)spec->target,&spec->dockwith->posinfo.position,AISHIP_PointInDirectionFlying,maxpushvelocity);
+    aishipFlyToPointAvoidingObjs((Ship *)spec->target,&spec->dockwith->obj.posinfo.position,AISHIP_PointInDirectionFlying,maxpushvelocity);
     salCapTrackHeadingAndUp(spec->target,0.999f);
-    if(spec->target->objtype == OBJ_ShipType)
+    if(spec->target->header.objtype == OBJ_ShipType)
     {
-        ((Ship *)spec->target)->specialFlags2 |= SPECIAL_2_SalvageTargetAlreadyDriven;
+        spec->target->specialFlags2 |= SPECIAL_2_SalvageTargetAlreadyDriven;
     }
 dontflyme1:;
 
     return FALSE;
 }
-sdword getDockIndex(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target,Ship *dockwith)
+sdword getDockIndex(Ship *ship,ShipOrDerelict *target,Ship *dockwith)
 {
     sdword i;
     sdword needBig;
@@ -1243,19 +1239,19 @@ sdword getDockIndex(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target,Sh
 #define SALCAP_1over2Tolerance  800.0f
 #define SALCAP_1over2HEADINGSCALAR 3500.0f
 
-sdword salCapFlyToDockingPoint1over2(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapFlyToDockingPoint1over2(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
 
     vector coneheadingInWorldCoordSys,conepositionInWorldCoordSys;
     vector destination,dockwithHeading;
 
-    matGetVectFromMatrixCol3(dockwithHeading,spec->dockwith->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(dockwithHeading,spec->dockwith->rotatable.rotinfo.coordsys);
     vecScalarMultiply(dockwithHeading,dockwithHeading,SALCAP_1over2HEADINGSCALAR);
 
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->conenormal);
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,spec->dockwith->posinfo.position);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&spec->dockwith->rotatable.rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&spec->dockwith->rotatable.rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,spec->dockwith->obj.posinfo.position);
 
     vecAdd(destination,dockwithHeading,conepositionInWorldCoordSys);
 
@@ -1265,7 +1261,7 @@ sdword salCapFlyToDockingPoint1over2(Ship *ship,SpaceObjRotImpTargGuidanceShipDe
     }
     else
     {
-        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 
@@ -1285,7 +1281,7 @@ sdword salCapFlyToDockingPoint1over2(Ship *ship,SpaceObjRotImpTargGuidanceShipDe
 #define SALCAP_DOCKCONE_SCALAR_BIG_DOOR          1000.0f
 #define SALCAP_DOCKCONE_SCALAR_OTHER          2000.0f
 
-sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+sdword salCapFlyToDockingPoint1(Ship *ship,ShipOrDerelict *target)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     //SalCapCorvetteStatics *salcapcorvettestatics = ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
@@ -1319,9 +1315,9 @@ sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
         }
     }
 
-    matGetVectFromMatrixCol1(dockwithUp,spec->dockwith->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(dockwithRight,spec->dockwith->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(dockwithHeading,spec->dockwith->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(dockwithUp,spec->dockwith->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(dockwithRight,spec->dockwith->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(dockwithHeading,spec->dockwith->rotatable.rotinfo.coordsys);
 
     if(!NO)
     {
@@ -1338,9 +1334,9 @@ sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
         }
     }
     
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->conenormal);
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&spec->dockwith->rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,spec->dockwith->posinfo.position);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&spec->dockwith->rotatable.rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&spec->dockwith->rotatable.rotinfo.coordsys,&spec->dockwith->dockInfo->dockpoints[spec->dockindex].dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,spec->dockwith->obj.posinfo.position);
 
     needDest = TRUE;
     if(spec->dockwith->shiptype == Mothership)
@@ -1382,13 +1378,13 @@ sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
                 vecScalarMultiply(smallHeading,coneheadingInWorldCoordSys,-1.0f);
                 aitrackHeadingAndUp((Ship *)target,&smallHeading,&dockwithUp,1.0);
             }
-            //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->posinfo.velocity);
-            aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->posinfo.velocity);
+            //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->obj.posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->obj.posinfo.velocity);
         }
         else
         {
-            //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->posinfo.velocity);
-            aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->posinfo.velocity);
+            //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->obj.posinfo.velocity);
+            aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,AISHIP_PointInDirectionFlying,SAL_GOTOPOINT_LIMITVEL,&spec->dockwith->obj.posinfo.velocity);
         }
         return FALSE;
     }
@@ -1405,7 +1401,7 @@ sdword salCapFlyToDockingPoint1(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelic
 #define SALCAP_STAGE2_DOCKWITHRIGHT_SCALAR 1000.0f
 #define SALCAP_STAGE2_DOCKWITHHEADING_SCALAR 1500.0f
 #define SALCAP_WEIRD_DOCKING_DISTANCE2  2000.0f
-sdword salCapFlyToDockingPoint2(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDerelict *target,sdword dockindex)
+sdword salCapFlyToDockingPoint2(Ship *dockwith,ShipOrDerelict *target,sdword dockindex)
 {
     vector coneheadingInWorldCoordSys,conepositionInWorldCoordSys;
     vector dockwithUp,dockwithHeading,dockwithRight,navpoint;
@@ -1435,9 +1431,9 @@ sdword salCapFlyToDockingPoint2(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             }
         }
     }
-    matGetVectFromMatrixCol1(dockwithUp,dockwith->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(dockwithRight,dockwith->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(dockwithHeading,dockwith->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(dockwithUp,dockwith->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(dockwithRight,dockwith->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(dockwithHeading,dockwith->rotatable.rotinfo.coordsys);
 
     if(!NO)
     {
@@ -1453,9 +1449,9 @@ sdword salCapFlyToDockingPoint2(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             desiredUp = dockwithUp;
         }
     }
-    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->conenormal);
-    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->position);
-    vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+    matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->conenormal);
+    matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->position);
+    vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
     destination = conepositionInWorldCoordSys;
     NO = FALSE;
@@ -1497,8 +1493,8 @@ sdword salCapFlyToDockingPoint2(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             vecScalarMultiply(smallHeading,coneheadingInWorldCoordSys,-1.0f);
             aitrackHeadingAndUp((Ship *)target,&smallHeading,&dockwithUp,1.0);
         }
-        //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->posinfo.velocity);
-        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&dockwith->posinfo.velocity);
+        //aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,-salcapcorvettestatics->maxPushingVelocitySingle,&spec->dockwith->obj.posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 
@@ -1513,7 +1509,7 @@ sdword salCapFlyToDockingPoint2(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
     Return      :
 ----------------------------------------------------------------------------*/
 
-sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDerelict *target,sdword dockindex)
+sdword salCapFlyToDockingPoint3(Ship *dockwith,ShipOrDerelict *target,sdword dockindex)
 {
     vector coneheadingInWorldCoordSys,conepositionInWorldCoordSys;
     vector dockwithUp,dockwithHeading,dockwithRight;
@@ -1530,7 +1526,7 @@ sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
         {
             if(salCapNeedBig(dockwith,target))
             {
-                mothershipGetCargoPosition(dockwith,(SpaceObjRotImpTargGuidanceShipDerelict *)target, &destination,&coordsysWS,&desiredHeading,&desiredUp,&desiredRight);
+                mothershipGetCargoPosition(dockwith,(ShipOrDerelict *)target, &destination,&coordsysWS,&desiredHeading,&desiredUp,&desiredRight);
                 //madLinkInGetDoorInfo(spec->dockwith,&coordsysWS,&positionWS);
                 matGetVectFromMatrixCol1(doorUp,coordsysWS);
                 matGetVectFromMatrixCol2(doorRight,coordsysWS);
@@ -1544,9 +1540,9 @@ sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             }
         }
     }
-        matGetVectFromMatrixCol1(dockwithUp,dockwith->rotinfo.coordsys);
-        matGetVectFromMatrixCol2(dockwithRight,dockwith->rotinfo.coordsys);
-        matGetVectFromMatrixCol3(dockwithHeading,dockwith->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(dockwithUp,dockwith->rotatable.rotinfo.coordsys);
+        matGetVectFromMatrixCol2(dockwithRight,dockwith->rotatable.rotinfo.coordsys);
+        matGetVectFromMatrixCol3(dockwithHeading,dockwith->rotatable.rotinfo.coordsys);
 
     if(!NO)
     {
@@ -1560,9 +1556,9 @@ sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             desiredHeading = dockwithHeading;
             desiredUp = dockwithUp;
         }
-        matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->conenormal);
-        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->position);
-        vecAddTo(conepositionInWorldCoordSys,dockwith->posinfo.position);
+        matMultiplyMatByVec(&coneheadingInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->conenormal);
+        matMultiplyMatByVec(&conepositionInWorldCoordSys,&dockwith->rotatable.rotinfo.coordsys,&dockwith->dockInfo->dockpoints[dockindex].dockstaticpoint->position);
+        vecAddTo(conepositionInWorldCoordSys,dockwith->obj.posinfo.position);
 
         destination = conepositionInWorldCoordSys;
     }
@@ -1583,9 +1579,9 @@ sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
                 matrix doormatSS,doormatWS;
                 vector doorposSS,doorposWS;
                 madLinkInGetDoorInfo(spec->dockwith,&doormatSS,&doorposSS);
-                matMultiplyMatByMat(&doormatWS,&spec->dockwith->rotinfo.coordsys,&doormatSS);
-                matMultiplyVecByMat(&doorposWS,&doorposSS,&spec->dockwith->rotinfo.coordsys);
-                vecAddTo(doorposWS,spec->dockwith->posinfo.position);
+                matMultiplyMatByMat(&doormatWS,&spec->dockwith->rotatable.rotinfo.coordsys,&doormatSS);
+                matMultiplyVecByMat(&doorposWS,&doorposSS,&spec->dockwith->rotatable.rotinfo.coordsys);
+                vecAddTo(doorposWS,spec->dockwith->obj.posinfo.position);
 
 
                 matGetVectFromMatrixCol1(desiredHeading,doormatWS);
@@ -1603,7 +1599,7 @@ sdword salCapFlyToDockingPoint3(Ship *dockwith,SpaceObjRotImpTargGuidanceShipDer
             vecScalarMultiply(smallHeading,coneheadingInWorldCoordSys,-1.0f);
             aitrackHeadingAndUp((Ship *)target,&smallHeading,&dockwithUp,1.0);
         }
-        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&dockwith->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel((Ship *)target,&destination,0,SAL_GOTOPOINT_LIMITVEL,&dockwith->obj.posinfo.velocity);
         return FALSE;
     }
 
@@ -1659,7 +1655,7 @@ bool32 SalCapCorvetteSpecialTarget(Ship *ship, void *custom)
         }
     }
 
-    if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
     {
         ship->attackvars.attacktarget=targets->TargetPtr[0];
         doKamikazeAttack(ship,targets->TargetPtr[0]);
@@ -1711,10 +1707,10 @@ bool32 SalCapCorvetteSpecialTarget(Ship *ship, void *custom)
         {
             //target is special...we need to wait for it to be free...
 
-            if(!MoveReachedDestinationVariable(ship,&spec->target->posinfo.position,salcapcorvettestatics->flyToDistance*4))
+            if(!MoveReachedDestinationVariable(ship,&spec->target->obj.posinfo.position,salcapcorvettestatics->flyToDistance*4))
             {
                 //not close enough to begin proper docking sequence, so fly closer to target
-                if (aishipFlyToPointAvoidingObjs(ship,&spec->target->posinfo.position,AISHIP_PointInDirectionFlying|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,0.0f) & AISHIP_FLY_OBJECT_IN_WAY)
+                if (aishipFlyToPointAvoidingObjs(ship,&spec->target->obj.posinfo.position,AISHIP_PointInDirectionFlying|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,0.0f) & AISHIP_FLY_OBJECT_IN_WAY)
                     goto reachedit;
             }
             else
@@ -1733,15 +1729,16 @@ reachedit:
         //don't let a salcap salvage a derelict twice if tech is what be gotten
         if(singlePlayerGame)
         {
-            if(spec->target->objtype == OBJ_DerelictType)
+            if(spec->target->header.objtype == OBJ_DerelictType)
             {
-                if(((Derelict *)spec->target)->attributes & ATTRIBUTES_StripTechnology)
+                Derelict* derelict = (Derelict*)spec->target;
+                if(derelict->obj.attributes & ATTRIBUTES_StripTechnology)
                 {
                     if(universe.DerelictTech)
                     {
                         //Already Been salvaged...don't allow again
                         //no viable target in list
-                        ((SpaceObjRotImpTargGuidanceShipDerelict *)spec->target)->salvageNumTagged[ship->playerowner->playerIndex]--;
+                        derelict->shipOrDerelict.salvageNumTagged[ship->playerowner->playerIndex]--;
                         aitrackStabilizeShip(ship); //if ship is in a command, this will get
                                                     //called over and over until all ships are done!
                         aitrackZeroVelocity(ship);
@@ -1755,7 +1752,7 @@ reachedit:
         break;
     case SAL_FLYTOTARGET:
         //fly to within a certain range of the target
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             //someone is salvaging this target already
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
@@ -1765,18 +1762,18 @@ reachedit:
                 //so force to zero...these functions can be called twice..unfortunatly
                 spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
-        if(!MoveReachedDestinationVariable(ship,&spec->target->posinfo.position,salcapcorvettestatics->flyToDistance))
+        if(!MoveReachedDestinationVariable(ship,&spec->target->obj.posinfo.position,salcapcorvettestatics->flyToDistance))
         {
             //not close enough to begin proper docking sequence, so fly closer to target
-            if ((aishipFlyToPointAvoidingObjs(ship,&spec->target->posinfo.position,AISHIP_DontFlyToObscuredPoints|AISHIP_PointInDirectionFlying,0.0f)
+            if ((aishipFlyToPointAvoidingObjs(ship,&spec->target->obj.posinfo.position,AISHIP_DontFlyToObscuredPoints|AISHIP_PointInDirectionFlying,0.0f)
                 & AISHIP_FLY_OBJECT_IN_WAY) == 0)
                 break;
         }
-        if(spec->target->objtype != OBJ_DerelictType)
+        if(spec->target->header.objtype != OBJ_DerelictType)
         {
             if(!salCapAreEnoughSalvagersTargettingThisTarget(ship,spec->target))
             {
@@ -1791,7 +1788,7 @@ reachedit:
         //choose salvaging docking method
         //1-with salvage lights on target
         //2-without salvage lights
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             //someone is salvaging this target already
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
@@ -1801,7 +1798,7 @@ reachedit:
                 //so force to zero...these functions can be called twice..unfortunatly
                 spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1815,11 +1812,11 @@ reachedit:
         }
 
         //fix formation anoyances!
-        ship->specialFlags |= SPECIAL_BrokenFormation;
+        ship->shipOrDerelict.specialFlags |= SPECIAL_BrokenFormation;
         break;
     case SAL_DOCKWITHOUTLIGHTS1:
         //default harvest method with no Salvage Lights on target
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             //someone is salvaging this target already
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
@@ -1829,7 +1826,7 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1839,10 +1836,10 @@ reachedit:
             real32 range;
 
             spec->noAvoid = TRUE;   //set noAvoid variable so collision avoidence will not avoid the salcaps target!
-            aishipGetTrajectory(ship,(SpaceObjRotImpTarg *)spec->target,&trajectory);
-            range = RangeToTarget(ship,(SpaceObjRotImpTarg *)spec->target,&trajectory);
-            aishipFlyToPointAvoidingObjs(ship,&spec->target->posinfo.position,0,0.0f);
-            vecSub(heading,spec->target->posinfo.position,ship->posinfo.position);
+            aishipGetTrajectory(ship,&spec->target->targetable,&trajectory);
+            range = RangeToTarget(ship,&spec->target->targetable,&trajectory);
+            aishipFlyToPointAvoidingObjs(ship,&spec->target->obj.posinfo.position,0,0.0f);
+            vecSub(heading,spec->target->obj.posinfo.position,ship->obj.posinfo.position);
             vecNormalize(&heading);
             or = aitrackHeadingWithFlags(ship,&heading,0.98f,AITRACKHEADING_IGNOREUPVEC);
             if(range <= salcapcorvettestatics->noLightClampingDistance && or)
@@ -1854,12 +1851,12 @@ reachedit:
                 //now clamp object to salcap and tell it to dock for targetDeposit
                 if(ship->shiptype == JunkYardDawg)
                 {
-                    clampObjToObj((SpaceObjRotImpTargGuidance *)spec->target,(SpaceObjRotImpTargGuidance *)ship);
+                    clampObjToObj(&spec->target->guidance,&ship->guidance);
                 }
                 else
                 {
-                    //clampObjToObj((SpaceObjRotImpTargGuidance *)ship,(SpaceObjRotImpTargGuidance *)spec->target);
-                    clampObjToObj((SpaceObjRotImpTargGuidance *)spec->target,(SpaceObjRotImpTargGuidance *)ship);
+                    //clampObjToObj(&ship->guidance,&spec->target->guidance);
+                    clampObjToObj(&spec->target->guidance,&ship->guidance);
                 }
                 dbgAssertOrIgnore(ship->rceffect == NULL);
                 startTractorBeam(ship,spec->target);
@@ -1868,7 +1865,7 @@ reachedit:
         }
         break;
     case SAL_DOCKWITHLIGHTS1:
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
             if(spec->target->salvageNumTagged[ship->playerowner->playerIndex]<0)
@@ -1877,7 +1874,7 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1890,7 +1887,7 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1904,14 +1901,14 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
         spec->salvageState = SAL_WL_FLYTOWITHINCONE;
         break;
     case SAL_WL_FLYTOWITHINCONE:
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
             if(spec->target->salvageNumTagged[ship->playerowner->playerIndex]<0)
@@ -1920,7 +1917,7 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1929,16 +1926,16 @@ reachedit:
             spec->noAvoid = TRUE;
             spec->salvageState = SAL_WL_FLYTOCONEORIGIN;
         }
-        if(spec->target->objtype == OBJ_ShipType)
+        if(spec->target->header.objtype == OBJ_ShipType)
         {
             bitSet(((Ship *)spec->target)->dontrotateever,1);
             bitSet(((Ship *)spec->target)->dontapplyforceever,1);
         }
-        vecScalarMultiply(spec->target->posinfo.velocity,spec->target->posinfo.velocity,0.90f);
-        vecScalarMultiply(spec->target->rotinfo.rotspeed,spec->target->rotinfo.rotspeed,0.90f);
+        vecScalarMultiply(spec->target->obj.posinfo.velocity,spec->target->obj.posinfo.velocity,0.90f);
+        vecScalarMultiply(spec->target->rotatable.rotinfo.rotspeed,spec->target->rotatable.rotinfo.rotspeed,0.90f);
         break;
     case SAL_WL_FLYTOCONEORIGIN:
-        if(spec->target->clampInfo != NULL)
+        if(spec->target->guidance.clampInfo != NULL)
         {
             spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
             if(spec->target->salvageNumTagged[ship->playerowner->playerIndex]<0)
@@ -1947,7 +1944,7 @@ reachedit:
                     //so force to zero...these functions can be called twice..unfortunatly
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
-            clRemoveTargetFromSelection(targets, (SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection(targets, &spec->target->targetable);
             CleanSalCapSpec(ship);
             return FALSE;
         }
@@ -1956,12 +1953,12 @@ reachedit:
             //we are now in clamp teritory...
             if(ship->shiptype == JunkYardDawg)
             {
-                clampObjToObj((SpaceObjRotImpTargGuidance *)spec->target,(SpaceObjRotImpTargGuidance *)ship);
+                clampObjToObj(&spec->target->guidance,&ship->guidance);
             }
             else
             {
                 //do clamp
-                clampObjToObj((SpaceObjRotImpTargGuidance *)ship,(SpaceObjRotImpTargGuidance *)spec->target);
+                clampObjToObj(&ship->guidance,&spec->target->guidance);
 
             }
             //declare that we are latched on
@@ -1974,13 +1971,13 @@ reachedit:
                 madLinkInCloseSpecialShip(ship);
             }
         }
-        if(spec->target->objtype == OBJ_ShipType)
+        if(spec->target->header.objtype == OBJ_ShipType)
         {
             bitSet(((Ship *)spec->target)->dontrotateever,1);
             bitSet(((Ship *)spec->target)->dontapplyforceever,1);
         }
-        vecScalarMultiply(spec->target->posinfo.velocity,spec->target->posinfo.velocity,0.90f);
-        vecScalarMultiply(spec->target->rotinfo.rotspeed,spec->target->rotinfo.rotspeed,0.90f);
+        vecScalarMultiply(spec->target->obj.posinfo.velocity,spec->target->obj.posinfo.velocity,0.90f);
+        vecScalarMultiply(spec->target->rotatable.rotinfo.rotspeed,spec->target->rotatable.rotinfo.rotspeed,0.90f);
 
         break;
     case SAL_CLAMPED:
@@ -1993,9 +1990,9 @@ reachedit:
             battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_SalvageTargetAcquired, ship, ranRandom(RANDOM_SOUND) % 4);
         }
 
-        if(spec->target->objtype == OBJ_DerelictType)
+        if(spec->target->header.objtype == OBJ_DerelictType)
         {
-            if(((Derelict *)spec->target)->attributes & ATTRIBUTES_StripTechnology)
+            if(((Derelict *)spec->target)->obj.attributes & ATTRIBUTES_StripTechnology)
             {
 
                 spec->salvageState = SAL_STRIPTECH;
@@ -2004,18 +2001,19 @@ reachedit:
             }
             spec->salvageState = SAL_SALVAGE1;
         }
-        else if(spec->target->objtype == OBJ_ShipType)
+        else if(spec->target->header.objtype == OBJ_ShipType)
         {
-            if(((Ship *)spec->target)->attributes & ATTRIBUTES_StripTechnology)
+            Ship* ship = (Ship*)spec->target;
+            if(ship->obj.attributes & ATTRIBUTES_StripTechnology)
             {
                 spec->salvageState = SAL_STRIPTECH;
                 spec->salvageAttributes |= SALVAGE_AT_GET_TECH;
                 break;
             }
-            bitClear(((Ship *)spec->target)->dontrotateever,1);
-            bitClear(((Ship *)spec->target)->dontapplyforceever,1);
+            bitClear(ship->dontrotateever,1);
+            bitClear(ship->dontapplyforceever,1);
             spec->salvageState = SAL_DO_DAMAGE;
-            if(spec->target->objtype != OBJ_DerelictType)
+            if(spec->target->header.objtype != OBJ_DerelictType)
             {
                 if(!salCapAreEnoughSalvagersTargettingThisTarget(ship,spec->target))
                 {
@@ -2034,7 +2032,7 @@ reachedit:
         }
 
         //go through list and DON'T do damage to special cases!
-        if(spec->target->objtype == OBJ_ShipType)
+        if(spec->target->header.objtype == OBJ_ShipType)
         {
             switch(((Ship *)spec->target)->shiptype)
             {
@@ -2051,7 +2049,7 @@ reachedit:
                 break;
             }
         }
-        if(spec->target->health*spec->target->staticinfo->oneOverMaxHealth < salcapcorvettestatics->HealthThreshold)
+        if(spec->target->targetable.health*spec->target->staticinfo->health.oneOverMaxHealth < salcapcorvettestatics->HealthThreshold)
         {
             spec->salvageState = SAL_SALVAGE1;
         }
@@ -2059,13 +2057,13 @@ reachedit:
         {
             if(ship->playerowner != NULL)
             {
-                ApplyDamageToTarget((SpaceObjRotImpTarg *)spec->target,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Player,ship->playerowner->playerIndex);
+                ApplyDamageToTarget(&spec->target->targetable,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Player,ship->playerowner->playerIndex);
             }
             else
             {
-                ApplyDamageToTarget((SpaceObjRotImpTarg *)spec->target,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Dead_Player,99);
+                ApplyDamageToTarget(&spec->target->targetable,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Dead_Player,99);
             }
-            if(spec->target->objtype == OBJ_ShipType)
+            if(spec->target->header.objtype == OBJ_ShipType)
             {
                 ((Ship *)spec->target)->gettingrocked = ship;
 
@@ -2073,7 +2071,7 @@ reachedit:
                 ((Ship *)spec->target)->recentlyAttacked = RECENT_ATTACK_DURATION;  // start counting down
             }
 
-            //spec->target->health -= salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed;
+            //spec->target->targetable.health -= salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed;
         }
         break;
     case SAL_JUST_DO_DAMAGE:
@@ -2081,13 +2079,13 @@ reachedit:
         //do damage to a ship
         if(ship->playerowner != NULL)
         {
-            ApplyDamageToTarget((SpaceObjRotImpTarg *)spec->target,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Player,ship->playerowner->playerIndex);
+            ApplyDamageToTarget(&spec->target->targetable,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Player,ship->playerowner->playerIndex);
         }
         else
         {
-            ApplyDamageToTarget((SpaceObjRotImpTarg *)spec->target,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Dead_Player,99);
+            ApplyDamageToTarget(&spec->target->targetable,salcapcorvettestatics->healthRemovedPerSecond*universe.phystimeelapsed,-1,DEATH_Killed_By_Dead_Player,99);
         }
-        if(spec->target->objtype == OBJ_ShipType)
+        if(spec->target->header.objtype == OBJ_ShipType)
         {
             ((Ship *)spec->target)->gettingrocked = ship;
 
@@ -2107,7 +2105,7 @@ reachedit:
             }
             if(spec->target->salvageInfo == NULL)
             {
-                bitSet(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+                bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
                 selection.numShips = 1;
                 selection.ShipPtr[0] = ship;
                 clDock(&universe.mainCommandLayer,&selection,DOCK_FOR_BOTHREFUELANDREPAIR|DOCK_AT_SPECIFIC_SHIP,spec->dockwith);
@@ -2124,10 +2122,10 @@ reachedit:
                 }
             }
         }
-        if(spec->target->objtype == OBJ_ShipType)
+        if(spec->target->header.objtype == OBJ_ShipType)
         {
 
-            if(!bitTest(spec->target->flags,SOF_Disabled))
+            if(!bitTest(spec->target->header.flags,SOF_Disabled))
             {
                 if(universe.curPlayerIndex ==
                    ((Ship *)spec->target)->playerowner->playerIndex)
@@ -2146,16 +2144,16 @@ reachedit:
             selection.numShips = 1;
             selection.ShipPtr[0] = (Ship *)spec->target;
             RemoveShipsFromDoingStuff(&universe.mainCommandLayer,&selection);
-            bitClear(spec->target->flags, SOF_Selectable);
-            bitSet(spec->target->flags,SOF_Disabled);
-            bitSet(spec->target->flags,SOF_DontDrawTrails);
+            bitClear(spec->target->header.flags, SOF_Selectable);
+            bitSet(spec->target->header.flags,SOF_Disabled);
+            bitSet(spec->target->header.flags,SOF_DontDrawTrails);
             shipHasJustBeenDisabled((Ship *)spec->target);
 
-            if(spec->target->objtype == OBJ_ShipType)
+            if(spec->target->header.objtype == OBJ_ShipType)
             {
                 bitClear(spec->target->specialFlags,SPECIAL_SinglePlayerLimitSpeed);
             }
-            clRemoveTargetFromSelection((SelectAnyCommand *)&selSelected,(SpaceObjRotImpTarg *)spec->target);
+            clRemoveTargetFromSelection((SelectAnyCommand *)&selSelected,&spec->target->targetable);
             if(ship->shiptype == JunkYardDawg)
             {
                 AIVar *var;
@@ -2163,10 +2161,10 @@ reachedit:
                 aivarValueSet(var,TRUE);
 
                 //disable this ship FOREVER!
-                bitSet(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever);
+                bitSet(spec->target->specialFlags2,SPECIAL_2_DisabledForever);
 
                 //Allow movement for junkyarddawg by settinbg special flag
-                bitSet(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+                bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
                 return TRUE;
             }
             if(singlePlayerGame)
@@ -2183,7 +2181,7 @@ reachedit:
             if(spec->target->salvageInfo->numNeededForSalvage > 0)
                 break;
         }
-        bitClear(spec->target->flags, SOF_Selectable);
+        bitClear(spec->target->header.flags, SOF_Selectable);
         if(salCapFlyToWithinDockingRange(ship))
         {
             //we are within range
@@ -2191,12 +2189,12 @@ reachedit:
         }
         break;
     case SAL_DOCKINGSTAGE:
-        bitClear(spec->target->flags, SOF_Selectable);
+        bitClear(spec->target->header.flags, SOF_Selectable);
         spec->dockindex = getDockIndex(ship,spec->target,spec->dockwith);
         spec->salvageState = SAL_WAIT;
         break;
     case SAL_WAIT:
-        bitClear(spec->target->flags, SOF_Selectable);
+        bitClear(spec->target->header.flags, SOF_Selectable);
         if(!spec->dockwith->dockInfo->dockpoints[spec->dockindex].thisDockBusy)
         {
             bitSet(spec->target->specialFlags2,SPECIAL_2_BusiedDockPoint);
@@ -2220,8 +2218,8 @@ reachedit:
             {
                 if(spec->dockwith->shiptype == Mothership)
                 {
-                    vecSub(between,spec->target->posinfo.position,spec->dockwith->posinfo.position);
-                    matGetVectFromMatrixCol2(dockwithRight,spec->dockwith->rotinfo.coordsys);
+                    vecSub(between,spec->target->obj.posinfo.position,spec->dockwith->obj.posinfo.position);
+                    matGetVectFromMatrixCol2(dockwithRight,spec->dockwith->rotatable.rotinfo.coordsys);
 
                     if(vecDotProduct(between,dockwithRight) > 0)
                     {
@@ -2268,7 +2266,7 @@ reachedit:
         break;
 
     case SAL_DO_DOCK:
-        bitClear(spec->target->flags, SOF_Selectable);
+        bitClear(spec->target->header.flags, SOF_Selectable);
         if(salCapFlyToDockingPoint1(ship,spec->target))
         {
             //check to see if we need to opendoors
@@ -2289,7 +2287,7 @@ reachedit:
 
             spec->salvageState = SAL_DO_DOCK2;
             spec->target->dockingship = spec->dockwith;
-            unClampObj((SpaceObjRotImpTargGuidance *)ship);
+            unClampObj(&ship->guidance);
             spec->noDamageTargetTime = universe.totaltimeelapsed;
             spec->noDamageTarget = spec->target;
             if(spec->target->salvageInfo != NULL)
@@ -2310,7 +2308,7 @@ reachedit:
         {
             //needto restore selectabled and disabled flags to
             //proper values after call to cleanup function
-            SpaceObjRotImpTargGuidanceShipDerelict *targ;
+            ShipOrDerelict *targ;
             Ship *dockwith;
             sdword groupme = TRUE;
 
@@ -2343,11 +2341,11 @@ reachedit:
                 aivarValueSet(var, TRUE);
             }
             //clear just in case...only be handing off if we were shure...
-            bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+            bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
             SalCapOrderChangedCleanUp(ship);
-            bitClear(targ->flags,SOF_Selectable);
-            bitSet(targ->flags,SOF_Disabled);
-            bitSet(targ->flags,SOF_DontDrawTrails);
+            bitClear(targ->header.flags,SOF_Selectable);
+            bitSet(targ->header.flags,SOF_Disabled);
+            bitSet(targ->header.flags,SOF_DontDrawTrails);
 
             if(groupme)
             {
@@ -2375,7 +2373,7 @@ reachedit:
                     var = aivarCreate("TechRemoved");
                 }
                 aivarValueSet(var, 100);
-                bitSet(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology);
+                bitSet(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology);
                 universe.DerelictTech = TRUE;    //indicate that derelict is not to be salvaged again...
             }
 
@@ -2386,7 +2384,7 @@ reachedit:
             //enable(aivarValueGet(aivarFind("TechToEnable")));
 
             //unclamp ship
-            unClampObj((SpaceObjRotImpTargGuidance *)ship);
+            unClampObj(&ship->guidance);
             spec->noDamageTargetTime = universe.totaltimeelapsed;
             spec->noDamageTarget = spec->target;
 
@@ -2458,7 +2456,7 @@ reachedit:
         selection.numShips = 1;
         selection.ShipPtr[0] = ship;
         //later..change to dock for tech deposit later...
-        bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
 
         SalCapOrderChangedCleanUp(ship);
 
@@ -2560,16 +2558,16 @@ handed:
 
 
 
-bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, SpaceObjRotImpTargGuidanceShipDerelict *target,sdword *dockindex)
+bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, ShipOrDerelict *target,sdword *dockindex)
 {
     switch(*targetDepotState)
     {
     case DROP_BEGIN:
 
-        bitClear(target->flags, SOF_Selectable);
-        bitSet(target->flags,SOF_Disabled);
-        bitSet(target->flags,SOF_DontDrawTrails);
-        if(target->objtype == OBJ_ShipType)
+        bitClear(target->header.flags, SOF_Selectable);
+        bitSet(target->header.flags,SOF_Disabled);
+        bitSet(target->header.flags,SOF_DontDrawTrails);
+        if(target->header.objtype == OBJ_ShipType)
         {
             SelectCommand selection;
             selection.numShips = 1;
@@ -2587,7 +2585,7 @@ bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, SpaceObjRotImpT
         }
         break;
     case DROP_DOCK2:
-        bitClear(target->flags, SOF_Selectable);
+        bitClear(target->header.flags, SOF_Selectable);
         if(salCapFlyToDockingPoint3(dockwith,target,*dockindex))
         {
 #if DEBUG_SALVAGE_CORVETTE
@@ -2598,7 +2596,7 @@ bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, SpaceObjRotImpT
         }
         break;
     case DROP_DONEDOCKING:
-        bitClear(target->flags, SOF_Selectable);
+        bitClear(target->header.flags, SOF_Selectable);
         if(dockwith->shiptype == Mothership)
         {
             if(dockwith->shiprace == R1)
@@ -2681,13 +2679,13 @@ void SalCapCorvetteHouseKeep(Ship *ship)
     {
         if(spec->target != NULL)
         {
-            if(spec->target->clampInfo != NULL && spec->target->clampInfo->host == (SpaceObjRotImpTarg *)ship)
+            if(spec->target->guidance.clampInfo != NULL && spec->target->guidance.clampInfo->host == &ship->targetable)
             {
-                startTractorBeam(ship, (SpaceObjRotImpTargGuidanceShipDerelict *)spec->target);
+                startTractorBeam(ship, spec->target);
             }
-            else if(ship->clampInfo != NULL && ship->clampInfo->host == (SpaceObjRotImpTarg *)spec->target)
+            else if(ship->guidance.clampInfo != NULL && ship->guidance.clampInfo->host == &spec->target->targetable)
             {
-                startTractorBeam(ship, (SpaceObjRotImpTargGuidanceShipDerelict *)spec->target);
+                startTractorBeam(ship, spec->target);
             }
         }
     }
@@ -2715,15 +2713,15 @@ void SalCapCorvetteHouseKeep(Ship *ship)
 
     if(spec->target != NULL)
     {
-        if(spec->target->clampInfo != NULL &&
-            spec->target->clamInfo->host == (SpaceObjRotImpTarg *)ship)
+        if(spec->target->guidance.clampInfo != NULL &&
+            spec->target->clamInfo->host == &ship->targetable)
         {
             //we have a small ship attached to the salcap corvette
             //lets rotate it SLOWLY to face a certain direction!
             if((universe.univUpdateCounter & 7) == 0)
             {
-                matGetVectFromMatrixCol1(ShipRight,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol3(ShipHeading,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol1(ShipRight,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol3(ShipHeading,ship->rotatable.rotinfo.coordsys);
                 newHeading = ShipRight;
                 newUp = ShipHeding;
                 matGetVectFromMatrixCol2(CurrentUp,spec->target->clamInfo->clampCoordsys);
@@ -2748,7 +2746,7 @@ void SalCapDied(Ship *ship)
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
     spec->tractorBeam = FALSE;
 
-    if(bitTest(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology))
+    if(bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology))
     {
         universe.DerelictTech = FALSE;    //indicate that derelict is not to be salvaged again...
     }
@@ -2768,23 +2766,24 @@ void SalCapDied(Ship *ship)
                 spec->target->salvageNumTagged[ship->playerowner->playerIndex] = 0;
             }
         }
-        unClampObj((SpaceObjRotImpTargGuidance *)spec->target);
+        unClampObj(&spec->target->guidance);
         //if(ship->shiptype != JunkYardDawg)
         //{
-            if(spec->target->objtype == OBJ_ShipType)
+            if(spec->target->header.objtype == OBJ_ShipType)
             {
-                bitClear(((Ship *)spec->target)->dontrotateever,1);
-                bitClear(((Ship *)spec->target)->dontapplyforceever,1);
+                Ship* shipTarget = (Ship*)spec->target;
+                bitClear(shipTarget->dontrotateever,1);
+                bitClear(shipTarget->dontapplyforceever,1);
 
-                if(!bitTest(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever))
+                if(!bitTest(spec->target->specialFlags2,SPECIAL_2_DisabledForever))
                 {
                     //if it isn't disabled forever
-                    bitClear(spec->target->flags,SOF_Disabled);
-                    if (((Ship *)spec->target)->shiptype != CryoTray)
+                    bitClear(spec->target->header.flags,SOF_Disabled);
+                    if (shipTarget->shiptype != CryoTray)
                     {
-                        if(((Ship *)spec->target)->playerowner->playerState == PLAYER_ALIVE)
+                        if(shipTarget->playerowner->playerState == PLAYER_ALIVE)
                         {
-                            bitSet(spec->target->flags,SOF_Selectable);
+                            bitSet(spec->target->header.flags,SOF_Selectable);
                         }
                     }
                 }
@@ -2815,7 +2814,7 @@ void SalCapRemoveShipReferences(Ship *ship, Ship *shiptoremove)
     if(shiptoremove == (Ship *)spec->target)
     {
         //clear variable just for the heck of it...
-        bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
         if(spec->salvageIndex != NO_INDEX)
         {
             salCapUnBusySalvagePoint(ship,spec->target);
@@ -2849,18 +2848,18 @@ void SalCapRemoveShipReferences(Ship *ship, Ship *shiptoremove)
         spec->tractorBeam = FALSE;
         if(ship->rceffect)
             StopTractorBeam(ship);
-        if(ship->clampInfo != NULL)
+        if(ship->guidance.clampInfo != NULL)
         {
             #if DEBUG_SALVAGE_CORVETTE
-            dbgAssertOrIgnore(ship->clampInfo->host == (SpaceObjRotImpTarg *)shiptoremove);
+            dbgAssertOrIgnore(ship->guidance.clampInfo->host == &ship->targetabletoremove);
             #endif
-            unClampObj((SpaceObjRotImpTargGuidance *)ship);
+            unClampObj(&ship->guidance);
         }
-        else if(spec->target->clampInfo != NULL)
+        else if(spec->target->guidance.clampInfo != NULL)
         {
-            if(spec->target->clampInfo->host == ((SpaceObjRotImpTarg *)ship))
+            if(spec->target->guidance.clampInfo->host == (&ship->targetable))
             {
-                unClampObj((SpaceObjRotImpTargGuidance *)spec->target);
+                unClampObj(&spec->target->guidance);
             }
         }
         if(spec->target->salvageInfo == NULL)
@@ -2901,7 +2900,7 @@ void SalCapRemoveShipReferences(Ship *ship, Ship *shiptoremove)
             selection.ShipPtr[0] = ship;
             if((spec->dockwith = salCapFindDockWith(ship,spec->target)) == NULL)
             {
-                bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+                bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
                 if(spec->salvageState > SALVAGE_BEGIN)
                 {
                     spec->target->salvageNumTagged[ship->playerowner->playerIndex]--;
@@ -2959,11 +2958,11 @@ void SalCapOrderChangedCleanUp(Ship *ship)
     sdword unclamped = FALSE;
 
 
-    bitClear(ship->specialFlags,SPECIAL_Kamikaze);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze);
     ship->attackvars.attacktarget=NULL;
     ship->kamikazeState=0;
 
-    if(!(ship->specialFlags & SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse))
+    if(!(ship->shipOrDerelict.specialFlags & SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse))
     {
         if(spec->target != NULL)
         {
@@ -2985,73 +2984,61 @@ void SalCapOrderChangedCleanUp(Ship *ship)
             dbgAssertOrIgnore(spec->target != NULL);
     #endif
             salCapUnBusySalvagePoint(ship,spec->target);
-            if(spec->target->salvageInfo->numNeededForSalvage > 0)
-            {
-                //ship isn't capable of being salvaged now...so undisable it
-                if ((spec->target->objtype == OBJ_ShipType) &&
-                    (((Ship *)spec->target)->shiptype != CryoTray) &&
-                    !bitTest(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever))
-                {
-                    if(((Ship *)spec->target)->playerowner->playerState == PLAYER_ALIVE)
-                    {
-                        bitSet(spec->target->flags,SOF_Selectable);
-                    }
+            if (spec->target->salvageInfo->numNeededForSalvage > 0) {
+                dbgAssertOrIgnore(spec->target->header.objtype == OBJ_ShipType);
+                Ship* shipTarget = (Ship*)spec->target;
+                // ship isn't capable of being salvaged now...so undisable it
+                if ((shipTarget->shiptype != CryoTray) &&
+                    !bitTest(spec->target->specialFlags2, SPECIAL_2_DisabledForever) &&
+                    shipTarget->playerowner->playerState == PLAYER_ALIVE) {
+                    bitSet(spec->target->header.flags, SOF_Selectable);
                 }
-                bitClear(((Ship *)spec->target)->dontrotateever,1);
-                bitClear(((Ship *)spec->target)->dontapplyforceever,1);
+                bitClear(shipTarget->dontrotateever, 1);
+                bitClear(shipTarget->dontapplyforceever, 1);
 
-                if(!bitTest(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever))
-                {
-                    if(spec->target->salvageInfo->numSalvagePoints -spec->target->salvageInfo->numSalvagePointsFree > 0)
-                    {
-                        //ship ISN'T going into docking bay..
-                        //so clear disabled flag
-                        bitClear(spec->target->flags,SOF_Disabled);
-                    }
+                if (!bitTest(spec->target->specialFlags2, SPECIAL_2_DisabledForever) &&
+                    (spec->target->salvageInfo->numSalvagePoints - spec->target->salvageInfo->numSalvagePointsFree >
+                     0)) {
+                    // ship ISN'T going into docking bay..
+                    // so clear disabled flag
+                    bitClear(spec->target->header.flags, SOF_Disabled);
                 }
             }
         }
 
         if(ship->shiptype == JunkYardDawg)
         {
-            if ((spec->target) && (spec->target->clampInfo != NULL))
+            if ((spec->target) && (spec->target->guidance.clampInfo != NULL))
             {
-                unClampObj((SpaceObjRotImpTargGuidance *)spec->target);
+                unClampObj(&spec->target->guidance);
                 unclamped = TRUE;
             }
         }
-        else if(ship->clampInfo != NULL && ship->clampInfo->host == (SpaceObjRotImpTarg *)spec->target)
+        else if(ship->guidance.clampInfo != NULL && ship->guidance.clampInfo->host == &spec->target->targetable)
         {
-            unClampObj((SpaceObjRotImpTargGuidance *)ship);
+            unClampObj(&ship->guidance);
             unclamped = TRUE;
         }
         else if(spec->target != NULL &&
-            spec->target->clampInfo != NULL &&
-            spec->target->clampInfo->host == (SpaceObjRotImpTarg *)ship)
+            spec->target->guidance.clampInfo != NULL &&
+            spec->target->guidance.clampInfo->host == &ship->targetable)
         {
             //other method where target is attached to ship
-            unClampObj((SpaceObjRotImpTargGuidance *)spec->target);
+            unClampObj(&spec->target->guidance);
             unclamped = TRUE;
-            if(ship->shiptype != JunkYardDawg)
-            {
-                if(!(spec->target->specialFlags & SPECIAL_SalvagedTargetGoingIntoDockWithShip))
-                {
-                    //ship ISN'T going into docking bay..
-                    //so clear disabled flag
-                    if(!bitTest(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever))
-                    {
-                        bitClear(spec->target->flags,SOF_Disabled);
+            if (ship->shiptype != JunkYardDawg) {
+                if (!(spec->target->specialFlags & SPECIAL_SalvagedTargetGoingIntoDockWithShip)) {
+                    // ship ISN'T going into docking bay..
+                    // so clear disabled flag
+                    if (!bitTest(spec->target->specialFlags2, SPECIAL_2_DisabledForever)) {
+                        bitClear(spec->target->header.flags, SOF_Disabled);
                     }
                 }
-                if ((spec->target->objtype == OBJ_ShipType) &&
-                    (((Ship *)spec->target)->shiptype != CryoTray))
-                {
-                    if(((Ship *)spec->target)->playerowner->playerState == PLAYER_ALIVE)
-                    {
-                        if(!bitTest(((Ship *)spec->target)->specialFlags2,SPECIAL_2_DisabledForever))
-                        {
-                            bitSet(spec->target->flags,SOF_Selectable);
-                        }
+                if (spec->target->header.objtype == OBJ_ShipType) {
+                    Ship* shipTarget = (Ship*)spec->target;
+                    if ((shipTarget->shiptype != CryoTray) && shipTarget->playerowner->playerState == PLAYER_ALIVE &&
+                        !bitTest(spec->target->specialFlags2, SPECIAL_2_DisabledForever)) {
+                        bitSet(spec->target->header.flags, SOF_Selectable);
                     }
                 }
             }
@@ -3065,14 +3052,14 @@ void SalCapOrderChangedCleanUp(Ship *ship)
         CleanSalCapSpec(ship);
 
     }
-    bitClear(ship->specialFlags,SPECIAL_BrokenFormation);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation);
 }
 
 
 void SalCapDropTarget(Ship *ship)
 {
     SelectCommand selection;
-    bitClear(ship->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
     selection.numShips = 1;
     selection.ShipPtr[0] = ship;
     SalCapOrderChangedCleanUp(ship);
@@ -3092,18 +3079,18 @@ void SalCapCorvette_PreFix(Ship *ship)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
 
-    spec->target = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetID((SpaceObj *)spec->target);
+    spec->target = (ShipOrDerelict *)SpaceObjRegistryGetID((SpaceObj *)spec->target);
     spec->dockwith = (Ship *) SpaceObjRegistryGetID((SpaceObj *)spec->dockwith);
-    spec->noDamageTarget = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetID((SpaceObj *)spec->noDamageTarget);
+    spec->noDamageTarget = (ShipOrDerelict *)SpaceObjRegistryGetID((SpaceObj *)spec->noDamageTarget);
 }
 
 void SalCapCorvette_Fix(Ship *ship)
 {
     SalCapCorvetteSpec *spec = (SalCapCorvetteSpec *)ship->ShipSpecifics;
 
-    spec->target = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetTarget((sdword)spec->target);
+    spec->target = (ShipOrDerelict *)SpaceObjRegistryGetTarget((sdword)spec->target);
     spec->dockwith = SpaceObjRegistryGetShip((sdword)spec->dockwith);
-    spec->noDamageTarget = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetTarget((sdword)spec->noDamageTarget);
+    spec->noDamageTarget = (ShipOrDerelict *)SpaceObjRegistryGetTarget((sdword)spec->noDamageTarget);
 }
 
 CustShipHeader SalCapCorvetteHeader =
@@ -3158,11 +3145,11 @@ CustShipHeader JunkYardDawgHeader =
     Return      :
 ----------------------------------------------------------------------------*/
 #if RND_VISUALIZATION
-void dockDrawSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *obj)
+void dockDrawSalvageInfo(ShipOrDerelict *obj)
 {
     sdword i;
     vector to;
-    StaticInfoHealthGuidanceShipDerelict *statinfo = obj->staticinfo;
+    StaticInfoShipOrDerelict *statinfo = obj->staticinfo;
 
     if(statinfo->salvageStaticInfo != NULL)
     {
@@ -3193,11 +3180,11 @@ void dockDrawSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *obj)
         /*
         salCapSetNewCoordSys(obj,&fakeHeading,&velocityN);
 
-        matGetVectFromMatrixCol1(realHeading,obj->rotinfo.coordsys);
+        matGetVectFromMatrixCol1(realHeading,obj->rotatable.rotinfo.coordsys);
         cosAngle = vecDotProduct(fakeHeading,velocityN);
         Angle = acos(cosAngle);
 
-                matMultiplyVecByMat(&N,&fakeHeading,&obj->rotinfo.coordsys);
+                matMultiplyVecByMat(&N,&fakeHeading,&obj->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(to,N,6000.0f);
                 primLine3(&o,&to,colRGB(255, 255, 255));
 
@@ -3206,16 +3193,16 @@ void dockDrawSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *obj)
         nisRotateAboutVector((real32 *) &rotMatrix, &planePerp, Angle);
         matMultiplyVecByMat(&neededHeading,&realHeading,&rotMatrix);
 
-            matMultiplyVecByMat(&N,&planePerp,&obj->rotinfo.coordsys);
+            matMultiplyVecByMat(&N,&planePerp,&obj->rotatable.rotinfo.coordsys);
             vecScalarMultiply(to,N,6000.0f);
             primLine3(&o,&to,colRGB(255, 255, 0));
 
 
-            matMultiplyVecByMat(&N,&neededHeading,&obj->rotinfo.coordsys);
+            matMultiplyVecByMat(&N,&neededHeading,&obj->rotatable.rotinfo.coordsys);
             vecScalarMultiply(to,N,4000.0f);
             primLine3(&o,&to,colRGB(0, 255, 0));
 
-            matMultiplyVecByMat(&N,&velocityN,&obj->rotinfo.coordsys);
+            matMultiplyVecByMat(&N,&velocityN,&obj->rotatable.rotinfo.coordsys);
             vecScalarMultiply(to,N,4000.0f);
             primLine3(&o,&to,colRGB(0, 0, 255));
         */
@@ -3234,32 +3221,25 @@ void salCapExtraSpecialOrderCleanUp(SelectCommand *selection,udword ordertype,Sh
         //SHOULD WE DO A CHECK HERE FOR JUNKYARD DAWG!!??!?!?!
         if(selection->ShipPtr[i]->shiptype == SalCapCorvette)
         {
-            if( ((SalCapCorvetteSpec *)selection->ShipPtr[i]->ShipSpecifics)->target != NULL)
-            {
-                if(((SalCapCorvetteSpec *)selection->ShipPtr[i]->ShipSpecifics)->target->clampInfo != NULL &&
-                   ((SalCapCorvetteSpec *)selection->ShipPtr[i]->ShipSpecifics)->target->clampInfo->host == (SpaceObjRotImpTarg *)selection->ShipPtr[i])
-                {
-                    //salcap corvette is doing something new and has a target
-                    //clamped on!
-                    switch (ordertype)
-                    {
+            SalCapCorvetteSpec* salvageCorvette = (SalCapCorvetteSpec*)selection->ShipPtr[i]->ShipSpecifics;
+            if (salvageCorvette->target != NULL && salvageCorvette->target->guidance.clampInfo != NULL &&
+                salvageCorvette->target->guidance.clampInfo->host == &selection->ShipPtr[i]->targetable) {
+                // salcap corvette is doing something new and has a target
+                // clamped on!
+                switch (ordertype) {
                     case COMMAND_MOVE:
                     case COMMAND_NULL:
-                        break;  //no cleanup
+                        break; // no cleanup
                     case COMMAND_SPECIAL:
-                        if(ShipInSelection(targets,(Ship *)((SalCapCorvetteSpec *)selection->ShipPtr[i]->ShipSpecifics)->target))
-                        {
-                            //given command special with target already attached
+                        if (ShipInSelection(targets, (Ship*)salvageCorvette->target)) {
+                            // given command special with target already attached
                             break;
                         }
                         goto ditchTarget;
                     case COMMAND_DOCK:
-                        if(dockwith != NULL)
-                        {
-                            if(dockwith->shiptype == Mothership ||
-                               dockwith->shiptype == Carrier)
-                            {
-                                //keep it clamped and simply dock with the new ship!
+                        if (dockwith != NULL) {
+                            if (dockwith->shiptype == Mothership || dockwith->shiptype == Carrier) {
+                                // keep it clamped and simply dock with the new ship!
                                 break;
                             }
                         }
@@ -3270,11 +3250,11 @@ void salCapExtraSpecialOrderCleanUp(SelectCommand *selection,udword ordertype,Sh
                     case COMMAND_BUILDING_SHIP:
                     case COMMAND_HALT:
                     case COMMAND_MILITARY_PARADE:
-ditchTarget:
-                        bitClear(selection->ShipPtr[i]->specialFlags,SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
+                    ditchTarget:
+                        bitClear(selection->ShipPtr[i]->shipOrDerelict.specialFlags,
+                                 SPECIAL_SalvagerHasSomethingAttachedAndIsDoingSomethingElse);
                         SalCapOrderChangedCleanUp(selection->ShipPtr[i]);
                         break;
-                    }
                 }
             }
         }
@@ -3285,7 +3265,7 @@ ditchTarget:
 //counts the number of salvage corvettes in the universe targeting this same ship
 //must already be targeting it
 //returns TRUE if enough are heading towards it to get it
-bool32 salCapAreEnoughSalvagersTargettingThisTarget(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target)
+bool32 salCapAreEnoughSalvagersTargettingThisTarget(Ship *ship,ShipOrDerelict *target)
 {
     sdword count;
     Node *node = universe.mainCommandLayer.todolist.head;

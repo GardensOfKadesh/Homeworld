@@ -84,7 +84,7 @@
 #endif
 
 
-#define ShipCanMakeHyperspace(ship) (ShipCanHyperspace(ship) && ((ship)->specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange))
+#define ShipCanMakeHyperspace(ship) (ShipCanHyperspace(ship) && ((ship)->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange))
 #define WARP_FILENAME "Warp.script"
 
 //stores the current mission filename
@@ -502,7 +502,7 @@ void GetFleetStrengthHyperspace(Player *player)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -518,7 +518,7 @@ void GetFleetStrengthHyperspace(Player *player)
                 while (insidenode != NULL)
                 {
                     insideship2 = (InsideShip *)listGetStructOfNode(insidenode);
-                    dbgAssertOrIgnore(insideship2->ship->objtype == OBJ_ShipType);
+                    dbgAssertOrIgnore(insideship2->ship->header.objtype == OBJ_ShipType);
 
                     spFleetStr += GetStrengthOfShip(insideship2->ship);
 
@@ -550,7 +550,7 @@ void GetFleetStrengthInUniverseOfPlayer(Player *player)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -567,7 +567,7 @@ void GetFleetStrengthInUniverseOfPlayer(Player *player)
                 while (insidenode != NULL)
                 {
                     insideship2 = (InsideShip *)listGetStructOfNode(insidenode);
-                    dbgAssertOrIgnore(insideship2->ship->objtype == OBJ_ShipType);
+                    dbgAssertOrIgnore(insideship2->ship->header.objtype == OBJ_ShipType);
 
                     spFleetStr += GetStrengthOfShip(insideship2->ship);
 
@@ -719,7 +719,7 @@ void spGoNowHyperspaceCB(char *string, featom *atom)
             if (ship->shiptype != Mothership)
             {
                 SelectCommand selectone;
-//                if (!(ship->specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange))
+//                if (!(ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange))
 //                {
 //putinparade:
                     selectone.ShipPtr[0] = ship;
@@ -727,11 +727,11 @@ void spGoNowHyperspaceCB(char *string, featom *atom)
                     RemoveShipsFromDoingStuff(&universe.mainCommandLayer,&selectone);
                     aitrackForceSteadyShip(ship);
                     GroupShipIntoMilitaryParade(&universe.mainCommandLayer,ship,mothership);
-                    bitSet(ship->specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange|SPECIAL_SinglePlayerInParade);
+                    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange|SPECIAL_SinglePlayerInParade);
 /*                }
                 else
                 {
-                    if (!(ship->specialFlags & SPECIAL_SinglePlayerInParade))
+                    if (!(ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerInParade))
                     {
                         goto putinparade;
                     }
@@ -789,9 +789,9 @@ void CalculateRollCall(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && (ship->shiptype != CryoTray) && (ship->shiptype != Probe) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && (ship->shiptype != CryoTray) && (ship->shiptype != Probe) && !(ship->header.flags & SOF_Disabled))
         {
             if (ship->shipsInsideMe)
             {
@@ -808,7 +808,7 @@ void CalculateRollCall(void)
             else if (ship->shiptype != Mothership)  // non-mothership hyperspacecapable ships must get in range
             {
                 // is ship in range?
-                if (ship->specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange)
+                if (ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange)
                 {
                     singlePlayerGameInfo.rollcallShipsDocked++;
                 }
@@ -845,9 +845,9 @@ void TellShipsToDockForHyperspace(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->header.flags & SOF_Disabled))
         {
             if (ship->shiptype == DDDFrigate)
             {
@@ -865,7 +865,7 @@ void TellShipsToDockForHyperspace(void)
 
 bool32 AreNotInParadeConstraint(Ship *ship)
 {
-    if (ship->specialFlags & SPECIAL_SinglePlayerInParade)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerInParade)
     {
         return FALSE;
     }
@@ -912,17 +912,17 @@ void TellHyperspacingShipsToReady(void)
         ship = selectAll->ShipPtr[i];
         if (ship->shiptype == Mothership)
         {
-            bitSet(ship->specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
         }
         else
         {
             if (shipInMilitaryParade(ship))
             {
-                bitSet(ship->specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange|SPECIAL_SinglePlayerInParade);
+                bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange|SPECIAL_SinglePlayerInParade);
             }
             else
             {
-                bitClear(ship->specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
+                bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
             }
         }
     }
@@ -975,15 +975,15 @@ void CalculateHyperspaceTimeForShip(Ship *ship,Ship *mothership)
 
     if (mothership != NULL)
     {
-        matGetVectFromMatrixCol3(mothershipheading,mothership->rotinfo.coordsys);
-        matGetVectFromMatrixCol2(mothershipright,mothership->rotinfo.coordsys);
-        matGetVectFromMatrixCol1(mothershipup,mothership->rotinfo.coordsys);
-        mothershipposition = mothership->posinfo.position;
+        matGetVectFromMatrixCol3(mothershipheading,mothership->rotatable.rotinfo.coordsys);
+        matGetVectFromMatrixCol2(mothershipright,mothership->rotatable.rotinfo.coordsys);
+        matGetVectFromMatrixCol1(mothershipup,mothership->rotatable.rotinfo.coordsys);
+        mothershipposition = mothership->obj.posinfo.position;
     }
 
     if ((mothership != NULL) && (ship != mothership))
     {
-        vecSub(mothershipToShip,ship->posinfo.position,mothershipposition);
+        vecSub(mothershipToShip,ship->obj.posinfo.position,mothershipposition);
         shipSinglePlayerGameInfo->forbehind = vecDotProduct(mothershipheading,mothershipToShip);
         shipSinglePlayerGameInfo->rightleft = vecDotProduct(mothershipright,mothershipToShip);
         shipSinglePlayerGameInfo->updown = vecDotProduct(mothershipup,mothershipToShip);
@@ -1010,7 +1010,7 @@ void CalculateHyperspaceTimeForShip(Ship *ship,Ship *mothership)
     }
     shipSinglePlayerGameInfo->timeToHyperspace = universe.totaltimeelapsed + shipSinglePlayerGameInfo->timeToDelayHyperspace;
 
-    bitSet(ship->specialFlags,SPECIAL_Hyperspacing);
+    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_Hyperspacing);
     shipHasJustDisappeared(ship);
 }
 
@@ -1026,9 +1026,9 @@ void CalculateHyperspaceTimesForShips(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->header.flags & SOF_Disabled))
         {
             if (ShipCanMakeHyperspace(ship))
             {
@@ -1047,13 +1047,13 @@ void AddShipToHyperspace(Ship *ship)
     insideShip = memAlloc(sizeof(InsideShip),"InsideHyper",0);
     insideShip->ship = ship;
     listAddNode(&singlePlayerGameInfo.ShipsInHyperspace,&insideShip->node,insideShip);
-    bitSet(ship->flags,SOF_Hyperspace);
+    bitSet(ship->header.flags,SOF_Hyperspace);
 
     if(singlePlayerGame)
     {
         // ships in hyperspace are instantly healed/refueled:
         //ONLY in single player game!
-        ship->health = ship->staticinfo->maxhealth;
+        ship->targetable.health = ship->staticinfo->health.maxhealth;
         ship->fuel = ship->staticinfo->maxfuel;
     }
 
@@ -1069,9 +1069,9 @@ void AddShipToHyperspace(Ship *ship)
         {
             insideship2 = (InsideShip *)listGetStructOfNode(insidenode);
             iship = insideship2->ship;
-            dbgAssertOrIgnore(iship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(iship->header.objtype == OBJ_ShipType);
 
-            iship->health = iship->staticinfo->maxhealth;
+            iship->targetable.health = iship->staticinfo->health.maxhealth;
             iship->fuel = iship->staticinfo->maxfuel;
 
             insidenode = insidenode->next;
@@ -1088,10 +1088,10 @@ bool32 NoneDoing(udword state)
     while (objnode != NULL)
     {
         ship = (Ship*)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr) &&
-            ShipCanMakeHyperspace(ship) && !(ship->flags & SOF_Disabled))
+            ShipCanMakeHyperspace(ship) && !(ship->header.flags & SOF_Disabled))
         {
             if (ship->shipSinglePlayerGameInfo->hsState == state)
             {
@@ -1114,10 +1114,10 @@ bool32 AllDoingExceptMe(udword state, Ship* me)
     while (objnode != NULL)
     {
         ship = (Ship*)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr) &&
-            ShipCanMakeHyperspace(ship) && !(ship->flags & SOF_Disabled))
+            ShipCanMakeHyperspace(ship) && !(ship->header.flags & SOF_Disabled))
         {
             if (ship != me)
             {
@@ -1145,7 +1145,7 @@ bool32 NoneDoingHS(udword state)
     {
         insideship = (InsideShip*)listGetStructOfNode(objnode);
         ship = insideship->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr) &&
             ShipCanMakeHyperspace(ship))
@@ -1168,7 +1168,7 @@ void InstantlyHyperspaceOut(Ship *ship,Ship *mothership)
 
     //disappear ...
     ship->shipSinglePlayerGameInfo->shipHyperspaceState = SHIPHYPERSPACE_GONE;
-    if ((ship->flags & SOF_Hyperspace) == 0)        // extra safety for hyperspacing ships already hyperspacing
+    if ((ship->header.flags & SOF_Hyperspace) == 0)        // extra safety for hyperspacing ships already hyperspacing
     {
         univRemoveShipFromOutside(ship);
         // ... into the hyperspace ether
@@ -1281,7 +1281,7 @@ bool32 UpdateHyperspacingShip(Ship *ship,bool32 midLevel)
     case HS_FINISHED:
         //disappear ...
         shipSinglePlayerGameInfo->shipHyperspaceState = SHIPHYPERSPACE_GONE;
-        if ((ship->flags & SOF_Hyperspace) == 0)        // extra safety for hyperspacing ships already hyperspacing
+        if ((ship->header.flags & SOF_Hyperspace) == 0)        // extra safety for hyperspacing ships already hyperspacing
         {
             univRemoveShipFromOutside(ship);
 
@@ -1317,9 +1317,9 @@ bool32 UpdateHyperspacingShips(void)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
         objnode = objnode->next;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->header.flags & SOF_Disabled))
         {
             if (ShipCanMakeHyperspace(ship))
             {
@@ -1353,15 +1353,15 @@ bool32 OrientHyperspacingShips(void)
 
     dbgAssertOrIgnore(mothership != NULL);
 
-    matGetVectFromMatrixCol3(mothershipheading,mothership->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(mothershipheading,mothership->rotatable.rotinfo.coordsys);
 
     objnode = universe.ShipList.head;
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->header.flags & SOF_Disabled))
         {
             if (ShipCanHyperspace(ship))
             {
@@ -1370,12 +1370,12 @@ bool32 OrientHyperspacingShips(void)
 
                 if (ship->shiptype != Mothership)
                 {
-                    if (ship->specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange)
+                    if (ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerWithinHyperSpaceRange)
                     {
-                        //if (!(ship->specialFlags & SPECIAL_SinglePlayerInParade))
+                        //if (!(ship->shipOrDerelict.specialFlags & SPECIAL_SinglePlayerInParade))
                         {
                             sdword shipready=FALSE;
-                            shipready = aitrackHeadingWithBank(ship,&mothershipheading,HYPERSPACE_HEADINGACCURACY,ship->staticinfo->sinbank);
+                            shipready = aitrackHeadingWithBank(ship,&mothershipheading,HYPERSPACE_HEADINGACCURACY,ship->staticinfo->shipOrDerelict.sinbank);
                             if(!shipready)
                             {
                                 singlePlayerGameInfo.rollcallShipsRemaining++;  //add to count because we really aren't ready
@@ -1392,7 +1392,7 @@ bool32 OrientHyperspacingShips(void)
                     else
                     {
                         shipsNotInHyperspaceRange++;
-                        if (aiuFindDistanceSquared(ship->posinfo.position,mothership->posinfo.position) < HYPERSPACE_RANGE)
+                        if (aiuFindDistanceSquared(ship->obj.posinfo.position,mothership->obj.posinfo.position) < HYPERSPACE_RANGE)
                         {
                             CommandToDo *shipcommand = getShipAndItsCommand(&universe.mainCommandLayer,ship);
                             if(shipcommand !=NULL)
@@ -1402,7 +1402,7 @@ bool32 OrientHyperspacingShips(void)
                                     goto notreadyhscrud;
                                 }
                             }
-                            bitSet(ship->specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
+                            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerWithinHyperSpaceRange);
 notreadyhscrud:;
                         }
                         else
@@ -1425,18 +1425,18 @@ void PutShipOutsideAt(Ship *ship,vector *createat,vector *createvelocity,real32 
 {
     sdword i;
 
-    collAddSpaceObjToCollBlobs((SpaceObj *)ship);
-    listAddNode(&universe.SpaceObjList,&(ship->objlink),ship);
+    collAddSpaceObjToCollBlobs(&ship->obj);
+    listAddNode(&universe.SpaceObjList,&(ship->header.objlink),ship);
     listAddNode(&universe.ShipList,&(ship->shiplink),ship);
-    listAddNode(&universe.ImpactableList,&(ship->impactablelink),ship);
-    bitClear(ship->flags, SOF_Hide);
-    ship->posinfo.position = *createat;
-    ship->posinfo.velocity = *createvelocity;
-    ship->rotinfo.coordsys = defaultshipmatrix;
+    listAddNode(&universe.ImpactableList,&(ship->impactable.impactablelink),ship);
+    bitClear(ship->header.flags, SOF_Hide);
+    ship->obj.posinfo.position = *createat;
+    ship->obj.posinfo.velocity = *createvelocity;
+    ship->rotatable.rotinfo.coordsys = defaultshipmatrix;
 
-    univAddObjToRenderList((SpaceObj *)ship);
+    univAddObjToRenderList(&ship->obj);
 
-    univRotateObjYaw((SpaceObjRot *)ship,angle);
+    univRotateObjYaw(&ship->rotatable,angle);
 
     for (i = 0; i < MAX_NUM_TRAILS; i++)
     {
@@ -1460,7 +1460,7 @@ void CalculateArrivingTimesForShips(void)
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
         shipSinglePlayerGameInfo = ship->shipSinglePlayerGameInfo;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if ((ship->shiptype == Mothership) && (HYPERSPACE_MOTHERSHIP_ALWAYS_ARRIVES_FIRST))
         {
@@ -1514,7 +1514,7 @@ bool32 UpdateArrivingShip(Ship *ship,hvector *topoint,bool32 midLevel)
                 vecAddTo(createposition,*topoint);
 
                 PutShipOutsideAt(ship,&createposition,&createvelocity,angle);
-                bitClear(ship->flags,SOF_Hyperspace);
+                bitClear(ship->header.flags,SOF_Hyperspace);
 
                 shipSinglePlayerGameInfo->shipHyperspaceState = SHIPHYPERSPACE_DECELERATE;
                 {
@@ -1564,7 +1564,7 @@ bool32 UpdateArrivingShip(Ship *ship,hvector *topoint,bool32 midLevel)
         case SHIPHYPERSPACE_DECELERATE:
             if (universe.totaltimeelapsed > shipSinglePlayerGameInfo->timeToHyperspace)
             {
-                vecZeroVector(ship->posinfo.velocity);
+                vecZeroVector(ship->obj.posinfo.velocity);
                 shipSinglePlayerGameInfo->shipHyperspaceState = SHIPHYPERSPACE_DONE;
                 shipSinglePlayerGameInfo->timeToHyperspace = universe.totaltimeelapsed + HYPERSPACE_DECELERATE_TIME;
                 hsStart(ship, HYPERSPACE_SLICE_RATE, FALSE, hsShouldDisplayEffect(ship));
@@ -1654,7 +1654,7 @@ bool32 UpdateArrivingShip(Ship *ship,hvector *topoint,bool32 midLevel)
 
     if (thisShipArrived)
     {
-        bitClear(ship->specialFlags,SPECIAL_Hyperspacing);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_Hyperspacing);
     }
 
     return thisShipArrived;
@@ -1675,7 +1675,7 @@ bool32 UpdateArrivingShips(void)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr))
         {
@@ -1699,11 +1699,11 @@ void GetShipsClampedToInHS(Ship *clampedto,GrowSelection *clampedships)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (ship->clampInfo)
+        if (ship->guidance.clampInfo)
         {
-            if ((ship->clampInfo->host == (SpaceObjRotImpTarg *)clampedto)
+            if ((ship->guidance.clampInfo->host == &clampedto->targetable)
                 && ship->shipSinglePlayerGameInfo->midlevelHyperspaceIn != TRUE)
             {
                 //add ship to the ships to hs in
@@ -1772,11 +1772,11 @@ void GetShipsClampedTo(Ship *clampedto,GrowSelection *clampedships)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (ship->clampInfo)
+        if (ship->guidance.clampInfo)
         {
-            if ((ship->clampInfo->host == (SpaceObjRotImpTarg *)clampedto) && (!ShipInSelection(singlePlayerGameInfo.ShipsToHyperspace.selection,ship)))
+            if ((ship->guidance.clampInfo->host == &clampedto->targetable) && (!ShipInSelection(singlePlayerGameInfo.ShipsToHyperspace.selection,ship)))
             {
                 growSelectAddShip(clampedships,ship);
             }
@@ -1788,7 +1788,7 @@ void GetShipsClampedTo(Ship *clampedto,GrowSelection *clampedships)
 
 bool32 ShipAlreadyHyperspaceOut(Ship *ship)
 {
-    if ((ship->flags & SOF_Hyperspace) ||
+    if ((ship->header.flags & SOF_Hyperspace) ||
         ShipInSelection(singlePlayerGameInfo.ShipsToHyperspace.selection,ship))
     {
         return TRUE;
@@ -1816,26 +1816,25 @@ void spHyperspaceSelectionOut(SelectCommand *selection)
         ship = selection->ShipPtr[i];
         if (!ShipAlreadyHyperspaceOut(ship))
         {
-            if (ship->attributes & ATTRIBUTES_StartInHS)
+            if (ship->obj.attributes & ATTRIBUTES_StartInHS)
             {
                 InstantlyHyperspaceOut(ship,defactoMothership);
-                bitClear(ship->attributes, ATTRIBUTES_StartInHS);
+                bitClear(ship->obj.attributes, ATTRIBUTES_StartInHS);
             }
             else
             {
                 CalculateHyperspaceTimeForShip(ship,defactoMothership);
                 ship->shipSinglePlayerGameInfo->timeToHyperspace += spHyperspaceDelay;
-                if(ship->clampInfo != NULL)
+                if(ship->guidance.clampInfo != NULL)
                 {
                     //ship is clamped to another ship...
-                    if(ship->clampInfo->host->objtype == OBJ_ShipType)
-                    {
-                        if( ((Ship *)ship->clampInfo->host)->specialFlags & SPECIAL_Hyperspacing)
-                        {
-                            //host has been told to hyperspace
-                            //so lets set the clamped ships hyperspace time, to the same time as its hose
+                    if (ship->guidance.clampInfo->host->header.objtype == OBJ_ShipType) {
+                        Ship* clampHost = (Ship*)ship->guidance.clampInfo->host;
+                        if (clampHost->shipOrDerelict.specialFlags & SPECIAL_Hyperspacing) {
+                            // host has been told to hyperspace
+                            // so lets set the clamped ships hyperspace time, to the same time as its hose
                             ship->shipSinglePlayerGameInfo->timeToHyperspace =
-                                ((Ship *)ship->clampInfo->host)->shipSinglePlayerGameInfo->timeToHyperspace;
+                                clampHost->shipSinglePlayerGameInfo->timeToHyperspace;
                         }
                     }
                 }
@@ -1886,7 +1885,7 @@ void spHyperspaceSelectionOutStatic(SelectCommand *selection)
                 spHyperspaceSelectionOutStatic(clampedShips.selection);
             }
             growSelectClose(&clampedShips);
-            if (ship->attributes & ATTRIBUTES_StartInHS)
+            if (ship->obj.attributes & ATTRIBUTES_StartInHS)
             {
                 InstantlyHyperspaceOut(ship,defactoMothership);
             }
@@ -2182,11 +2181,11 @@ void singlePlayerLevelLoaded(void)
         {
             ship = (Ship *)listGetStructOfNode(objnode);
             objnode = objnode->next;
-            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
             if ((ship->playerowner->playerIndex == 1) && (ship->shiptype == Carrier))
             {
-                bitSet(ship->specialFlags2,SPECIAL_2_DontPlowThroughEnemyShips);
+                bitSet(ship->shipOrDerelict.specialFlags2,SPECIAL_2_DontPlowThroughEnemyShips);
             }
         }
     }
@@ -2202,7 +2201,7 @@ void CleanupDamageEffects(void)
     {
         insideShip = (InsideShip*)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         node = node->next;
 
         dmgForgetEffects(ship);
@@ -2225,9 +2224,9 @@ void CleanupHyperspacingShipsThatDidntHyperspace(void)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
         objnode = objnode->next;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->flags & SOF_Disabled))
+        if (allianceIsShipAlly(ship,universe.curPlayerPtr) && !(ship->header.flags & SOF_Disabled))
         {
             if (ShipCanMakeHyperspace(ship))
             {
@@ -2248,7 +2247,7 @@ void CleanupHyperspacingShips(bool32 FreeShips,bool32 cleanupAllPlayersShips)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         deletenode = node;
         node = node->next;
 
@@ -2287,7 +2286,7 @@ void singlePlayerShipDied(Ship *ship)
         {
             insideShip = (InsideShip *)listGetStructOfNode(node);
             checkship = insideShip->ship;
-            dbgAssertOrIgnore(checkship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(checkship->header.objtype == OBJ_ShipType);
 
             if (checkship == ship)
             {
@@ -2373,10 +2372,10 @@ void UpdateMidLevelHyperspacingShips(void)
         {
             insideShip = (InsideShip *)listGetStructOfNode(node);
             ship = insideShip->ship;
-            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
             nextnode = node->next;
 
-            if ((ship->attributes & ATTRIBUTES_DeleteAfterHSOut) && (ship->flags & SOF_Hyperspace))
+            if ((ship->obj.attributes & ATTRIBUTES_DeleteAfterHSOut) && (ship->header.flags & SOF_Hyperspace))
             {
                 ship->howDidIDie = DEATH_Left_Behind_At_Hyperspace;
                 univDeleteWipeInsideShipOutOfExistence(ship);   // will wipe out of ShipsInHyperspace list
@@ -2542,8 +2541,8 @@ void singlePlayerGameUpdate(void)
                     //{
                     //    Ship* mo = universe.curPlayerPtr->PlayerMothership;
 //                        spSavedCamera = universe.mainCameraCommand.currentCameraStack->remembercam;
-  //                      vecSubFrom(spSavedCamera.eyeposition, mo->posinfo.position);
-    //                    vecSubFrom(spSavedCamera.lookatpoint, mo->posinfo.position);
+  //                      vecSubFrom(spSavedCamera.eyeposition, mo->obj.posinfo.position);
+    //                    vecSubFrom(spSavedCamera.lookatpoint, mo->obj.posinfo.position);
                         //spSavedCameraYet = TRUE;
                     //}
                 }
@@ -2731,7 +2730,7 @@ void DeleteAnyMidLevelHyperspacingShips(void)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         nextnode = node->next;
 
         if (ship->shipSinglePlayerGameInfo->midlevelHyperspaceOut)
@@ -2846,7 +2845,7 @@ Ship *FindPlayersMothership(Player *player)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -2875,7 +2874,7 @@ SelectCommand *GetAllPlayersShipsExceptMothership(Player *player)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -2966,8 +2965,7 @@ void *WatchFunctionAddress(MissionEnum mission)
 }
 
 /* Get the proper FSM function list for the given mission index. */
-const void **FunctionListAddress(MissionEnum mission)
-{
+void const** FunctionListAddress(MissionEnum mission) {
     switch (mission)
     {
         case MISSION_1_KHARAK_SYSTEM:              return Mission01_FunctionPointers;
@@ -3049,8 +3047,7 @@ KASWatchFunction MissionEnumToWatchFunction(MissionEnum mission)
     return WatchFunctionAddress(mission);
 }
 
-const void** MissionEnumToFunctionList(MissionEnum mission)
-{
+void const** MissionEnumToFunctionList(MissionEnum mission) {
     dbgAssertOrIgnore(mission >= MISSION_ENUM_NOT_INITIALISED);
     dbgAssertOrIgnore(mission <  NUMBER_SINGLEPLAYER_MISSIONS);
     
@@ -3400,10 +3397,10 @@ void singlePlayerStartNis(char *nisname, char *scriptname, bool32 centreMothersh
         real32 cross;
 
         centreShipFound = nisShipStartPosition(&motherVector, &motherMatrix, thisNisHeader, raceOfCentreShip, typeOfCentreShip, instanceOfCentreShip);
-        position = nisCentreShip->posinfo.position;
+        position = nisCentreShip->obj.posinfo.position;
         //to get the ships rotation abouts Z, get it's heading on the XY plane,
         //cross it with a 'normal' (zero degree) vector and check sign of Y to determine what to do with cross product
-        matGetVectFromMatrixCol3(heading, nisCentreShip->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(heading, nisCentreShip->rotatable.rotinfo.coordsys);
         heading.z = 0;
         vecNormalize(&heading);
         cross = vecDotProduct(heading, normal);
@@ -3434,7 +3431,7 @@ void singlePlayerStartNis(char *nisname, char *scriptname, bool32 centreMothersh
 //        matMultiplyMatByMat(&thisIdentityMatrix,&motherMatrix,&IdentityMatrix);
 //        matTranspose(&thisIdentityMatrix);
         matCopyAndTranspose(&motherMatrix, &thisIdentityMatrix);
-        matMultiplyMatByMat(&nisMatrix,&nisCentreShip->rotinfo.coordsys,&thisIdentityMatrix);
+        matMultiplyMatByMat(&nisMatrix,&nisCentreShip->rotatable.rotinfo.coordsys,&thisIdentityMatrix);
 
         matMultiplyMatByVec(&tempvec,&nisMatrix,&motherVector);
         vecSubFrom(position,tempvec);
@@ -3464,18 +3461,18 @@ void RotatePlayersFleetAbout(Player *player,vector about,real32 deg)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
-            vecSub(position,ship->posinfo.position,about);
+            vecSub(position,ship->obj.posinfo.position,about);
 
             matMakeRotAboutZ(&rotzmat,(real32)cos(rot),(real32)sin(rot));
 
             matMultiplyMatByVec(&rotatedposition,&rotzmat,&position);
-            vecAdd(ship->posinfo.position,about,rotatedposition);
+            vecAdd(ship->obj.posinfo.position,about,rotatedposition);
 
-            univRotateObjYaw((SpaceObjRot *)ship,rot);
+            univRotateObjYaw(&ship->rotatable,rot);
         }
 
         objnode = objnode->next;
@@ -3497,7 +3494,7 @@ void FindShipsOfShipTypeOfPlayer(GrowSelection *growselect,ShipType shiptype,Pla
     for (node = universe.ShipList.head; node != NULL; node = node->next)
     {
         ship = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if ((ship->playerowner == player) && (ship->shiptype == shiptype))
         {
@@ -3584,7 +3581,7 @@ void WarpFleetStrengthCB(char *directory,char *field,void *dataToFillIn)
     }
 
     shipstatic = GetShipStaticInfo(shiptype,shiprace);
-    dbgAssertOrIgnore(bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded));
+    dbgAssertOrIgnore(bitTest(shipstatic->common.infoFlags, IF_InfoLoaded));
 
     spFleetStr += (GetStrengthOfShipStatic(shipstatic)*num);
 }
@@ -3701,7 +3698,7 @@ void WarpInFleet(hvector *startPoint)
 
     ship = univAddShip(Mothership,universe.players[0].race,(vector *)startPoint,&universe.players[0],0);
     gameStatsAddShip(ship,0);
-    univRotateObjYaw((SpaceObjRot *)ship,DEG_TO_RAD(startPoint->w));
+    univRotateObjYaw(&ship->rotatable,DEG_TO_RAD(startPoint->w));
 
     // Update ship totals for player
     unitCapCreateShip(ship,player);

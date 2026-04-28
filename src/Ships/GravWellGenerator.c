@@ -93,7 +93,7 @@ void runShipEffect(Ship *ship)
     etgLOD = etgSpecialPurposeEffectTable[EGT_CAUGHT_GRAVWELL];
      if (etgLOD != NULL)
      {
-         LOD = ship->currentLOD;
+         LOD = ship->obj.currentLOD;
          if (LOD >= etgLOD->nLevels)
          {
              stat = NULL;
@@ -116,9 +116,9 @@ void runShipEffect(Ship *ship)
     #endif
          {
              udword colSizeDword;
-             dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-             colSizeDword = Real32ToUdword(((ShipStaticInfo *)(ship->staticinfo))->staticheader.staticCollInfo.collspheresize);
-             etgEffectCreate(stat, ship, &ship->posinfo.position, &ship->posinfo.velocity, &ship->rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, colSizeDword);
+             dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+             colSizeDword = Real32ToUdword(ship->staticinfo->common.staticCollInfo.collspheresize);
+             etgEffectCreate(stat, ship, &ship->obj.posinfo.position, &ship->obj.posinfo.velocity, &ship->rotatable.rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, colSizeDword);
 			 {
 				real32 realtemp;
 				udword temp;
@@ -144,7 +144,7 @@ void GravWellGeneratorDied(Ship *ship)
        //do maintenance here if any needed, otherwise remove loop :)
        bitClear(gravstruct->ship->dontapplyforceever,1);
        bitClear(gravstruct->ship->dontrotateever,1);
-       bitClear(gravstruct->ship->specialFlags2,SPECIAL_2_ShipInGravwell);
+       bitClear(gravstruct->ship->shipOrDerelict.specialFlags2, SPECIAL_2_ShipInGravwell);
        gravnode = gravnode->next;
     }
     listDeleteAll(&spec->GravList);        //delete the list
@@ -155,9 +155,9 @@ bool32 gravwellIsShipStuckForHyperspaceing(Ship *ship)
     //multiplayer game...lets test if in grav well..if we are, we'll pause and let us get pummeled!
     Ship *posShip;
     sdword i;
-    for(i=0;i<ship->collMyBlob->blobShips->numShips;i++)
+    for(i=0;i<ship->obj.collMyBlob->blobShips->numShips;i++)
     {
-        posShip = ship->collMyBlob->blobShips->ShipPtr[i];
+        posShip = ship->obj.collMyBlob->blobShips->ShipPtr[i];
         if(posShip->shiptype == GravWellGenerator)
         {
             //SHIP IS A GRAV WELL!
@@ -167,7 +167,7 @@ bool32 gravwellIsShipStuckForHyperspaceing(Ship *ship)
                 //probably in it, but lets see...
                 vector sep;
                 real32 distsqr;
-                vecSub(sep,ship->posinfo.position,posShip->posinfo.position);
+                vecSub(sep,ship->obj.posinfo.position,posShip->obj.posinfo.position);
                 distsqr = vecMagnitudeSquared(sep);
                 if(distsqr < (((GravWellGeneratorStatics *)posShip->staticinfo->custstatinfo)->GravWellRadiusSqr))
                 {
@@ -218,7 +218,7 @@ void turnoffGravwell(Ship *ship)
     etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_OFF];
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -240,8 +240,8 @@ void turnoffGravwell(Ship *ship)
         if (stat != NULL)
 #endif
         {                                       //if there is a gravwell off effect for this LOD
-            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-            etgEffectCreate(stat, ship, &ship->posinfo.position, NULL, &ship->rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
+            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+            etgEffectCreate(stat, ship, &ship->obj.posinfo.position, NULL, &ship->rotatable.rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
         }
     }
 }
@@ -277,7 +277,7 @@ bool32 GravWellGeneratorSpecialActivate(Ship *ship)
                 etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
                 if (etgLOD != NULL)
                 {
-                    LOD = ship->currentLOD;
+                    LOD = ship->obj.currentLOD;
                     if (LOD >= etgLOD->nLevels)
                     {
                         stat = NULL;
@@ -299,8 +299,8 @@ bool32 GravWellGeneratorSpecialActivate(Ship *ship)
                     if (stat != NULL)
 #endif
                     {                                       //if there is a gravwell on effect
-                        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-                        spec->gravityEffect = etgEffectCreate(stat, ship, &ship->posinfo.position, NULL, &ship->rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
+                        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+                        spec->gravityEffect = etgEffectCreate(stat, ship, &ship->obj.posinfo.position, NULL, &ship->rotatable.rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
                         if (((real32 *)spec->gravityEffect->variable)[ETG_SpecialDurationParam] != 999999.0f)
                         {                                   //if it's not one of those free-running effects
                             spec->gravityEffect = NULL;     //don't try to time it out later
@@ -354,7 +354,7 @@ void GravWellGeneratorAddObj(Ship *ship,  Ship *objtoadd)
 
     gravwellgeneratorstatics = (GravWellGeneratorStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
 
-    if(bitTest(objtoadd->flags,SOF_Dead))
+    if(bitTest(objtoadd->header.flags,SOF_Dead))
     {
         return;     //don't add dead objects...
     }
@@ -363,7 +363,7 @@ void GravWellGeneratorAddObj(Ship *ship,  Ship *objtoadd)
     if (!ShipInGravField(ship,objtoadd))
     {   //Ship is already in field, so don't add
         //re set variable in case it was claered b4.
-        bitSet(objtoadd->specialFlags2,SPECIAL_2_ShipInGravwell);
+        bitSet(objtoadd->shipOrDerelict.specialFlags2,SPECIAL_2_ShipInGravwell);
         return;
     }
 
@@ -391,7 +391,7 @@ void GravWellGeneratorAddObj(Ship *ship,  Ship *objtoadd)
     listAddNode(&spec->GravList,&newgravstruct->objnode,newgravstruct);
 
 
-    bitSet(objtoadd->specialFlags2,SPECIAL_2_ShipInGravwell);
+    bitSet(objtoadd->shipOrDerelict.specialFlags2,SPECIAL_2_ShipInGravwell);
 
 }
 
@@ -416,7 +416,7 @@ void GravAddObjectsInProximity(Ship *gravship)
             if(ship->shiptype == SalCapCorvette)
                 goto nextnode;
             //later, do a cubular check instead?
-            vecSub(diff,ship->posinfo.position,gravship->posinfo.position);
+            vecSub(diff,ship->obj.posinfo.position,gravship->obj.posinfo.position);
             distanceSqr = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
             if(distanceSqr <= gravwellgeneratorstatics->GravWellRadiusSqr)
             {
@@ -443,7 +443,7 @@ void GravWellGeneratorRemoveShipReferences(Ship *ship,Ship *shiptoremove)
     {
         bitClear(gravstruct->ship->dontapplyforceever,1);
         bitClear(gravstruct->ship->dontrotateever,1);
-        bitClear(shiptoremove->specialFlags2,SPECIAL_2_ShipInGravwell);
+        bitClear(shiptoremove->shipOrDerelict.specialFlags2,SPECIAL_2_ShipInGravwell);
         listDeleteNode(gravnode);     //delete nodes memory...may not work as I think...ask gary..
         break;             //done so break and return
     }
@@ -494,8 +494,8 @@ void GravWellGeneratorHouseKeep(Ship *ship)
             ship->deathtime= universe.totaltimeelapsed+GRAV_TIME_BEFORE_EXPLODE;
 
             //derelictize ship
-            bitSet(ship->flags,SOF_Disabled);
-            bitClear(ship->flags,SOF_Selectable);
+            bitSet(ship->header.flags,SOF_Disabled);
+            bitClear(ship->header.flags,SOF_Selectable);
             clRemoveShipFromSelection(&selSelected,ship);
             //make the effect time out by modifying the duration parameter directly
             if (spec->gravityEffect != NULL)
@@ -513,7 +513,7 @@ void GravWellGeneratorHouseKeep(Ship *ship)
 etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
                 if (etgLOD != NULL)
                 {
-                    LOD = ship->currentLOD;
+                    LOD = ship->obj.currentLOD;
                     if (LOD >= etgLOD->nLevels)
                     {
                         stat = NULL;
@@ -535,8 +535,8 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
                     if (stat != NULL)
 #endif
                     {                                       //if there is a gravwell on effect
-                        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-                        spec->gravityEffect = etgEffectCreate(stat, ship, &ship->posinfo.position, NULL, &ship->rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
+                        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+                        spec->gravityEffect = etgEffectCreate(stat, ship, &ship->obj.posinfo.position, NULL, &ship->rotatable.rotinfo.coordsys, ship->magnitudeSquared, EAF_Full, 1, ship->shiprace);
                         if (((real32 *)spec->gravityEffect->variable)[ETG_SpecialDurationParam] != 999999.0f)
                         {                                   //if it's not one of those free-running effects
                             spec->gravityEffect = NULL;     //don't try to time it out later
@@ -555,7 +555,7 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
         {
             gravstruct = (GravStruct *)listGetStructOfNode(gravnode);
 
-            vecSub(diff,gravstruct->ship->posinfo.position,ship->posinfo.position);
+            vecSub(diff,gravstruct->ship->obj.posinfo.position,ship->obj.posinfo.position);
             distanceSqr = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
             gravToShip = diff;
             if(distanceSqr >= gravwellgeneratorstatics->GravWellRadiusSqr)
@@ -564,7 +564,7 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
                 GravWellGeneratorRemoveShipReferences(ship,  (Ship *) gravstruct->ship);
                 continue;
             }
-            if(bitTest(gravstruct->ship->flags,SOF_Dead))
+            if(bitTest(gravstruct->ship->header.flags,SOF_Dead))
             {
                 gravnode = gravnode->next;
                 GravWellGeneratorRemoveShipReferences(ship,  (Ship *) gravstruct->ship);
@@ -582,32 +582,32 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
             switch(gravstruct->stoppingstate)
             {
             case GRAV_BEGIN:
-                vecScalarMultiply(gravstruct->ship->posinfo.velocity,gravstruct->ship->posinfo.velocity,gravwellgeneratorstatics->EffectConstant);
-                if(vecMagnitudeSquared(gravstruct->ship->posinfo.velocity) < 2500)
+                vecScalarMultiply(gravstruct->ship->obj.posinfo.velocity,gravstruct->ship->obj.posinfo.velocity,gravwellgeneratorstatics->EffectConstant);
+                if(vecMagnitudeSquared(gravstruct->ship->obj.posinfo.velocity) < 2500)
                 {
                     gravstruct->stoppingstate = GRAV_STAGE2;
                 }
                 break;
             case GRAV_STAGE2:
                 gravstruct->ship->autostabilizeship = FALSE;
-                if(gravstruct->ship->rotinfo.torque.x == 0.0 &&
-                    gravstruct->ship->rotinfo.torque.y == 0.0 &&
-                    gravstruct->ship->rotinfo.torque.z == 0.0)
+                if(gravstruct->ship->rotatable.rotinfo.torque.x == 0.0 &&
+                    gravstruct->ship->rotatable.rotinfo.torque.y == 0.0 &&
+                    gravstruct->ship->rotatable.rotinfo.torque.z == 0.0)
                 {
-                    if(gravstruct->ship->rotinfo.rotspeed.x < speedlimit &&
-                        gravstruct->ship->rotinfo.rotspeed.x > -speedlimit)
+                    if(gravstruct->ship->rotatable.rotinfo.rotspeed.x < speedlimit &&
+                        gravstruct->ship->rotatable.rotinfo.rotspeed.x > -speedlimit)
                     {
-                        gravstruct->ship->rotinfo.torque.x = gravstruct->xangle;
+                        gravstruct->ship->rotatable.rotinfo.torque.x = gravstruct->xangle;
                     }
-                    if(gravstruct->ship->rotinfo.rotspeed.y < speedlimit &&
-                        gravstruct->ship->rotinfo.rotspeed.y > -speedlimit)
+                    if(gravstruct->ship->rotatable.rotinfo.rotspeed.y < speedlimit &&
+                        gravstruct->ship->rotatable.rotinfo.rotspeed.y > -speedlimit)
                     {
-                        gravstruct->ship->rotinfo.torque.y = gravstruct->yangle;
+                        gravstruct->ship->rotatable.rotinfo.torque.y = gravstruct->yangle;
                     }
-                    if(gravstruct->ship->rotinfo.rotspeed.z < speedlimit &&
-                        gravstruct->ship->rotinfo.rotspeed.z > -speedlimit)
+                    if(gravstruct->ship->rotatable.rotinfo.rotspeed.z < speedlimit &&
+                        gravstruct->ship->rotatable.rotinfo.rotspeed.z > -speedlimit)
                     {
-                        gravstruct->ship->rotinfo.torque.z = gravstruct->zangle;
+                        gravstruct->ship->rotatable.rotinfo.torque.z = gravstruct->zangle;
                     }
 
                 }
@@ -616,7 +616,7 @@ etgLOD = etgSpecialPurposeEffectTable[EGT_GRAVWELL_ON];
                 gravToShip.x = gravToShip.x*oneOverDistance;
                 gravToShip.y = gravToShip.y*oneOverDistance;
                 gravToShip.z = gravToShip.z*oneOverDistance;
-                vecScalarMultiply(gravstruct->ship->posinfo.force,gravToShip,gravwellgeneratorstatics->repulseForce);
+                vecScalarMultiply(gravstruct->ship->obj.posinfo.force,gravToShip,gravwellgeneratorstatics->repulseForce);
 
                 break;
             default:

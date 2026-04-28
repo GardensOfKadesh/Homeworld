@@ -201,7 +201,7 @@ void aidCheckSphereOfInfluence(void)
     {
         return;
     }
-    mothership_pos = mothership->posinfo.position;
+    mothership_pos = mothership->obj.posinfo.position;
 
     //calculates sphere of influence if there isn't one,
     //or every 15 seconds
@@ -213,7 +213,7 @@ void aidCheckSphereOfInfluence(void)
         {
             return;
         }
-        distsq = aiuFindDistanceSquared(enemy_mothership->posinfo.position, mothership_pos);
+        distsq = aiuFindDistanceSquared(enemy_mothership->obj.posinfo.position, mothership_pos);
         aiCurrentAIPlayer->sphereofinfluence = distsq/4;
     }
 

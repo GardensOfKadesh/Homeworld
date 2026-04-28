@@ -20,7 +20,7 @@ typedef struct
 {
     AttackSideStep attacksidestep;
     sdword salvageState;               //sal/cap corv aistate for salvaging
-    SpaceObjRotImpTargGuidanceShipDerelict *target;
+    ShipOrDerelict *target;
     Ship *dockwith;
     sdword dockindex;
     sdword salvageIndex;
@@ -31,7 +31,7 @@ typedef struct
     sdword noAvoid;
     real32 noDamageTargetTime;
     sdword groupme;
-	SpaceObjRotImpTargGuidanceShipDerelict *noDamageTarget;
+	ShipOrDerelict *noDamageTarget;
 } SalCapCorvetteSpec;
 
 typedef struct
@@ -48,19 +48,19 @@ typedef struct
 extern CustShipHeader JunkYardDawgHeader;
 extern CustShipHeader SalCapCorvetteHeader;
 
-bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, SpaceObjRotImpTargGuidanceShipDerelict *target,sdword *dockindex);
+bool32 DropTargetInShip(Ship *dockwith,sdword *targetDepotState, ShipOrDerelict *target,sdword *dockindex);
 bool32 isThereAnotherTargetForMe(Ship *ship,SelectAnyCommand *targets);
 void salCapCleanUpCloakingTarget(Ship *ship, Ship *shiptoremove);
 void salCapClearTechBool();
 void SalCapDropTarget(Ship *ship);
 void salCapExtraSpecialOrderCleanUp(SelectCommand *selection,udword ordertype,Ship *dockwith,SelectCommand *targets);
-void salCapHarvestTarget(SpaceObjRotImpTargGuidanceShipDerelict *target,Ship *dockwith);
-sdword salCapNeedBig(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *target);
+void salCapHarvestTarget(ShipOrDerelict *target,Ship *dockwith);
+sdword salCapNeedBig(Ship *ship,ShipOrDerelict *target);
 void SalCapOrderChangedCleanUp(Ship *ship);
 void salCapRemoveDerelictReferences(Ship *ship,Derelict *d);
 
 #if RND_VISUALIZATION
-void dockDrawSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *obj);
+void dockDrawSalvageInfo(ShipOrDerelict *obj);
 #endif
 
 #endif

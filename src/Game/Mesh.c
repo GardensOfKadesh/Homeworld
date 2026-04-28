@@ -325,7 +325,7 @@ trhandle * meshTextureRegisterAllPlayers(char *fullName, void *meshReference)
             dbgAssertOrIgnore(index < MAX_MULTIPLAYER_PLAYERS);
             handleList[index] = TR_Invalid;
 
-            if (utyShipsAlwaysUseOwnerColors || ((ShipStaticInfo *)info)->teamColor[index])
+            if (utyShipsAlwaysUseOwnerColors || ((ShipStaticInfo *)info)->shipOrDerelict.teamColor[index])
             {                                               //if this player can build this ship
                 handleList[index] = trTextureRegister(fullName, //register in this players's colors
                         &teColorSchemes[index].textureColor, meshReference);
@@ -1271,7 +1271,7 @@ void meshRecolorize(meshdata *mesh)
                     {                                       //if this texture allocated
     				    for (k = 0; k < MAX_MULTIPLAYER_PLAYERS; k++)
     					{
-                            if (((ShipStaticInfo *)info)->teamColor[k])
+                            if (((ShipStaticInfo *)info)->shipOrDerelict.teamColor[k])
                             {                               //if this team color will be loaded
                                 if (k != j && trColorsEqual(&teColorSchemes[k].textureColor, trIndex(handles[j])) == trPaletteIndex(handles[j]))
                                 {                           //if this handle's color is in some other team's desired color
@@ -1303,7 +1303,7 @@ void meshRecolorize(meshdata *mesh)
                 //third pass: removals of unused color schemes
                 for (j = 0; j < MAX_MULTIPLAYER_PLAYERS; j++)
                 {                                           //for all players
-                    if (!((ShipStaticInfo *)info)->teamColor[j])
+                    if (!((ShipStaticInfo *)info)->shipOrDerelict.teamColor[j])
                     {                                       //if this player does not need this mesh
                         if (handles[j] != TR_Invalid)
                         {                                   //this texture no longer needed
@@ -1317,7 +1317,7 @@ doneDeletingAllOldTextures:
                 //fourth pass: additions and updates of color schemes
                 for (j = 0; j < MAX_MULTIPLAYER_PLAYERS; j++)
                 {                                           //for all players
-                    if (((ShipStaticInfo *)info)->teamColor[j])
+                    if (((ShipStaticInfo *)info)->shipOrDerelict.teamColor[j])
                     {                                       //if this player needs this mesh
                         if (handles[j] != TR_Invalid)
                         {                                   //if texture was loaded properly before

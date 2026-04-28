@@ -781,7 +781,7 @@ void pingAllPingsDelete(void)
 ----------------------------------------------------------------------------*/
 bool32 pingBattleBlobCriteria(blob *superBlob, SpaceObj *obj)
 {
-    if (obj->objtype != OBJ_ShipType)
+    if (obj->header.objtype != OBJ_ShipType)
     {
         return(FALSE);                                      //not a ship - no good
     }
@@ -791,7 +791,7 @@ bool32 pingBattleBlobCriteria(blob *superBlob, SpaceObj *obj)
 //        return(FALSE);                                      //does not belong to the player
 //    }
 
-    if (obj->flags & (SOF_Dead|SOF_Hide|SOF_Crazy|SOF_Disabled))
+    if (obj->header.flags & (SOF_Dead|SOF_Hide|SOF_Crazy|SOF_Disabled))
     {
         return(FALSE);
     }
@@ -847,7 +847,7 @@ bool32 pingBattlePingEvaluate(struct ping *hellaPing, SpaceObj *user, char *user
         //!!!! try a few times here.  This could be an efficiency issue
     }
                                                             //else an object just died
-    if (pingDyingObject->objtype != OBJ_ShipType)
+    if (pingDyingObject->header.objtype != OBJ_ShipType)
     {
         return(FALSE);                                      //only ships in battle pings
     }
@@ -944,7 +944,7 @@ void pingAttackPingsCreate(blob *superBlob)
         startShips = battlePing->nShips;
         for (index = 0; index < battlePing->nShips; index++, ship++)
         {                                                   //for each ship in the ping
-            dbgAssertOrIgnore((*ship)->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore((*ship)->header.objtype == OBJ_ShipType);
             dbgAssertOrIgnore((*ship)->playerowner != NULL);
             command = (*ship)->command;                     //get the ship's command
 

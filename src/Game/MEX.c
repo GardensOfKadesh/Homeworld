@@ -483,7 +483,7 @@ void mexSetCollisionInfo(StaticCollInfo *staticCollInfo,void *mex,real32 forward
     spherechunk = mexGetChunk(mex,"Col","Col0");
     if (spherechunk != NULL)
     {
-        staticCollInfo->originalcollspheresize = spherechunk->r;
+        staticCollInfo->originalCollSphereSize = spherechunk->r;
         staticCollInfo->collspheresize = spherechunk->r;
         staticCollInfo->approxcollspheresize = spherechunk->r;
         staticCollInfo->avoidcollspheresize = spherechunk->r;
@@ -536,7 +536,7 @@ void mexSetCollisionInfo(StaticCollInfo *staticCollInfo,void *mex,real32 forward
 
             if (minr > staticCollInfo->collspheresize)
             {
-                staticCollInfo->originalcollspheresize = minr;
+                staticCollInfo->originalCollSphereSize = minr;
                 staticCollInfo->collspheresize = minr;
                 staticCollInfo->approxcollspheresize = minr;
                 staticCollInfo->avoidcollspheresize = minr;

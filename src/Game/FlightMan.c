@@ -348,8 +348,8 @@ void flightmanTest()
                 testcurflightman = 0;
             }
             aitrackForceSteadyShip(testflightmanship);
-            vecZeroVector(testflightmanship->posinfo.force);
-            vecZeroVector(testflightmanship->rotinfo.torque);
+            vecZeroVector(testflightmanship->obj.posinfo.force);
+            vecZeroVector(testflightmanship->rotatable.rotinfo.torque);
             testflightmanship = NULL;
         }
     }
@@ -363,7 +363,7 @@ void flightmanTest()
 
 bool32 flightmanPitchDown(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedy = ship->rotinfo.rotspeed.y;
+    real32 rotspeedy = ship->rotatable.rotinfo.rotspeed.y;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedy;
 
     if (*totalAngleRotated <= -degreesToRotate)
@@ -374,7 +374,7 @@ bool32 flightmanPitchDown(Ship *ship,real32 *totalAngleRotated,real32 degreesToR
     {
         if (rotspeedy > -maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_PITCHDOWN] * rotaccelmodifier,ROT_PITCHDOWN);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_PITCHDOWN] * rotaccelmodifier,ROT_PITCHDOWN);
         }
         return FALSE;
     }
@@ -382,7 +382,7 @@ bool32 flightmanPitchDown(Ship *ship,real32 *totalAngleRotated,real32 degreesToR
 
 bool32 flightmanPitchUp(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedy = ship->rotinfo.rotspeed.y;
+    real32 rotspeedy = ship->rotatable.rotinfo.rotspeed.y;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedy;
 
     if (*totalAngleRotated >= degreesToRotate)
@@ -393,7 +393,7 @@ bool32 flightmanPitchUp(Ship *ship,real32 *totalAngleRotated,real32 degreesToRot
     {
         if (rotspeedy < maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_PITCHUP] * rotaccelmodifier,ROT_PITCHUP);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_PITCHUP] * rotaccelmodifier,ROT_PITCHUP);
         }
         return FALSE;
     }
@@ -401,7 +401,7 @@ bool32 flightmanPitchUp(Ship *ship,real32 *totalAngleRotated,real32 degreesToRot
 
 bool32 flightmanRollRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedz = ship->rotinfo.rotspeed.z;
+    real32 rotspeedz = ship->rotatable.rotinfo.rotspeed.z;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedz;
 
     if (*totalAngleRotated >= degreesToRotate)
@@ -412,7 +412,7 @@ bool32 flightmanRollRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToR
     {
         if (rotspeedz < maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ROLLRIGHT] * rotaccelmodifier,ROT_ROLLRIGHT);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_ROLLRIGHT] * rotaccelmodifier,ROT_ROLLRIGHT);
         }
         return FALSE;
     }
@@ -420,7 +420,7 @@ bool32 flightmanRollRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToR
 
 bool32 flightmanRollLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedz = ship->rotinfo.rotspeed.z;
+    real32 rotspeedz = ship->rotatable.rotinfo.rotspeed.z;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedz;
 
     if (*totalAngleRotated <= -degreesToRotate)
@@ -431,7 +431,7 @@ bool32 flightmanRollLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRo
     {
         if (rotspeedz > -maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ROLLLEFT] * rotaccelmodifier,ROT_ROLLLEFT);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_ROLLLEFT] * rotaccelmodifier,ROT_ROLLLEFT);
         }
         return FALSE;
     }
@@ -439,7 +439,7 @@ bool32 flightmanRollLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRo
 
 bool32 flightmanYawRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedx = ship->rotinfo.rotspeed.x;
+    real32 rotspeedx = ship->rotatable.rotinfo.rotspeed.x;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedx;
 
     if (*totalAngleRotated <= -degreesToRotate)
@@ -450,7 +450,7 @@ bool32 flightmanYawRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToRo
     {
         if (rotspeedx > -maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_YAWRIGHT] * rotaccelmodifier,ROT_YAWRIGHT);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_YAWRIGHT] * rotaccelmodifier,ROT_YAWRIGHT);
         }
         return FALSE;
     }
@@ -458,7 +458,7 @@ bool32 flightmanYawRight(Ship *ship,real32 *totalAngleRotated,real32 degreesToRo
 
 bool32 flightmanYawLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRotate,real32 maxrotspeed,real32 rotaccelmodifier)
 {
-    real32 rotspeedx = ship->rotinfo.rotspeed.x;
+    real32 rotspeedx = ship->rotatable.rotinfo.rotspeed.x;
     *totalAngleRotated += universe.phystimeelapsed * rotspeedx;
 
     if (*totalAngleRotated >= degreesToRotate)
@@ -469,7 +469,7 @@ bool32 flightmanYawLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRot
     {
         if (rotspeedx < maxrotspeed)
         {
-            physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_YAWLEFT] * rotaccelmodifier,ROT_YAWLEFT);
+            physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_YAWLEFT] * rotaccelmodifier,ROT_YAWLEFT);
         }
         return FALSE;
     }
@@ -477,20 +477,20 @@ bool32 flightmanYawLeft(Ship *ship,real32 *totalAngleRotated,real32 degreesToRot
 
 bool32 flightmanStabilizePitch(Ship *ship)
 {
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
-    real32 rotspeedy = ship->rotinfo.rotspeed.y;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
+    real32 rotspeedy = ship->rotatable.rotinfo.rotspeed.y;
     real32 rotstr;
 
     if (rotspeedy > STILL_ROT_HI)
     {
-        rotstr = rotspeedy * shipstaticinfo->staticheader.momentOfInertiaY / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+        rotstr = rotspeedy * shipstaticinfo->common.momentOfInertiaY / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
         return FALSE;
     }
     else if (rotspeedy < STILL_ROT_LO)
     {
-        rotstr = -rotspeedy * shipstaticinfo->staticheader.momentOfInertiaY / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+        rotstr = -rotspeedy * shipstaticinfo->common.momentOfInertiaY / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
         return FALSE;
     }
 
@@ -499,20 +499,20 @@ bool32 flightmanStabilizePitch(Ship *ship)
 
 bool32 flightmanStabilizeRoll(Ship *ship)
 {
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
-    real32 rotspeedz = ship->rotinfo.rotspeed.z;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
+    real32 rotspeedz = ship->rotatable.rotinfo.rotspeed.z;
     real32 rotstr;
 
     if (rotspeedz > STILL_ROT_HI)
     {
-        rotstr = rotspeedz * shipstaticinfo->staticheader.momentOfInertiaZ / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+        rotstr = rotspeedz * shipstaticinfo->common.momentOfInertiaZ / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         return FALSE;
     }
     else if (rotspeedz < STILL_ROT_LO)
     {
-        rotstr = -rotspeedz * shipstaticinfo->staticheader.momentOfInertiaZ / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+        rotstr = -rotspeedz * shipstaticinfo->common.momentOfInertiaZ / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         return FALSE;
     }
 
@@ -521,20 +521,20 @@ bool32 flightmanStabilizeRoll(Ship *ship)
 
 bool32 flightmanStabilizeYaw(Ship *ship)
 {
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
-    real32 rotspeedx = ship->rotinfo.rotspeed.x;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
+    real32 rotspeedx = ship->rotatable.rotinfo.rotspeed.x;
     real32 rotstr;
 
     if (rotspeedx > STILL_ROT_HI)
     {
-        rotstr = rotspeedx * shipstaticinfo->staticheader.momentOfInertiaX / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+        rotstr = rotspeedx * shipstaticinfo->common.momentOfInertiaX / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
         return FALSE;
     }
     else if (rotspeedx < STILL_ROT_LO)
     {
-        rotstr = -rotspeedx * shipstaticinfo->staticheader.momentOfInertiaX / universe.phystimeelapsed;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+        rotstr = -rotspeedx * shipstaticinfo->common.momentOfInertiaX / universe.phystimeelapsed;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
         return FALSE;
     }
 
@@ -608,7 +608,7 @@ bool32 flightmanFlipTurnExecute(Ship *ship)
         case 1:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*FLIPTURN_AFTERFLIPTHRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*FLIPTURN_AFTERFLIPTHRUSTMOD,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - flipturninfo->finishedfliptimestamp) > FLIPTURN_PAUSEAFTERFLIPTIME)
             {
@@ -617,7 +617,7 @@ bool32 flightmanFlipTurnExecute(Ship *ship)
             return FALSE;
 
         case 2:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*FLIPTURN_ROLLTHRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*FLIPTURN_ROLLTHRUSTMOD,TRANS_FORWARD);
 
             if (flipturninfo->rollleft)
             {
@@ -750,14 +750,14 @@ bool32 flightmanImmelmanExecute(Ship *ship)
             }
             else
             {
-                physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * IMMELMAN_THRUSTMOD,TRANS_FORWARD);
+                physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * IMMELMAN_THRUSTMOD,TRANS_FORWARD);
             }
             return FALSE;
 
         case 1:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*IMMELMAN_ROLLTHRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*IMMELMAN_ROLLTHRUSTMOD,TRANS_FORWARD);
 
             if (immelmaninfo->rollleft)
             {
@@ -854,7 +854,7 @@ bool32 flightmanSplitSExecute(Ship *ship)
             }
             else
             {
-                physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SPLIT_S_THRUSTMOD,TRANS_FORWARD);
+                physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SPLIT_S_THRUSTMOD,TRANS_FORWARD);
             }
             return FALSE;
 
@@ -932,7 +932,7 @@ bool32 flightmanHardBankExecute(Ship *ship)
             }
             else
             {
-                physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HARDBANK_THRUSTMOD,TRANS_FORWARD);
+                physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HARDBANK_THRUSTMOD,TRANS_FORWARD);
             }
             return FALSE;
 
@@ -1009,7 +1009,7 @@ bool32 flightmanSoftBankExecute(Ship *ship)
             }
             else
             {
-                physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SOFTBANK_THRUSTMOD,TRANS_FORWARD);
+                physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SOFTBANK_THRUSTMOD,TRANS_FORWARD);
             }
             return FALSE;
 
@@ -1061,8 +1061,8 @@ void flightmanSlalomInit(Ship *ship,smemsize flags)
     dbgAssertOrIgnore(slalominfo->numwaypoints < SLALOM_MAXITERATIONS);
     dbgAssertOrIgnore((SLALOM_BASEITERATIONS + SLALOM_RANDOMITERATIONS - 1) < SLALOM_MAXITERATIONS);
 
-    matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
 
     vecAdd(forwardright,heading,right);
     vecSub(forwardleft,heading,right);
@@ -1070,7 +1070,7 @@ void flightmanSlalomInit(Ship *ship,smemsize flags)
     vecMultiplyByScalar(forwardright,SLALOM_RUN_LENGTH);
     vecMultiplyByScalar(forwardleft,SLALOM_RUN_LENGTH);
 
-    position = ship->posinfo.position;
+    position = ship->obj.posinfo.position;
 
     if (rightdirection)
     {
@@ -1160,13 +1160,13 @@ void flightmanSandwichInit(Ship *ship,smemsize flags)
     real32 rotangle;
     matrix rotmatz;
 
-    dbgAssertOrIgnore(target->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(target->header.objtype == OBJ_ShipType);
 
     dbgAssertOrIgnore(ship->flightman == FLIGHTMAN_SANDWICH);
     sandwichinfo = ship->flightmanInfo = memAlloc(sizeof(SandwichInfo),"SandwichInfo",0);
     sandwichinfo->size = sizeof(SandwichInfo);
 
-    vecSub(diff,target->posinfo.position,ship->posinfo.position);
+    vecSub(diff,target->obj.posinfo.position,ship->obj.posinfo.position);
     vecMultiplyByScalar(diff,SANDWICH_PINCHER_SCALE);
 
     if (ship->flightmanState2 == SANDWICH_RIGHT)
@@ -1181,7 +1181,7 @@ void flightmanSandwichInit(Ship *ship,smemsize flags)
     matMakeRotAboutZ(&rotmatz,(real32)cos(rotangle),(real32)sin(rotangle));
     matMultiplyMatByVec(&sandwichinfo->waypoint,&rotmatz,&diff);
 
-    vecAddTo(sandwichinfo->waypoint,ship->posinfo.position);
+    vecAddTo(sandwichinfo->waypoint,ship->obj.posinfo.position);
 
     sandwichinfo->timestamp = universe.totaltimeelapsed;
 }
@@ -1373,7 +1373,7 @@ bool32 flightmanBRollOutExecute(Ship *ship)
     switch (ship->flightmanState1)
     {
         case 0:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * 0.50f, TRANS_UP);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * 0.50f, TRANS_UP);
             return(flightmanRollLeft(ship,&rollinfo->totalrotated,DEG_TO_RAD(180.0f), 1.70f, 0.25f));
 
         default:
@@ -1501,7 +1501,7 @@ void flightmanWhipStrafeInit(Ship *ship,smemsize flags)
 bool32 flightmanWhipStrafeExecute(Ship *ship)
 {
     WhipStrafeInfo *whipstrafeinfo;
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
     vector updownvector = { 0.0f, 0.0f, 1.0f };
 
     dbgAssertOrIgnore(ship->flightman == FLIGHTMAN_WHIP_STRAFE);
@@ -1517,7 +1517,7 @@ bool32 flightmanWhipStrafeExecute(Ship *ship)
                 updownvector.z = -1.0f;
             }
 
-            if (aitrackHeadingWithBankFlags(ship,&updownvector,WHIPSTRAFE_FACEDOWNUP_ACCURACY,shipstaticinfo->sinbank,AITRACKHEADING_IGNOREUPVEC))
+            if (aitrackHeadingWithBankFlags(ship,&updownvector,WHIPSTRAFE_FACEDOWNUP_ACCURACY,shipstaticinfo->shipOrDerelict.sinbank,AITRACKHEADING_IGNOREUPVEC))
             {
                 ship->flightmanState1 = 1;
                 whipstrafeinfo->whiptimestamp = universe.totaltimeelapsed;
@@ -1525,7 +1525,7 @@ bool32 flightmanWhipStrafeExecute(Ship *ship)
             return FALSE;
 
         case 1:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * WHIPSTRAFE_WHIPTHRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * WHIPSTRAFE_WHIPTHRUSTMOD,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - whipstrafeinfo->whiptimestamp) > WHIPSTRAFE_WHIPTIME)
             {
@@ -1594,7 +1594,7 @@ bool32 flightmanRollAwayExecute(Ship *ship)
                 result = flightmanRollRight(ship,&rollawayinfo->totalrollrotated,DEG_TO_RAD(180.0f),ROLLAWAY_MAXROTSPEEDROLL,ROLLAWAY_ACCELMODIFIERROLL);
             }
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
 
             if (result)
             {
@@ -1606,7 +1606,7 @@ bool32 flightmanRollAwayExecute(Ship *ship)
         case 1:
             flightmanStabilizeRoll(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
 
             if ((universe.totaltimeelapsed - rollawayinfo->upsidedowntimestamp) > ROLLAWAY_THRUSTDOWNTIME)
             {
@@ -1624,7 +1624,7 @@ bool32 flightmanRollAwayExecute(Ship *ship)
                 result = flightmanRollRight(ship,&rollawayinfo->totalrollrotated,DEG_TO_RAD(360.0f),ROLLAWAY_MAXROTSPEEDROLL,ROLLAWAY_ACCELMODIFIERROLL);
             }
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_UP] * ROLLAWAY_THRUSTMOD,TRANS_UP);
 
             if (result)
             {
@@ -1690,7 +1690,7 @@ bool32 flightmanSplitSEvasiveExecute(Ship *ship)
                 result = flightmanRollRight(ship,&splitsevasiveinfo->totalrollrotated,DEG_TO_RAD(90.0f),SPLITSEVASIVE_MAXROTSPEEDROLL,SPLITSEVASIVE_ACCELMODIFIERROLL);
             }
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
 
             if (result)
             {
@@ -1701,7 +1701,7 @@ bool32 flightmanSplitSEvasiveExecute(Ship *ship)
         case 1:
             flightmanStabilizeRoll(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
 
             if (flightmanPitchUp(ship,&splitsevasiveinfo->totalpitchrotated,DEG_TO_RAD(90.0f),SPLITSEVASIVE_MAXROTSPEEDPITCH,SPLITSEVASIVE_ACCELMODIFIERPITCH))
             {
@@ -1712,7 +1712,7 @@ bool32 flightmanSplitSEvasiveExecute(Ship *ship)
         case 2:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
 
             if (splitsevasiveinfo->rollleft)
             {
@@ -1733,7 +1733,7 @@ bool32 flightmanSplitSEvasiveExecute(Ship *ship)
         case 3:
             flightmanStabilizeRoll(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SPLITSEVASIVE_THRUSTMOD,TRANS_FORWARD);
 
             if (flightmanPitchUp(ship,&splitsevasiveinfo->totalpitchrotated,DEG_TO_RAD(180.0f),SPLITSEVASIVE_MAXROTSPEEDPITCH,SPLITSEVASIVE_ACCELMODIFIERPITCH))
             {
@@ -1781,7 +1781,7 @@ bool32 flightmanHiYoYoExecute(Ship *ship)
     switch (ship->flightmanState1)
     {
         case 0:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD0,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD0,TRANS_FORWARD);
 
             if (flightmanPitchUp(ship,&hiyoyoinfo->totalpitchrotated,DEG_TO_RAD(90.0f),HIYOYO_MAXROTSPEEDPITCH,HIYOYO_ACCELMODIFIERPITCH))
             {
@@ -1793,7 +1793,7 @@ bool32 flightmanHiYoYoExecute(Ship *ship)
         case 1:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD1,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD1,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - hiyoyoinfo->timestamp) > HIYOYO_GOUP_TIME)
             {
@@ -1803,7 +1803,7 @@ bool32 flightmanHiYoYoExecute(Ship *ship)
             return FALSE;
 
         case 2:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD2,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD2,TRANS_FORWARD);
 
             if (flightmanPitchDown(ship,&hiyoyoinfo->totalpitchrotated,DEG_TO_RAD(180.0f),HIYOYO_MAXROTSPEEDPITCH,HIYOYO_ACCELMODIFIERPITCH))
             {
@@ -1815,7 +1815,7 @@ bool32 flightmanHiYoYoExecute(Ship *ship)
         case 3:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD3,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD3,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - hiyoyoinfo->timestamp) > HIYOYO_GODOWN_TIME)
             {
@@ -1825,7 +1825,7 @@ bool32 flightmanHiYoYoExecute(Ship *ship)
             return FALSE;
 
         case 4:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD4,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * HIYOYO_THRUSTMOD4,TRANS_FORWARD);
 
             if (flightmanPitchUp(ship,&hiyoyoinfo->totalpitchrotated,DEG_TO_RAD(90.0f),HIYOYO_MAXROTSPEEDPITCH,HIYOYO_ACCELMODIFIERPITCH))
             {
@@ -1875,7 +1875,7 @@ bool32 flightmanLoYoYoExecute(Ship *ship)
     switch (ship->flightmanState1)
     {
         case 0:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD0,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD0,TRANS_FORWARD);
 
             if (flightmanPitchDown(ship,&loyoyoinfo->totalpitchrotated,DEG_TO_RAD(90.0f),LOYOYO_MAXROTSPEEDPITCH,LOYOYO_ACCELMODIFIERPITCH))
             {
@@ -1887,7 +1887,7 @@ bool32 flightmanLoYoYoExecute(Ship *ship)
         case 1:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD1,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD1,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - loyoyoinfo->timestamp) > LOYOYO_GODOWN_TIME)
             {
@@ -1897,7 +1897,7 @@ bool32 flightmanLoYoYoExecute(Ship *ship)
             return FALSE;
 
         case 2:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD2,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD2,TRANS_FORWARD);
 
             if (flightmanPitchUp(ship,&loyoyoinfo->totalpitchrotated,DEG_TO_RAD(180.0f),LOYOYO_MAXROTSPEEDPITCH,LOYOYO_ACCELMODIFIERPITCH))
             {
@@ -1909,7 +1909,7 @@ bool32 flightmanLoYoYoExecute(Ship *ship)
         case 3:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD3,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD3,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - loyoyoinfo->timestamp) > LOYOYO_GOUP_TIME)
             {
@@ -1919,7 +1919,7 @@ bool32 flightmanLoYoYoExecute(Ship *ship)
             return FALSE;
 
         case 4:
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD4,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * LOYOYO_THRUSTMOD4,TRANS_FORWARD);
 
             if (flightmanPitchDown(ship,&loyoyoinfo->totalpitchrotated,DEG_TO_RAD(90.0f),LOYOYO_MAXROTSPEEDPITCH,LOYOYO_ACCELMODIFIERPITCH))
             {
@@ -2001,7 +2001,7 @@ bool32 flightmanSideStepExecute(Ship *ship)
 
             pitchresult = flightmanPitchUp(ship,&sidestepinfo->totalpitchrotated,SIDESTEP_PITCHROTATE,SIDESTEP_MAXROTSPEEDPITCH,SIDESTEP_ACCELMODIFIERPITCH);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMODTURN,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMODTURN,TRANS_FORWARD);
 
             if (result & pitchresult)
             {
@@ -2014,7 +2014,7 @@ bool32 flightmanSideStepExecute(Ship *ship)
         case 2:
             flightmanStabilizePitch(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMOD,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - sidestepinfo->timestamp) > SIDESTEP_PAUSETIME)
             {
@@ -2042,7 +2042,7 @@ bool32 flightmanSideStepExecute(Ship *ship)
         case 4:
             flightmanStabilizeYaw(ship);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMOD,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD] * SIDESTEP_THRUSTMOD,TRANS_FORWARD);
 
             if ((universe.totaltimeelapsed - sidestepinfo->timestamp) > SIDESTEP_BOOTITTIME)
             {

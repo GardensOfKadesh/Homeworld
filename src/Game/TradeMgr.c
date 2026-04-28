@@ -1369,35 +1369,35 @@ void mrTradeStuffTest(sdword *a, sdword *b)
         switch (selSelected.numShips)
         {
         case 1:
-            ship->posinfo.position.x += 200.0f;
+            ship->obj.posinfo.position.x += 200.0f;
             break;
 
         case 2:
-            ship->posinfo.velocity.x += 1000.0f;
+            ship->obj.posinfo.velocity.x += 1000.0f;
             break;
 
         case 3:
-            ship->posinfo.force.x += 1000.0f;
+            ship->obj.posinfo.force.x += 1000.0f;
             break;
 
         case 4:
-            ship->rotinfo.rotspeed.x += 1000.0f;
+            ship->rotatable.rotinfo.rotspeed.x += 1000.0f;
             break;
 
         case 5:
-            ship->rotinfo.torque.x += 100000.0f;
+            ship->rotatable.rotinfo.torque.x += 100000.0f;
             break;
 
         case 6:
-            matCreateCoordSysFromHeading(&ship->rotinfo.coordsys,&vect);
+            matCreateCoordSysFromHeading(&ship->rotatable.rotinfo.coordsys,&vect);
             break;
 
         case 7:
-            matCreateCoordSysFromHeading(&ship->rotinfo.coordsys,&vect2);
+            matCreateCoordSysFromHeading(&ship->rotatable.rotinfo.coordsys,&vect2);
             break;
 
         case 8:
-            matCreateCoordSysFromHeading(&ship->rotinfo.coordsys,&vect3);
+            matCreateCoordSysFromHeading(&ship->rotatable.rotinfo.coordsys,&vect3);
             break;
         }
     }
@@ -1426,10 +1426,10 @@ void wkTradeInit(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         wkTradeShips[index].ship = ship;
-        mass = ship->staticinfo->staticheader.mass / WK_MASS_SCALE;
+        mass = ship->staticinfo->common.mass / WK_MASS_SCALE;
 
 
         wkTradeShips[index].x = 0.0f;
@@ -1530,8 +1530,8 @@ void wkTradeFocusedShip(void)
         if (ship == wkTradeShips[index].ship)
         {
             wkTradeControlShip = &wkTradeShips[index];
-            wkTradeControlShip->x = ship->posinfo.position.x;
-            wkTradeControlShip->y = ship->posinfo.position.y;
+            wkTradeControlShip->x = ship->obj.posinfo.position.x;
+            wkTradeControlShip->y = ship->obj.posinfo.position.y;
 
             return;
         }
@@ -1557,8 +1557,8 @@ void wkTradeUpdate(void)
         trader = wkTradeControlShip;
         ship = trader->ship;
 
-        //dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-        if (ship->objtype != OBJ_ShipType)
+        //dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+        if (ship->header.objtype != OBJ_ShipType)
         {
             //ship has exploded
             wkTradeControlShip = NULL;
@@ -1638,17 +1638,17 @@ void wkTradeUpdate(void)
             }
         }
 
-        ship->posinfo.position.x = trader->x;
-        ship->posinfo.position.y = trader->y;
-        ship->posinfo.position.z = 0.0f;
+        ship->obj.posinfo.position.x = trader->x;
+        ship->obj.posinfo.position.y = trader->y;
+        ship->obj.posinfo.position.z = 0.0f;
 
-        ship->posinfo.velocity.x = trader->vx*WK_VEL_SCALE;
-        ship->posinfo.velocity.y = trader->vy*WK_VEL_SCALE;
+        ship->obj.posinfo.velocity.x = trader->vx*WK_VEL_SCALE;
+        ship->obj.posinfo.velocity.y = trader->vy*WK_VEL_SCALE;
 
         vect.x = fcos(trader->ang);
         vect.y = fsin(trader->ang);
         vect.z = 0;
-        matCreateCoordSysFromHeading(&ship->rotinfo.coordsys,&vect);
+        matCreateCoordSysFromHeading(&ship->rotatable.rotinfo.coordsys,&vect);
     }
 
     //now update all ships
@@ -1656,9 +1656,9 @@ void wkTradeUpdate(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        ship->posinfo.position.z = 0.0f;
+        ship->obj.posinfo.position.z = 0.0f;
 
         objnode = objnode->next;
     }
@@ -1668,9 +1668,9 @@ void wkTradeUpdate(void)
     while (objnode != NULL)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(resource->flags & SOF_Resource);
+        dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
 
-        resource->posinfo.position.z = 0.0f;
+        resource->obj.posinfo.position.z = 0.0f;
 
         objnode = objnode->next;
     }

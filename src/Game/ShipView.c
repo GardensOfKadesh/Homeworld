@@ -384,7 +384,7 @@ void svShipViewRender(featom* atom, regionhandle region)
     if(svShipType != DefaultShip)
     {
         svCamera.closestZoom = info->minimumZoomDistance*svZoomInScalar;
-        svCamera.farthestZoom = (svCamera.closestZoom+info->staticheader.staticCollInfo.approxcollspheresize)*svZoomOutScalar;
+        svCamera.farthestZoom = (svCamera.closestZoom+info->common.staticCollInfo.approxcollspheresize)*svZoomOutScalar;
         if(ReZoom)
         {
             ReZoom=FALSE;
@@ -472,9 +472,9 @@ void svShipViewRender(featom* atom, regionhandle region)
     glClear(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    //svCamera.lookatpoint.x = -info->staticheader.staticCollInfo.collsphereoffset.z * scale;
-    //svCamera.lookatpoint.y = -info->staticheader.staticCollInfo.collsphereoffset.x * scale;
-    //svCamera.lookatpoint.z = -info->staticheader.staticCollInfo.collsphereoffset.y * scale;
+    //svCamera.lookatpoint.x = -info->common.staticCollInfo.collsphereoffset.z * scale;
+    //svCamera.lookatpoint.y = -info->common.staticCollInfo.collsphereoffset.x * scale;
+    //svCamera.lookatpoint.z = -info->common.staticCollInfo.collsphereoffset.y * scale;
     if (svShipType == DefaultShip)
     {
         svCamera.lookatpoint.x=0.0f;
@@ -483,9 +483,9 @@ void svShipViewRender(featom* atom, regionhandle region)
     }
     else
     {
-        svCamera.lookatpoint.x = -info->staticheader.staticCollInfo.collsphereoffset.z;
-        svCamera.lookatpoint.y = -info->staticheader.staticCollInfo.collsphereoffset.x;
-        svCamera.lookatpoint.z = -info->staticheader.staticCollInfo.collsphereoffset.y;
+        svCamera.lookatpoint.x = -info->common.staticCollInfo.collsphereoffset.z;
+        svCamera.lookatpoint.y = -info->common.staticCollInfo.collsphereoffset.x;
+        svCamera.lookatpoint.z = -info->common.staticCollInfo.collsphereoffset.y;
     }
 
     cameraSetEyePosition(&svCamera);
@@ -533,12 +533,12 @@ void svShipViewRender(featom* atom, regionhandle region)
         sdword index;
         //try player index colours first
         index = universe.curPlayerIndex;
-        if (info->teamColor[index] == 0)
+        if (info->shipOrDerelict.teamColor[index] == 0)
         {
             //colour scheme doesn't exist, search for something valid
             for (index = 0; index < MAX_MULTIPLAYER_PLAYERS; index++)
             {
-                if (info->teamColor[index] != 0)
+                if (info->shipOrDerelict.teamColor[index] != 0)
                 {
                     break;
                 }
@@ -550,7 +550,7 @@ void svShipViewRender(featom* atom, regionhandle region)
                 index = universe.curPlayerIndex;
             }
         }
-        meshRender((meshdata *)info->staticheader.LOD->level[0].pData, index);
+        meshRender((meshdata *)info->common.LOD->level[0].pData, index);
     }
 
     glDisable(GL_NORMALIZE);
@@ -841,7 +841,7 @@ void svArmorRender(featom *atom, regionhandle region)
 
     currentFont = fontMakeCurrent(svShipStatFont);
 
-    sprintf(buftemp,"%d",(udword) info->maxhealth);
+    sprintf(buftemp,"%d",(udword) info->health.maxhealth);
     sprintf(buf,ShipStatToNiceStr(Armor),buftemp);
 
     width = fontWidthf("%s",buf);
@@ -893,7 +893,7 @@ void svTopSpeedRender(featom *atom, regionhandle region)
 
     currentFont = fontMakeCurrent(svShipStatFont);
 
-    //sprintf(buf,"%d", (uword)info->staticheader.maxvelocity);
+    //sprintf(buf,"%d", (uword)info->common.maxvelocity);
     //topspeed contains a %d for the numerical location of the maxvelocity
     if(info->shiptype == Probe)
     {
@@ -902,7 +902,7 @@ void svTopSpeedRender(featom *atom, regionhandle region)
     }
     else
     {
-        sprintf(buftemp,"%d",(udword) info->staticheader.maxvelocity);
+        sprintf(buftemp,"%d",(udword) info->common.maxvelocity);
         sprintf(buf,ShipStatToNiceStr(TopSpeed),buftemp);
     }
     fontPrintf(
@@ -956,9 +956,9 @@ void svMassRender(featom *atom, regionhandle region)
 
     currentFont = fontMakeCurrent(svShipStatFont);
 
-    //sprintf(buf, "%d", (uword)info->staticheader.mass);
+    //sprintf(buf, "%d", (uword)info->common.mass);
     //Mass str contains a %d for the mass to expand into
-    sprintf(buftemp,"%d",(udword)info->staticheader.mass);
+    sprintf(buftemp,"%d",(udword)info->common.mass);
     sprintf(buf,ShipStatToNiceStr(Mass),buftemp);
 
     width = fontWidthf("%s",
@@ -1107,9 +1107,9 @@ calcmanjump:
         return;
     }
 //calculate maneuverability
-    turnspeed = statinfo->turnspeedstat[TURN_YAW]+
-                statinfo->turnspeedstat[TURN_PITCH]+
-                statinfo->turnspeedstat[TURN_ROLL];
+    turnspeed = statinfo->guidance.turnspeedstat[TURN_YAW]+
+                statinfo->guidance.turnspeedstat[TURN_PITCH]+
+                statinfo->guidance.turnspeedstat[TURN_ROLL];
     if(turnspeed < TW_SV_MAN_VERY_LOW)
         man=1;
     else if(turnspeed < TW_SV_MAN_LOW)

@@ -116,7 +116,7 @@ void MiningBaseDied(Ship *ship)
     MiningBaseSpec *spec = (MiningBaseSpec *)ship->ShipSpecifics;
 
     dbgAssertOrIgnore(ship->shiptype == MiningBase);
-    if (ship->flags & SOF_NISShip)
+    if (ship->header.flags & SOF_NISShip)
     {
         return;
     }
@@ -131,9 +131,9 @@ void MiningBaseDied(Ship *ship)
     for (node = universe.ShipList.head; node != NULL; node = node->next)
     {
         deleteme = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(deleteme->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(deleteme->header.objtype == OBJ_ShipType);
 
-        if ((deleteme->shiptype == MiningBase) && (deleteme != ship) && ((deleteme->flags & (SOF_Dead|SOF_NISShip)) == 0))
+        if ((deleteme->shiptype == MiningBase) && (deleteme != ship) && ((deleteme->header.flags & (SOF_Dead|SOF_NISShip)) == 0))
         {
             spec = (MiningBaseSpec *)deleteme->ShipSpecifics;
             spec->dontRecurseKill = TRUE;
@@ -145,15 +145,15 @@ void MiningBaseDied(Ship *ship)
     for (node = universe.ShipList.head; node != NULL; node = node->next)
     {
         deleteme = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(deleteme->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(deleteme->header.objtype == OBJ_ShipType);
 
-        if ((deleteme->shiptype == MiningBase) && (deleteme != ship) && ((deleteme->flags & (SOF_Dead|SOF_NISShip)) == 0))
+        if ((deleteme->shiptype == MiningBase) && (deleteme != ship) && ((deleteme->header.flags & (SOF_Dead|SOF_NISShip)) == 0))
         {
             deleteme->howDidIDie = ship->howDidIDie;
             deleteme->whoKilledMe = ship->whoKilledMe;
             univDeleteDeadShip(deleteme,EDT_AccumDamage);
             listRemoveNode(&deleteme->shiplink);
-            listRemoveNode(&deleteme->impactablelink);
+            listRemoveNode(&deleteme->impactable.impactablelink);
 
 #if ETG_DISABLEABLE
             if (!etgEffectsEnabled)

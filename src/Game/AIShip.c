@@ -260,46 +260,46 @@ void aishipStatsPrint(sdword *y)
 ----------------------------------------------------------------------------*/
 void aishipPrecalcInfo(ShipStaticInfo *shipstatinfo)
 {
-    shipstatinfo->sinbank = 0.0f;
-    shipstatinfo->pitchturn = 0.0f;
-    shipstatinfo->pitchdescend = 0.0f;
+    shipstatinfo->shipOrDerelict.sinbank = 0.0f;
+    shipstatinfo->shipOrDerelict.pitchturn = 0.0f;
+    shipstatinfo->shipOrDerelict.pitchdescend = 0.0f;
 
     switch (shipstatinfo->shipclass)
     {
         case CLASS_Fighter:
-            shipstatinfo->sinbank = FIGHTER_BANK;
+            shipstatinfo->shipOrDerelict.sinbank = FIGHTER_BANK;
             break;
 
         case CLASS_Corvette:
-            shipstatinfo->sinbank = CORVETTE_BANK;
+            shipstatinfo->shipOrDerelict.sinbank = CORVETTE_BANK;
             break;
 
         case CLASS_Frigate:
-            shipstatinfo->sinbank = FRIGATE_BANK;
-            shipstatinfo->pitchturn = FRIGATE_TURNPITCH;
-            shipstatinfo->pitchdescend = FRIGATE_DESCENDPITCH;
+            shipstatinfo->shipOrDerelict.sinbank = FRIGATE_BANK;
+            shipstatinfo->shipOrDerelict.pitchturn = FRIGATE_TURNPITCH;
+            shipstatinfo->shipOrDerelict.pitchdescend = FRIGATE_DESCENDPITCH;
             break;
 
         case CLASS_Destroyer:
-            shipstatinfo->sinbank = DESTROYER_BANK;
-            shipstatinfo->pitchturn = DESTROYER_TURNPITCH;
-            shipstatinfo->pitchdescend = DESTROYER_DESCENDPITCH;
+            shipstatinfo->shipOrDerelict.sinbank = DESTROYER_BANK;
+            shipstatinfo->shipOrDerelict.pitchturn = DESTROYER_TURNPITCH;
+            shipstatinfo->shipOrDerelict.pitchdescend = DESTROYER_DESCENDPITCH;
             break;
 
         case CLASS_Carrier:
         case CLASS_HeavyCruiser:
-            shipstatinfo->sinbank = MASSIVESHIP_BANK;
-            shipstatinfo->pitchturn = MASSIVESHIP_TURNPITCH;
-            shipstatinfo->pitchdescend = MASSIVESHIP_DESCENDPITCH;
+            shipstatinfo->shipOrDerelict.sinbank = MASSIVESHIP_BANK;
+            shipstatinfo->shipOrDerelict.pitchturn = MASSIVESHIP_TURNPITCH;
+            shipstatinfo->shipOrDerelict.pitchdescend = MASSIVESHIP_DESCENDPITCH;
             break;
 
         default:
             switch (shipstatinfo->shiptype)
             {
                 case SensorArray:
-                    shipstatinfo->sinbank = NOSHIP_BANK;
-                    shipstatinfo->pitchturn = NOSHIP_TURNPITCH;
-                    shipstatinfo->pitchdescend = NOSHIP_DESCENDPITCH;
+                    shipstatinfo->shipOrDerelict.sinbank = NOSHIP_BANK;
+                    shipstatinfo->shipOrDerelict.pitchturn = NOSHIP_TURNPITCH;
+                    shipstatinfo->shipOrDerelict.pitchdescend = NOSHIP_DESCENDPITCH;
                     break;
                 case CryoTray:
                 case P1Mothership:
@@ -308,14 +308,14 @@ void aishipPrecalcInfo(ShipStaticInfo *shipstatinfo)
                 case FloatingCity:
                 case ResearchStation:
                 case Ghostship:
-                    shipstatinfo->sinbank = MASSIVESHIP_BANK;
-                    shipstatinfo->pitchturn = MASSIVESHIP_TURNPITCH;
-                    shipstatinfo->pitchdescend = MASSIVESHIP_DESCENDPITCH;
+                    shipstatinfo->shipOrDerelict.sinbank = MASSIVESHIP_BANK;
+                    shipstatinfo->shipOrDerelict.pitchturn = MASSIVESHIP_TURNPITCH;
+                    shipstatinfo->shipOrDerelict.pitchdescend = MASSIVESHIP_DESCENDPITCH;
                     break;
                 case ResourceController:
-                    shipstatinfo->sinbank = FRIGATE_BANK;
-                    shipstatinfo->pitchturn = FRIGATE_TURNPITCH;
-                    shipstatinfo->pitchdescend = FRIGATE_DESCENDPITCH;
+                    shipstatinfo->shipOrDerelict.sinbank = FRIGATE_BANK;
+                    shipstatinfo->shipOrDerelict.pitchturn = FRIGATE_TURNPITCH;
+                    shipstatinfo->shipOrDerelict.pitchdescend = FRIGATE_DESCENDPITCH;
                     break;
                 default:
                     break;
@@ -392,9 +392,9 @@ void aishipGetTrajectoryWithVelPrediction(Ship *ship,SpaceObjRotImpTarg *target,
     real32 bullettraveltime;
     vector deltatarget;
 
-    vecSub(distToTargetVec,target->collInfo.collPosition,ship->posinfo.position); // MUST be relative to ship->posinfo.position, because
+    vecSub(distToTargetVec,target->impactable.collInfo.collPosition,ship->obj.posinfo.position); // MUST be relative to ship->obj.posinfo.position, because
                                                                                   // later it is modified into the ship's coordinate system
-                                                                                  // for gun firing, which is based on ship->posinfo.position
+                                                                                  // for gun firing, which is based on ship->obj.posinfo.position
     if (bulletspeed <= DONTUSEVELOCITYPRED_IFBELOW)
     {
         // don't bother with velocity prediction for 0 bulletspeed
@@ -405,7 +405,7 @@ void aishipGetTrajectoryWithVelPrediction(Ship *ship,SpaceObjRotImpTarg *target,
 
     bullettraveltime = distToTargetMag / bulletspeed;
 
-    vecScalarMultiply(deltatarget,target->posinfo.velocity,bullettraveltime);
+    vecScalarMultiply(deltatarget,target->obj.posinfo.velocity,bullettraveltime);
 
     vecAddTo(distToTargetVec,deltatarget);
 
@@ -415,18 +415,18 @@ settrajectory:
 
 void aishipGetTrajectory(Ship *ship,SpaceObjRotImpTarg *target,vector *trajectory)
 {
-    vecSub(*trajectory,target->collInfo.collPosition,ship->posinfo.position);
+    vecSub(*trajectory,target->impactable.collInfo.collPosition,ship->obj.posinfo.position);
 }
 
 void aishipGetTrajectoryWithAngleCorrection(Ship *ship,SpaceObjRotImpTarg *target,vector *trajectory)
 {
-    vector futurepos = ship->posinfo.position;
+    vector futurepos = ship->obj.posinfo.position;
 
-    futurepos.x += (ship->posinfo.velocity.x * 0.25f);
-    futurepos.y += (ship->posinfo.velocity.y * 0.25f);
-    futurepos.z += (ship->posinfo.velocity.z * 0.25f);
+    futurepos.x += (ship->obj.posinfo.velocity.x * 0.25f);
+    futurepos.y += (ship->obj.posinfo.velocity.y * 0.25f);
+    futurepos.z += (ship->obj.posinfo.velocity.z * 0.25f);
 
-    vecSub(*trajectory,target->collInfo.collPosition,futurepos);
+    vecSub(*trajectory,target->impactable.collInfo.collPosition,futurepos);
 }
 
 #define STATE_POINT_IN_DIRECTION    1
@@ -438,11 +438,11 @@ real32 GetCollSizeInDirection(SpaceObjRotImp *obj,vector dir)
     vector right;
     vector heading;
     real32 upcomp,rightcomp,headingcomp;
-    StaticCollInfo *collInfo = &obj->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo *collInfo = &obj->obj.staticinfo->staticCollInfo;
 
-    matGetVectFromMatrixCol1(up,obj->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,obj->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,obj->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,obj->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,obj->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,obj->rotatable.rotinfo.coordsys);
 
     upcomp = ABS(vecDotProduct(up,dir));
     rightcomp = ABS(vecDotProduct(right,dir));
@@ -496,7 +496,7 @@ void GetDirectionOfTravel(Ship *ship,vector *dirOfTravel)
     }
     else
     {
-        *dirOfTravel = ship->posinfo.velocity;
+        *dirOfTravel = ship->obj.posinfo.velocity;
     }
 }
 
@@ -509,12 +509,12 @@ void GetDirectionOfTravel(Ship *ship,vector *dirOfTravel)
 ----------------------------------------------------------------------------*/
 void rowRemoveShipFromGettingOutOfWay(Ship *ship)
 {
-    if (!(ship->specialFlags & SPECIAL_rowGettingOutOfWay))
+    if (!(ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay))
     {
         return;
     }
 
-    bitClear(ship->specialFlags,SPECIAL_rowGettingOutOfWay);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_rowGettingOutOfWay);
     //bitClear(ship->dontrotateever,2);
     bitClear(ship->dontapplyforceever,2);
 
@@ -620,7 +620,7 @@ bool32 rowOriginalPointIsClear(Ship *ship)
     vector meToShip;
     vector meDirOfTravel;
 
-    dbgAssertOrIgnore(ship->specialFlags & SPECIAL_rowGettingOutOfWay);
+    dbgAssertOrIgnore(ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay);
 
     avoidme = ship->rowGetOutOfWay;
     if (avoidme == NULL)
@@ -630,7 +630,7 @@ bool32 rowOriginalPointIsClear(Ship *ship)
 
     GetDirectionOfTravel(avoidme,&meDirOfTravel);
 
-    vecSub(meToShip,ship->collInfo.collPosition,avoidme->collInfo.collPosition);
+    vecSub(meToShip,ship->impactable.collInfo.collPosition,avoidme->impactable.collInfo.collPosition);
 
     if (vecDotProduct(meToShip,meDirOfTravel) > 0.0f)
     {
@@ -638,10 +638,10 @@ bool32 rowOriginalPointIsClear(Ship *ship)
         return FALSE;
     }
 
-    avoidcollsize = avoidme->staticinfo->staticheader.staticCollInfo.avoidcollspheresize;
-    avoidcollpad = avoidme->staticinfo->staticheader.staticCollInfo.avoidcollspherepad;
+    avoidcollsize = avoidme->staticinfo->common.staticCollInfo.avoidcollspheresize;
+    avoidcollpad = avoidme->staticinfo->common.staticCollInfo.avoidcollspherepad;
 
-    vecSub(destToObj,avoidme->collInfo.collPosition,ship->rowOriginalPoint);
+    vecSub(destToObj,avoidme->impactable.collInfo.collPosition,ship->rowOriginalPoint);
     destToObjMag2 = vecMagnitudeSquared(destToObj);
 
     if (destToObjMag2 < (avoidcollsize*avoidcollsize))
@@ -666,7 +666,7 @@ bool32 rowOriginalPointIsClear(Ship *ship)
 ----------------------------------------------------------------------------*/
 void rowFlyShipOutOfWay(Ship *ship)
 {
-    dbgAssertOrIgnore(ship->specialFlags & SPECIAL_rowGettingOutOfWay);
+    dbgAssertOrIgnore(ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay);
 
     //bitClear(ship->dontrotateever,2);
     bitClear(ship->dontapplyforceever,2);
@@ -742,13 +742,13 @@ void rowSignalShipToGetOutOfWayOfMe(Ship *ship,Ship *me,vector *meToShip,vector 
 {
     vector delta;
 
-    ship->specialFlags |= SPECIAL_rowGettingOutOfWay;
+    ship->shipOrDerelict.specialFlags |= SPECIAL_rowGettingOutOfWay;
     //bitSet(ship->dontrotateever,2);
     bitSet(ship->dontapplyforceever,2);
 
     ship->rowState = 0;
     ship->rowGetOutOfWay = me;
-    ship->rowOriginalPoint = ship->posinfo.position;
+    ship->rowOriginalPoint = ship->obj.posinfo.position;
 
     // calculate outOfWayPoint;
 
@@ -786,7 +786,7 @@ void rowSignalShipToGetOutOfWayOfMe(Ship *ship,Ship *me,vector *meToShip,vector 
         vector meToShipNorm;
         real32 avoidby = rowAvoidBy[me->shiptype];
 
-        if (avoidby == 0.0f) avoidby = me->staticinfo->staticheader.staticCollInfo.avoidcollspheresize*AVOID_ROW_SHIP_BY_SCALE + AVOID_ROW_SHIP_BY_ADD;
+        if (avoidby == 0.0f) avoidby = me->staticinfo->common.staticCollInfo.avoidcollspheresize*AVOID_ROW_SHIP_BY_SCALE + AVOID_ROW_SHIP_BY_ADD;
 
         vecNormalize(&meDirOfTravelNorm);
 
@@ -834,7 +834,7 @@ void rowSignalShipToGetOutOfWayOfMe(Ship *ship,Ship *me,vector *meToShip,vector 
         }
     }
 
-    vecAdd(ship->rowOutOfWayPoint,ship->posinfo.position,delta);
+    vecAdd(ship->rowOutOfWayPoint,ship->obj.posinfo.position,delta);
 }
 
 /*-----------------------------------------------------------------------------
@@ -857,7 +857,7 @@ void rowSignalLeaderInFormationToGetOutOfWayOfMe(Ship *ship,Ship *me,vector *meT
     //numShips = selection->numShips;
 
     shipi = selection->ShipPtr[0];
-    if (!(shipi->specialFlags & SPECIAL_rowGettingOutOfWay))    // not already getting out of way
+    if (!(shipi->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay))    // not already getting out of way
     {
         rowSignalShipToGetOutOfWayOfMe(shipi,me,meToShip,meDirOfTravel);
     }
@@ -870,7 +870,7 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
     vector targetVec;
     sdword objindex = 0;
     SpaceObjRotImp *avoidobj = NULL;
-    ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
+    ShipStaticInfo *shipstaticinfo = ship->staticinfo;
 
     blob *thisBlob = NULL;
     SelectAnyCommand *targetsAvoid = NULL;
@@ -928,7 +928,7 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
         return 0;     // no point wasting our time
     }
 
-    if (ship->staticinfo->staticheader.immobile)
+    if (ship->staticinfo->common.immobile)
     {
         return 0;     // no point wasting our time
     }
@@ -952,22 +952,22 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
 
     aishipStatsInit(ship);
 
-    aishipStatsState(ship->aistate);
+    aishipStatsState(ship->shipOrDerelict.aistate);
 
-    switch (ship->aistate)
+    switch (ship->shipOrDerelict.aistate)
     {
 /*=============================================================================
     State 0
 =============================================================================*/
         case 0:
-            if (shipstaticinfo->pitchdescend != 0.0f)
+            if (shipstaticinfo->shipOrDerelict.pitchdescend != 0.0f)
             {
                 if (destination)
                 {
-                    real32 xdistanceleft = (destination->x - ship->posinfo.position.x);
-                    real32 ydistanceleft = (destination->y - ship->posinfo.position.y);
+                    real32 xdistanceleft = (destination->x - ship->obj.posinfo.position.x);
+                    real32 ydistanceleft = (destination->y - ship->obj.posinfo.position.y);
                     real32 r;
-                    zdistanceleft = ABS(destination->z - ship->posinfo.position.z);
+                    zdistanceleft = ABS(destination->z - ship->obj.posinfo.position.z);
                     r = fsqrt(xdistanceleft*xdistanceleft + ydistanceleft*ydistanceleft);
                     if ((zdistanceleft < MIN_DIST_FOR_FANCY_DESCEND) ||
                         (zdistanceleft < (r*MIN_ANGLE_FOR_FANCY_DESCEND)))
@@ -990,7 +990,7 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
                     ship->aidescend = 0.0f;                         // set to 0 to indicate no fancy descend
                 }
             }
-            ship->aistate = STATE_POINT_IN_DIRECTION;
+            ship->shipOrDerelict.aistate = STATE_POINT_IN_DIRECTION;
             // deliberately fall through to STATE_POINT_IN_DIRECTION
 
         case STATE_POINT_IN_DIRECTION:
@@ -1000,15 +1000,15 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
                  dbgMessagef("Orienting ship for flight");
         #endif
                 dbgAssertOrIgnore(destination);     // must have destination for AISHIP_FirstPointInDirectionFlying or AISHIP_CarTurn to have any meaning
-                vecSub(targetVec,*destination,ship->posinfo.position);
+                vecSub(targetVec,*destination,ship->obj.posinfo.position);
 
                 vecNormalize(&targetVec);
 
-                if (shipstaticinfo->pitchdescend == 0.0f)
+                if (shipstaticinfo->shipOrDerelict.pitchdescend == 0.0f)
                 {
-                    if (aitrackHeadingWithBankFlags(ship,&targetVec,0.96f,shipstaticinfo->sinbank,AITRACKHEADING_IGNOREUPVEC))
+                    if (aitrackHeadingWithBankFlags(ship,&targetVec,0.96f,shipstaticinfo->shipOrDerelict.sinbank,AITRACKHEADING_IGNOREUPVEC))
                     {
-                        ship->aistate = STATE_START_FLYING;
+                        ship->shipOrDerelict.aistate = STATE_START_FLYING;
                         aishipStatsClose();
                         PTEND(2);
                         return 0;
@@ -1016,9 +1016,9 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
                 }
                 else
                 {
-                    if ((ship->aidescend < 0.0f) || (aitrackHeadingWithBankPitchFlags(ship,&targetVec,0.96f,shipstaticinfo->sinbank,0.0f,shipstaticinfo->pitchturn,AITRACKHEADING_IGNOREUPVEC)))
+                    if ((ship->aidescend < 0.0f) || (aitrackHeadingWithBankPitchFlags(ship,&targetVec,0.96f,shipstaticinfo->shipOrDerelict.sinbank,0.0f,shipstaticinfo->shipOrDerelict.pitchturn,AITRACKHEADING_IGNOREUPVEC)))
                     {
-                        ship->aistate = STATE_START_FLYING;
+                        ship->shipOrDerelict.aistate = STATE_START_FLYING;
                         aishipStatsClose();
                         PTEND(2);
                         return 0;
@@ -1027,7 +1027,7 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
 
                 if (bitTest(aishipflags,AISHIP_CarTurn) && (!isCapitalShipStaticOrBig(shipstaticinfo)))
                 {
-                    physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*CAR_TURN_POWER,TRANS_FORWARD);
+                    physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*CAR_TURN_POWER,TRANS_FORWARD);
                 }
                 else
                 {
@@ -1036,7 +1036,7 @@ udword aishipFlyToPointAvoidingObjsFunc(Ship *ship,vector *destination,udword ai
             }
             else
             {
-                ship->aistate = STATE_START_FLYING;
+                ship->shipOrDerelict.aistate = STATE_START_FLYING;
                 goto startflying;
             }
             aishipStatsClose();
@@ -1051,7 +1051,7 @@ startflying:
 
             if (destination)
             {
-                vecSub(targetVec,*destination,ship->posinfo.position);
+                vecSub(targetVec,*destination,ship->obj.posinfo.position);
 
                 if ((aishipflags & AISHIP_FastAsPossible) == 0)
                 {
@@ -1114,13 +1114,13 @@ startflying:
             }
 #endif
 
-            if (ship->dockingship != NULL)       // don't avoid any objects if docking
+            if (ship->shipOrDerelict.dockingship != NULL)       // don't avoid any objects if docking
             {
                 goto noavoid;
             }
 
             //don't avoid our target if we are in kamikaze mode
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 goto noavoid;
             }
@@ -1129,12 +1129,12 @@ startflying:
             shipsavoidingstuff++;
 #endif
 
-            shipcollsize = shipstaticinfo->staticheader.staticCollInfo.avoidcollspheresize;
-            shipcollpad = shipstaticinfo->staticheader.staticCollInfo.avoidcollspherepad;
+            shipcollsize = shipstaticinfo->common.staticCollInfo.avoidcollspheresize;
+            shipcollpad = shipstaticinfo->common.staticCollInfo.avoidcollspherepad;
 
             rowEnabled = FALSE;
 
-            if (shipstaticinfo->staticheader.rightOfWay > 0)    // if ship has any right of way
+            if (shipstaticinfo->common.rightOfWay > 0)    // if ship has any right of way
             {
                 shiprowcollpad = shipcollsize * AVOID_OBJ_ROW_PADDING_SCALE;
                 rowEnabled = TRUE;
@@ -1142,10 +1142,10 @@ startflying:
             else
                 shiprowcollpad = shipcollpad;
 
-            thisBlob = ship->collMyBlob;
+            thisBlob = ship->obj.collMyBlob;
             if (thisBlob == NULL)
             {
-                dbgMessagef("Warning: flags %x ship %s %s flying with no blob",ship->flags,ShipRaceToStr(ship->shiprace),ShipTypeToStr(ship->shiptype));
+                dbgMessagef("Warning: flags %x ship %s %s flying with no blob",ship->header.flags,ShipRaceToStr(ship->shiprace),ShipTypeToStr(ship->shiptype));
                 goto noavoid;
             }
 
@@ -1166,13 +1166,13 @@ passagain:
                 maxpossibledist = shiprowcollpad + maxavoidcollpad;
 
                 // binary search targetindex such that
-                // (ship->collOptimizeDist - avoidobj->collOptimizeDist) <= maxpossibledist
+                // (ship->obj.collOptimizeDist - avoidobj->obj.collOptimizeDist) <= maxpossibledist
                 bottom = 0;
                 top = numTargets-1;
                 while (top >= bottom)
                 {
                     objindex = (bottom+top)>>1;
-                    if ((ship->collOptimizeDist - targetsAvoid->TargetPtr[objindex]->collOptimizeDist) > maxpossibledist)
+                    if ((ship->obj.collOptimizeDist - targetsAvoid->TargetPtr[objindex]->obj.collOptimizeDist) > maxpossibledist)
                     {
                         // targetindex is too small
                         bottom = objindex+1;
@@ -1204,21 +1204,21 @@ passagain:
 
             while (objindex < numTargets)
             {
-                avoidobj = (SpaceObjRotImp *) targetsAvoid->TargetPtr[objindex];
+                avoidobj = &targetsAvoid->TargetPtr[objindex]->impactable;
 
 #ifdef COLLISION_CHECK_STATS
                 shipsavoidedwalks++;
 #endif
                 aishipStatsAvoidedWalks();
 
-                if ((distcheck = (avoidobj->collOptimizeDist - ship->collOptimizeDist)) > maxpossibledist)
+                if ((distcheck = (avoidobj->obj.collOptimizeDist - ship->obj.collOptimizeDist)) > maxpossibledist)
                 {
                     goto nextpass;
                 }
 
                 // use more trivial rejections?
 
-                avoidcollpad = avoidobj->staticinfo->staticheader.staticCollInfo.avoidcollspherepad;
+                avoidcollpad = avoidobj->obj.staticinfo->staticCollInfo.avoidcollspherepad;
 
                 maxdistconsider = avoidcollpad + shiprowcollpad;
 
@@ -1227,7 +1227,7 @@ passagain:
                     goto nextnode;
                 }
 
-                vecSub(repulse,ship->collInfo.collPosition,avoidobj->collInfo.collPosition);
+                vecSub(repulse,ship->impactable.collInfo.collPosition,avoidobj->collInfo.collPosition);
 
 #ifdef COLLISION_CHECK_STATS
                 shipsavoidedchecks++;
@@ -1253,25 +1253,25 @@ passagain:
                     goto nextnode;
                 }
 
-                if (shipstaticinfo->staticheader.rightOfWay > avoidobj->staticinfo->staticheader.rightOfWay)
+                if (shipstaticinfo->common.rightOfWay > avoidobj->obj.staticinfo->rightOfWay)
                 {
                     // We have right of way:
                     bool32 dontBotherAvoiding = TRUE;
 
-                    if (avoidobj->flags & SOF_Hide)
+                    if (avoidobj->header.flags & SOF_Hide)
                     {
                         goto nextnode;
                     }
 
-                    if (avoidobj->objtype == OBJ_ShipType)
+                    if (avoidobj->header.objtype == OBJ_ShipType)
                     {
-#define avoidship ((Ship *)avoidobj)
+                        Ship* avoidShip = (Ship*)avoidobj;
                         // signal ship avoidobj to get out of way here (assuming it's static and our ship)
-                        if (!(avoidship->specialFlags & SPECIAL_rowGettingOutOfWay))    // not already getting out of way
+                        if (!(avoidShip->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay))    // not already getting out of way
                         {
-                            if (allianceIsShipAlly(avoidship,ship->playerowner))
+                            if (allianceIsShipAlly(avoidShip,ship->playerowner))
                             {
-                                sdword canGetOutOfWay = rowShipCanGetOutOfWayOfMe(avoidship,ship);      // ship is me
+                                sdword canGetOutOfWay = rowShipCanGetOutOfWayOfMe(avoidShip,ship);      // ship is me
                                 if (canGetOutOfWay == ROW_CAN_GET_OUT_OF_WAY)
                                 {
                                     vector meToShip;
@@ -1279,17 +1279,17 @@ passagain:
 
                                     GetDirectionOfTravel(ship,&meDirOfTravel);
 
-                                    vecSub(meToShip,avoidship->collInfo.collPosition,ship->collInfo.collPosition);
+                                    vecSub(meToShip,avoidShip->impactable.collInfo.collPosition,ship->impactable.collInfo.collPosition);
 
                                     if (vecDotProduct(meToShip,meDirOfTravel) > 0.0f)
                                     {
-                                        if (avoidship->formationcommand)
+                                        if (avoidShip->formationcommand)
                                         {
-                                            rowSignalLeaderInFormationToGetOutOfWayOfMe(avoidship,ship,&meToShip,&meDirOfTravel);
+                                            rowSignalLeaderInFormationToGetOutOfWayOfMe(avoidShip,ship,&meToShip,&meDirOfTravel);
                                         }
                                         else
                                         {
-                                            rowSignalShipToGetOutOfWayOfMe(avoidship,ship,&meToShip,&meDirOfTravel);
+                                            rowSignalShipToGetOutOfWayOfMe(avoidShip,ship,&meToShip,&meDirOfTravel);
                                         }
                                     }
                                 }
@@ -1298,15 +1298,15 @@ passagain:
                                     dontBotherAvoiding = FALSE;
                                 }
                             }
-                            else if (ship->specialFlags2 & SPECIAL_2_DontPlowThroughEnemyShips)
+                            else if (ship->shipOrDerelict.specialFlags2 & SPECIAL_2_DontPlowThroughEnemyShips)
                             {
                                 dontBotherAvoiding = FALSE;
                             }
                         }
-#undef avoidship
                     }
-                    else if (avoidobj->objtype == OBJ_AsteroidType)
+                    else if (avoidobj->header.objtype == OBJ_AsteroidType)
                     {
+                        Asteroid* asteroid = (Asteroid*)avoidobj;
                         bool32 takingItOut = FALSE;
 
                         // later tell ship to blow up asteroid in way?
@@ -1318,14 +1318,14 @@ passagain:
                                 )
                             {
                                 // ship isn't devoting its guns to anywhere else, so let's take a potshot at the asteroid in our way:
-                                if (ship->gunInfo && (ship->gunInfo->numGuns > 0) && (avoidobj->flags & SOF_Targetable))
+                                if (ship->gunInfo && (ship->gunInfo->numGuns > 0) && (asteroid->header.flags & SOF_Targetable))
                                 {
                                     vector meToShip;
                                     vector meDirOfTravel;
 
                                     GetDirectionOfTravel(ship,&meDirOfTravel);
 
-                                    vecSub(meToShip,avoidobj->collInfo.collPosition,ship->collInfo.collPosition);
+                                    vecSub(meToShip,asteroid->impactable.collInfo.collPosition,ship->impactable.collInfo.collPosition);
 
                                     if ((!takeOutInMyWay) && (vecDotProduct(meToShip,meDirOfTravel) > 0.0f))
                                     {
@@ -1339,11 +1339,11 @@ passagain:
                         if (!takingItOut)
                         {
                             // perhaps we should be avoiding it if we're not taking it out?
-                            sbyte asteroidrow = avoidobj->staticinfo->staticheader.rightOfWay;
-                            if (((Asteroid *)avoidobj)->asteroidtype == Asteroid3)
+                            sbyte asteroidrow = asteroid->staticinfo->common.rightOfWay;
+                            if (asteroid->asteroidtype == Asteroid3)
                                 asteroidrow++;      // give +1 row to asteroid3 since it's pretty big
 
-                            if (shipstaticinfo->staticheader.rightOfWay <= asteroidrow)
+                            if (shipstaticinfo->common.rightOfWay <= asteroidrow)
                             {
                                 dontBotherAvoiding = FALSE;     // we should avoid it after all
                             }
@@ -1380,25 +1380,24 @@ norowcheck:
                 }
 
 
-                if ((avoidobj->flags & (SOF_Hide|SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
+                if ((avoidobj->header.flags & (SOF_Hide|SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
                 {
                     goto nextnode;      // object must be impactable, bumpable
                 }
 
-                if (avoidobj == (SpaceObjRotImp *) ship)
+                if (avoidobj == &ship->impactable)
                 {
                     goto nextnode;  // cannot collide with itself
                 }
 
-                avoidcollsize = avoidobj->staticinfo->staticheader.staticCollInfo.avoidcollspheresize;
+                avoidcollsize = avoidobj->obj.staticinfo->staticCollInfo.avoidcollspheresize;
 
-                if (avoidobj->objtype == OBJ_ShipType)
+                if (avoidobj->header.objtype == OBJ_ShipType)
                 {
-#define avoidship ((Ship *)avoidobj)
-
+                    Ship* avoidShip = (Ship*)avoidobj;
                     if (shipcommand)
                     {
-                        if (avoidship->command == shipcommand)
+                        if (avoidShip->command == shipcommand)
                         {
                             // ship and avoidobj are in the same formation, so we should effectively lower
                             // AVOID_OBJ_PADDING_SCALE to AVOID_OBJ_FORMATION_PADDING_SCALE
@@ -1408,11 +1407,11 @@ norowcheck:
                             goto getmaxdist;
                         }
 
-                        if ( (shipcommand->ordertype.order == COMMAND_MILITARY_PARADE) && (shipcommand->militaryParade->aroundShip == avoidship))
+                        if ( (shipcommand->ordertype.order == COMMAND_MILITARY_PARADE) && (shipcommand->militaryParade->aroundShip == avoidShip))
                         {
-                            if (avoidship->shiptype == Mothership)
+                            if (avoidShip->shiptype == Mothership)
                             {
-                                avoidcollpad = avoidcollsize * ((avoidship->shiprace == R2) ? AVOID_OBJ_R2MSHIP_MILPARADE_PADDING_SCALE : AVOID_OBJ_MSHIP_MILPARADE_PADDING_SCALE);
+                                avoidcollpad = avoidcollsize * ((avoidShip->shiprace == R2) ? AVOID_OBJ_R2MSHIP_MILPARADE_PADDING_SCALE : AVOID_OBJ_MSHIP_MILPARADE_PADDING_SCALE);
                                 shipcollpad = shipcollsize * AVOID_OBJ_FORMATION_PADDING_SCALE;
                             }
                             else
@@ -1440,63 +1439,53 @@ norowcheck:
                         }
                     }
 
-                    if (((Ship *)avoidobj)->dockingship == ship)
+                    if (avoidShip->shipOrDerelict.dockingship == ship)
                     {
                         goto nextnode;  // don't check if docking with ship
                     }
 
-                    if((ship->flags & SOF_Slaveable) && (((Ship *) avoidobj)->flags & SOF_Slaveable))
+                    if((ship->header.flags & SOF_Slaveable) && (avoidShip->header.flags & SOF_Slaveable))
                     {   //ships are slaveable
                         // two slaved ships SHOULD NOT try to avoid eachother
-                        if(ship->slaveinfo->Master == ((Ship *) avoidobj)->slaveinfo->Master)
+                        if(ship->slaveinfo->Master == avoidShip->slaveinfo->Master)
                         {   //if slaved to same thing, don't avoid
                             goto nextnode;
                         }
                     }
-#undef avoidship
                 }
 
-                if(ship->specialFlags & SPECIAL_IsASalvager)
-                {
-                    if(((SalCapCorvetteSpec *)ship->ShipSpecifics)->salvageState == SAL_WL_FLYTOCONEORIGIN)
-                    {
-                        //don't want salvager in this state to avoid...
+                if (ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager) {
+                    SalCapCorvetteSpec* salvageCorvette = (SalCapCorvetteSpec*)ship->ShipSpecifics;
+                    if (salvageCorvette->salvageState == SAL_WL_FLYTOCONEORIGIN) {
+                        // don't want salvager in this state to avoid...
                         goto noavoid;
                     }
-                    if( ((SalCapCorvetteSpec *)ship->ShipSpecifics)->target == (SpaceObjRotImpTargGuidanceShipDerelict *)avoidobj)
-                    {
-                        //avoid target?
-                        if(((SalCapCorvetteSpec *)ship->ShipSpecifics)->noAvoid)
-                        {
-                            //want to avoid target
-                            goto nextnode;
-                        }
-                    }
-                    else if(avoidobj->objtype == OBJ_ShipType)
-                    {
-                        if( ((Ship *)avoidobj)->specialFlags & SPECIAL_IsASalvager)
-                        {
-                            if (((SalCapCorvetteSpec *)((Ship *)avoidobj)->ShipSpecifics)->target)
-                            if( ((SalCapCorvetteSpec *)((Ship *)avoidobj)->ShipSpecifics)->target == ((SalCapCorvetteSpec *)ship->ShipSpecifics)->target)
-                            {
-                                //don't avoid other salcap corvettes
+                    if (&salvageCorvette->target->impactable == avoidobj &&
+                        // avoid target?
+                        salvageCorvette->noAvoid) {
+                        // want to avoid target
+                        goto nextnode;
+                    } else if (avoidobj->header.objtype == OBJ_ShipType) {
+                        Ship* avoidShip = (Ship*)avoidobj;
+                        if (avoidShip->shipOrDerelict.specialFlags & SPECIAL_IsASalvager) {
+                            ShipOrDerelict* targetOfAvoidShip =
+                                ((SalCapCorvetteSpec*)avoidShip->ShipSpecifics)->target;
+                            if (targetOfAvoidShip && targetOfAvoidShip == salvageCorvette->target) {
+                                // don't avoid other salcap corvettes
                                 goto noavoid;
                             }
                         }
                     }
                 }
 
-                if(avoidobj->flags & SOF_Clamped)
-                {
-                    if(((Ship*)((Ship *)avoidobj)->clampInfo->host) == ship)
-                    {
-                        goto nextnode;
-                    }
+                if ((avoidobj->header.flags & SOF_Clamped) &&
+                    ((SpaceObjRotImpTargGuidance*)avoidobj)->clampInfo->host == &ship->targetable) {
+                    goto nextnode;
                 }
 
-                if (bitTest(avoidobj->flags,SOF_Cloaked))    //add cloakfield owner check here!
+                if (bitTest(avoidobj->header.flags,SOF_Cloaked))    //add cloakfield owner check here!
                 {           //if object being considered is cloaked
-                    if(avoidobj->objtype == OBJ_ShipType)
+                    if(avoidobj->header.objtype == OBJ_ShipType)
                     {
                         if(!proximityCanPlayerSeeShip(ship->playerowner,(Ship *)avoidobj))
                         {
@@ -1509,9 +1498,9 @@ norowcheck:
                     }
                 }
 
-                if (shipcommand && shipcommand->ordertype.order == COMMAND_COLLECT_RESOURCES && shipcommand->collect.resource == ((Resource *)avoidobj))
-                {
-                    goto nextnode;      // don't avoid asteroids you're harvesting
+                if (shipcommand && shipcommand->ordertype.order == COMMAND_COLLECT_RESOURCES &&
+                    &shipcommand->collect.resource->impactable == avoidobj) {
+                    goto nextnode; // don't avoid asteroids you're harvesting
                 }
 
                 repulsemag2 = vecMagnitudeSquared(repulse);
@@ -1537,9 +1526,9 @@ norowcheck:
                 vecScalarDivide(repulsenorm,repulse,repulsedist,temp);
 
                 // very close, so figure out collidedist based on collision cubes
-                collidedist = GetCollSizeInDirection((SpaceObjRotImp *)ship,repulsenorm) + GetCollSizeInDirection(avoidobj,repulsenorm);
+                collidedist = GetCollSizeInDirection(&ship->impactable,repulsenorm) + GetCollSizeInDirection(avoidobj,repulsenorm);
 #if VELFACTOR
-                velfactor = -vecDotProduct(ship->posinfo.velocity,repulsenorm);
+                velfactor = -vecDotProduct(ship->obj.posinfo.velocity,repulsenorm);
 #endif
                 distanceToCollision = repulsedist - collidedist;
                 if (distanceToCollision < 20.0f)
@@ -1550,9 +1539,10 @@ norowcheck:
 
                 aishipStatsDistanceToCollision(distanceToCollision);
 
-                if (avoidobj->objtype == OBJ_ShipType)
+                if (avoidobj->header.objtype == OBJ_ShipType)
                 {
-                    if ((((Ship *)avoidobj)->shiptype == Mothership) && (((Ship *)avoidobj)->shiprace == R1))
+                    Ship* avoidShip = (Ship*)avoidobj;
+                    if ((avoidShip->shiptype == Mothership) && (avoidShip->shiprace == R1))
                     {
                         repulse.z = 0.0f;
                         vecNormalize(&repulse);
@@ -1577,11 +1567,12 @@ norowcheck:
                     real32 destToObjMag2;
                     real32 obscurecollsize;
 
-                    if (avoidobj->objtype == OBJ_ShipType)
+                    if (avoidobj->header.objtype == OBJ_ShipType)
                     {
+                        Ship* avoidShip = (Ship*)avoidobj;
                         if (bitTest(aishipflags,AISHIP_IgnoreFormationObscuredPoints))
                         {
-                            if (ship->formationcommand == ((Ship *)avoidobj)->formationcommand)
+                            if (ship->formationcommand == avoidShip->formationcommand)
                             {
                                 goto skipobscurecheck;
                             }
@@ -1589,7 +1580,7 @@ norowcheck:
 
                         if (bitTest(aishipflags,AISHIP_IgnoreDockWithObscuredPoints))
                         {
-                            if (ship->dockvars.dockship == ((Ship *)avoidobj))
+                            if (ship->dockvars.dockship == avoidShip)
                             {
                                 goto skipobscurecheck;
                             }
@@ -1608,14 +1599,14 @@ norowcheck:
                     else
                     {
                         // no destination provided, so use current ship position
-                        vecSub(destToObj,avoidobj->collInfo.collPosition,ship->posinfo.position);
+                        vecSub(destToObj,avoidobj->collInfo.collPosition,ship->obj.posinfo.position);
                     }
 
                     destToObjMag2 = vecMagnitudeSquared(destToObj);
 
                     if (destToObjMag2 < (obscurecollsize*obscurecollsize))
                     {
-                        if (avoidobj->staticinfo->staticheader.staticCollInfo.avoidcollmodifier == 0.0f)
+                        if (avoidobj->obj.staticinfo->staticCollInfo.avoidcollmodifier == 0.0f)
                         {
                             goto skipobscurecollsizedirectioncheck;
                         }
@@ -1719,13 +1710,13 @@ noavoid:
             }
             else if (bitTest(aishipflags,AISHIP_PointInDirectionFlying))
             {
-                if (shipstaticinfo->pitchdescend != 0.0f)
+                if (shipstaticinfo->shipOrDerelict.pitchdescend != 0.0f)
                 {
                     // calculate normalize distance left
                     if ((destination) && (ship->aidescend != 0.0f))
                     {
-                        zdistanceleft = (destination->z - ship->posinfo.position.z) * ABS(ship->aidescend);
-                        pitchtodescend = getPitchToDescend(zdistanceleft,shipstaticinfo->pitchdescend);
+                        zdistanceleft = (destination->z - ship->obj.posinfo.position.z) * ABS(ship->aidescend);
+                        pitchtodescend = getPitchToDescend(zdistanceleft,shipstaticinfo->shipOrDerelict.pitchdescend);
 #if DEBUG_AISHIP
                         dbgMessagef("zdistanceleft: %f pitchtodescend: %f",zdistanceleft,pitchtodescend);
 #endif
@@ -1738,16 +1729,16 @@ noavoid:
 
                     if ((destination) && (ship->aidescend < 0.0f))
                     {
-                        matGetVectFromMatrixCol3(desiredHead,ship->rotinfo.coordsys);
-                        aitrackHeadingWithBankPitch(ship,&desiredHead,FLYSHIP_HEADINGACCURACY,shipstaticinfo->sinbank,pitchtodescend,shipstaticinfo->pitchturn);
+                        matGetVectFromMatrixCol3(desiredHead,ship->rotatable.rotinfo.coordsys);
+                        aitrackHeadingWithBankPitch(ship,&desiredHead,FLYSHIP_HEADINGACCURACY,shipstaticinfo->shipOrDerelict.sinbank,pitchtodescend,shipstaticinfo->shipOrDerelict.pitchturn);
                     }
                     else
-                        aitrackHeadingWithBankPitch(ship,&desiredVel,FLYSHIP_HEADINGACCURACY,shipstaticinfo->sinbank,pitchtodescend,shipstaticinfo->pitchturn);
+                        aitrackHeadingWithBankPitch(ship,&desiredVel,FLYSHIP_HEADINGACCURACY,shipstaticinfo->shipOrDerelict.sinbank,pitchtodescend,shipstaticinfo->shipOrDerelict.pitchturn);
                 }
                 else
                 {
                     vecCopyAndNormalize(&desiredVel,&desiredHead);
-                    aitrackHeadingWithBank(ship,&desiredHead,FLYSHIP_HEADINGACCURACY,shipstaticinfo->sinbank);
+                    aitrackHeadingWithBank(ship,&desiredHead,FLYSHIP_HEADINGACCURACY,shipstaticinfo->shipOrDerelict.sinbank);
                 }
             }
 
@@ -1782,7 +1773,7 @@ void aishipFlyMissileToTarget(Missile *missile,SpaceObjRotImpTarg *target)
     real32 distToTargetMagSqr, distToTargetMag;
     vector deltatarget;
 
-    vecSub(distToTargetVec,target->collInfo.collPosition,missile->posinfo.position);
+    vecSub(distToTargetVec,target->impactable.collInfo.collPosition,missile->obj.posinfo.position);
 
     distToTargetMagSqr = vecMagnitudeSquared(distToTargetVec);
 
@@ -1791,7 +1782,7 @@ void aishipFlyMissileToTarget(Missile *missile,SpaceObjRotImpTarg *target)
         goto gottargettrajectory;
     }
 
-    missilevel = fsqrt(vecMagnitudeSquared(missile->posinfo.velocity));
+    missilevel = fsqrt(vecMagnitudeSquared(missile->obj.posinfo.velocity));
 
     if (missilevel < 200.0f)
     {
@@ -1802,14 +1793,14 @@ void aishipFlyMissileToTarget(Missile *missile,SpaceObjRotImpTarg *target)
 
     missiletraveltime = distToTargetMag / missilevel;
 
-    vecScalarMultiply(deltatarget,target->posinfo.velocity,missiletraveltime);
+    vecScalarMultiply(deltatarget,target->obj.posinfo.velocity,missiletraveltime);
 
     vecAddTo(distToTargetVec,deltatarget);
 
 gottargettrajectory:
     //vecMultiplyByScalar(distToTargetVec,MISSILE_SCALE_FACTOR);
 
-    vecCapMinMaxVector(&distToTargetVec,missilestaticinfo->staticheader.maxvelocity,missilestaticinfo->staticheader.maxvelocity);
+    vecCapMinMaxVector(&distToTargetVec,missilestaticinfo->common.maxvelocity,missilestaticinfo->common.maxvelocity);
 
     //vecCopyAndNormalize(&desiredVel,&desiredHead);
     //aitrackHeadingWithFlags(missile,&desiredHead,FLYSHIP_ATTACKACCURACY,AITRACKHEADING_DONTROLL+AITRACKHEADING_IGNOREUPVEC);
@@ -1829,7 +1820,7 @@ bool32 shouldMissileLoseTarget(Missile *missile)
     real32 rannum;
     real32 prob;
     vector roughDist;
-    ObjType objtype = missile->target->objtype;
+    ObjType objtype = missile->target->header.objtype;
 
     if(objtype == OBJ_ShipType)
     {
@@ -1837,7 +1828,7 @@ bool32 shouldMissileLoseTarget(Missile *missile)
         if(isCapitalShip(((Ship *)missile->target)))
             return FALSE;
 
-        vecSub(roughDist,missile->target->posinfo.position,missile->posinfo.position);
+        vecSub(roughDist,missile->target->obj.posinfo.position,missile->obj.posinfo.position);
 
         if(isBetweenInclusive(roughDist.x,-tweakMinDistBeforeTargetLoss,tweakMinDistBeforeTargetLoss) &&
             isBetweenInclusive(roughDist.y,-tweakMinDistBeforeTargetLoss,tweakMinDistBeforeTargetLoss) &&
@@ -1869,7 +1860,7 @@ bool32 shouldMissileLoseTarget(Missile *missile)
     }
     else if ((objtype == OBJ_DustType) || (objtype == OBJ_NebulaType))
     {
-        vecSub(roughDist,missile->target->posinfo.position,missile->posinfo.position);
+        vecSub(roughDist,missile->target->obj.posinfo.position,missile->obj.posinfo.position);
 
         if(isBetweenInclusive(roughDist.x,-200.0f,200.0f) &&
             isBetweenInclusive(roughDist.y,-200.0f,200.0f) &&
@@ -1893,7 +1884,7 @@ bool32 aishipGuideMissile(Missile *missile)
     SpaceObjRotImpTarg *target = missile->target;
     vector heading;
 
-    if (missile->flags & SOF_Dead)
+    if (missile->header.flags & SOF_Dead)
     {
         return FALSE;
     }
@@ -1905,7 +1896,7 @@ bool32 aishipGuideMissile(Missile *missile)
     else
     {
         aishipFlyMissileToTarget(missile,target);
-        if(missile->target->flags & SOF_Cloaked)
+        if(missile->target->header.flags & SOF_Cloaked)
         {
             missile->target = NULL;
         }
@@ -1921,16 +1912,16 @@ bool32 aishipGuideMissile(Missile *missile)
         }
     }
 
-    heading = missile->posinfo.velocity;
+    heading = missile->obj.posinfo.velocity;
     if ((heading.x != 0.0f) || (heading.y != 0.0f) || (heading.z != 0.0f))
     {
         vecNormalize(&heading);
-        matCreateCoordSysFromHeading(&missile->rotinfo.coordsys,&heading);
-        vecZeroVector(missile->rotinfo.rotspeed);
-        vecZeroVector(missile->rotinfo.torque);
+        matCreateCoordSysFromHeading(&missile->rotatable.rotinfo.coordsys,&heading);
+        vecZeroVector(missile->rotatable.rotinfo.rotspeed);
+        vecZeroVector(missile->rotatable.rotinfo.torque);
     }
 
-    SET_MOVING_LINEARLY(missile->posinfo.isMoving);
+    SET_MOVING_LINEARLY(missile->obj.posinfo.isMoving);
 
     missile->timelived += universe.phystimeelapsed;
     if (missile->timelived > missile->totallifetime)
@@ -1960,13 +1951,13 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
     else
     {
         mine_rangesqr = minestaticinfo->MINE_RANGESQR;
-        max_velocity = minestaticinfo->staticheader.maxvelocity;
-        max_velocitySQR =minestaticinfo->staticheader.maxvelocity*minestaticinfo->staticheader.maxvelocity;
+        max_velocity = minestaticinfo->common.maxvelocity;
+        max_velocitySQR =minestaticinfo->common.maxvelocity*minestaticinfo->common.maxvelocity;
     }
 
-    vecSub(desiredVel,target->collInfo.collPosition,mine->posinfo.position);
+    vecSub(desiredVel,target->impactable.collInfo.collPosition,mine->obj.posinfo.position);
     //if(vecMagnitudeSquared(desiredVel) > mine_rangesqr)
-    if(!MoveReachedDestinationVariable((Ship *)mine,&target->collInfo.collPosition,minestaticinfo->MINE_RANGESQR_FORCED))
+    if(!MoveReachedDestinationVariable((Ship *)mine,&target->impactable.collInfo.collPosition,minestaticinfo->MINE_RANGESQR_FORCED))
 
     {
         //target flew out of range.
@@ -1975,7 +1966,7 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
     }
     else if(mine->target != NULL)
     {
-        if(mine->target->flags & SOF_Cloaked || mine->target->flags &SOF_Disabled)
+        if(mine->target->header.flags & SOF_Cloaked || mine->target->header.flags &SOF_Disabled)
         {
             mine->target = NULL;
             return FALSE;
@@ -1983,10 +1974,10 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
     }
     //checks targets speed and only goes after it if it can
     //have a chance of reaching it
-    if(vecDotProduct(desiredVel,target->posinfo.velocity) > 0 )
+    if(vecDotProduct(desiredVel,target->obj.posinfo.velocity) > 0 )
     {
         //target is flying away from mine...check velocity now
-        if(vecMagnitudeSquared(target->posinfo.velocity) > max_velocitySQR)
+        if(vecMagnitudeSquared(target->obj.posinfo.velocity) > max_velocitySQR)
         {
             //target is flying faster than mine can go so don't follow it!
             mine->target = NULL;
@@ -1994,19 +1985,19 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
         }
     }
 
-    if ((target->objtype != -1) && (target->collMyBlob))
+    if ((target->header.objtype != -1) && (target->obj.collMyBlob))
     {
         // we've got a "real" target here
-        if (mine->collMyBlob != target->collMyBlob)
+        if (mine->obj.collMyBlob != target->obj.collMyBlob)
         {
-            if (mine->collMyBlob)
+            if (mine->obj.collMyBlob)
             {
                 // let's take it out of our blob
-                bobRemoveMineFromSpecificBlob(mine->collMyBlob,mine);
+                bobRemoveMineFromSpecificBlob(mine->obj.collMyBlob,mine);
             }
 
             // put it in targets blob
-            collAddSpaceObjToSpecificBlob(target->collMyBlob,(SpaceObj *)mine);
+            collAddSpaceObjToSpecificBlob(target->obj.collMyBlob, &mine->obj);
         }
     }
 
@@ -2016,7 +2007,7 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
     //vecCopyAndNormalize(&desiredVel,&desiredHead);
 
     // TAKE out track mines with right vector to spin them - save cpu
-    //matGetVectFromMatrixCol1(desiredHead,mine->rotinfo.coordsys);       //track mines right vector always...spins then.
+    //matGetVectFromMatrixCol1(desiredHead,mine->rotatable.rotinfo.coordsys);       //track mines right vector always...spins then.
     //aitrackHeadingWithFlags(mine,&desiredHead,FLYSHIP_ATTACKACCURACY,AITRACKHEADING_IGNOREUPVEC);
 
     aitrackVelocityVectorGuidance((SpaceObjRotImpTargGuidance *)mine,&desiredVel);
@@ -2025,26 +2016,26 @@ bool32 aishipFlyMineToTarget(Missile *mine,SpaceObjRotImpTarg *target)
 
 bool32 aishipslowminewithFriction(Missile *mine, real32 fric)
 {
-    if(isBetweenInclusive(mine->posinfo.velocity.x,-1.0f,1.0f) &&
-        isBetweenInclusive(mine->posinfo.velocity.y,-1.0f,1.0f) &&
-        isBetweenInclusive(mine->posinfo.velocity.z,-1.0f,1.0f))
+    if(isBetweenInclusive(mine->obj.posinfo.velocity.x,-1.0f,1.0f) &&
+        isBetweenInclusive(mine->obj.posinfo.velocity.y,-1.0f,1.0f) &&
+        isBetweenInclusive(mine->obj.posinfo.velocity.z,-1.0f,1.0f))
     {
-        mine->posinfo.velocity.x = 0.0f;
-        mine->posinfo.velocity.y = 0.0f;
-        mine->posinfo.velocity.z = 0.0f;
-        mine->rotinfo.rotspeed.x = 0.0f;
-        mine->rotinfo.rotspeed.y = 0.0f;
-        mine->rotinfo.rotspeed.z = 0.0f;
+        mine->obj.posinfo.velocity.x = 0.0f;
+        mine->obj.posinfo.velocity.y = 0.0f;
+        mine->obj.posinfo.velocity.z = 0.0f;
+        mine->rotatable.rotinfo.rotspeed.x = 0.0f;
+        mine->rotatable.rotinfo.rotspeed.y = 0.0f;
+        mine->rotatable.rotinfo.rotspeed.z = 0.0f;
         return(TRUE);
     }
     else
     {
-        mine->posinfo.velocity.x *= fric;
-        mine->posinfo.velocity.y *= fric;
-        mine->posinfo.velocity.z *= fric;
-        mine->rotinfo.rotspeed.x *= fric;
-        mine->rotinfo.rotspeed.y *= fric;
-        mine->rotinfo.rotspeed.z *= fric;
+        mine->obj.posinfo.velocity.x *= fric;
+        mine->obj.posinfo.velocity.y *= fric;
+        mine->obj.posinfo.velocity.z *= fric;
+        mine->rotatable.rotinfo.rotspeed.x *= fric;
+        mine->rotatable.rotinfo.rotspeed.y *= fric;
+        mine->rotatable.rotinfo.rotspeed.z *= fric;
     }
     return(FALSE);
 }
@@ -2072,11 +2063,11 @@ Ship *getShipNearObjTok(SpaceObjRotImpTarg *obj, real32 range)
     if(obj != NULL)
     {
         //starting
-        if(obj->collMyBlob == NULL)
+        if(obj->obj.collMyBlob == NULL)
             return NULL;
 
         blobDirection = blobSearchRight;
-        baseBlob = obj->collMyBlob;
+        baseBlob = obj->obj.collMyBlob;
         baseObj = obj;
         blobIndex = 0;
     }
@@ -2086,7 +2077,7 @@ newBlob:
     {
         //scan blob list
         blobShip = baseBlob->blobShips->ShipPtr[blobIndex];
-        if(MoveReachedDestinationVariable((Ship *)blobShip,&baseObj->collInfo.collPosition,range))
+        if(MoveReachedDestinationVariable(blobShip,&baseObj->impactable.collInfo.collPosition,range))
         {
             //found ship within range
             blobIndex++;
@@ -2104,7 +2095,7 @@ needanotherblob:
             //first reset blob though
 startleft:
             blobDirection = blobSearchLeft;
-            baseBlob=baseObj->collMyBlob;
+            baseBlob=baseObj->obj.collMyBlob;
             goto leftsearch;
         }
 
@@ -2113,10 +2104,10 @@ startleft:
         //check if in range
 
         //this blob is further than normal blob
-        //dif = baseBlob->sqrtSortDistance-baseObj->collMyBlob->sqrtSortDistance;
-        //dif = dif + baseObj->collMyBlob->radius - collBlobProperties.bobBiggestRadius;
+        //dif = baseBlob->sqrtSortDistance-baseObj->obj.collMyBlob->sqrtSortDistance;
+        //dif = dif + baseObj->obj.collMyBlob->radius - collBlobProperties.bobBiggestRadius;
         dif = (baseBlob->sqrtSortDistance-collBlobProperties.bobBiggestRadius)-
-               (baseObj->collMyBlob->sqrtSortDistance+baseObj->collOptimizeDist);
+               (baseObj->obj.collMyBlob->sqrtSortDistance+baseObj->obj.collOptimizeDist);
         if(dif > range)
         {
             //blob list exhausted to right
@@ -2124,7 +2115,7 @@ startleft:
         }
 
         //blob is possible
-        vecSub(difvec,baseObj->collInfo.collPosition,baseBlob->centre);
+        vecSub(difvec,baseObj->impactable.collInfo.collPosition,baseBlob->centre);
         if(!MoveReachedDestinationVariable((Ship *)baseObj,&baseBlob->centre,range+collBlobProperties.bobBiggestRadius))
         {
             //blob edge not in range...consider another
@@ -2148,9 +2139,9 @@ leftsearch:
 
         //consider if in range
                 //this blob is further than normal blob
-        //dif = baseObj->collMyBlob->sqrtSortDistance - baseBlob->sqrtSortDistance;
-        //dif = dif + collBlobProperties.bobBiggestRadius - baseObj->collMyBlob->radius;
-        dif = (baseObj->collOptimizeDist+baseObj->collMyBlob->sqrtSortDistance)-
+        //dif = baseObj->obj.collMyBlob->sqrtSortDistance - baseBlob->sqrtSortDistance;
+        //dif = dif + collBlobProperties.bobBiggestRadius - baseObj->obj.collMyBlob->radius;
+        dif = (baseObj->obj.collOptimizeDist+baseObj->obj.collMyBlob->sqrtSortDistance)-
                (baseBlob->sqrtSortDistance+collBlobProperties.bobBiggestRadius);
         if(dif > range)
         {
@@ -2159,7 +2150,7 @@ leftsearch:
         }
 
         //blob is possible
-        vecSub(difvec,baseObj->collInfo.collPosition,baseBlob->centre);
+        vecSub(difvec,baseObj->impactable.collInfo.collPosition,baseBlob->centre);
         if(!MoveReachedDestinationVariable((Ship *)baseObj,&baseBlob->centre,range+baseBlob->radius))
         {
             //blob edge not in range...consider another
@@ -2184,7 +2175,7 @@ Ship *aishipmineaquiretarget(Missile *mine)
 
     MissileStaticInfo *minestaticinfo = (MissileStaticInfo *)mine->staticinfo;
 
-    MyBlob = mine->collMyBlob;
+    MyBlob = mine->obj.collMyBlob;
     shipselection = MyBlob->blobShips;
     if(mine->FORCE_DROPPED)
     {
@@ -2208,14 +2199,14 @@ Ship *aishipmineaquiretarget(Missile *mine)
         {   //don't target are ships....
             goto nextnode;
         }
-        if(ship->flags & SOF_Cloaked)
+        if(ship->header.flags & SOF_Cloaked)
         {
             if(!proximityCanPlayerSeeShip(mine->playerowner,ship))
             {
                 goto nextnode;
             }
         }
-        if(ship->flags & SOF_Disabled)
+        if(ship->header.flags & SOF_Disabled)
         {
             goto nextnode;
         }
@@ -2224,7 +2215,7 @@ Ship *aishipmineaquiretarget(Missile *mine)
         //add more rejections to speed it up
 
         /*
-        vecSub(diff,ship->posinfo.position,mine->posinfo.position);
+        vecSub(diff,ship->obj.posinfo.position,mine->obj.posinfo.position);
         distanceSqr = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
 
         if(distanceSqr < minestaticinfo->MINE_RANGESQR)
@@ -2234,11 +2225,11 @@ Ship *aishipmineaquiretarget(Missile *mine)
             {
                 ShiptoRecieveShitPounding = ship;
             }
-            else if(ship->staticinfo->staticheader.mass > ShiptoRecieveShitPounding->staticinfo->staticheader.mass)
+            else if(ship->staticinfo->common.mass > ShiptoRecieveShitPounding->staticinfo->common.mass)
             {
                 ShiptoRecieveShitPounding = ship;
             }
-            else if (ship->staticinfo->staticheader.mass == ShiptoRecieveShitPounding->staticinfo->staticheader.mass)
+            else if (ship->staticinfo->common.mass == ShiptoRecieveShitPounding->staticinfo->common.mass)
             {   //if masses are the same
                 if(randombetween(1,2) & 1)
                 {   //randomly decide one over the other (that way, a group of fighters will
@@ -2286,7 +2277,7 @@ bool32 aishipGuideMine(Missile *mine)
     real32 distsqr;
     MinelayerCorvetteStatics *minelayercorvettestatics;
 
-    if (mine->flags & SOF_Dead)
+    if (mine->header.flags & SOF_Dead)
     {
         return FALSE;
     }
@@ -2295,7 +2286,7 @@ bool32 aishipGuideMine(Missile *mine)
 
     if (mine->target)
     {
-        switch (mine->target->objtype)
+        switch (mine->target->header.objtype)
         {
             case OBJ_MissileType:
             case OBJ_AsteroidType:
@@ -2316,7 +2307,7 @@ bool32 aishipGuideMine(Missile *mine)
     case MINE_DROP_FORMATION:     //starting of wall formation
         if(mine->owner != NULL)
         {
-            vecSub(dist,mine->posinfo.position,mine->owner->posinfo.position);
+            vecSub(dist,mine->obj.posinfo.position,mine->owner->obj.posinfo.position);
             minelayercorvettestatics = (MinelayerCorvetteStatics *)((ShipStaticInfo *)mine->owner->staticinfo)->custstatinfo;
             distsqr = vecMagnitudeSquared(dist);
             if(distsqr > minelayercorvettestatics->MineClearDistanceSQR)
@@ -2334,13 +2325,14 @@ bool32 aishipGuideMine(Missile *mine)
         {
             mine->mineAIState = MINE_ATTACK_RUN;
         }
+        //TODO(type safety, 2026-04-25): Remove unsafe cast from Missile* to Ship*
         if(!MoveReachedDestinationVariable((Ship *)mine,&mine->formation_position,10.0f))
         {
             SpaceObjRotImpTarg dest_faker;
-            dest_faker.objtype = -1;
-            dest_faker.collInfo.collPosition = mine->formation_position;
-            vecSet(dest_faker.posinfo.velocity, 0.0f,0.0f,0.0f);
-            dest_faker.flags = 0;
+            dest_faker.header.objtype = -1;
+            dest_faker.impactable.collInfo.collPosition = mine->formation_position;
+            vecSet(dest_faker.obj.posinfo.velocity, 0.0f,0.0f,0.0f);
+            dest_faker.header.flags = 0;
             aishipFlyMineToTarget(mine,&dest_faker);
         }
         else
@@ -2385,7 +2377,7 @@ bool32 aishipGuideMine(Missile *mine)
         break;
     }
 
-    SET_MOVING_LINEARLY(mine->posinfo.isMoving);
+    SET_MOVING_LINEARLY(mine->obj.posinfo.isMoving);
 
     // all mines, including force dropped ones, now expire
     mine->timelived += universe.phystimeelapsed;

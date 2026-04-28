@@ -77,7 +77,7 @@ IDToPtrTable MissileIDToPtr;
     Private functions:
 =============================================================================*/
 
-void setSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *object);
+void setSalvageInfo(ShipOrDerelict *object);
 
 
 static void MakeExplosionRockBumpables(Ship *ship,bool32 scuttle);
@@ -127,25 +127,27 @@ scriptEntry GalaxyTweaks[] =
     END_SCRIPT_ENTRY
 };
 
-void univUpdateObjRotInfo(SpaceObjRot *robj)
+void univUpdateObjRotInfo(SpaceObjRot *rotatable)
 {
-#define irobj ((SpaceObjRotImp *)robj)
-#define shipobj ((Ship *)robj)
+    if (!bitTest(rotatable->header.flags, SOF_Impactable)) return;
 
-    if (bitTest(robj->flags,SOF_Impactable))
-    {
-        matMultiplyMatByVec(&irobj->collInfo.collOffset,&irobj->rotinfo.coordsys,&irobj->staticinfo->staticheader.staticCollInfo.collsphereoffset);
-        vecAdd(irobj->collInfo.collPosition,irobj->posinfo.position,irobj->collInfo.collOffset);
+    SpaceObjRotImp* asImpactable = (SpaceObjRotImp *)rotatable;
+    matMultiplyMatByVec(
+        &asImpactable->collInfo.collOffset,
+        &rotatable->rotinfo.coordsys,
+        &rotatable->obj.staticinfo->staticCollInfo.collsphereoffset
+    );
+    vecAdd(asImpactable->collInfo.collPosition, rotatable->obj.posinfo.position, asImpactable->collInfo.collOffset);
+    collUpdateCollRectangle(asImpactable);
+    if (rotatable->header.objtype != OBJ_ShipType) return;
 
-        collUpdateCollRectangle(irobj);
+    Ship * asShip = (Ship *)rotatable;
+    matMultiplyMatByVec(
+        &asShip->engineOffset,
+        &rotatable->rotinfo.coordsys,
+        &asShip->staticinfo->engineNozzleOffset[0]);
 
-        if (irobj->objtype == OBJ_ShipType)
-        {
-            matMultiplyMatByVec(&shipobj->engineOffset,&shipobj->rotinfo.coordsys,&((ShipStaticInfo *)shipobj->staticinfo)->engineNozzleOffset[0]);
-
-            vecAdd(shipobj->enginePosition,shipobj->posinfo.position,shipobj->engineOffset);
-        }
-    }
+    vecAdd(asShip->enginePosition, rotatable->obj.posinfo.position, asShip->engineOffset);
 }
 
 /*-----------------------------------------------------------------------------
@@ -223,11 +225,11 @@ void univInitSpaceObjPosRot(SpaceObj *obj,vector *position,bool32 randomOrientat
     SET_MOVING_IMMOBILE(obj->posinfo.isMoving);
     obj->posinfo.haventCalculatedDist = TRUE;
 
-    if (bitTest(obj->flags,SOF_Rotatable))
+    if (bitTest(obj->header.flags, SOF_Rotatable))
     {
-#define robj ((SpaceObjRot *)obj)
-        memset(&robj->rotinfo,0,sizeof(robj->rotinfo));
-        robj->rotinfo.coordsys = defaultshipmatrix;
+        SpaceObjRot* asRotatable = (SpaceObjRot*)obj;
+        memset(&asRotatable->rotinfo,0,sizeof(asRotatable->rotinfo));
+        asRotatable->rotinfo.coordsys = defaultshipmatrix;
 
         if (randomOrientation)
         {
@@ -243,13 +245,13 @@ void univInitSpaceObjPosRot(SpaceObj *obj,vector *position,bool32 randomOrientat
             matMakeRotAboutY(&rotymat,(real32)cos(rotabouty),(real32)sin(rotabouty));
             matMakeRotAboutZ(&rotzmat,(real32)cos(rotaboutz),(real32)sin(rotaboutz));
 
-            tempmat = robj->rotinfo.coordsys;
-            matMultiplyMatByMat(&robj->rotinfo.coordsys,&tempmat,&rotxmat);
-            matMultiplyMatByMat(&tempmat,&robj->rotinfo.coordsys,&rotymat);
-            matMultiplyMatByMat(&robj->rotinfo.coordsys,&tempmat,&rotzmat);
+            tempmat = asRotatable->rotinfo.coordsys;
+            matMultiplyMatByMat(&asRotatable->rotinfo.coordsys,&tempmat,&rotxmat);
+            matMultiplyMatByMat(&tempmat,&asRotatable->rotinfo.coordsys,&rotymat);
+            matMultiplyMatByMat(&asRotatable->rotinfo.coordsys,&tempmat,&rotzmat);
         }
 
-        univUpdateObjRotInfo((SpaceObjRot *)obj);
+        univUpdateObjRotInfo(asRotatable);
     }
 }
 
@@ -438,10 +440,10 @@ Ship *ShipIDtoShip(ShipID shipID,bool32 considerInsideShips)
 
     if (ship != NULL)
     {
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         if (!considerInsideShips)
         {
-            if (ship->flags & SOF_Hide)
+            if (ship->header.flags & SOF_Hide)
             {
                 ship = NULL;
             }
@@ -466,7 +468,7 @@ Ship *univFindShipIAmInside(Ship *me)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->shipsInsideMe)
         {
@@ -476,7 +478,7 @@ Ship *univFindShipIAmInside(Ship *me)
             while (insidenode != NULL)
             {
                 insideship = (InsideShip *)listGetStructOfNode(insidenode);
-                dbgAssertOrIgnore(insideship->ship->objtype == OBJ_ShipType);
+                dbgAssertOrIgnore(insideship->ship->header.objtype == OBJ_ShipType);
 
                 if (insideship->ship == me)
                 {
@@ -510,7 +512,7 @@ bool32 univAmIInsideThisShip(Ship *me,Ship *ship)
         while (insidenode != NULL)
         {
             insideship = (InsideShip *)listGetStructOfNode(insidenode);
-            dbgAssertOrIgnore(insideship->ship->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(insideship->ship->header.objtype == OBJ_ShipType);
 
             if (insideship->ship == me)
             {
@@ -577,46 +579,47 @@ Asteroid *univAddAsteroid(AsteroidType asteroidtype,vector *astpos)
 
     newAsteroid = memAlloc(sizeof(Asteroid),"Asteroid",NonVolatile);
 
-    newAsteroid->resourceID.resourceNumber = universe.resourceNumber;
+    newAsteroid->resource.resourceID.resourceNumber = universe.resourceNumber;
     IDToPtrTableAdd(&ResourceIDToPtr,universe.resourceNumber,(SpaceObj *)newAsteroid);
     universe.resourceNumber++;
 
-    newAsteroid->objtype = OBJ_AsteroidType;
-    newAsteroid->flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource;
-    if (asteroidtype == Asteroid0) newAsteroid->flags |= SOF_DontApplyPhysics;      // optimization for Asteroid0
-    newAsteroid->staticinfo = (ResourceStaticInfo *)&asteroidStaticInfos[asteroidtype];
-    ClearNode(newAsteroid->renderlink);
-    newAsteroid->collMyBlob = NULL;
-    newAsteroid->currentLOD = 0;
-    newAsteroid->cameraDistanceSquared = REALlyBig;
-    newAsteroid->flashtimer = 0;
-    newAsteroid->lasttimecollided = 0;
-    newAsteroid->attributes = 0;
-    newAsteroid->attributesParam = 0;
-    newAsteroid->resourcevalue = asteroidStaticInfos[asteroidtype].resourcevalue;
-    newAsteroid->resourceNotAccessible = 0;
-    newAsteroid->resourceVolume = NULL;
+    newAsteroid->header.objtype = OBJ_AsteroidType;
+    newAsteroid->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource;
+    if (asteroidtype == Asteroid0) newAsteroid->header.flags |= SOF_DontApplyPhysics;      // optimization for Asteroid0
+    AsteroidStaticInfo* staticInfo = &asteroidStaticInfos[asteroidtype];
+    newAsteroid->staticinfo = staticInfo;
+    ClearNode(newAsteroid->obj.renderlink);
+    newAsteroid->obj.collMyBlob = NULL;
+    newAsteroid->obj.currentLOD = 0;
+    newAsteroid->obj.cameraDistanceSquared = REALlyBig;
+    newAsteroid->obj.attributes = 0;
+    newAsteroid->obj.attributesParam = 0;
+    newAsteroid->impactable.collInfo.precise = NULL;
+    newAsteroid->targetable.flashtimer = 0;
+    newAsteroid->targetable.lasttimecollided = 0;
+    newAsteroid->targetable.health = staticInfo->health.maxhealth;
+    newAsteroid->resource.resourcevalue = staticInfo->resource.resourcevalue;
+    newAsteroid->resource.resourceNotAccessible = 0;
+    newAsteroid->resource.resourceVolume = NULL;
     newAsteroid->asteroidtype = asteroidtype;
     newAsteroid->scaling = 1.0f;
-    newAsteroid->health = newAsteroid->staticinfo->maxhealth;
-    newAsteroid->collInfo.precise = NULL;
 
-    vecZeroVector(newAsteroid->posinfo.force);
-    vecZeroVector(newAsteroid->rotinfo.torque);
+    vecZeroVector(newAsteroid->obj.posinfo.force);
+    vecZeroVector(newAsteroid->rotatable.rotinfo.torque);
 
-    univInitSpaceObjPosRot((SpaceObj *)newAsteroid,astpos,TRUE);
+    univInitSpaceObjPosRot(&newAsteroid->obj,astpos,TRUE);
 
     if (asteroidtype == Asteroid0)
     {
-        newAsteroid->collMyBlob = NULL;
-        listAddNode(&universe.MinorSpaceObjList,&(newAsteroid->objlink),newAsteroid);
+        newAsteroid->obj.collMyBlob = NULL;
+        listAddNode(&universe.MinorSpaceObjList,&(newAsteroid->header.objlink),newAsteroid);
     }
     else
     {
-        collAddSpaceObjToCollBlobs((SpaceObj *)newAsteroid);
-        listAddNode(&universe.SpaceObjList,&(newAsteroid->objlink),newAsteroid);
-        listAddNode(&universe.ResourceList,&(newAsteroid->resourcelink),newAsteroid);
-        listAddNode(&universe.ImpactableList,&(newAsteroid->impactablelink),newAsteroid);
+        collAddSpaceObjToCollBlobs(&newAsteroid->obj);
+        listAddNode(&universe.SpaceObjList,&(newAsteroid->header.objlink),newAsteroid);
+        listAddNode(&universe.ResourceList,&(newAsteroid->resource.resourcelink),newAsteroid);
+        listAddNode(&universe.ImpactableList,&(newAsteroid->impactable.impactablelink),newAsteroid);
     }
 
     return newAsteroid;
@@ -639,10 +642,10 @@ Derelict *univAddHyperspaceGateAsDerelict(hvector *posAndRotation)
 {
     Derelict *derelict = univAddDerelict(HyperspaceGate,(vector *)posAndRotation);
     univRotateObjYaw((SpaceObjRot *)derelict,posAndRotation->w);
-    bitSet(derelict->flags,SOF_NotBumpable|SOF_DontApplyPhysics);
+    bitSet(derelict->header.flags,SOF_NotBumpable|SOF_DontApplyPhysics);
 
     // debug
-    //bitSet(derelict->flags,SOF_ForceVisible);
+    //bitSet(derelict->header.flags,SOF_ForceVisible);
 
     return derelict;
 }
@@ -664,8 +667,8 @@ Missile *univAddMissile(ShipRace race)
     missile = memAlloc(sizeof(Missile),"Missile",0);
     memset(missile,0,sizeof(Missile));
 
-    missile->objtype = OBJ_MissileType;
-    missile->flags = SOF_Rotatable + SOF_Impactable + SOF_NotBumpable + SOF_Targetable;
+    missile->header.objtype = OBJ_MissileType;
+    missile->header.flags = SOF_Rotatable + SOF_Impactable + SOF_NotBumpable + SOF_Targetable;
 
     missile->enginePosition.x = 0.0f;
     missile->enginePosition.y = 0.0f;
@@ -673,36 +676,36 @@ Missile *univAddMissile(ShipRace race)
     missile->trail = NULL;
 
     missile->staticinfo = &missileStaticInfos[race];
-    missile->maxtraveldist = missile->staticinfo->staticheader.maxvelocity * universe.phystimeelapsed;
+    missile->maxtraveldist = missile->staticinfo->common.maxvelocity * universe.phystimeelapsed;
     missile->missileType = MISSILE_Regular;
     missile->FORCE_DROPPED = FALSE;
     missile->formationinfo = NULL;
     missile->trail = mistrailNew(missile->staticinfo->trailStatic, missile);
 
-    missile->health = ((MissileStaticInfo *)missile->staticinfo)->maxhealth;
+    missile->targetable.health = missile->staticinfo->health.maxhealth;
 
-    ClearNode(missile->renderlink);
-    missile->currentLOD = 0;
-    missile->cameraDistanceSquared = 1.0f;  //!!!
-    missile->flashtimer = 0;
-    missile->lasttimecollided = 0;
-    missile->attributes = 0;
-    missile->attributesParam = 0;
+    ClearNode(missile->obj.renderlink);
+    missile->obj.currentLOD = 0;
+    missile->obj.cameraDistanceSquared = 1.0f;  //!!!
+    missile->obj.attributes = 0;
+    missile->obj.attributesParam = 0;
+    missile->targetable.flashtimer = 0;
+    missile->targetable.lasttimecollided = 0;
 
-    vecZeroVector(missile->posinfo.force);
-    vecZeroVector(missile->rotinfo.torque);
+    vecZeroVector(missile->obj.posinfo.force);
+    vecZeroVector(missile->rotatable.rotinfo.torque);
 
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-       missile->nonstatvars.thruststrength[i] = missile->staticinfo->thruststrengthstat[i];
+       missile->guidance.nonstatvars.thruststrength[i] = missile->staticinfo->guidance.thruststrengthstat[i];
     }
     for(i=0;i< NUM_ROT_DEGOFFREEDOM;i++)
     {
-       missile->nonstatvars.rotstrength[i] = missile->staticinfo->rotstrengthstat[i];
+       missile->guidance.nonstatvars.rotstrength[i] = missile->staticinfo->guidance.rotstrengthstat[i];
     }
     for(i=0;i< NUM_TURN_TYPES;i++)
     {
-       missile->nonstatvars.turnspeed[i] = missile->staticinfo->turnspeedstat[i];
+       missile->guidance.nonstatvars.turnspeed[i] = missile->staticinfo->guidance.turnspeedstat[i];
     }
 
     missile->soundType = GS_MissleLauncher;
@@ -720,16 +723,16 @@ Missile *univAddMissile(ShipRace race)
     universe.missileNumber++;
 
     //position, velocity and coordsys left blank
-    SET_MOVING_LINEARLY(missile->posinfo.isMoving);
-    missile->posinfo.haventCalculatedDist = TRUE;
+    SET_MOVING_LINEARLY(missile->obj.posinfo.isMoving);
+    missile->obj.posinfo.haventCalculatedDist = TRUE;
 
     collAddSpaceObjToCollBlobs((SpaceObj *)missile);
 
     //proper hit effect
     missile->hitEffect = etgGunEventTable[race][GS_MissleLauncher][EGT_GunHit];//get pointer to hit effect
 
-    listAddNode(&universe.SpaceObjList,&(missile->objlink),missile);
-    listAddNode(&universe.ImpactableList,&(missile->impactablelink),missile);
+    listAddNode(&universe.SpaceObjList,&(missile->header.objlink),missile);
+    listAddNode(&universe.ImpactableList,&(missile->impactable.impactablelink),missile);
     listAddNode(&universe.MissileList,&(missile->missilelink),missile);
 
     return(missile);
@@ -808,26 +811,13 @@ Derelict *univAddDerelictByStatInfo(DerelictType derelictType, DerelictStaticInf
     newDerelict = memAlloc(sizeof(Derelict),"Derelict",NonVolatile);
 
     newDerelict->derelictID.derelictNumber = universe.derelictNumber;
-    IDToPtrTableAdd(&DerelictIDToPtr,universe.derelictNumber,(SpaceObj *)newDerelict);
+    IDToPtrTableAdd(&DerelictIDToPtr,universe.derelictNumber,&newDerelict->obj);
     universe.derelictNumber++;
 
-    newDerelict->objtype = OBJ_DerelictType;
-    newDerelict->flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable;
-    newDerelict->staticinfo = stat;
-    ClearNode(newDerelict->renderlink);
-    newDerelict->collMyBlob = NULL;
-    newDerelict->renderedLODs = 0;
-    newDerelict->currentLOD = 0;
-    newDerelict->cameraDistanceSquared = REALlyBig;
-    newDerelict->flashtimer = 0;
-    newDerelict->lasttimecollided = 0;
-    newDerelict->attributes = 0;
-    newDerelict->attributesParam = 0;
+    newDerelict->header.objtype = OBJ_DerelictType;
+    newDerelict->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable;
     newDerelict->derelicttype = derelictType;
-    newDerelict->health = newDerelict->staticinfo->maxhealth;
-    newDerelict->collInfo.precise = NULL;
-    newDerelict->dockingship = NULL;
-    newDerelict->putOnDoor=FALSE;
+    newDerelict->staticinfo = stat;
     newDerelict->TractorTrue = FALSE;
     newDerelict->tractorbeaminfo = 0;
     newDerelict->tractorbeam_playerowner = NULL;
@@ -835,70 +825,83 @@ Derelict *univAddDerelictByStatInfo(DerelictType derelictType, DerelictStaticInf
     newDerelict->tractorPosinfo[1] = FALSE;
     newDerelict->tractorPosinfo[2] = FALSE;
     newDerelict->tractorPosinfo[3] = FALSE;
-    newDerelict->aistate = 0;
-    newDerelict->specialFlags = 0;
-    newDerelict->specialFlags2 = 0;
-    newDerelict->clampInfo = NULL;
     newDerelict->creationTime = universe.totaltimeelapsed;
     newDerelict->ambientSoundHandle = SOUND_NOTINITED;
     newDerelict->randomSoundHandle = SOUND_NOTINITED;
     newDerelict->nextRandomTime = universe.totaltimeelapsed;
+    ClearNode(newDerelict->obj.renderlink);
+    newDerelict->obj.collMyBlob = NULL;
+    newDerelict->obj.renderedLODs = 0;
+    newDerelict->obj.currentLOD = 0;
+    newDerelict->obj.cameraDistanceSquared = REALlyBig;
+    newDerelict->obj.attributes = 0;
+    newDerelict->obj.attributesParam = 0;
+    newDerelict->impactable.collInfo.precise = NULL;
+    newDerelict->targetable.flashtimer = 0;
+    newDerelict->targetable.lasttimecollided = 0;
+    newDerelict->targetable.health = newDerelict->staticinfo->health.maxhealth;
+    newDerelict->guidance.clampInfo = NULL;
+    newDerelict->shipOrDerelict.dockingship = NULL;
+    newDerelict->shipOrDerelict.putOnDoor=FALSE;
+    newDerelict->shipOrDerelict.aistate = 0;
+    newDerelict->shipOrDerelict.specialFlags = 0;
+    newDerelict->shipOrDerelict.specialFlags2 = 0;
 
-    vecZeroVector(newDerelict->posinfo.force);
-    vecZeroVector(newDerelict->rotinfo.torque);
+    vecZeroVector(newDerelict->obj.posinfo.force);
+    vecZeroVector(newDerelict->rotatable.rotinfo.torque);
 
     for(i=0;i<MAX_MULTIPLAYER_PLAYERS;i++)
     {
-        newDerelict->salvageNumTagged[i] = 0;
+        newDerelict->shipOrDerelict.salvageNumTagged[i] = 0;
     }
 
 
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-        newDerelict->nonstatvars.thruststrength[i] = stat->thruststrengthstat[i];
+        newDerelict->guidance.nonstatvars.thruststrength[i] = stat->guidance.thruststrengthstat[i];
     }
     for(i=0;i< NUM_ROT_DEGOFFREEDOM;i++)
     {
-        newDerelict->nonstatvars.rotstrength[i] = stat->rotstrengthstat[i];
+        newDerelict->guidance.nonstatvars.rotstrength[i] = stat->guidance.rotstrengthstat[i];
     }
     for(i=0;i< NUM_TURN_TYPES;i++)
     {
-        newDerelict->nonstatvars.turnspeed[i] = stat->turnspeedstat[i];
+        newDerelict->guidance.nonstatvars.turnspeed[i] = stat->guidance.turnspeedstat[i];
     }
 
     newDerelict->newDockWithTransfer = NULL;
-    univInitSpaceObjPosRot((SpaceObj *)newDerelict,pos,FALSE);
+    univInitSpaceObjPosRot(&newDerelict->obj,pos,FALSE);
 
     //needed hack to Fix LUKES ridiculous NIS hack
     if(derelictType < NUM_DERELICTTYPES)
     {
         //yes, it is a valid derelict
-        setSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)newDerelict);
+        setSalvageInfo(&newDerelict->shipOrDerelict);
     }
     else
     {
         //fix it for good:
-        stat->salvageStaticInfo = NULL;
-        newDerelict->salvageInfo = NULL;
+        stat->shipOrDerelict.salvageStaticInfo = NULL;
+        newDerelict->shipOrDerelict.salvageInfo = NULL;
     }
 
     InitializeNavLights((Ship *)newDerelict);
 
-    collAddSpaceObjToCollBlobs((SpaceObj *)newDerelict);
-    listAddNode(&universe.SpaceObjList,&(newDerelict->objlink),newDerelict);
+    collAddSpaceObjToCollBlobs(&newDerelict->obj);
+    listAddNode(&universe.SpaceObjList,&(newDerelict->header.objlink),newDerelict);
     listAddNode(&universe.DerelictList,&(newDerelict->derelictlink),newDerelict);
-    listAddNode(&universe.ImpactableList,&(newDerelict->impactablelink),newDerelict);
+    listAddNode(&universe.ImpactableList,&(newDerelict->impactable.impactablelink),newDerelict);
 
     if (stat->worldRender)
     {                                                       //if planet-style rendering
-//        bitSet(newDerelict->flags, SOF_ForceVisible);
+//        bitSet(newDerelict->header.flags, SOF_ForceVisible);
         univAddToWorldList(newDerelict);
     }
 
     //find a color scheme
     for (i = 0; i < MAX_MULTIPLAYER_PLAYERS; i++)
     {
-        if (stat->teamColor[i])
+        if (stat->shipOrDerelict.teamColor[i])
         {
             newDerelict->colorScheme = i;
             break;
@@ -932,45 +935,45 @@ DustCloud *univAddDustCloud(DustCloudType dustcloudtype,vector *cloudpos)
 
     newCloud = memAlloc(sizeof(DustCloud),"DustCloud",NonVolatile);
 
-    newCloud->resourceID.resourceNumber = universe.resourceNumber;
+    newCloud->resource.resourceID.resourceNumber = universe.resourceNumber;
     IDToPtrTableAdd(&ResourceIDToPtr,universe.resourceNumber,(SpaceObj *)newCloud);
     universe.resourceNumber++;
 
-    newCloud->objtype = OBJ_DustType;
-    newCloud->flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
-    newCloud->staticinfo = (ResourceStaticInfo *)&dustcloudStaticInfos[dustcloudtype];
-    ClearNode(newCloud->renderlink);
-    newCloud->collMyBlob = NULL;
-    newCloud->currentLOD = 0;
-    newCloud->cameraDistanceSquared = REALlyBig;
-    newCloud->flashtimer = 0;
-    newCloud->lasttimecollided = 0;
-    newCloud->attributes = 0;
-    newCloud->attributesParam = 0;
-    newCloud->resourcevalue = dustcloudStaticInfos[dustcloudtype].resourcevalue;
-    newCloud->resourceNotAccessible = 0;
-    newCloud->resourceVolume = NULL;
+    newCloud->header.objtype = OBJ_DustType;
+    newCloud->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
+    newCloud->staticinfo = &dustcloudStaticInfos[dustcloudtype];
     newCloud->dustcloudtype = dustcloudtype;
     newCloud->scaling = 1.0f;
-    newCloud->health = newCloud->staticinfo->maxhealth;
-    newCloud->collInfo.precise = NULL;
-    newCloud->stub = (void*)cloudCreateSystem(newCloud->staticinfo->staticheader.staticCollInfo.collspheresize, 0.1f);
+    ClearNode(newCloud->obj.renderlink);
+    newCloud->obj.collMyBlob = NULL;
+    newCloud->obj.currentLOD = 0;
+    newCloud->obj.cameraDistanceSquared = REALlyBig;
+    newCloud->obj.attributes = 0;
+    newCloud->obj.attributesParam = 0;
+    newCloud->impactable.collInfo.precise = NULL;
+    newCloud->targetable.flashtimer = 0;
+    newCloud->targetable.lasttimecollided = 0;
+    newCloud->targetable.health = newCloud->staticinfo->health.maxhealth;
+    newCloud->resource.resourcevalue = newCloud->staticinfo->resource.resourcevalue;
+    newCloud->resource.resourceNotAccessible = 0;
+    newCloud->resource.resourceVolume = NULL;
     {
-        cloudSystem* csys = (cloudSystem*)newCloud->stub;
-        csys->position = &newCloud->posinfo.position;
-        csys->rotation = &newCloud->rotinfo.coordsys;
-        csys->maxhealth = (sdword) newCloud->health;
+        cloudSystem* csys = cloudCreateSystem(newCloud->staticinfo->common.staticCollInfo.collspheresize, 0.1f);
+        csys->position = &newCloud->obj.posinfo.position;
+        csys->rotation = &newCloud->rotatable.rotinfo.coordsys;
+        csys->maxhealth = (sdword) newCloud->targetable.health;
+        newCloud->stub = csys;
     }
 
-    vecZeroVector(newCloud->posinfo.force);
-    vecZeroVector(newCloud->rotinfo.torque);
+    vecZeroVector(newCloud->obj.posinfo.force);
+    vecZeroVector(newCloud->rotatable.rotinfo.torque);
 
     univInitSpaceObjPosRot((SpaceObj *)newCloud,cloudpos,TRUE);
 
     collAddSpaceObjToCollBlobs((SpaceObj *)newCloud);
-    listAddNode(&universe.SpaceObjList,&(newCloud->objlink),newCloud);
-    listAddNode(&universe.ResourceList,&(newCloud->resourcelink),newCloud);
-    listAddNode(&universe.ImpactableList,&(newCloud->impactablelink),newCloud);
+    listAddNode(&universe.SpaceObjList,&(newCloud->header.objlink),newCloud);
+    listAddNode(&universe.ResourceList,&(newCloud->resource.resourcelink),newCloud);
+    listAddNode(&universe.ImpactableList,&(newCloud->impactable.impactablelink),newCloud);
 
     return newCloud;
 }
@@ -990,38 +993,38 @@ GasCloud *univAddGasCloud(GasCloudType gascloudtype,vector *cloudpos)
 
     newCloud = memAlloc(sizeof(GasCloud),"GasCloud",NonVolatile);
 
-    newCloud->resourceID.resourceNumber = universe.resourceNumber;
+    newCloud->resource.resourceID.resourceNumber = universe.resourceNumber;
     IDToPtrTableAdd(&ResourceIDToPtr,universe.resourceNumber,(SpaceObj *)newCloud);
     universe.resourceNumber++;
 
-    newCloud->objtype = OBJ_GasType;
-    newCloud->flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
-    newCloud->staticinfo = (ResourceStaticInfo *)&gascloudStaticInfos[gascloudtype];
-    ClearNode(newCloud->renderlink);
-    newCloud->collMyBlob = NULL;
-    newCloud->currentLOD = 0;
-    newCloud->cameraDistanceSquared = REALlyBig;
-    newCloud->flashtimer = 0;
-    newCloud->lasttimecollided = 0;
-    newCloud->attributes = 0;
-    newCloud->attributesParam = 0;
-    newCloud->resourcevalue = gascloudStaticInfos[gascloudtype].resourcevalue;
-    newCloud->resourceNotAccessible = 0;
-    newCloud->resourceVolume = NULL;
+    newCloud->header.objtype = OBJ_GasType;
+    newCloud->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
+    newCloud->staticinfo = &gascloudStaticInfos[gascloudtype];
     newCloud->gascloudtype = gascloudtype;
     newCloud->scaling = 1.0f;
-    newCloud->health = newCloud->staticinfo->maxhealth;
-    newCloud->collInfo.precise = NULL;
+    ClearNode(newCloud->obj.renderlink);
+    newCloud->obj.collMyBlob = NULL;
+    newCloud->obj.currentLOD = 0;
+    newCloud->obj.cameraDistanceSquared = REALlyBig;
+    newCloud->obj.attributes = 0;
+    newCloud->obj.attributesParam = 0;
+    newCloud->impactable.collInfo.precise = NULL;
+    newCloud->targetable.flashtimer = 0;
+    newCloud->targetable.lasttimecollided = 0;
+    newCloud->targetable.health = newCloud->staticinfo->health.maxhealth;
+    newCloud->resource.resourcevalue = newCloud->staticinfo->resource.resourcevalue;
+    newCloud->resource.resourceNotAccessible = 0;
+    newCloud->resource.resourceVolume = NULL;
 
-    vecZeroVector(newCloud->posinfo.force);
-    vecZeroVector(newCloud->rotinfo.torque);
+    vecZeroVector(newCloud->obj.posinfo.force);
+    vecZeroVector(newCloud->rotatable.rotinfo.torque);
 
     univInitSpaceObjPosRot((SpaceObj *)newCloud,cloudpos,TRUE);
 
     collAddSpaceObjToCollBlobs((SpaceObj *)newCloud);
-    listAddNode(&universe.SpaceObjList,&(newCloud->objlink),newCloud);
-    listAddNode(&universe.ResourceList,&(newCloud->resourcelink),newCloud);
-    listAddNode(&universe.ImpactableList,&(newCloud->impactablelink),newCloud);
+    listAddNode(&universe.SpaceObjList,&(newCloud->header.objlink),newCloud);
+    listAddNode(&universe.ResourceList,&(newCloud->resource.resourcelink),newCloud);
+    listAddNode(&universe.ImpactableList,&(newCloud->impactable.impactablelink),newCloud);
 
     return newCloud;
 }
@@ -1041,48 +1044,41 @@ Nebula* univAddNebula(NebulaType nebulatype,vector* nebpos, void* stub)
 
     newNeb = memAlloc(sizeof(Nebula), "Nebula", NonVolatile);
 
-    newNeb->resourceID.resourceNumber = universe.resourceNumber;
+    newNeb->resource.resourceID.resourceNumber = universe.resourceNumber;
     IDToPtrTableAdd(&ResourceIDToPtr,universe.resourceNumber,(SpaceObj *)newNeb);
     universe.resourceNumber++;
 
-    newNeb->objtype = OBJ_NebulaType;
-    newNeb->flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
-    newNeb->staticinfo = (ResourceStaticInfo *)&nebulaStaticInfos[nebulatype];
-    ClearNode(newNeb->renderlink);
-    newNeb->collMyBlob = NULL;
-    newNeb->currentLOD = 0;
-    newNeb->cameraDistanceSquared = REALlyBig;
-    newNeb->flashtimer = 0;
-    newNeb->lasttimecollided = 0;
-    if (nebAttributes != 0)
-    {
-        newNeb->attributes = nebAttributes;
-    }
-    else
-    {
-        newNeb->attributes = 0;
-    }
-    newNeb->attributesParam = 0;
-    newNeb->resourcevalue = nebulaStaticInfos[nebulatype].resourcevalue;
-    newNeb->resourceNotAccessible = 0;
-    newNeb->resourceVolume = NULL;
+    newNeb->header.objtype = OBJ_NebulaType;
+    newNeb->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Targetable + SOF_Resource + SOF_NotBumpable;
+    newNeb->staticinfo = &nebulaStaticInfos[nebulatype];
     newNeb->nebulatype = nebulatype;
     newNeb->scaling = 1.0f;
-    newNeb->health = newNeb->staticinfo->maxhealth;
-    newNeb->collInfo.precise = NULL;
+    ClearNode(newNeb->obj.renderlink);
+    newNeb->obj.collMyBlob = NULL;
+    newNeb->obj.currentLOD = 0;
+    newNeb->obj.cameraDistanceSquared = REALlyBig;
+    newNeb->obj.attributes = nebAttributes;
+    newNeb->obj.attributesParam = 0;
+    newNeb->impactable.collInfo.precise = NULL;
+    newNeb->targetable.flashtimer = 0;
+    newNeb->targetable.lasttimecollided = 0;
+    newNeb->targetable.health = newNeb->staticinfo->health.maxhealth;
+    newNeb->resource.resourcevalue = newNeb->staticinfo->resource.resourcevalue;
+    newNeb->resource.resourceNotAccessible = 0;
+    newNeb->resource.resourceVolume = NULL;
 
     newNeb->stub = stub;
     nebNewNeb(newNeb);
 
-    vecZeroVector(newNeb->posinfo.force);
-    vecZeroVector(newNeb->rotinfo.torque);
+    vecZeroVector(newNeb->obj.posinfo.force);
+    vecZeroVector(newNeb->rotatable.rotinfo.torque);
 
     univInitSpaceObjPosRot((SpaceObj*)newNeb, nebpos, TRUE);
 
     collAddSpaceObjToCollBlobs((SpaceObj *)newNeb);
-    listAddNode(&universe.SpaceObjList, &(newNeb->objlink), newNeb);
-    listAddNode(&universe.ResourceList, &(newNeb->resourcelink), newNeb);
-    listAddNode(&universe.ImpactableList, &(newNeb->impactablelink), newNeb);
+    listAddNode(&universe.SpaceObjList, &(newNeb->header.objlink), newNeb);
+    listAddNode(&universe.ResourceList, &(newNeb->resource.resourcelink), newNeb);
+    listAddNode(&universe.ImpactableList, &(newNeb->impactable.impactablelink), newNeb);
 
     return newNeb;
 }
@@ -1097,7 +1093,7 @@ Nebula* univAddNebula(NebulaType nebulatype,vector* nebpos, void* stub)
 void univDeleteEffect(Effect *effect)
 {
     univRemoveObjFromRenderList((SpaceObj *)effect);
-    listDeleteNode(&effect->objlink);
+    listDeleteNode(&effect->header.objlink);
 }
 
 
@@ -1116,7 +1112,7 @@ shipbindings *univMeshBindingsDupe(ShipStaticInfo *shipstaticinfo, Ship *newShip
     mhbinding *bindingListSource;
     mhlocalbinding *bindingListDest;
     sdword nLevels, index, nObjects, j;
-    lodinfo *lodInfo = shipstaticinfo->staticheader.LOD;
+    lodinfo *lodInfo = shipstaticinfo->common.LOD;
 
     if (shipstaticinfo->hierarchySize == 0)
     {                                                       //do nothing if there is no bindings to dupe
@@ -1213,7 +1209,7 @@ void InitializeEngineTrails(Ship *newship)
     for (idx = 0; idx < MAX_NUM_TRAILS; idx++)
     {
         engine[3] = (char) ('0' + (char)idx);
-        if (mexGetChunk((void*)shipstaticinfo->staticheader.pMexData, "Eng", engine) != 0)
+        if (mexGetChunk((void*)shipstaticinfo->common.pMexData, "Eng", engine) != 0)
         {
             numTrails = idx + 1;
         }
@@ -1333,7 +1329,7 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
     dbgAssertOrIgnore(playerowner != NULL);
 
 #ifdef HW_BUILD_FOR_DEBUGGING
-    if (!bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded))
+    if (!bitTest(shipstaticinfo->common.infoFlags, IF_InfoLoaded))
     {                                                       //if this ships was not loaded properly
         dbgFatalf(DBG_Loc,"\n%s\\%s was not loaded properly - stubbing out.", ShipRaceToStr(shiprace), ShipTypeToStr(shiptype));
     }
@@ -1343,13 +1339,13 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
         sizeship += sizespec - sizeof(udword);
     }
     totalsize = sizeship;
-    if (shipstaticinfo->staticheader.staticCollInfo.preciseSelection != 0xff)
+    if (shipstaticinfo->common.staticCollInfo.preciseSelection != 0xff)
     {                                                       //account for the local precise selection
         totalsize += sizeof(PreciseSelection);
     }
     if (shipstaticinfo->madStatic != NULL)
     {                                                       //account for the local animation bindings
-        madAssedSize = madAnimSize(shipstaticinfo->staticheader.LOD->nLevels) + //size of the binding info
+        madAssedSize = madAnimSize(shipstaticinfo->common.LOD->nLevels) + //size of the binding info
                      shipstaticinfo->hierarchySize * sizeof(mhlocalbinding) + //size of the actual binding structures
                      shipstaticinfo->madStatic->header->nObjects * sizeof(splinecurve) * 6; //size of spline curves, enough for all objects
 
@@ -1361,48 +1357,48 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
 
     newship->sizeofShipSpecifics = sizespec;
     newship->shipDeCloakTime = -20.0f;                  //initialize to a negative number so if a battle occurs at time 0.0f or anytime near by, then it will not screw up.
-    newship->objtype = OBJ_ShipType;
-    newship->flags = SOF_Rotatable + SOF_Impactable + SOF_Selectable + SOF_Targetable;
+    newship->header.objtype = OBJ_ShipType;
+    newship->header.flags = SOF_Rotatable + SOF_Impactable + SOF_Selectable + SOF_Targetable;
     if (shiptype == Drone)
     {
-        newship->flags |= SOF_NotBumpable;
+        newship->header.flags |= SOF_NotBumpable;
     }
-    if (shipstaticinfo->staticheader.staticCollInfo.collspheresize > VERYBIGSHIP_SIZE)
+    if (shipstaticinfo->common.staticCollInfo.collspheresize > VERYBIGSHIP_SIZE)
     {
-        newship->flags |= SOF_BigObject;
+        newship->header.flags |= SOF_BigObject;
     }
-    if (shipstaticinfo->staticheader.staticCollInfo.preciseSelection != 0xff)
+    if (shipstaticinfo->common.staticCollInfo.preciseSelection != 0xff)
     {
-//        newship->collInfo.precise = (PreciseSelection *)(((ubyte *)newship) + sizeship);
-        newship->collInfo.precise = (PreciseSelection *)extraPointer;
+//        newship->impactable.collInfo.precise = (PreciseSelection *)(((ubyte *)newship) + sizeship);
+        newship->impactable.collInfo.precise = (PreciseSelection *)extraPointer;
         extraPointer += sizeof(PreciseSelection);
     }
     else
     {
-        newship->collInfo.precise = NULL;
+        newship->impactable.collInfo.precise = NULL;
     }
     newship->staticinfo = shipstaticinfo;
-    bitClear(newship->specialFlags,SPECIAL_ParadeNeedTomoveCloser);
-//    ClearNode(newship->renderlink);
+    bitClear(newship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser);
+//    ClearNode(newship->obj.renderlink);
 
     //need to copy over static info to non static structures so we
     //can beging fiddling with them...
 
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-        newship->nonstatvars.thruststrength[i] = shipstaticinfo->thruststrengthstat[i];
+        newship->guidance.nonstatvars.thruststrength[i] = shipstaticinfo->guidance.thruststrengthstat[i];
     }
     for(i=0;i< NUM_ROT_DEGOFFREEDOM;i++)
     {
-        newship->nonstatvars.rotstrength[i] = shipstaticinfo->rotstrengthstat[i];
+        newship->guidance.nonstatvars.rotstrength[i] = shipstaticinfo->guidance.rotstrengthstat[i];
     }
     for(i=0;i< NUM_TURN_TYPES;i++)
     {
-        newship->nonstatvars.turnspeed[i] = shipstaticinfo->turnspeedstat[i];
+        newship->guidance.nonstatvars.turnspeed[i] = shipstaticinfo->guidance.turnspeedstat[i];
     }
 
     newship->shipID.shipNumber = universe.shipNumber;
-    IDToPtrTableAdd(&ShipIDToPtr,universe.shipNumber,(SpaceObj *)newship);
+    IDToPtrTableAdd(&ShipIDToPtr,universe.shipNumber,&newship->obj);
     universe.shipNumber++;
 
     newship->shiptype = shiptype;
@@ -1412,18 +1408,18 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
     newship->tacticsTalk = 0;
     newship->tacticsNeedToFlightMan = FALSE;
     newship->dockwaitforNorm=FALSE;
-    newship->putOnDoor=FALSE;
+    newship->shipOrDerelict.putOnDoor=FALSE;
     newship->tacticsFormationVar1 = FALSE;
     newship->DodgeTime = 0.0f;
     newship->isDodging = FALSE;
     newship->timeCreated = universe.totaltimeelapsed;
-//    newship->currentLOD = 0;                                //start at highest LOD by default
-//    newship->collMyBlob = NULL;
-    newship->cameraDistanceSquared = REALlyBig;
+//    newship->obj.currentLOD = 0;                                //start at highest LOD by default
+//    newship->obj.collMyBlob = NULL;
+    newship->obj.cameraDistanceSquared = REALlyBig;
     newship->playerowner = playerowner;
-    newship->dockingship = NULL;
-    newship->specialFlags = 0;
-    newship->specialFlags = 0;
+    newship->shipOrDerelict.dockingship = NULL;
+    newship->shipOrDerelict.specialFlags = 0;
+    newship->shipOrDerelict.specialFlags = 0;
     newship->kamikazeState = 0;
     newship->visibleToWho = 0;      //initialize cloaked visible flag to invisible to everyone!
     newship->visibleToWhoPreviousFrame = 0;
@@ -1435,7 +1431,7 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
     // Alex's Repair Droid stuff...
 //    newship->pRepairDroids = memAlloc(sizeof(RepairDroid), "RDroid", NonVolatile);
 
-    univInitSpaceObjPosRot((SpaceObj *)newship,shippos,FALSE);
+    univInitSpaceObjPosRot(&newship->obj,shippos,FALSE);
 
     newship->tractorbeaminfo = 0;
     newship->tractorbeam_playerowner = NULL;
@@ -1448,17 +1444,17 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
 
     for(i=0;i<MAX_MULTIPLAYER_PLAYERS;i++)
     {
-        newship->salvageNumTagged[i] = 0;
+        newship->shipOrDerelict.salvageNumTagged[i] = 0;
     }
 
-    newship->clampInfo = NULL;
+    newship->guidance.clampInfo = NULL;
 
     newship->dontrotateever = FALSE;
     newship->dontapplyforceever = FALSE;
-    newship->health = shipstaticinfo->maxhealth;
+    newship->targetable.health = shipstaticinfo->health.maxhealth;
     newship->fuel = shipstaticinfo->maxfuel;
 //    newship->resources = 0;
-//    newship->aistate = 0;
+//    newship->shipOrDerelict.aistate = 0;
 //    newship->aistateattack = 0;
 //    newship->hotKeyGroup = 0;
 
@@ -1511,7 +1507,7 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
         newship->gunInfo = NULL;
     }
 
-    setSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)newship);
+    setSalvageInfo((ShipOrDerelict *)newship);
 
     if (shipstaticinfo->dockStaticInfo != NULL)
     {
@@ -1612,7 +1608,7 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
     }
 
     //determine what color scheme to use
-    if ((playerowner->playerIndex < MAX_MULTIPLAYER_PLAYERS) && (shipstaticinfo->teamColor[playerowner->playerIndex]))
+    if ((playerowner->playerIndex < MAX_MULTIPLAYER_PLAYERS) && (shipstaticinfo->shipOrDerelict.teamColor[playerowner->playerIndex]))
     {                                                       //if this player's default scheme woudl be a good color
         newship->colorScheme = playerowner->playerIndex;
     }
@@ -1620,7 +1616,7 @@ Ship *univCreateShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct 
     {                                                       //else let's find any old color scheme
         for (i = 0; i < MAX_MULTIPLAYER_PLAYERS; i++)
         {
-            if (shipstaticinfo->teamColor[i])
+            if (shipstaticinfo->shipOrDerelict.teamColor[i])
             {
                 newship->colorScheme = i;
                 break;
@@ -1641,15 +1637,15 @@ Ship *univAddShip(ShipType shiptype,ShipRace shiprace,vector *shippos,struct Pla
 {
     Ship *newship = univCreateShip(shiptype,shiprace,shippos,playerowner,built);
 
-    collAddSpaceObjToCollBlobs((SpaceObj *)newship);
-    listAddNode(&universe.SpaceObjList,&(newship->objlink),newship);
+    collAddSpaceObjToCollBlobs(&newship->obj);
+    listAddNode(&universe.SpaceObjList,&(newship->header.objlink),newship);
     listAddNode(&universe.ShipList,&(newship->shiplink),newship);
-    listAddNode(&universe.ImpactableList,&(newship->impactablelink),newship);
+    listAddNode(&universe.ImpactableList,&(newship->impactable.impactablelink),newship);
 
     //special case - don't want cryotrays to be selectable
     if (shiptype == CryoTray)
     {
-        bitClear(newship->flags, SOF_Selectable);
+        bitClear(newship->header.flags, SOF_Selectable);
     }
 
     return newship;
@@ -1703,7 +1699,7 @@ void univUpdateAllPosVelBullets()
     {
         bullet = (Bullet *)listGetStructOfNode(bulletnode);
 
-        if ((bullet->flags & SOF_DontApplyPhysics) == 0)
+        if ((bullet->header.flags & SOF_DontApplyPhysics) == 0)
         {
             if (physUpdateBulletPosVel(bullet,universe.phystimeelapsed))
             {
@@ -1726,20 +1722,20 @@ void univUpdateAllPosVelBullets()
                 if (effect != NULL)
 #endif
                 {
-                    if (bitTest(((etgeffectstatic*)effect->staticinfo)->specialOps, ESO_SelfDeleting))
+                    if (bitTest(effect->staticinfo->specialOps, ESO_SelfDeleting))
                     {                               //if the effect can delete itself
                         ((real32 *)effect->variable)[ETG_BulletDurationParam] =
                             effect->timeElapsed;    //time it out
                         effect->owner = NULL;
-                        bitClear(effect->flags, SOF_AttachPosition);
-                        bitClear(effect->flags, SOF_AttachCoordsys);
-                        bitClear(effect->flags, SOF_AttachVelocity);
+                        bitClear(effect->header.flags, SOF_AttachPosition);
+                        bitClear(effect->header.flags, SOF_AttachCoordsys);
+                        bitClear(effect->header.flags, SOF_AttachVelocity);
                     }
                     else
                     {
                         etgEffectDelete(effect);
                         univRemoveObjFromRenderList((SpaceObj *)(effect));
-                        listDeleteNode(&effect->objlink);
+                        listDeleteNode(&effect->header.objlink);
                         addEffect = TRUE;
                     }
 
@@ -1761,7 +1757,7 @@ void univUpdateAllPosVelBullets()
 
                     if (etgLOD != NULL)
                     {
-                        LOD = bullet->currentLOD;
+                        LOD = bullet->obj.currentLOD;
 
                         if (LOD >= etgLOD->nLevels)
                         {
@@ -1786,16 +1782,16 @@ void univUpdateAllPosVelBullets()
 #endif
                         {
                             vector velocity;
-                            matrix coordsys = bullet->rotinfo.coordsys;
+                            matrix coordsys = bullet->rotatable.rotinfo.coordsys;
                             velocity.x = 0.0f;
                             velocity.y = 0.0f;
                             velocity.z = 0.0f;
 
-                            etgEffectCreate(stat, NULL, &bullet->posinfo.position, &velocity, &coordsys, 1.0f, EAF_AllButNLips, 0);
+                            etgEffectCreate(stat, NULL, &bullet->obj.posinfo.position, &velocity, &coordsys, 1.0f, EAF_AllButNLips, 0);
                         }
                     }
 
-                    pointExplosionInSpace(&bullet->posinfo.position,burstRadius,bullet->damage,bullet->playerowner->playerIndex);
+                    pointExplosionInSpace(&bullet->obj.posinfo.position,burstRadius,bullet->damage,bullet->playerowner->playerIndex);
                 }
 
                 //Defense Fighter 'hack' to remove its reference
@@ -1807,7 +1803,7 @@ void univUpdateAllPosVelBullets()
                 bobObjectDied(((SpaceObj *)bullet),&universe.collBlobList);
                 listRemoveNode(&bullet->bulletlink);
                 univRemoveObjFromRenderList(((SpaceObj *)bullet));
-                listDeleteNode(&bullet->objlink);
+                listDeleteNode(&bullet->header.objlink);
                 bullet->owner = NULL;
 
                 continue;
@@ -1833,7 +1829,7 @@ void univUpdateAllPosVelMissiles()
     {
         missile = (Missile *)listGetStructOfNode(misnode);
 
-        if ((missile->flags & SOF_DontApplyPhysics) == 0)
+        if ((missile->header.flags & SOF_DontApplyPhysics) == 0)
         {
             if(missile->missileType == MISSILE_Regular)
             {   //if missileType is a normal missile
@@ -1850,7 +1846,7 @@ void univUpdateAllPosVelMissiles()
             }
 
             physUpdateObjPosVelMissile(missile,universe.phystimeelapsed);
-            if ((deleteflag) && ((((SpaceObj *)missile)->flags & SOF_Dead) == 0))
+            if ((deleteflag) && ((missile->header.flags & SOF_Dead) == 0))
             {
                 AddMissileToDeleteMissileList(missile, -1);
             }
@@ -1874,9 +1870,9 @@ void univUpdateAllPosVelDerelicts()
     {
         derelict = (Derelict *)listGetStructOfNode(objnode);
 
-        if ((derelict->flags & SOF_DontApplyPhysics) == 0)
+        if ((derelict->header.flags & SOF_DontApplyPhysics) == 0)
         {
-            if ((derelict->flags & SOF_NISShip) == 0)
+            if ((derelict->header.flags & SOF_NISShip) == 0)
             {
                 physUpdateObjPosVelDerelicts(derelict,universe.phystimeelapsed);
             }
@@ -1900,9 +1896,9 @@ void univUpdateAllPosVelResources()
     {
         resource = (Resource *)listGetStructOfNode(objnode);
 
-        if ((resource->flags & (SOF_DontApplyPhysics|SOF_NISShip)) == 0)
+        if ((resource->header.flags & (SOF_DontApplyPhysics|SOF_NISShip)) == 0)
         {
-            physUpdateObjPosVelBasic((SpaceObj *)resource,universe.phystimeelapsed);
+            physUpdateObjPosVelBasic(&resource->obj,universe.phystimeelapsed);
         }
 
         if (resource->resourceNotAccessible > 0)
@@ -1937,13 +1933,13 @@ void univUpdateAllPosVelShips()
     {
         ship = (Ship *)listGetStructOfNode(objnode);
 
-        if ((ship->flags & SOF_DontApplyPhysics) == 0)
+        if ((ship->header.flags & SOF_DontApplyPhysics) == 0)
         {
-            if ((ship->flags & SOF_NISShip) == 0)
+            if ((ship->header.flags & SOF_NISShip) == 0)
             {
                 univCheckShipState(ship);
 
-                if(bitTest(ship->flags, SOF_Slaveable))
+                if(bitTest(ship->header.flags, SOF_Slaveable))
                 {    //object is slaveable
                     if(bitTest(ship->slaveinfo->flags,SF_SLAVE))
                     {   //if object is a slave
@@ -1958,7 +1954,7 @@ void univUpdateAllPosVelShips()
                         goto nowdosetupforshipsShipCustomFunc;
                     }
                 }
-                if(((SpaceObjRotImpTargGuidance *)ship)->clampInfo != NULL)
+                if(ship->guidance.clampInfo != NULL)
                 {
                     //object has clampinfo, should be updated
                     //updateClampedObject((SpaceObjRotImpTargGuidance *)spaceobj);
@@ -2007,7 +2003,7 @@ nowdosetupforshipsShipCustomFunc:
             obj = clampedShipSelection->ShipPtr[i];
             if (obj)    //???????
             {
-                if(obj->clampInfo != NULL)
+                if(obj->guidance.clampInfo != NULL)
                 {
                     //do this check again because it is possible for a ship to become unclamped at some point down the road...
                     updateClampedObject((SpaceObjRotImpTargGuidance *)obj);
@@ -2080,7 +2076,7 @@ void univUpdateAllPosVelEffects()
     {
         effect = (Effect *)listGetStructOfNode(objnode);
 
-        if ((effect->flags & SOF_DontApplyPhysics) == 0)
+        if ((effect->header.flags & SOF_DontApplyPhysics) == 0)
         {
             if (etgEffectUpdate(effect, universe.phystimeelapsed))
             {
@@ -2089,7 +2085,7 @@ void univUpdateAllPosVelEffects()
 
                 etgEffectDelete(effect);
                 univRemoveObjFromRenderList((SpaceObj *)effect);
-                listDeleteNode(&effect->objlink);
+                listDeleteNode(&effect->header.objlink);
                 continue;
             }
         }
@@ -2109,31 +2105,31 @@ void MakeNewAsteroidStaticInfo(Asteroid *asteroid)
 {
     AsteroidStaticInfo *originalAsteroidStaticInfo = &asteroidStaticInfos[asteroid->asteroidtype];
     AsteroidStaticInfo *newAsteroidStaticInfo;
-    StaticHeader *newStaticHeader;
-    StaticHeader *originalStaticHeader;
+    StaticInfo *newStaticHeader;
+    StaticInfo *originalStaticHeader;
     StaticCollInfo *newStaticCollInfo;
     StaticCollInfo *originalStaticCollInfo;
     real32 scaling = asteroid->scaling;
 
     dbgAssertOrIgnore(scaling > 0.0f);
 
-    if ((asteroid->flags & SOF_StaticInfoIsDynamic) == 0)
+    if ((asteroid->header.flags & SOF_StaticInfoIsDynamic) == 0)
     {
         asteroid->staticinfo = memAlloc(sizeof(AsteroidStaticInfo),"aststatic",NonVolatile);
-        *((AsteroidStaticInfo *)(asteroid->staticinfo)) = asteroidStaticInfos[asteroid->asteroidtype];  // structure copy
-        asteroid->flags |= SOF_StaticInfoIsDynamic;
+        *(asteroid->staticinfo) = asteroidStaticInfos[asteroid->asteroidtype];  // structure copy
+        asteroid->header.flags |= SOF_StaticInfoIsDynamic;
     }
 
-    newAsteroidStaticInfo = (AsteroidStaticInfo *)asteroid->staticinfo;
+    newAsteroidStaticInfo = asteroid->staticinfo;
 
-    newAsteroidStaticInfo->harvestableByMultipleShips = (udword)(((real32)originalAsteroidStaticInfo->harvestableByMultipleShips) * scaling);
-    if (newAsteroidStaticInfo->harvestableByMultipleShips == 0)
+    newAsteroidStaticInfo->resource.harvestableByMultipleShips = (udword)(((real32)originalAsteroidStaticInfo->resource.harvestableByMultipleShips) * scaling);
+    if (newAsteroidStaticInfo->resource.harvestableByMultipleShips == 0)
     {
-        newAsteroidStaticInfo->harvestableByMultipleShips = 1;
+        newAsteroidStaticInfo->resource.harvestableByMultipleShips = 1;
     }
 
-    newStaticHeader = &newAsteroidStaticInfo->staticheader;
-    originalStaticHeader = &originalAsteroidStaticInfo->staticheader;
+    newStaticHeader = &newAsteroidStaticInfo->common;
+    originalStaticHeader = &originalAsteroidStaticInfo->common;
 
     newStaticHeader->mass = originalStaticHeader->mass * scaling;
     newStaticHeader->momentOfInertiaX = originalStaticHeader->momentOfInertiaX * scaling;
@@ -2148,7 +2144,7 @@ void MakeNewAsteroidStaticInfo(Asteroid *asteroid)
     newStaticCollInfo = &newStaticHeader->staticCollInfo;
     originalStaticCollInfo = &originalStaticHeader->staticCollInfo;
 
-    newStaticCollInfo->originalcollspheresize = originalStaticCollInfo->originalcollspheresize;  // DO NOT CHANGE INTENTIONALLY
+    newStaticCollInfo->originalCollSphereSize = originalStaticCollInfo->originalCollSphereSize;  // DO NOT CHANGE INTENTIONALLY
     newStaticCollInfo->approxcollspheresize = originalStaticCollInfo->approxcollspheresize * scaling;
     newStaticCollInfo->avoidcollspheresize = originalStaticCollInfo->avoidcollspheresize * scaling;
     newStaticCollInfo->avoidcollspherepad = originalStaticCollInfo->avoidcollspherepad * scaling;
@@ -2178,31 +2174,31 @@ void MakeNewDustCloudStaticInfo(DustCloud *dustcloud)
 {
     DustCloudStaticInfo *originalDustCloudStaticInfo = &dustcloudStaticInfos[dustcloud->dustcloudtype];
     DustCloudStaticInfo *newDustCloudStaticInfo;
-    StaticHeader *newStaticHeader;
-    StaticHeader *originalStaticHeader;
+    StaticInfo *newStaticHeader;
+    StaticInfo *originalStaticHeader;
     StaticCollInfo *newStaticCollInfo;
     StaticCollInfo *originalStaticCollInfo;
     real32 scaling = dustcloud->scaling;
 
     dbgAssertOrIgnore(scaling > 0.0f);
 
-    if ((dustcloud->flags & SOF_StaticInfoIsDynamic) == 0)
+    if ((dustcloud->header.flags & SOF_StaticInfoIsDynamic) == 0)
     {
         dustcloud->staticinfo = memAlloc(sizeof(DustCloudStaticInfo),"dcloudstatic",NonVolatile);
         *((DustCloudStaticInfo *)(dustcloud->staticinfo)) = dustcloudStaticInfos[dustcloud->dustcloudtype];  // structure copy
-        dustcloud->flags |= SOF_StaticInfoIsDynamic;
+        dustcloud->header.flags |= SOF_StaticInfoIsDynamic;
     }
 
     newDustCloudStaticInfo = (DustCloudStaticInfo *)dustcloud->staticinfo;
 
-    newDustCloudStaticInfo->harvestableByMultipleShips = (udword)(((real32)originalDustCloudStaticInfo->harvestableByMultipleShips) * scaling);
-    if (newDustCloudStaticInfo->harvestableByMultipleShips == 0)
+    newDustCloudStaticInfo->resource.harvestableByMultipleShips = (udword)(((real32)originalDustCloudStaticInfo->resource.harvestableByMultipleShips) * scaling);
+    if (newDustCloudStaticInfo->resource.harvestableByMultipleShips == 0)
     {
-        newDustCloudStaticInfo->harvestableByMultipleShips = 1;
+        newDustCloudStaticInfo->resource.harvestableByMultipleShips = 1;
     }
 
-    newStaticHeader = &newDustCloudStaticInfo->staticheader;
-    originalStaticHeader = &originalDustCloudStaticInfo->staticheader;
+    newStaticHeader = &newDustCloudStaticInfo->common;
+    originalStaticHeader = &originalDustCloudStaticInfo->common;
 
     newStaticHeader->mass = originalStaticHeader->mass * scaling;
     newStaticHeader->momentOfInertiaX = originalStaticHeader->momentOfInertiaX * scaling;
@@ -2217,7 +2213,7 @@ void MakeNewDustCloudStaticInfo(DustCloud *dustcloud)
     newStaticCollInfo = &newStaticHeader->staticCollInfo;
     originalStaticCollInfo = &originalStaticHeader->staticCollInfo;
 
-    newStaticCollInfo->originalcollspheresize = originalStaticCollInfo->originalcollspheresize;  // DO NOT CHANGE INTENTIONALLY
+    newStaticCollInfo->originalCollSphereSize = originalStaticCollInfo->originalCollSphereSize;  // DO NOT CHANGE INTENTIONALLY
     newStaticCollInfo->approxcollspheresize = originalStaticCollInfo->approxcollspheresize * scaling;
     newStaticCollInfo->avoidcollspheresize = originalStaticCollInfo->avoidcollspheresize * scaling;
     newStaticCollInfo->avoidcollspherepad = originalStaticCollInfo->avoidcollspherepad * scaling;
@@ -2247,31 +2243,31 @@ void MakeNewGasCloudStaticInfo(GasCloud *gascloud)
 {
     GasCloudStaticInfo *originalGasCloudStaticInfo = &gascloudStaticInfos[gascloud->gascloudtype];
     GasCloudStaticInfo *newGasCloudStaticInfo;
-    StaticHeader *newStaticHeader;
-    StaticHeader *originalStaticHeader;
+    StaticInfo *newStaticHeader;
+    StaticInfo *originalStaticHeader;
     StaticCollInfo *newStaticCollInfo;
     StaticCollInfo *originalStaticCollInfo;
     real32 scaling = gascloud->scaling;
 
     dbgAssertOrIgnore(scaling > 0.0f);
 
-    if ((gascloud->flags & SOF_StaticInfoIsDynamic) == 0)
+    if ((gascloud->header.flags & SOF_StaticInfoIsDynamic) == 0)
     {
         gascloud->staticinfo = memAlloc(sizeof(GasCloudStaticInfo),"gcloudstatic",NonVolatile);
         *((GasCloudStaticInfo *)(gascloud->staticinfo)) = gascloudStaticInfos[gascloud->gascloudtype];  // structure copy
-        gascloud->flags |= SOF_StaticInfoIsDynamic;
+        gascloud->header.flags |= SOF_StaticInfoIsDynamic;
     }
 
     newGasCloudStaticInfo = (GasCloudStaticInfo *)gascloud->staticinfo;
 
-    newGasCloudStaticInfo->harvestableByMultipleShips = (udword)(((real32)originalGasCloudStaticInfo->harvestableByMultipleShips) * scaling);
-    if (newGasCloudStaticInfo->harvestableByMultipleShips == 0)
+    newGasCloudStaticInfo->resource.harvestableByMultipleShips = (udword)(((real32)originalGasCloudStaticInfo->resource.harvestableByMultipleShips) * scaling);
+    if (newGasCloudStaticInfo->resource.harvestableByMultipleShips == 0)
     {
-        newGasCloudStaticInfo->harvestableByMultipleShips = 1;
+        newGasCloudStaticInfo->resource.harvestableByMultipleShips = 1;
     }
 
-    newStaticHeader = &newGasCloudStaticInfo->staticheader;
-    originalStaticHeader = &originalGasCloudStaticInfo->staticheader;
+    newStaticHeader = &newGasCloudStaticInfo->common;
+    originalStaticHeader = &originalGasCloudStaticInfo->common;
 
     newStaticHeader->mass = originalStaticHeader->mass * scaling;
     newStaticHeader->momentOfInertiaX = originalStaticHeader->momentOfInertiaX * scaling;
@@ -2286,7 +2282,7 @@ void MakeNewGasCloudStaticInfo(GasCloud *gascloud)
     newStaticCollInfo = &newStaticHeader->staticCollInfo;
     originalStaticCollInfo = &originalStaticHeader->staticCollInfo;
 
-    newStaticCollInfo->originalcollspheresize = originalStaticCollInfo->originalcollspheresize;  // DO NOT CHANGE INTENTIONALLY
+    newStaticCollInfo->originalCollSphereSize = originalStaticCollInfo->originalCollSphereSize;  // DO NOT CHANGE INTENTIONALLY
     newStaticCollInfo->approxcollspheresize = originalStaticCollInfo->approxcollspheresize * scaling;
     newStaticCollInfo->avoidcollspheresize = originalStaticCollInfo->avoidcollspheresize * scaling;
     newStaticCollInfo->avoidcollspherepad = originalStaticCollInfo->avoidcollspherepad * scaling;
@@ -2326,33 +2322,33 @@ void ApplyDamageToCollidingObjects(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *
     real32 veltangentfactor;
     vector obj2VelRelToObj1;
 
-    if ((obj1->attributes^obj2->attributes) & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
+    if ((obj1->obj.attributes^obj2->obj.attributes) & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
     {
         // if one or the other but not both objects have KillerCollDamage
-        if (obj1->attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
+        if (obj1->obj.attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
         {
-            ApplyDamageToTarget(obj1,min(obj2->health,obj1->health),0,DEATH_Killed_By_Collision,99);
-            ApplyDamageToTarget(obj2,(obj1->attributes & ATTRIBUTES_HeadShotKillerCollDamage) ? attrHEADSHOTKillerCollDamage : attrKillerCollDamage,0,DEATH_Killed_By_Collision,99); // and do lots of damage to thing it hit
+            ApplyDamageToTarget(obj1,min(obj2->health, obj1->health),0,DEATH_Killed_By_Collision,99);
+            ApplyDamageToTarget(obj2,(obj1->obj.attributes & ATTRIBUTES_HeadShotKillerCollDamage) ? attrHEADSHOTKillerCollDamage : attrKillerCollDamage,0,DEATH_Killed_By_Collision,99); // and do lots of damage to thing it hit
             return;
         }
-        else if (obj2->attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
+        else if (obj2->obj.attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
         {
-            ApplyDamageToTarget(obj2,min(obj2->health,obj1->health),0,DEATH_Killed_By_Collision,99);
-            ApplyDamageToTarget(obj1,(obj2->attributes & ATTRIBUTES_HeadShotKillerCollDamage) ? attrHEADSHOTKillerCollDamage : attrKillerCollDamage,0,DEATH_Killed_By_Collision,99); // and do lots of damage to thing it hit
+            ApplyDamageToTarget(obj2,min(obj2->health, obj1->health),0,DEATH_Killed_By_Collision,99);
+            ApplyDamageToTarget(obj1,(obj2->obj.attributes & ATTRIBUTES_HeadShotKillerCollDamage) ? attrHEADSHOTKillerCollDamage : attrKillerCollDamage,0,DEATH_Killed_By_Collision,99); // and do lots of damage to thing it hit
             return;
         }
     }
 
-    vecSub(obj2VelRelToObj1,obj2->posinfo.velocity,obj1->posinfo.velocity);
+    vecSub(obj2VelRelToObj1,obj2->obj.posinfo.velocity,obj1->obj.posinfo.velocity);
     veltangentfactor = ABS(vecDotProduct(*distvector,obj2VelRelToObj1));
     veltangentfactor /= (COLLDAMAGE_VELOCITY_TANGENT_SCALE * dist);
     // now veltangentfactor is equal to k * |vel| cos(theta) where theta is angle between distvector and obj2VelRelToObj1
 
-    damage = min(obj1->health,obj2->health);
+    damage = min(obj1->health, obj2->health);
     damage = (damage * veltangentfactor);
 
-    staticobj1 = (StaticInfoHealth *)obj1->staticinfo;
-    staticobj2 = (StaticInfoHealth *)obj2->staticinfo;
+    staticobj1 = obj1->staticinfo;
+    staticobj2 = obj2->staticinfo;
     mindamage = min(staticobj1->minCollDamage,staticobj2->minCollDamage);
     maxdamage = min(staticobj1->maxCollDamage,staticobj2->maxCollDamage);
 
@@ -2366,7 +2362,7 @@ void ApplyDamageToCollidingObjects(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *
     }
     damage2 = damage;
 
-    if(obj1->objtype == OBJ_ShipType)
+    if(obj1->header.objtype == OBJ_ShipType)
     {
        if(((Ship *)obj1)->shiptype == P2Mothership)
        {
@@ -2394,7 +2390,7 @@ void ApplyDamageToCollidingObjects(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *
        }
     }
 
-    if(obj2->objtype == OBJ_ShipType)
+    if(obj2->header.objtype == OBJ_ShipType)
     {
        if(((Ship *)obj2)->shiptype == P2Mothership)
        {
@@ -2443,12 +2439,12 @@ bool32 ObjectsHaveCollidedLately(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *ob
 bool32 ShouldDoGlancingCollision(SpaceObjRotImpTarg *fastobj,real32 fastobjvelmag2,SpaceObjRotImpTarg *slowobj,real32 slowobjvelmag2)
 {
     // don't do glancing collision for kamikaze stuff
-    if(fastobj->objtype == OBJ_ShipType)
-        if(bitTest(((Ship *)fastobj)->specialFlags,SPECIAL_Kamikaze))
+    if(fastobj->header.objtype == OBJ_ShipType)
+        if(bitTest(((Ship *)fastobj)->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             return FALSE;
 
-    if(slowobj->objtype == OBJ_ShipType)
-        if(bitTest(((Ship *)slowobj)->specialFlags,SPECIAL_Kamikaze))
+    if(slowobj->header.objtype == OBJ_ShipType)
+        if(bitTest(((Ship *)slowobj)->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             return FALSE;
 
     if ((fastobjvelmag2/slowobjvelmag2) >= GLANCE_COLLISION_VEL_RATIO)
@@ -2456,7 +2452,7 @@ bool32 ShouldDoGlancingCollision(SpaceObjRotImpTarg *fastobj,real32 fastobjvelma
         return TRUE;
     }
 
-    if (vecDotProduct(fastobj->posinfo.velocity,slowobj->posinfo.velocity) < 0)
+    if (vecDotProduct(fastobj->obj.posinfo.velocity,slowobj->obj.posinfo.velocity) < 0)
     {
         return TRUE;
     }
@@ -2504,8 +2500,8 @@ void ObjectsCollided(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *obj2,real32 co
     {
         // decide which ship is fastest ship in collision
 
-        obj1velmag2 = vecMagnitudeSquared(obj1->posinfo.velocity);
-        obj2velmag2 = vecMagnitudeSquared(obj2->posinfo.velocity);
+        obj1velmag2 = vecMagnitudeSquared(obj1->obj.posinfo.velocity);
+        obj2velmag2 = vecMagnitudeSquared(obj2->obj.posinfo.velocity);
 
         if (obj1velmag2 > obj2velmag2)
         {
@@ -2519,8 +2515,8 @@ void ObjectsCollided(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *obj2,real32 co
         }
 
         // collforce = (m2v2 - m1v1)/t
-        vecScalarMultiply(cforce1,obj2->posinfo.velocity,obj2->staticinfo->staticheader.mass);
-        vecScalarMultiply(cforce2,obj1->posinfo.velocity,obj1->staticinfo->staticheader.mass);
+        vecScalarMultiply(cforce1,obj2->obj.posinfo.velocity,obj2->staticinfo->common.mass);
+        vecScalarMultiply(cforce2,obj1->obj.posinfo.velocity,obj1->staticinfo->common.mass);
         vecSub(collforce,cforce1,cforce2);
         vecDivideByScalar(collforce,universe.phystimeelapsed,temp);
 
@@ -2544,9 +2540,9 @@ void ObjectsCollided(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *obj2,real32 co
             // decide which way to apply tangential force based on if "velocity" vector of fastest obj is left or right
             // of vector from fastestobj to slowestobj
 
-            vecSub(fastesttoslowest,slowobj->collInfo.collPosition,fastobj->collInfo.collPosition);
+            vecSub(fastesttoslowest,slowobj->impactable.collInfo.collPosition,fastobj->impactable.collInfo.collPosition);
 
-            vecCrossProduct(leftrightdecidevec,fastesttoslowest,fastobj->posinfo.velocity);
+            vecCrossProduct(leftrightdecidevec,fastesttoslowest,fastobj->obj.posinfo.velocity);
 
             if (leftrightdecidevec.z > 0)
             {
@@ -2564,18 +2560,18 @@ void ObjectsCollided(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *obj2,real32 co
 #endif
         }
 
-        if (!fastobj->staticinfo->staticheader.immobile)
+        if (!fastobj->staticinfo->common.immobile)
         {
-            if(!(fastobj->attributes & ATTRIBUTES_KillerCollDamage))
+            if(!(fastobj->obj.attributes & ATTRIBUTES_KillerCollDamage))
             {
-                vecAddTo(fastobj->posinfo.force,collforce);
+                vecAddTo(fastobj->obj.posinfo.force,collforce);
             }
         }
-        if (!slowobj->staticinfo->staticheader.immobile)
+        if (!slowobj->staticinfo->common.immobile)
         {
-            if(!(slowobj->attributes & ATTRIBUTES_KillerCollDamage))
+            if(!(slowobj->obj.attributes & ATTRIBUTES_KillerCollDamage))
             {
-                vecSubFrom(slowobj->posinfo.force,collforce);
+                vecSubFrom(slowobj->obj.posinfo.force,collforce);
             }
         }
     }
@@ -2583,18 +2579,18 @@ void ObjectsCollided(SpaceObjRotImpTarg *obj1,SpaceObjRotImpTarg *obj2,real32 co
     {
         // add a repulsion factor if objects overlap, so they don't stick together
         vecScalarMultiply(repulseoverlap,*distvector,repulse);
-        if (!obj2->staticinfo->staticheader.immobile)
+        if (!obj2->staticinfo->common.immobile)
         {
-            if(!(obj2->attributes & ATTRIBUTES_KillerCollDamage))
+            if(!(obj2->obj.attributes & ATTRIBUTES_KillerCollDamage))
             {
-                vecAddTo(obj2->posinfo.force,repulseoverlap);
+                vecAddTo(obj2->obj.posinfo.force,repulseoverlap);
             }
         }
-        if (!obj1->staticinfo->staticheader.immobile)
+        if (!obj1->staticinfo->common.immobile)
         {
-            if(!(obj1->attributes & ATTRIBUTES_KillerCollDamage))
+            if(!(obj1->obj.attributes & ATTRIBUTES_KillerCollDamage))
             {
-               vecSubFrom(obj1->posinfo.force,repulseoverlap);
+               vecSubFrom(obj1->obj.posinfo.force,repulseoverlap);
             }
         }
     }
@@ -2611,14 +2607,14 @@ void ApplyCareen(Ship *ship)
 {
     // apply three random torques, to ship,
 
-    ship->rotinfo.torque.x += frandombetween(YAWCAREENLO,YAWCAREENHI);
-    ship->rotinfo.torque.y += frandombetween(PITCHCAREENLO,PITCHCAREENHI);
-    ship->rotinfo.torque.z += frandombetween(ROLLCAREENLO,ROLLCAREENHI);
+    ship->rotatable.rotinfo.torque.x += frandombetween(YAWCAREENLO,YAWCAREENHI);
+    ship->rotatable.rotinfo.torque.y += frandombetween(PITCHCAREENLO,PITCHCAREENHI);
+    ship->rotatable.rotinfo.torque.z += frandombetween(ROLLCAREENLO,ROLLCAREENHI);
 }
 
 void ApplyCareenRotationDirectly(Ship *ship)
 {
-    StaticHeader *staticheader = &ship->staticinfo->staticheader;
+    StaticInfo *staticheader = &ship->staticinfo->common;
     vector a;
 
     // apply three random torques, to ship,
@@ -2628,10 +2624,10 @@ void ApplyCareenRotationDirectly(Ship *ship)
     a.z = frandombetween(ROLLCRAZYLO,ROLLCRAZYHI) * universe.phystimeelapsed; // * staticheader->oneOverMomentOfInertiaZ;
 
     // w = w + alpha*t
-    vecAddTo(ship->rotinfo.rotspeed,a);
+    vecAddTo(ship->rotatable.rotinfo.rotspeed,a);
 
     // cap rotation speed
-    vecCapVectorSloppy(&ship->rotinfo.rotspeed,staticheader->maxrot);
+    vecCapVectorSloppy(&ship->rotatable.rotinfo.rotspeed,staticheader->maxrot);
 }
 
 /*-----------------------------------------------------------------------------
@@ -2646,9 +2642,9 @@ void AddShipToDeleteShipList(Ship *ship,GunSoundType damageType)
     DeleteShip *deleteShip;
     ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
 
-    ship->flags |= SOF_Dead;
+    ship->header.flags |= SOF_Dead;
 
-    if (!shipstaticinfo->staticheader.immobile)
+    if (!shipstaticinfo->common.immobile)
     {
         ApplyCareen(ship);
     }
@@ -2659,7 +2655,7 @@ void AddShipToDeleteShipList(Ship *ship,GunSoundType damageType)
     // add to delete ship list
     deleteShip = memAlloc(sizeof(DeleteShip),"DeleteShip",Pyrophoric);
     deleteShip->ship = ship;
-    if (ship->health <= etgBigDeathFactor[shipstaticinfo->shiprace][shipstaticinfo->shipclass] && damageType != -1)
+    if (ship->targetable.health <= etgBigDeathFactor[shipstaticinfo->shiprace][shipstaticinfo->shipclass] && damageType != -1)
     {                                   //ship took a really big bong hit
         deleteShip->deathBy = (udword)etgDeathModeByGunType[damageType];
     }
@@ -2682,7 +2678,7 @@ void AddResourceToDeleteResourceList(Resource *resource)
     // add this resource to the delete resource list
     DeleteResource *deleteResource = memAlloc(sizeof(DeleteResource),"DeleteResource",Pyrophoric);
 
-    resource->flags |= SOF_Dead;
+    resource->header.flags |= SOF_Dead;
 
     deleteResource->resource = resource;
     listAddNode(&universe.DeleteResourceList,&(deleteResource->objlink),deleteResource);
@@ -2701,10 +2697,10 @@ void AddDerelictToDeleteDerelictList(Derelict *derelict,GunSoundType damageType)
     DeleteDerelict *deleteDerelict = memAlloc(sizeof(DeleteDerelict),"DeleteDerelict",Pyrophoric);
 
     bobObjectDied((SpaceObj *)derelict,&universe.collBlobList);//can't have dead derelicts in the blobs
-    derelict->flags |= SOF_Dead;
+    derelict->header.flags |= SOF_Dead;
 
     deleteDerelict->derelict = derelict;
-    if (derelict->health <= etgBigDeathFactorDerelict[derelict->derelicttype])
+    if (derelict->targetable.health <= etgBigDeathFactorDerelict[derelict->derelicttype])
     {                                   //derelict took a really big bong hit
         deleteDerelict->deathBy = (udword)etgDeathModeByGunType[damageType];
     }
@@ -2728,7 +2724,7 @@ void AddMissileToDeleteMissileList(Missile *missile,GunSoundType damageType)
     // add this missile to the delete missile list
     DeleteMissile *deleteMissile = memAlloc(sizeof(DeleteMissile),"DeleteMissile",Pyrophoric);
 
-    missile->flags |= SOF_Dead;
+    missile->header.flags |= SOF_Dead;
 
     deleteMissile->missile = missile;
     deleteMissile->deathBy = damageType;
@@ -2744,7 +2740,7 @@ void AddMissileToDeleteMissileList(Missile *missile,GunSoundType damageType)
 ----------------------------------------------------------------------------*/
 void AddTargetToDeleteList(SpaceObjRotImpTarg *target,GunSoundType soundType)
 {
-    switch (target->objtype)
+    switch (target->header.objtype)
     {
         case OBJ_ShipType:
             AddShipToDeleteShipList((Ship *)target,soundType);
@@ -2783,7 +2779,7 @@ void addSlavesToDeleteList(Ship *master, GunSoundType deathtype)
     {
         slave = (Ship *) listGetStructOfNode(slavenode);
         slave->slaveinfo->flags |= SF_DEAD;
-        if(!(slave->flags & SOF_Dead))
+        if(!(slave->header.flags & SOF_Dead))
             AddTargetToDeleteList((SpaceObjRotImpTarg *)slave,deathtype);
         slavenode = slavenode->next;
     }
@@ -2791,16 +2787,16 @@ void addSlavesToDeleteList(Ship *master, GunSoundType deathtype)
 
 void ApplyExplosionRockToTarget(SpaceObjRotImp *obj,real32 blaststrength)
 {
-    obj->rotinfo.torque.x += frandombetween(YAWEXPLOSIONROCKLO,YAWEXPLOSIONROCKHI) * blaststrength;
-    obj->rotinfo.torque.y += frandombetween(PITCHEXPLOSIONROCKLO,PITCHEXPLOSIONROCKHI) * blaststrength;
-    obj->rotinfo.torque.z += frandombetween(ROLLEXPLOSIONROCKLO,ROLLEXPLOSIONROCKHI) * blaststrength;
+    obj->rotatable.rotinfo.torque.x += frandombetween(YAWEXPLOSIONROCKLO,YAWEXPLOSIONROCKHI) * blaststrength;
+    obj->rotatable.rotinfo.torque.y += frandombetween(PITCHEXPLOSIONROCKLO,PITCHEXPLOSIONROCKHI) * blaststrength;
+    obj->rotatable.rotinfo.torque.z += frandombetween(ROLLEXPLOSIONROCKLO,ROLLEXPLOSIONROCKHI) * blaststrength;
 }
 
 void ApplyRockToTarget(SpaceObjRotImpTarg *target,real32 projectilemass)
 {
-    target->rotinfo.torque.x += frandombetween(YAWROCKLO,YAWROCKHI) * projectilemass;
-    target->rotinfo.torque.y += frandombetween(PITCHROCKLO,PITCHROCKHI) * projectilemass;
-    target->rotinfo.torque.z += frandombetween(ROLLROCKLO,ROLLROCKHI) * projectilemass;
+    target->rotatable.rotinfo.torque.x += frandombetween(YAWROCKLO,YAWROCKHI) * projectilemass;
+    target->rotatable.rotinfo.torque.y += frandombetween(PITCHROCKLO,PITCHROCKHI) * projectilemass;
+    target->rotatable.rotinfo.torque.z += frandombetween(ROLLROCKLO,ROLLROCKHI) * projectilemass;
 }
 
 /*-----------------------------------------------------------------------------
@@ -2818,7 +2814,7 @@ void MakeExplosionRockBumpables(Ship *ship,bool32 scuttle)
     vector distvector;
     real32 distsquared;
     real32 dist;
-    real32 blastradius = shipstatic->staticheader.staticCollInfo.collspheresize * shipstatic->blastRadiusShockWave *
+    real32 blastradius = shipstatic->common.staticCollInfo.collspheresize * shipstatic->blastRadiusShockWave *
                          (scuttle ? BLAST_RADIUS_SCUTTLE_BONUS : 1.0f);
     real32 blastradiussqr = blastradius * blastradius;
     real32 blaststrength;
@@ -2829,12 +2825,12 @@ void MakeExplosionRockBumpables(Ship *ship,bool32 scuttle)
     {
         obj = (SpaceObjRotImp *) listGetStructOfNode(objnode);
 
-        if ((obj->flags & (SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
+        if ((obj->header.flags & (SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
         {
             goto nextnode;      // object must be impactable, bumpable
         }
 
-        vecSub(distvector,obj->collInfo.collPosition,ship->collInfo.collPosition);
+        vecSub(distvector,obj->collInfo.collPosition,ship->impactable.collInfo.collPosition);
 
         if (!isBetweenInclusive(distvector.x,-blastradius,blastradius))
         {
@@ -2857,12 +2853,12 @@ void MakeExplosionRockBumpables(Ship *ship,bool32 scuttle)
             goto nextnode;
         }
 
-        if (obj == (SpaceObjRotImp *)ship)
+        if (obj == &ship->impactable)
         {
             goto nextnode;
         }
 
-        if (obj->staticinfo->staticheader.immobile)
+        if (obj->obj.staticinfo->immobile)
         {
             goto nextnode;
         }
@@ -2880,10 +2876,10 @@ void MakeExplosionRockBumpables(Ship *ship,bool32 scuttle)
         ApplyExplosionRockToTarget(obj,blaststrength);
         physApplyForceVectorToObj(obj,distvector);
 
-        if (obj->flags & SOF_Targetable)
+        if (obj->header.flags & SOF_Targetable)
         {
             // calculate damage based on ship blowing up
-            real32 health = (shipstatic->blastRadiusDamage != 0.0f) ? shipstatic->blastRadiusDamage : shipstatic->maxhealth;
+            real32 health = (shipstatic->blastRadiusDamage != 0.0f) ? shipstatic->blastRadiusDamage : shipstatic->health.maxhealth;
 
             damageperc = (scuttle ? BLAST_DAMAGE_MAX_PERCENT_SCUTTLE : BLAST_DAMAGE_MAX_PERCENT) * blaststrength;
             damage =  health * damageperc;
@@ -2917,7 +2913,7 @@ nextnode:
 ----------------------------------------------------------------------------*/
 bool32 ApplyDamageToTarget(SpaceObjRotImpTarg *target,real32 damagetaken,GunSoundType soundType,sdword damageHow,sdword playerIndex)
 {
-    bool32 targetWasAlive = ((target->flags & SOF_Dead) == 0);
+    bool32 targetWasAlive = ((target->header.flags & SOF_Dead) == 0);
     real32 previousHealth = target->health;
     real32 maxHealth;
 
@@ -2926,15 +2922,16 @@ bool32 ApplyDamageToTarget(SpaceObjRotImpTarg *target,real32 damagetaken,GunSoun
         return FALSE;
     }
 
-    if(target->flags & SOF_Slaveable)
+    if(target->header.flags & SOF_Slaveable)
     {    //target is a ship and is slaveable
-         if(((Ship *)target)->slaveinfo->flags & SF_SLAVE)
+         Ship* ship = (Ship*)target;
+         if(ship->slaveinfo->flags & SF_SLAVE)
          {    //object is a slave
-             target = (SpaceObjRotImpTarg *) ((Ship *) target)->slaveinfo->Master;            //potential reprocussions
+             target = &ship->slaveinfo->Master->targetable;            //potential reprocussions
          }
     }
     target->health -= damagetaken;
-    switch (target->objtype)
+    switch (target->header.objtype)
     {
         case OBJ_AsteroidType:
             if (AsteroidTakesDamage((Asteroid *)target,(sdword)damagetaken,targetWasAlive))
@@ -2971,21 +2968,22 @@ bool32 ApplyDamageToTarget(SpaceObjRotImpTarg *target,real32 damagetaken,GunSoun
             }
             goto fallthrough;
 
-        case OBJ_ShipType:
+        case OBJ_ShipType: {
+            Ship* ship = (Ship*)target;
             switch(damageHow)
             {
                 case DEATH_Killed_By_Player:
                 case DEATH_Killed_By_Kamikaze:
                 case DEATH_Killed_By_Player_Explosion:
-                    universe.gameStats.playerStats[playerIndex].pointsOfDamageDoneToWho[((Ship *)target)->playerowner->playerIndex] += damagetaken;
+                    universe.gameStats.playerStats[playerIndex].pointsOfDamageDoneToWho[ship->playerowner->playerIndex] += damagetaken;
                     break;
             }
-            maxHealth = ((ShipStaticInfo *)target->staticinfo)->maxhealth;
+            maxHealth = target->staticinfo->maxhealth;
             if (previousHealth /  maxHealth >= BAT_InTheRedFactor)
             {                                               //it wasn't in the red
                 if (target->health / maxHealth < BAT_InTheRedFactor)
                 {                                           //if it's just now in the red
-                    bitSet(((Ship *)target)->chatterBits, BCB_DamageInTheRed);//flag as such
+                    bitSet(ship->chatterBits, BCB_DamageInTheRed);//flag as such
                 }
             }
         // purposefully fall through
@@ -2993,19 +2991,19 @@ fallthrough:;
         default:
             if ((target->health <= 0) && (targetWasAlive))      // target just died, so add to DeleteShipList
             {
-                if(target->objtype == OBJ_ShipType)
+                if(target->header.objtype == OBJ_ShipType)
                 {
-                    ((Ship *)target)->howDidIDie = damageHow;
-                    ((Ship *)target)->whoKilledMe = playerIndex; //if was collision death, who cares
-                    bountyShipWasKilled((Ship *)target);
+                    ship->howDidIDie = damageHow;
+                    ship->whoKilledMe = playerIndex; //if was collision death, who cares
+                    bountyShipWasKilled(ship);
                 }
-                if(target->flags & SOF_Slaveable)
+                if(target->header.flags & SOF_Slaveable)
                 {    //target is a ship and is slaveable
-                    if(!(((Ship *)target)->slaveinfo->flags & SF_DEAD))   //if we haven't added then already
+                    if(!(ship->slaveinfo->flags & SF_DEAD))   //if we haven't added then already
                     {
                         addSlavesToDeleteList((Ship *)target,soundType);
                     }
-                    if(!(target->flags & SOF_Dead))
+                    if(!(target->header.flags & SOF_Dead))
                         AddTargetToDeleteList(target,soundType);
                 }
                 else
@@ -3018,7 +3016,7 @@ fallthrough:;
             {
                 return FALSE;
             }
-            break;
+        } break;
     }
 }
 
@@ -3036,7 +3034,7 @@ void pointExplosionInSpace(vector *position,real32 blastRadius,real32 maxDamage,
     vector distvector;
     real32 distsquared;
     real32 dist;
-    //real32 blastradius = shipstatic->staticheader.staticCollInfo.collspheresize * shipstatic->blastRadiusShockWave;
+    //real32 blastradius = shipstatic->common.staticCollInfo.collspheresize * shipstatic->blastRadiusShockWave;
     real32 blastradiussqr = blastRadius * blastRadius;
 
     real32 blaststrength;
@@ -3045,7 +3043,7 @@ void pointExplosionInSpace(vector *position,real32 blastRadius,real32 maxDamage,
     {
         obj = (SpaceObjRotImp *) listGetStructOfNode(objnode);
 
-        if ((obj->flags & (SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
+        if ((obj->header.flags & (SOF_Impactable|SOF_NotBumpable)) != (SOF_Impactable))
         {
             goto nextnode;      // object must be impactable, bumpable
         }
@@ -3073,7 +3071,7 @@ void pointExplosionInSpace(vector *position,real32 blastRadius,real32 maxDamage,
             goto nextnode;
         }
 
-        if (obj->staticinfo->staticheader.immobile)
+        if (obj->obj.staticinfo->immobile)
         {
             goto nextnode;
         }
@@ -3092,7 +3090,7 @@ void pointExplosionInSpace(vector *position,real32 blastRadius,real32 maxDamage,
         vecScalarMultiply(distvector,distvector,TW_BURST_ATTACK_FORCE_MODIFIER);
         physApplyForceVectorToObj(obj,distvector);
 
-        if (obj->flags & SOF_Targetable)
+        if (obj->header.flags & SOF_Targetable)
         {
             // calculate damage based on blast as a % of maxhealth
             ApplyDamageToTarget((SpaceObjRotImpTarg *)obj,maxDamage,0,DEATH_Killed_By_Player_Explosion,playerIndex);
@@ -3110,7 +3108,7 @@ nextnode:
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void univBulletCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targetstaticheader,Bullet *bullet,real32 collideLineDist,sdword collSide)
+void univBulletCollidedWithTarget(SpaceObjRotImpTarg *target,StaticInfo *targetstaticheader,Bullet *bullet,real32 collideLineDist,sdword collSide)
 {
     real32 damagetaken = bullet->damage;
     Ship *bulletowner = bullet->owner;
@@ -3128,66 +3126,67 @@ void univBulletCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targe
     real32 targetScale;
 
     // if target isn't immobile, apply impact force from bullet
-    if (!targetstaticheader->immobile && !bitTest(target->flags, SOF_NotBumpable))
+    if (!targetstaticheader->immobile && !bitTest(target->header.flags, SOF_NotBumpable))
     {
-        if(target->objtype == OBJ_ShipType )
+        if(target->header.objtype == OBJ_ShipType )
         {
-            if(((Ship *)target)->specialFlags2 & SPECIAL_2_ShipInGravwell)
+            if(((Ship *)target)->shipOrDerelict.specialFlags2 & SPECIAL_2_ShipInGravwell)
             {
                 goto nobulletmasstransfer;
             }
         }
         massovertime = bullet->bulletmass / universe.phystimeelapsed;
-        recoil = bullet->posinfo.velocity;
+        recoil = bullet->obj.posinfo.velocity;
         vecMultiplyByScalar(recoil,massovertime);
         ApplyRockToTarget(target,bullet->bulletmass);
         physApplyForceVectorToObj(target,recoil);
     }
 
 nobulletmasstransfer:
-    if (target->objtype == OBJ_ShipType)
+    if (target->header.objtype == OBJ_ShipType)
     {
-        damageMult = ((Ship *)target)->magnitudeSquared;
+        Ship* ship = (Ship*)target;
+        damageMult = ship->magnitudeSquared;
 
         // apply different damage modifier based on collision side:
         if (collSide >= 0)
         {
             dbgAssertOrIgnore(collSide < NUM_TRANS_DEGOFFREEDOM);
-            damagetaken *= ((Ship *)target)->staticinfo->collSideModifiers[collSide];
+            damagetaken *= ship->staticinfo->collSideModifiers[collSide];
         }
 
         if (bulletowner != NULL)
         {
-            if ((bulletowner->shiptype == HeavyDefender) && (((ShipStaticInfo *)target->staticinfo)->shipclass == CLASS_Fighter))
+            if ((bulletowner->shiptype == HeavyDefender) && (ship->staticinfo->shipclass == CLASS_Fighter))
             {
                 // armour piercing bullets vs fighters
                 damagetaken *= armourPiercingModifier;
             }
 
-            if (bulletowner->playerowner == ((Ship *)target)->playerowner)
+            if (bulletowner->playerowner == ship->playerowner)
             {                                               //if it's friendly fire
         //!!! why only in non-debug???
 #ifndef HW_BUILD_FOR_DEBUGGING
                 damagetaken *= friendlyFireModifier;
 #endif
-                bitSet(((Ship *)target)->chatterBits, BCB_FriendlyFire);
+                bitSet(ship->chatterBits, BCB_FriendlyFire);
             }
-            else if (allianceIsShipAlly((Ship *)target, bulletowner->playerowner))
+            else if (allianceIsShipAlly(ship, bulletowner->playerowner))
             {
-                bitSet(((Ship *)target)->chatterBits, BCB_AlliedFire);
+                bitSet(ship->chatterBits, BCB_AlliedFire);
             }
             else
             {
-                speechEventUnderAttack((Ship *)target);
+                speechEventUnderAttack(ship);
             }
-            ((Ship *)target)->gettingrocked = bulletowner;
+            ship->gettingrocked = bulletowner;
 
-            ((Ship *)target)->recentAttacker = bulletowner;
-            ((Ship *)target)->recentlyAttacked = RECENT_ATTACK_DURATION;  // start counting down
+            ship->recentAttacker = bulletowner;
+            ship->recentlyAttacked = RECENT_ATTACK_DURATION;  // start counting down
         }
         else
         {
-            speechEventUnderAttack((Ship *)target);
+            speechEventUnderAttack(ship);
         }
     }
 
@@ -3205,7 +3204,7 @@ nobulletmasstransfer:
     {
         etgEffectDelete(bullet->effect);
         univRemoveObjFromRenderList((SpaceObj *)bullet->effect);
-        listDeleteNode(&bullet->effect->objlink);
+        listDeleteNode(&bullet->effect->header.objlink);
         bullet->effect = NULL;
     }
 
@@ -3219,7 +3218,7 @@ nobulletmasstransfer:
     //play the imact effect
     if (bullet->hitEffect != NULL)
     {
-        LOD = target->currentLOD;
+        LOD = target->obj.currentLOD;
         if (LOD < bullet->hitEffect->nLevels)
         {
             stat = bullet->hitEffect->level[LOD];
@@ -3243,21 +3242,21 @@ nobulletmasstransfer:
         {
             if (collideLineDist == 0.0f)
             {
-                hitLocation = bullet->posinfo.position;
+                hitLocation = bullet->obj.posinfo.position;
             }
             else
             {
                 dbgAssertOrIgnore(collideLineDist > 0.0f);
                 vecScalarMultiply(hitLocation,bullet->bulletheading,collideLineDist);
-                vecAdd(hitLocation,bullet->posinfo.position,hitLocation);
+                vecAdd(hitLocation,bullet->obj.posinfo.position,hitLocation);
             }
             //N-Lip the impact position
-            if (target->objtype == OBJ_ShipType)
+            if (target->header.objtype == OBJ_ShipType)
             {
                 targetScale = ((Ship *)target)->magnitudeSquared;
-                vecSubFrom(hitLocation, target->posinfo.position);
+                vecSubFrom(hitLocation, target->obj.posinfo.position);
                 vecMultiplyByScalar(hitLocation, targetScale);
-                vecAddTo(hitLocation, target->posinfo.position);
+                vecAddTo(hitLocation, target->obj.posinfo.position);
             }
             else
             {
@@ -3269,7 +3268,7 @@ nobulletmasstransfer:
             floatDamage = (real32)damagetaken;
             floatDamage *= damageMult;
             intDamage = Real32ToUdword(floatDamage);
-            etgEffectCreate(stat, NULL, &hitLocation, &target->posinfo.velocity, &hitCoordsys, targetScale, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
+            etgEffectCreate(stat, NULL, &hitLocation, &target->obj.posinfo.velocity, &hitCoordsys, targetScale, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
         }
     }
 }
@@ -3281,7 +3280,7 @@ nobulletmasstransfer:
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targetstaticheader,Missile *missile,real32 collideLineDist,sdword collSide)
+void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticInfo *targetstaticheader,Missile *missile,real32 collideLineDist,sdword collSide)
 {
     real32 damagetaken = missile->damage;
     Ship *missileowner = missile->owner;
@@ -3298,9 +3297,10 @@ void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targ
     real32 targetScale;
     real32 damageMult = 1.0f;
 
-    if(target->objtype == OBJ_ShipType)
+    if(target->header.objtype == OBJ_ShipType)
     {
-        if(((Ship *)target)->playerowner->playerIndex == universe.curPlayerIndex)
+        Ship* ship = (Ship*)target;
+        if(ship->playerowner->playerIndex == universe.curPlayerIndex)
         {
             if(missile->FORCE_DROPPED)
             {
@@ -3309,70 +3309,67 @@ void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targ
                 //speech event num: STAT_Grp_InMineField
                 //or STAT_AssGrp_InMineField
                 //use battle chatter
-                if(selHotKeyGroupNumberTest((Ship *)target) == SEL_InvalidHotKey)
-                 {                                          //not in a group!
-                     if (battleCanChatterAtThisTime(BCE_STAT_Grp_InMineField, ((Ship *)target)))
-                     {
-                         battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_Grp_InMineField, ((Ship *)target), SOUND_EVENT_DEFAULT);
-                     }
-                 }
-                 else
-                 {
-                     if (battleCanChatterAtThisTime(BCE_STAT_AssGrp_InMineField, ((Ship *)target)))
-                     {
-                         battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_AssGrp_InMineField, ((Ship *)target), selHotKeyGroupNumberTest((Ship *)target));
-                     }
-                 }
+                if (selHotKeyGroupNumberTest(ship) == SEL_InvalidHotKey) { // not in a group!
+                    if (battleCanChatterAtThisTime(BCE_STAT_Grp_InMineField, ship)) {
+                        battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_Grp_InMineField, ship, SOUND_EVENT_DEFAULT);
+                    }
+                } else {
+                    if (battleCanChatterAtThisTime(BCE_STAT_AssGrp_InMineField, ship)) {
+                        battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_STAT_AssGrp_InMineField, ship,
+                                             selHotKeyGroupNumberTest(ship));
+                    }
+                }
                 //////////////
             }
         }
     }
     // if target isn't immobile, apply impact force from missile
-    if (!targetstaticheader->immobile && !bitTest(target->flags, SOF_NotBumpable))
+    if (!targetstaticheader->immobile && !bitTest(target->header.flags, SOF_NotBumpable))
     {
-        massovertime = missilestaticinfo->staticheader.mass / universe.phystimeelapsed;
-        recoil = missile->posinfo.velocity;
+        massovertime = missilestaticinfo->common.mass / universe.phystimeelapsed;
+        recoil = missile->obj.posinfo.velocity;
         vecMultiplyByScalar(recoil,massovertime);
-        ApplyRockToTarget(target,missilestaticinfo->staticheader.mass);
+        ApplyRockToTarget(target,missilestaticinfo->common.mass);
         physApplyForceVectorToObj(target,recoil);
     }
 
-    if (target->objtype == OBJ_ShipType)
+    if (target->header.objtype == OBJ_ShipType)
     {
-        damageMult = ((Ship *)target)->magnitudeSquared;
+        Ship* ship = (Ship*)target;
+        damageMult = ship->magnitudeSquared;
         // apply different damage modifier based on collision side:
         if (collSide >= 0)
         {
             dbgAssertOrIgnore(collSide < NUM_TRANS_DEGOFFREEDOM);
-            damagetaken *= ((Ship *)target)->staticinfo->collSideModifiers[collSide];
+            damagetaken *= ship->staticinfo->collSideModifiers[collSide];
         }
 
         if (missileowner != NULL)
         {
-            if (missileowner->playerowner == ((Ship *)target)->playerowner)
+            if (missileowner->playerowner == ship->playerowner)
             {                                               //if it's friendly fire
         //!!! why only in non-debug???
 #ifndef HW_BUILD_FOR_DEBUGGING
                 damagetaken *= friendlyFireModifier;
 #endif
-                bitSet(((Ship *)target)->chatterBits, BCB_FriendlyFire);
+                bitSet(ship->chatterBits, BCB_FriendlyFire);
             }
-            else if (allianceIsShipAlly((Ship *)target, missileowner->playerowner))
+            else if (allianceIsShipAlly(ship, missileowner->playerowner))
             {
-                bitSet(((Ship *)target)->chatterBits, BCB_AlliedFire);
+                bitSet(ship->chatterBits, BCB_AlliedFire);
             }
             else
             {
-                speechEventUnderAttack((Ship *)target);
+                speechEventUnderAttack(ship);
             }
-            ((Ship *)target)->gettingrocked = missileowner;
+            ship->gettingrocked = missileowner;
 
-            ((Ship *)target)->recentAttacker = missileowner;
-            ((Ship *)target)->recentlyAttacked = RECENT_ATTACK_DURATION;  // start counting down
+            ship->recentAttacker = missileowner;
+            ship->recentlyAttacked = RECENT_ATTACK_DURATION;  // start counting down
         }
         else
         {
-            speechEventUnderAttack((Ship *)target);
+            speechEventUnderAttack(ship);
         }
     }
 
@@ -3383,7 +3380,7 @@ void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targ
 
     if (missile->hitEffect != NULL)
     {
-        LOD = target->currentLOD;
+        LOD = target->obj.currentLOD;
         if (LOD < missile->hitEffect->nLevels)
         {
             stat = missile->hitEffect->level[LOD];
@@ -3407,22 +3404,22 @@ void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targ
         {
             if (collideLineDist == 0.0f)
             {
-                hitLocation = missile->posinfo.position;
+                hitLocation = missile->obj.posinfo.position;
             }
             else
             {
                 dbgAssertOrIgnore(collideLineDist > 0.0f);
-                matGetVectFromMatrixCol3(missileheading,missile->rotinfo.coordsys);
+                matGetVectFromMatrixCol3(missileheading,missile->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(hitLocation,missileheading,collideLineDist);
-                vecAdd(hitLocation,missile->posinfo.position,hitLocation);
+                vecAdd(hitLocation,missile->obj.posinfo.position,hitLocation);
             }
             //N-Lip the impact position
-            if (target->objtype == OBJ_ShipType)
+            if (target->header.objtype == OBJ_ShipType)
             {
                 targetScale = ((Ship *)target)->magnitudeSquared;
-                vecSubFrom(hitLocation, target->posinfo.position);
+                vecSubFrom(hitLocation, target->obj.posinfo.position);
                 vecMultiplyByScalar(hitLocation, targetScale);
-                vecAddTo(hitLocation, target->posinfo.position);
+                vecAddTo(hitLocation, target->obj.posinfo.position);
             }
             else
             {
@@ -3432,7 +3429,7 @@ void univMissileCollidedWithTarget(SpaceObjRotImpTarg *target,StaticHeader *targ
             floatDamage = (real32)damagetaken;
             floatDamage *= damageMult;
             intDamage = Real32ToUdword(floatDamage);
-            etgEffectCreate(stat, NULL, &hitLocation, &target->posinfo.velocity, &missile->rotinfo.coordsys, targetScale, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
+            etgEffectCreate(stat, NULL, &hitLocation, &target->obj.posinfo.velocity, &missile->rotatable.rotinfo.coordsys, targetScale, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
         }
     }
 }
@@ -3453,9 +3450,9 @@ void univRemoveAllTargetReferencesFromBullets(SpaceObjRotImpTarg *target)
     while (objnodebullet != NULL)
     {
         bullet = (Bullet *)listGetStructOfNode(objnodebullet);
-        dbgAssertOrIgnore(bullet->objtype == OBJ_BulletType);
+        dbgAssertOrIgnore(bullet->header.objtype == OBJ_BulletType);
 
-        if (bullet->owner == (Ship *)target)
+        if (&bullet->owner->targetable == target)
         {
             bullet->owner = NULL;       // bullet has no owner now that parent ship died
             bullet->gunowner = NULL;
@@ -3490,9 +3487,9 @@ void univRemoveAllTargetReferencesFromMissiles(SpaceObjRotImpTarg *target)
     while (objnodemissile != NULL)
     {
         missile = (Missile *)listGetStructOfNode(objnodemissile);
-        dbgAssertOrIgnore(missile->objtype == OBJ_MissileType);
+        dbgAssertOrIgnore(missile->header.objtype == OBJ_MissileType);
 
-        if (missile->owner == (Ship *)target)
+        if (&missile->owner->targetable == target)
         {
             missile->owner = NULL;       // missile has no owner now that parent ship died
         }
@@ -3522,9 +3519,9 @@ void univRemoveAllDerelictReferencesFromSpecialShips(Derelict *d)
     while (node != NULL)
     {
         ship = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if(ship->specialFlags & SPECIAL_IsASalvager)
+        if(ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
             salCapRemoveDerelictReferences(ship,d);
 
         node = node->next;
@@ -3538,9 +3535,9 @@ void univRemoveAllDerelictReferencesFromSpecialShips(Derelict *d)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        if(ship->specialFlags & SPECIAL_IsASalvager)
+        if(ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
             salCapRemoveDerelictReferences(ship,d);
 
         node = node->next;
@@ -3592,7 +3589,7 @@ void univRemoveAllShipReferencesFromSpecialShips(Ship *shiptoremove)
     while (node != NULL)
     {
         ship = (Ship *)listGetStructOfNode(node);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         univRemoveAllShipReferencesFromSpecialShip(shiptoremove,ship);
 
@@ -3607,7 +3604,7 @@ void univRemoveAllShipReferencesFromSpecialShips(Ship *shiptoremove)
     {
         insideShip = (InsideShip *)listGetStructOfNode(node);
         ship = insideShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         univRemoveAllShipReferencesFromSpecialShip(shiptoremove,ship);
 
@@ -3689,15 +3686,15 @@ void univWipeShipOutOfExistence(Ship *ship)
     {
         listRemoveNode(&ship->shiplink);
     }
-    if (ship->impactablelink.belongto != NULL)
+    if (ship->impactable.impactablelink.belongto != NULL)
     {
-        listRemoveNode(&ship->impactablelink);
+        listRemoveNode(&ship->impactable.impactablelink);
     }
     nisObjectDied((SpaceObj *)ship);
     etgShipDied(ship);
     univRemoveObjFromRenderList((SpaceObj *)ship);
     univFreeShipContents(ship);
-    listDeleteNode(&ship->objlink);
+    listDeleteNode(&ship->header.objlink);
 }
 
 /*-----------------------------------------------------------------------------
@@ -3751,7 +3748,7 @@ void univRemoveShipFromOutside(Ship *ship)
 
     bobObjectDied((SpaceObj *)ship,&universe.collBlobList);
     pingObjectDied((SpaceObj *)ship);
-    ship->collMyBlob = NULL;
+    ship->obj.collMyBlob = NULL;
 
     pieShipDied(ship);
     mouseClickShipDied(ship);
@@ -3760,20 +3757,20 @@ void univRemoveShipFromOutside(Ship *ship)
     {
         listRemoveNode(&ship->shiplink);
     }
-    if (ship->impactablelink.belongto != NULL)
+    if (ship->impactable.impactablelink.belongto != NULL)
     {
-        listRemoveNode(&ship->impactablelink);
+        listRemoveNode(&ship->impactable.impactablelink);
     }
-    if (ship->objlink.belongto != NULL)
+    if (ship->header.objlink.belongto != NULL)
     {
-        listRemoveNode(&ship->objlink);
+        listRemoveNode(&ship->header.objlink);
     }
     univRemoveObjFromRenderList((SpaceObj *)ship);
 
     // Tell the sound layer that the ship is removed from the universe
     soundEventShipRemove(ship);
 
-    ship->flags |= SOF_Hide;
+    ship->header.flags |= SOF_Hide;
 }
 
 /*-----------------------------------------------------------------------------
@@ -3825,7 +3822,7 @@ bool8 univRemoveShipFromHotkeyGroup(Ship *ship, bool8 PlayDefeat)
 void univHideShipFromSpheres(Ship *ship)
 {
     univRemoveObjFromRenderList((SpaceObj *)ship);
-    ship->flags |= SOF_Hide;
+    ship->header.flags |= SOF_Hide;
 }
 
 /*-----------------------------------------------------------------------------
@@ -3844,23 +3841,23 @@ void univHideJustAboutEverything(void)
     for (node = universe.SpaceObjList.head; node != NULL; node = node->next)
     {
         obj = (SpaceObj *)listGetStructOfNode(node);
-        if (!bitTest(obj->flags, SOF_NISShip))
+        if (!bitTest(obj->header.flags, SOF_NISShip))
         {
-            switch (obj->objtype)
+            switch (obj->header.objtype)
             {
                 case OBJ_ShipType:
                 case OBJ_BulletType:
                 case OBJ_DerelictType:
                 case OBJ_EffectType:
                 case OBJ_MissileType:
-                    if (bitTest(obj->flags, SOF_Hide))
+                    if (bitTest(obj->header.flags, SOF_Hide))
                     {
-                        bitSet(obj->flags, SOF_HideSave2);
+                        bitSet(obj->header.flags, SOF_HideSave2);
                     }
                     else
                     {
                         univRemoveObjFromRenderList(obj);
-                        bitSet(obj->flags, SOF_Hide);
+                        bitSet(obj->header.flags, SOF_Hide);
                     }
                     break;
                 case OBJ_AsteroidType:
@@ -3889,13 +3886,13 @@ void univUnhideJustAboutEverything(void)
     for (node = universe.SpaceObjList.head; node != NULL; node = node->next)
     {
         obj = (SpaceObj *)listGetStructOfNode(node);
-        if (bitTest(obj->flags, SOF_HideSave2))
+        if (bitTest(obj->header.flags, SOF_HideSave2))
         {                                                   //if it was already hidden last univHideJustAboutEverything
-            bitClear(obj->flags, SOF_HideSave2);
+            bitClear(obj->header.flags, SOF_HideSave2);
         }
         else
         {
-            bitClear(obj->flags, SOF_Hide);
+            bitClear(obj->header.flags, SOF_Hide);
         }
     }
 }
@@ -3919,11 +3916,11 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
     udword colSizeDword, velMagnitudeDword;
     real32 velMagnitude, maxVelocity;
 
-    vecZeroVector(ship->posinfo.force);
-    vecZeroVector(ship->rotinfo.torque);
+    vecZeroVector(ship->obj.posinfo.force);
+    vecZeroVector(ship->rotatable.rotinfo.torque);
 
-    ship->flags |= SOF_Dead;
-    bitClear(ship->flags,SOF_Selectable);
+    ship->header.flags |= SOF_Dead;
+    bitClear(ship->header.flags,SOF_Selectable);
 
     if (((ShipStaticInfo *)(ship->staticinfo))->canBuildShips)
     {
@@ -3957,7 +3954,7 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
         DeleteShipsInsideMe(ship);
     }
 
-    if (bitTest(ship->flags,SOF_Slaveable))
+    if (bitTest(ship->header.flags,SOF_Slaveable))
     {   //ship was involved with the slave trade...so cleanup
         dockDealWithDeadSlaveable(ship);
     }
@@ -3984,7 +3981,7 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
                 [((ShipStaticInfo *)ship->staticinfo)->shipclass][deathBy];
             if (etgLOD != NULL)
             {
-                LOD = ship->currentLOD;
+                LOD = ship->obj.currentLOD;
                 explosion = etgLOD->level[min(etgLOD->nLevels - 1, LOD)];
             }
             else
@@ -3993,16 +3990,16 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
             }
             if (explosion)
             {
-                colSize = ((ShipStaticInfo *)(ship->staticinfo))->staticheader.staticCollInfo.collspheresize;
+                colSize = ship->staticinfo->common.staticCollInfo.collspheresize;
 //                if (univSpaceObjInRenderList((SpaceObj *)ship))
 //                {
                     colSize *= ship->magnitudeSquared;
 //                }
 
-                maxVelocity = ship->staticinfo->staticheader.maxvelocity;
+                maxVelocity = ship->staticinfo->common.maxvelocity;
                 if (maxVelocity != 0.0f)
                 {
-                    velMagnitude = fsqrt(vecMagnitudeSquared(ship->posinfo.velocity));
+                    velMagnitude = fsqrt(vecMagnitudeSquared(ship->obj.posinfo.velocity));
                     velMagnitude /= maxVelocity;
                 }
                 else
@@ -4020,7 +4017,7 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
                     univAddObjToRenderList((SpaceObj *)effect);//make sure it's in render list
                 }
                 */
-                bitSet(effect->flags, SOF_ForceVisible);
+                bitSet(effect->header.flags, SOF_ForceVisible);
             }
 //        }
     }
@@ -4047,7 +4044,7 @@ void univDeleteDeadShip(Ship *ship, sdword deathBy)
 
     bobObjectDied((SpaceObj *)ship,&universe.collBlobList);
     pingObjectDied((SpaceObj *)ship);
-    ship->collMyBlob = NULL;
+    ship->obj.collMyBlob = NULL;
 
     // Update Ship Command Layer to reflect ship death
     clShipDied(&universe.mainCommandLayer,ship);
@@ -4107,14 +4104,14 @@ void DisableAllPlayersShips(sdword playerIndex)
         ship = (Ship *)listGetStructOfNode(objnode);
         if (ship->playerowner == player)
         {
-            if(!(ship->flags & SOF_Disabled))
+            if(!(ship->header.flags & SOF_Disabled))
             {
-                ship->flags |= SOF_Crazy;
+                ship->header.flags |= SOF_Crazy;
                 ship->deathtime = universe.totaltimeelapsed + frandombetween(PLAYERLOSE_SHIPDEATHTIMEMIN,PLAYERLOSE_SHIPDEATHTIMEMAX);
                 if ((!singlePlayerGame) && (ship->shiptype != Mothership)) ApplyCareenRotationDirectly(ship);
             }
 
-            bitClear(ship->flags,SOF_Selectable);
+            bitClear(ship->header.flags,SOF_Selectable);
 
             // Remove ships that are destroyed from any current selection
             clRemoveShipFromSelection((SelectCommand *)&selSelected,ship);
@@ -4313,7 +4310,7 @@ bool32 univFindBackupMothership(struct Player *player)
     {
         ship = (Ship *)listGetStructOfNode(shipnode);
 
-        if (((ship->flags & SOF_Dead) == 0) && (ship->playerowner == player) && (ship != player->PlayerMothership))
+        if (((ship->header.flags & SOF_Dead) == 0) && (ship->playerowner == player) && (ship != player->PlayerMothership))
         {
             if ((ship->shiptype == Carrier) || (ship->staticinfo->shipclass == CLASS_Mothership))
             {
@@ -4412,20 +4409,20 @@ void univDeleteDeadShips()
 
         deleteShip = (DeleteShip *)listGetStructOfNode(objnode);
         ship = deleteShip->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         univDeleteDeadShip(ship,deleteShip->deathBy);
-        if (ship->impactablelink.belongto != NULL)
+        if (ship->impactable.impactablelink.belongto != NULL)
         {
-            listRemoveNode(&ship->impactablelink);
+            listRemoveNode(&ship->impactable.impactablelink);
         }
 
         if (ship->shiptype == ResourceCollector)
         {
             if (ship->resources > 0)
             {
-                DustCloud *dustCloud = univAddDustCloud(DustCloud0,&ship->posinfo.position);
-                dustCloud->resourcevalue = (sdword) (ship->resources * DUSTCLOUD_RCOLLECTOR_BLOWUP_SCALE);
+                DustCloud *dustCloud = univAddDustCloud(DustCloud0,&ship->obj.posinfo.position);
+                dustCloud->resource.resourcevalue = (sdword) (ship->resources * DUSTCLOUD_RCOLLECTOR_BLOWUP_SCALE);
                 HandleDustCloudScaling(dustCloud);
                 univAddObjToRenderListIf((SpaceObj *)dustCloud,(SpaceObj *)ship);     // add to render list if parent is in render list
             }
@@ -4461,9 +4458,9 @@ void univDeleteDeadShips()
 void univReallyDeleteThisShipRightNow(Ship *ship)
 {
     univDeleteDeadShip(ship, -1);
-    if (ship->impactablelink.belongto != NULL)
+    if (ship->impactable.impactablelink.belongto != NULL)
     {
-        listRemoveNode(&ship->impactablelink);
+        listRemoveNode(&ship->impactable.impactablelink);
     }
     univWipeShipOutOfExistence(ship);
 }
@@ -4480,13 +4477,13 @@ void DeleteDeadResource(Resource *resource)
     //if sensors manager is running, delete it from any sm spheres
     if (smSensorsActive)
     {
-        smObjectDied((SpaceObj *)resource);
+        smObjectDied(&resource->obj);
     }
 
     ccRemoveShip(&universe.mainCameraCommand,(Ship *)resource);
 
-    bobObjectDied((SpaceObj *)resource,&universe.collBlobList);
-    pingObjectDied((SpaceObj *)resource);
+    bobObjectDied(&resource->obj,&universe.collBlobList);
+    pingObjectDied(&resource->obj);
 
     // Update Command Layer to reflect resource death
     univRemoveAllTargetReferencesFromBullets((SpaceObjRotImpTarg *)resource);
@@ -4512,17 +4509,17 @@ void univReallyDeleteThisResourceRightNow(Resource *resource)
 {
     DeleteDeadResource(resource);
 
-    if ((resource->objtype == OBJ_AsteroidType) && (((Asteroid *)resource)->asteroidtype == Asteroid0))
+    if ((resource->header.objtype == OBJ_AsteroidType) && (((Asteroid *)resource)->asteroidtype == Asteroid0))
     {
-        univRemoveObjFromMinorRenderList((SpaceObj *)resource);
-        listDeleteNode(&resource->objlink);
+        univRemoveObjFromMinorRenderList(&resource->obj);
+        listDeleteNode(&resource->header.objlink);
     }
     else
     {
         listRemoveNode(&resource->resourcelink);
-        listRemoveNode(&resource->impactablelink);
-        univRemoveObjFromRenderList((SpaceObj *)resource);
-        listDeleteNode(&resource->objlink);
+        listRemoveNode(&resource->impactable.impactablelink);
+        univRemoveObjFromRenderList(&resource->obj);
+        listDeleteNode(&resource->header.objlink);
     }
 }
 
@@ -4561,9 +4558,9 @@ void univDeleteDeadResources()
             }
         }
 
-        if (resource->objtype == OBJ_AsteroidType)
+        if (resource->header.objtype == OBJ_AsteroidType)
         {
-            if (((Asteroid *)resource)->resourcevalue > 0)
+            if (resource->resourcevalue > 0)
             {
                 BreakAsteroidUp((Asteroid *)resource);
             }
@@ -4631,7 +4628,7 @@ bool32 DeleteDeadDerelict(Derelict *derelict, sdword deathBy)
         etgLOD = etgDeathEventTableDerelict[derelict->derelicttype][deathBy];
         if (etgLOD != NULL)
         {
-            LOD = derelict->currentLOD;
+            LOD = derelict->obj.currentLOD;
             explosion = etgLOD->level[min(etgLOD->nLevels - 1, LOD)];
         }
         else
@@ -4640,23 +4637,23 @@ bool32 DeleteDeadDerelict(Derelict *derelict, sdword deathBy)
         }
         if (explosion)
         {
-            colSize = ((ShipStaticInfo *)(derelict->staticinfo))->staticheader.staticCollInfo.collspheresize;
+            colSize = derelict->staticinfo->common.staticCollInfo.collspheresize;
             //colSize *= derelict->magnitudeSquared;
 
-            velMagnitude = fsqrt(vecMagnitudeSquared(derelict->posinfo.velocity));
-            velMagnitude /= derelict->staticinfo->staticheader.maxvelocity;
+            velMagnitude = fsqrt(vecMagnitudeSquared(derelict->obj.posinfo.velocity));
+            velMagnitude /= derelict->staticinfo->common.maxvelocity;
             colSizeDword = Real32ToUdword(colSize);
             velMagnitudeDword = Real32ToUdword(velMagnitude);
             //??? EAF_ flags ???
             effect = etgEffectCreate(explosion, (Ship *)derelict, NULL, NULL, NULL, 1.0f, 0, 2, SCALECAST(colSizeDword), SCALECAST(velMagnitudeDword));
-            bitSet(effect->flags, SOF_ForceVisible);
+            bitSet(effect->header.flags, SOF_ForceVisible);
         }
     }
     univFreeDerelictContents(derelict);
     listRemoveNode(&derelict->derelictlink);
-    listRemoveNode(&derelict->impactablelink);
+    listRemoveNode(&derelict->impactable.impactablelink);
     derelict->derelictlink.belongto = NULL;
-    derelict->impactablelink.belongto = NULL;
+    derelict->impactable.impactablelink.belongto = NULL;
     univRemoveFromWorldList(derelict);                      //if it's a planet, remove it from the planet list
     return(explosion != NULL);
 }
@@ -4672,13 +4669,13 @@ bool32 DeleteDeadDerelict(Derelict *derelict, sdword deathBy)
 ----------------------------------------------------------------------------*/
 void univReallyDeleteThisDerelictRightNow(Derelict *derelict)
 {
-    bitSet(derelict->flags, SOF_Dead);
+    bitSet(derelict->header.flags, SOF_Dead);
     DeleteDeadDerelict(derelict, -1);
 //    listRemoveNode(&derelict->derelictlink);
-//    listRemoveNode(&derelict->impactablelink);
+//    listRemoveNode(&derelict->impactable.impactablelink);
     univRemoveObjFromRenderList((SpaceObj *)derelict);
 //    univRemoveFromWorldList(derelict);                      //if it's a planet, remove it from the planet list
-    listDeleteNode(&derelict->objlink);
+    listDeleteNode(&derelict->header.objlink);
 }
 
 /*-----------------------------------------------------------------------------
@@ -4696,14 +4693,14 @@ void univWipeDerelictOutOfExistance(Derelict *derelict)
     {
         listRemoveNode(&derelict->derelictlink);
     }
-    if (derelict->impactablelink.belongto != NULL)
+    if (derelict->impactable.impactablelink.belongto != NULL)
     {
-        listRemoveNode(&derelict->impactablelink);
+        listRemoveNode(&derelict->impactable.impactablelink);
     }
     univRemoveObjFromRenderList((SpaceObj *)derelict);
     etgShipDied((Ship *)derelict);
     univRemoveFromWorldList(derelict);                      //if it's a planet, remove it from the planet list
-    listDeleteNode(&derelict->objlink);
+    listDeleteNode(&derelict->header.objlink);
 }
 
 /*-----------------------------------------------------------------------------
@@ -4728,7 +4725,7 @@ void univDeleteDeadDerelicts()
     {
         deleteDerelict = (DeleteDerelict *)listGetStructOfNode(objnode);
         derelict = deleteDerelict->derelict;
-        dbgAssertOrIgnore(derelict->objtype == OBJ_DerelictType);
+        dbgAssertOrIgnore(derelict->header.objtype == OBJ_DerelictType);
 
         // don't totally delete ship, until after explosion
 #if ETG_DISABLEABLE
@@ -4742,7 +4739,7 @@ void univDeleteDeadDerelicts()
             if (!DeleteDeadDerelict(derelict, deleteDerelict->deathBy))
             {                                               //if there was no effect
                 univRemoveObjFromRenderList((SpaceObj *)derelict);
-                listDeleteNode(&derelict->objlink);         //finish deleting it properly
+                listDeleteNode(&derelict->header.objlink);         //finish deleting it properly
             }
         }
 
@@ -4774,7 +4771,7 @@ void DeleteDeadMissile(Missile *missile, sdword deathBy)
     {                                                       //if it was destroyed by forced attack
         if (missile->hitEffect != NULL)
         {                                                   //use the regular hit effect
-            LOD = missile->currentLOD;
+            LOD = missile->obj.currentLOD;
             if (LOD < missile->hitEffect->nLevels)
             {
                 stat = missile->hitEffect->level[LOD];
@@ -4796,12 +4793,12 @@ void DeleteDeadMissile(Missile *missile, sdword deathBy)
             if (stat != NULL && etgHitEffectsEnabled && (!etgFrequencyExceeded(stat)))
 #endif
             {
-                hitLocation = missile->posinfo.position;
+                hitLocation = missile->obj.posinfo.position;
 
                 floatDamage = missile->damage;
                 intDamage = Real32ToUdword(floatDamage);
                 fatalHit = FALSE;
-                etgEffectCreate(stat, NULL, &hitLocation, &missile->posinfo.velocity, &missile->rotinfo.coordsys, 1.0, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
+                etgEffectCreate(stat, NULL, &hitLocation, &missile->obj.posinfo.velocity, &missile->rotatable.rotinfo.coordsys, 1.0, 0, 2, SCALECAST(intDamage), SCALECAST(fatalHit));
             }
         }
     }
@@ -4843,9 +4840,9 @@ void univDeleteDeadMissiles()
 
         DeleteDeadMissile(missile, deleteMissile->deathBy);
         listRemoveNode(&missile->missilelink);
-        listRemoveNode(&missile->impactablelink);
+        listRemoveNode(&missile->impactable.impactablelink);
         univRemoveObjFromRenderList((SpaceObj *)missile);
-        listDeleteNode(&missile->objlink);
+        listDeleteNode(&missile->header.objlink);
 
         objnode = objnode->next;
 
@@ -4872,8 +4869,8 @@ void univGetResourceStatistics(sdword *resourceValue,sdword *numHarvestableResou
     while (objnode != NULL)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(resource->flags & SOF_Resource);
-        if (nisIsRunning && (resource->health >= REALlyBig))
+        dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
+        if (nisIsRunning && (resource->targetable.health >= REALlyBig))
         {
             goto nextnode;       // don't pick NIS resources
         }
@@ -4888,7 +4885,7 @@ nextnode:
     for (objnode = universe.MinorSpaceObjList.head;objnode != NULL;objnode = objnode->next)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
-        if ((resource->objtype == OBJ_AsteroidType) && (((Asteroid *)resource)->asteroidtype == Asteroid0))
+        if ((resource->header.objtype == OBJ_AsteroidType) && (((Asteroid *)resource)->asteroidtype == Asteroid0))
         {
             numasteroid0s++;
         }
@@ -4935,8 +4932,8 @@ Resource *univFindNearestResource(Ship *ship,real32 volumeRadius,vector *volumeP
     while (objnode != NULL)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(resource->flags & SOF_Resource);
-        if (nisIsRunning && (resource->health >= REALlyBig))
+        dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
+        if (nisIsRunning && (resource->targetable.health >= REALlyBig))
         {
             goto nextnode;       // don't pick NIS resources
         }
@@ -4958,7 +4955,7 @@ Resource *univFindNearestResource(Ship *ship,real32 volumeRadius,vector *volumeP
 
         if (volumeRadius > 0.0f)
         {
-            vecSub(diff,resource->posinfo.position,*volumePosition);
+            vecSub(diff,resource->obj.posinfo.position,*volumePosition);
 
             if (!isBetweenInclusive(diff.x,-volumeRadius,volumeRadius))
             {
@@ -4976,12 +4973,12 @@ Resource *univFindNearestResource(Ship *ship,real32 volumeRadius,vector *volumeP
             }
         }
 
-        if (univObjectOutsideWorld((SpaceObj *)resource))
+        if (univObjectOutsideWorld(&resource->obj))
         {
             goto nextnode;
         }
 
-        vecSub(diff,resource->posinfo.position,ship->posinfo.position);
+        vecSub(diff,resource->obj.posinfo.position,ship->obj.posinfo.position);
         dist = vecMagnitudeSquared(diff);
 
         if (dist < mindist)
@@ -5022,11 +5019,11 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        if ((ship->flags & SOF_Dead) == 0)
+        if ((ship->header.flags & SOF_Dead) == 0)
         {
-            x += ship->posinfo.position.x;
-            y += ship->posinfo.position.y;
-            z += ship->posinfo.position.z;
+            x += ship->obj.posinfo.position.x;
+            y += ship->obj.posinfo.position.y;
+            z += ship->obj.posinfo.position.z;
 
             if ((netlogfile) && (logEnable == LOG_VERBOSE))
             {
@@ -5054,15 +5051,15 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                 bns.isDodging = ship->isDodging;
                 bns.DodgeDir = ship->DodgeDir;
 
-                bns.health = ship->health;
-                bns.x = ship->posinfo.position.x;    bns.y = ship->posinfo.position.y;    bns.z = ship->posinfo.position.z;
-                bns.vx = ship->posinfo.velocity.x;  bns.vy = ship->posinfo.velocity.y;    bns.vz = ship->posinfo.velocity.z;
+                bns.health = ship->targetable.health;
+                bns.x = ship->obj.posinfo.position.x;    bns.y = ship->obj.posinfo.position.y;    bns.z = ship->obj.posinfo.position.z;
+                bns.vx = ship->obj.posinfo.velocity.x;  bns.vy = ship->obj.posinfo.velocity.y;    bns.vz = ship->obj.posinfo.velocity.z;
                 bns.fuel = ship->fuel;
 
                 fwrite(&bns, sizeof(bns), 1 ,netlogfile);
 #else
                 fprintf(netlogfile,"S:%d %d %d %d (%f %f %f) %f %d %d %d %d (%d %d)\n",ship->playerowner->playerIndex,ship->shiprace,ship->shiptype,
-                        ship->shipID.shipNumber,ship->posinfo.position.x,ship->posinfo.position.y,ship->posinfo.position.z,ship->fuel,ship->tacticstype,ship->isDodging,ship->DodgeDir,ship->tactics_ordertype,
+                        ship->shipID.shipNumber,ship->obj.posinfo.position.x,ship->obj.posinfo.position.y,ship->obj.posinfo.position.z,ship->fuel,ship->tacticstype,ship->isDodging,ship->DodgeDir,ship->tactics_ordertype,
                         (ship->command == NULL) ? -1 : ship->command->ordertype.order,
                         (ship->command == NULL) ? -1 : ship->command->ordertype.attributes);
 #endif
@@ -5151,7 +5148,7 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
         {
             bullet = (Bullet *)listGetStructOfNode(objnode);
 
-            if ((!bitTest(bullet->flags, SOF_Dead)))
+            if ((!bitTest(bullet->header.flags, SOF_Dead)))
             {
 #if BINNETLOG
                 binnetlogBulletInfo bi;
@@ -5160,8 +5157,8 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                 bi.bullettype = bullet->bulletType;
                 bi.bulletplayerowner = (bullet->playerowner!= NULL) ? bullet->playerowner->playerIndex : -1;
                 bi.bulletowner = (bullet->owner != NULL) ? bullet->owner->shipID.shipNumber : -1;
-                bi.x = bullet->posinfo.position.x; bi.y = bullet->posinfo.position.y; bi.z = bullet->posinfo.position.z;
-                bi.vx = bullet->posinfo.velocity.x; bi.vy = bullet->posinfo.velocity.y; bi.vz = bullet->posinfo.velocity.z;
+                bi.x = bullet->obj.posinfo.position.x; bi.y = bullet->obj.posinfo.position.y; bi.z = bullet->obj.posinfo.position.z;
+                bi.vx = bullet->obj.posinfo.velocity.x; bi.vy = bullet->obj.posinfo.velocity.y; bi.vz = bullet->obj.posinfo.velocity.z;
                 bi.timelived = bullet->timelived;
                 bi.totallifetime = bullet->totallifetime;
                 bi.traveldist = bullet->traveldist;
@@ -5169,7 +5166,7 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                 bi.damageFull = bullet->damageFull;
                 bi.DFGFieldEntryTime = bullet->DFGFieldEntryTime;
                 bi.BulletSpeed = 0.0f;
-                bi.collBlobSortDist = (bullet->collMyBlob) ? bullet->collMyBlob->sortDistance : 0.0f;
+                bi.collBlobSortDist = (bullet->obj.collMyBlob) ? bullet->obj.collMyBlob->sortDistance : 0.0f;
                 fwrite(&bi,sizeof(bi),1,netlogfile);
 #else
                 if (bullet->playerowner!= NULL)
@@ -5178,9 +5175,9 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                     fprintf(netlogfile,"B: %d N ", universe.univUpdateCounter);
 
                 fprintf(netlogfile,"(%f %f %f) [%f %f] %f <%f %f> %f %f ",
-                        bullet->posinfo.position.x,
-                        bullet->posinfo.position.y,
-                        bullet->posinfo.position.z,
+                        bullet->obj.posinfo.position.x,
+                        bullet->obj.posinfo.position.y,
+                        bullet->obj.posinfo.position.z,
                         bullet->timelived,
                         bullet->totallifetime,
                         bullet->traveldist,
@@ -5189,8 +5186,8 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                         bullet->DFGFieldEntryTime,
                         bullet->BulletSpeed);
 
-                if (bullet->collMyBlob)
-                    fprintf(netlogfile, "%f\n", bullet->collMyBlob->sortDistance);
+                if (bullet->obj.collMyBlob)
+                    fprintf(netlogfile, "%f\n", bullet->obj.collMyBlob->sortDistance);
                 else
                     fprintf(netlogfile, "N\n");
 #endif
@@ -5212,11 +5209,11 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
     while (objnode != NULL)
     {
         derelict = (Derelict *)listGetStructOfNode(objnode);
-        if ((derelict->flags & SOF_Dead) == 0)
+        if ((derelict->header.flags & SOF_Dead) == 0)
         {
-            x += derelict->posinfo.position.x;
-            y += derelict->posinfo.position.y;
-            z += derelict->posinfo.position.z;
+            x += derelict->obj.posinfo.position.x;
+            y += derelict->obj.posinfo.position.y;
+            z += derelict->obj.posinfo.position.z;
 
             if ((netlogfile) && (logEnable == LOG_VERBOSE))
             {
@@ -5225,13 +5222,13 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
                 di.header = makenetcheckHeader('D','D','D','D');
                 di.derelictid = derelict->derelictID.derelictNumber;
                 di.derelicttype = derelict->derelicttype;
-                di.health = derelict->health;
-                di.x = derelict->posinfo.position.x; di.y = derelict->posinfo.position.y; di.z = derelict->posinfo.position.z;
-                di.vx = derelict->posinfo.velocity.x; di.vy = derelict->posinfo.velocity.y; di.vz = derelict->posinfo.velocity.z;
+                di.health = derelict->targetable.health;
+                di.x = derelict->obj.posinfo.position.x; di.y = derelict->obj.posinfo.position.y; di.z = derelict->obj.posinfo.position.z;
+                di.vx = derelict->obj.posinfo.velocity.x; di.vy = derelict->obj.posinfo.velocity.y; di.vz = derelict->obj.posinfo.velocity.z;
                 fwrite(&di,sizeof(di),1,netlogfile);
 #else
                 fprintf(netlogfile,"  Derelict:%d %s (%f %f %f)\n",derelict->derelictID.derelictNumber,DerelictTypeToStr(derelict->derelicttype),
-                        derelict->posinfo.position.x,derelict->posinfo.position.y,derelict->posinfo.position.z);
+                        derelict->obj.posinfo.position.x,derelict->obj.posinfo.position.y,derelict->obj.posinfo.position.z);
 #endif
             }
 
@@ -5245,9 +5242,9 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
     {
         resource = (Resource *)listGetStructOfNode(objnode);
 
-        x += resource->posinfo.position.x;
-        y += resource->posinfo.position.y;
-        z += resource->posinfo.position.z;
+        x += resource->obj.posinfo.position.x;
+        y += resource->obj.posinfo.position.y;
+        z += resource->obj.posinfo.position.z;
 
 #if BINNETLOG
         if ((netlogfile) && (logEnable == LOG_VERBOSE))
@@ -5255,11 +5252,11 @@ real32 univGetChecksum(sdword *numShipsInChecksum)
         binnetResourceInfo ri;
         ri.header = makenetcheckHeader('R','R','R','R');
         ri.resourceid = resource->resourceID.resourceNumber;
-        ri.resourcetype = resource->objtype;
+        ri.resourcetype = resource->header.objtype;
         ri.resourceValue = resource->resourcevalue;
-        ri.health = resource->health;
-        ri.x = resource->posinfo.position.x; ri.y = resource->posinfo.position.y; ri.z = resource->posinfo.position.z;
-        ri.vx = resource->posinfo.velocity.x; ri.vy = resource->posinfo.velocity.y; ri.vz = resource->posinfo.velocity.z;
+        ri.health = resource->targetable.health;
+        ri.x = resource->obj.posinfo.position.x; ri.y = resource->obj.posinfo.position.y; ri.z = resource->obj.posinfo.position.z;
+        ri.vx = resource->obj.posinfo.velocity.x; ri.vy = resource->obj.posinfo.velocity.y; ri.vz = resource->obj.posinfo.velocity.z;
         fwrite(&ri,sizeof(ri),1,netlogfile);
         }
 #endif
@@ -5299,7 +5296,7 @@ udword univCalcShipChecksum(void)
     while (search!=NULL)
     {
         ship = listGetStructOfNode(search);
-        if(ship->flags & SOF_Dead)
+        if(ship->header.flags & SOF_Dead)
         {
             //don't consider dead ships...they're bad news
             //they still get written to the syncdump.txt, but
@@ -5307,66 +5304,66 @@ udword univCalcShipChecksum(void)
             search = search->next;
             continue;
         }
-        shipcheck += Real32ToUdword(ship->collOptimizeDist);
+        shipcheck += Real32ToUdword(ship->obj.collOptimizeDist);
 
-        shipcheck += Real32ToUdword(ship->posinfo.position.x);
-        shipcheck += Real32ToUdword(ship->posinfo.position.y);
-        shipcheck += Real32ToUdword(ship->posinfo.position.z);
-        shipcheck += Real32ToUdword(ship->posinfo.velocity.x);
-        shipcheck += Real32ToUdword(ship->posinfo.velocity.y);
-        shipcheck += Real32ToUdword(ship->posinfo.velocity.z);
-        shipcheck += Real32ToUdword(ship->posinfo.force.x);
-        shipcheck += Real32ToUdword(ship->posinfo.force.y);
-        shipcheck += Real32ToUdword(ship->posinfo.force.z);
-        shipcheck += (udword)ship->posinfo.isMoving;
-        shipcheck += (udword)ship->posinfo.haventCalculatedDist;
+        shipcheck += Real32ToUdword(ship->obj.posinfo.position.x);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.position.y);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.position.z);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.velocity.x);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.velocity.y);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.velocity.z);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.force.x);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.force.y);
+        shipcheck += Real32ToUdword(ship->obj.posinfo.force.z);
+        shipcheck += (udword)ship->obj.posinfo.isMoving;
+        shipcheck += (udword)ship->obj.posinfo.haventCalculatedDist;
 
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m11);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m21);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m31);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m12);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m22);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m32);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m13);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m23);
-        shipcheck += Real32ToUdword(ship->rotinfo.coordsys.m33);
-        shipcheck += Real32ToUdword(ship->rotinfo.rotspeed.x);
-        shipcheck += Real32ToUdword(ship->rotinfo.rotspeed.y);
-        shipcheck += Real32ToUdword(ship->rotinfo.rotspeed.z);
-        shipcheck += Real32ToUdword(ship->rotinfo.torque.x);
-        shipcheck += Real32ToUdword(ship->rotinfo.torque.y);
-        shipcheck += Real32ToUdword(ship->rotinfo.torque.z);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m11);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m21);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m31);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m12);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m22);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m32);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m13);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m23);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.coordsys.m33);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.rotspeed.x);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.rotspeed.y);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.rotspeed.z);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.torque.x);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.torque.y);
+        shipcheck += Real32ToUdword(ship->rotatable.rotinfo.torque.z);
 
-        shipcheck += Real32ToUdword(ship->collInfo.collOffset.x);
-        shipcheck += Real32ToUdword(ship->collInfo.collOffset.y);
-        shipcheck += Real32ToUdword(ship->collInfo.collOffset.z);
-        shipcheck += Real32ToUdword(ship->collInfo.collPosition.x);
-        shipcheck += Real32ToUdword(ship->collInfo.collPosition.y);
-        shipcheck += Real32ToUdword(ship->collInfo.collPosition.z);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collOffset.x);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collOffset.y);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collOffset.z);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collPosition.x);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collPosition.y);
+        shipcheck += Real32ToUdword(ship->impactable.collInfo.collPosition.z);
 
         for (i=0;i<8;i++)
         {
-            shipcheck += Real32ToUdword(ship->collInfo.rectpos[i].x);
-            shipcheck += Real32ToUdword(ship->collInfo.rectpos[i].y);
-            shipcheck += Real32ToUdword(ship->collInfo.rectpos[i].z);
+            shipcheck += Real32ToUdword(ship->impactable.collInfo.rectpos[i].x);
+            shipcheck += Real32ToUdword(ship->impactable.collInfo.rectpos[i].y);
+            shipcheck += Real32ToUdword(ship->impactable.collInfo.rectpos[i].z);
         }
 
-        shipcheck += Real32ToUdword(ship->health);
-        shipcheck += Real32ToUdword(ship->lasttimecollided);
+        shipcheck += Real32ToUdword(ship->targetable.health);
+        shipcheck += Real32ToUdword(ship->targetable.lasttimecollided);
 
         for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
-            shipcheck += Real32ToUdword(ship->nonstatvars.thruststrength[i]);
+            shipcheck += Real32ToUdword(ship->guidance.nonstatvars.thruststrength[i]);
         for (i=0;i<NUM_ROT_DEGOFFREEDOM;i++)
-            shipcheck += Real32ToUdword(ship->nonstatvars.rotstrength[i]);
+            shipcheck += Real32ToUdword(ship->guidance.nonstatvars.rotstrength[i]);
         for (i=0;i<NUM_TURN_TYPES;i++)
-            shipcheck += Real32ToUdword(ship->nonstatvars.turnspeed[i]);
+            shipcheck += Real32ToUdword(ship->guidance.nonstatvars.turnspeed[i]);
 
-        shipcheck += (udword)ship->aistate;
-        shipcheck += ship->specialFlags&(~(SPECIAL_Resourcing|SPECIAL_Finished_Resource));
-        shipcheck += ship->specialFlags2;
+        shipcheck += (udword)ship->shipOrDerelict.aistate;
+        shipcheck += ship->shipOrDerelict.specialFlags&(~(SPECIAL_Resourcing|SPECIAL_Finished_Resource));
+        shipcheck += ship->shipOrDerelict.specialFlags2;
 
         for (i=0;i<MAX_MULTIPLAYER_PLAYERS;i++)
-            shipcheck += ship->salvageNumTagged[i];
+            shipcheck += ship->shipOrDerelict.salvageNumTagged[i];
 
         shipcheck += Real32ToUdword(ship->moveTo.x);
         shipcheck += Real32ToUdword(ship->moveTo.y);
@@ -5497,21 +5494,21 @@ udword univCalcShipChecksum(void)
     while (search!=NULL)
     {
         bullet = (Bullet *)listGetStructOfNode(search);
-        if(bullet->flags & SOF_Dead)
+        if(bullet->header.flags & SOF_Dead)
         {
             search = search->next;
             continue;
         }
 
-        //shipcheck += Real32ToUdword(bullet->posinfo.position.x);
-        //shipcheck += Real32ToUdword(bullet->posinfo.position.y);
-        //shipcheck += Real32ToUdword(bullet->posinfo.position.z);
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.position.x);
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.position.y);
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.position.z);
 
-        //shipcheck += Real32ToUdword(bullet->posinfo.velocity.x);
-        //shipcheck += Real32ToUdword(bullet->posinfo.velocity.y);
-        //shipcheck += Real32ToUdword(bullet->posinfo.velocity.z);
-        //shipcheck += (udword)bullet->posinfo.isMoving;
-        //shipcheck += (udword)bullet->posinfo.haventCalculatedDist;
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.velocity.x);
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.velocity.y);
+        //shipcheck += Real32ToUdword(bullet->obj.posinfo.velocity.z);
+        //shipcheck += (udword)bullet->obj.posinfo.isMoving;
+        //shipcheck += (udword)bullet->obj.posinfo.haventCalculatedDist;
 
         //shipcheck += Real32ToUdword(bullet->lengthmag);
         //shipcheck += Real32ToUdword(bullet->traveldist);
@@ -5572,15 +5569,15 @@ void univSetupShipForControl(Ship *ship)
 
     ship->gettingrocked = NULL;     // always make sure this gets set to NULL - don't want any bad references
 
-    if (ship->flags & SOF_Dead)
+    if (ship->header.flags & SOF_Dead)
     {
         return;
     }
 
     shipstatic = (ShipStaticInfo *)ship->staticinfo;
 
-    //vecZeroVector(ship->posinfo.force);
-    //vecZeroVector(ship->rotinfo.torque);
+    //vecZeroVector(ship->obj.posinfo.force);
+    //vecZeroVector(ship->rotatable.rotinfo.torque);
 
     if(UNIVERSE_WOODPECKER(TW_ProximitySensorSearchRate, TW_ProximitySensorSearchFrame))
     {
@@ -5591,7 +5588,7 @@ void univSetupShipForControl(Ship *ship)
         //do a check like so here: Check if ship has just become
         //invisible to other ships, if so, remove it from being targetted
         //by those people.
-        if(ship->flags & SOF_Cloaked)
+        if(ship->header.flags & SOF_Cloaked)
         {
             for(t = 0; t <= universe.numPlayers; t++)
             {
@@ -5617,7 +5614,7 @@ void univSetupShipForControl(Ship *ship)
     ship->autostabilizeship = TRUE;
 
     //clear this flag incase it is a target of a salcapcorvette
-    bitClear(ship->specialFlags2,SPECIAL_2_SalvageTargetAlreadyDriven);
+    bitClear(ship->shipOrDerelict.specialFlags2,SPECIAL_2_SalvageTargetAlreadyDriven);
     // memory of attackers fades away...
     if (ship->recentlyAttacked)
     {
@@ -5648,7 +5645,7 @@ void univSetupShipForControl(Ship *ship)
         }
     }
 
-    bitClear(ship->flags, SOF_DontDrawTrails);  // always clear this bit, SOF_Disabled ships never have trails drawn
+    bitClear(ship->header.flags, SOF_DontDrawTrails);  // always clear this bit, SOF_Disabled ships never have trails drawn
 
     dmgShipThink(ship);
 
@@ -5664,16 +5661,16 @@ void univSetupShipForControl(Ship *ship)
         }
     }
 
-    if ((ship->flags & SOF_Disabled) == 0)
+    if ((ship->header.flags & SOF_Disabled) == 0)
     {
         if (shipstatic->repairDamage != 0)
         {
-            if (ship->health < shipstatic->maxhealth)
+            if (ship->targetable.health < shipstatic->health.maxhealth)
             {
                 real32 repairTime;
                 real32 repairDamage;
 
-                if (ship->recentlyAttacked | ship->shipisattacking | bitTest(ship->specialFlags, SPECIAL_ForcedAttackStatus))
+                if (ship->recentlyAttacked | ship->shipisattacking | bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_ForcedAttackStatus))
                 {
                     repairTime = shipstatic->repairCombatTime;
                     repairDamage = shipstatic->repairCombatDamage;
@@ -5688,10 +5685,10 @@ void univSetupShipForControl(Ship *ship)
                 {
                     ship->lastTimeRepaired = universe.totaltimeelapsed;
 
-                    ship->health += repairDamage;
-                    if (ship->health > shipstatic->maxhealth)
+                    ship->targetable.health += repairDamage;
+                    if (ship->targetable.health > shipstatic->health.maxhealth)
                     {
-                        ship->health = shipstatic->maxhealth;
+                        ship->targetable.health = shipstatic->health.maxhealth;
                     }
                 }
             }
@@ -5728,7 +5725,7 @@ void univSetupShipsForControl()
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         univSetupShipForControl(ship);
 
@@ -5753,7 +5750,7 @@ void univSetupShipsForControl()
 SelectCommand *getEnemiesWithinProximity(Ship *thisship,real32 retaliateZone)
 {
     Player *playerowner = thisship->playerowner;
-    blob *thisblob = thisship->collMyBlob;
+    blob *thisblob = thisship->obj.collMyBlob;
     sdword objindex = 0;
     SelectCommand *blobships = thisblob->blobShips;
     udword num = blobships->numShips;
@@ -5765,7 +5762,7 @@ SelectCommand *getEnemiesWithinProximity(Ship *thisship,real32 retaliateZone)
     real32 negRetaliateZone = -retaliateZone;
 
     if ((thisship->shiptype == FloatingCity) || (thisship->shiptype == TargetDrone) ||
-        (bitTest(thisship->specialFlags, SPECIAL_FriendlyStatus)))
+        (bitTest(thisship->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus)))
     {
         return NULL;      // traders get special status, not considered enemy to anyone
     }
@@ -5781,11 +5778,11 @@ SelectCommand *getEnemiesWithinProximity(Ship *thisship,real32 retaliateZone)
             goto nextnode;      // must be enemy ship
         }
         if ((ship->shiptype == FloatingCity) || (ship->shiptype == TargetDrone) ||
-            (bitTest(ship->specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
+            (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus|SPECIAL_Hyperspacing)))
         {
             goto nextnode;      // traders get special status, not considered enemy to anyone
         }
-        if (bitTest(ship->flags,SOF_Cloaked))
+        if (bitTest(ship->header.flags,SOF_Cloaked))
         {
             if(!proximityCanPlayerSeeShip(thisship->playerowner,ship))
             {
@@ -5818,12 +5815,12 @@ SelectCommand *getEnemiesWithinProximity(Ship *thisship,real32 retaliateZone)
                 }
             }
         }
-        if(bitTest(ship->flags,SOF_Disabled|SOF_Hide))
+        if(bitTest(ship->header.flags,SOF_Disabled|SOF_Hide))
         {
             //don't attack disabled ships.
             goto nextnode;
         }
-        vecSub(diff,ship->posinfo.position,thisship->posinfo.position);
+        vecSub(diff,ship->obj.posinfo.position,thisship->obj.posinfo.position);
 
         if (isBetweenExclusive(diff.x,negRetaliateZone,retaliateZone) &&
             isBetweenExclusive(diff.y,negRetaliateZone,retaliateZone) &&
@@ -5856,26 +5853,26 @@ void univCheckShipState(Ship *ship)
     // seems to happen on Mission 10 frequently preventing objective to be fullfilled as ships can't be found and killed
     // NOTE: what is causing the NaNs in the first place is unclear at this time.
     //       Since I encountered in mission 10 it might be the radiation effect?
-    if ((ship->flags & SOF_Dead) == 0) {
-      if (isnan(ship->posinfo.position.x) || isnan(ship->posinfo.position.y) || isnan(ship->posinfo.position.z)) {
+    if ((ship->header.flags & SOF_Dead) == 0) {
+      if (isnan(ship->obj.posinfo.position.x) || isnan(ship->obj.posinfo.position.y) || isnan(ship->obj.posinfo.position.z)) {
         dbgMessage("univCheckShipState(): Ship position contains NaN! Killing it.");
-        ship->health = 0;
+        ship->targetable.health = 0;
         AddShipToDeleteShipList(ship, -1);
       }
     }
 
     if (ship->deathtime != 0.0f)
     {
-        if ((ship->flags & SOF_Dead) == 0)
+        if ((ship->header.flags & SOF_Dead) == 0)
         {
             if (universe.totaltimeelapsed >= ship->deathtime)
             {
                 // Self-destruct ship
-                if(!(ship->flags & SOF_Disabled))
+                if(!(ship->header.flags & SOF_Disabled))
                 {
                     //if ship is disabled..it didn't receive the
                     //self destruct order
-                    ship->health = 0;
+                    ship->targetable.health = 0;
                     AddShipToDeleteShipList(ship,-1);
                 }
                 else if(ship->shiptype == GravWellGenerator)
@@ -5884,7 +5881,7 @@ void univCheckShipState(Ship *ship)
                     {
                         //if ship is disabled..it didn't receive the
                         //self destruct order
-                        ship->health = 0;
+                        ship->targetable.health = 0;
                         AddShipToDeleteShipList(ship,-1);
                     }
                 }
@@ -5892,18 +5889,18 @@ void univCheckShipState(Ship *ship)
         }
     }
 
-    if (ship->flags & SOF_Dead)
+    if (ship->header.flags & SOF_Dead)
     {
         return;
     }
 
-    if (ship->specialFlags & SPECIAL_rowGettingOutOfWay)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay)
     {
         rowFlyShipOutOfWay(ship);
         //ship->autostabilizeship = FALSE;
     }
 
-    if (ship->autostabilizeship && !bitTest(ship->flags, SOF_Disabled|SOF_Hide|SOF_Hyperspace|SOF_NISShip|SOF_Crazy) && !bitTest(ship->attributes,ATTRIBUTES_DontApplyFriction) && (ship->shiptype != Drone))
+    if (ship->autostabilizeship && !bitTest(ship->header.flags, SOF_Disabled|SOF_Hide|SOF_Hyperspace|SOF_NISShip|SOF_Crazy) && !bitTest(ship->obj.attributes,ATTRIBUTES_DontApplyFriction) && (ship->shiptype != Drone))
     {
         bool32 isShipSteady;
 
@@ -5963,7 +5960,7 @@ void univCheckShipState(Ship *ship)
         return;      // don't autoretaliate if NIS running
     }
 
-    if(!bitTest(ship->flags, SOF_Disabled))
+    if(!bitTest(ship->header.flags, SOF_Disabled))
     {
         tacticsUpdate(ship);    //perform tactical processes for ship
         if (UNIVERSE_WOODPECKER(CHECK_SHIP_OUTOFWORLD_RATE, ship->shipID.shipNumber & CHECK_SHIP_OUTOFWORLD_RATE))
@@ -6019,9 +6016,9 @@ void univCheckShipState(Ship *ship)
                             }
                         }
                     }
-                    newdest = ship->posinfo.position;
+                    newdest = ship->obj.posinfo.position;
                     vecMultiplyByScalar(newdest,FLY_INTO_WORLD_PERCENT_DIST);
-                    clMove(&universe.mainCommandLayer,selectmove,ship->posinfo.position,newdest);
+                    clMove(&universe.mainCommandLayer,selectmove,ship->obj.posinfo.position,newdest);
                     memFree(selectmove);
                     return;
                 }
@@ -6031,7 +6028,7 @@ void univCheckShipState(Ship *ship)
 DONT_MOVE_ME_YET:
     if (ship->shipidle)
     {
-        if(!bitTest(ship->flags, SOF_Disabled))
+        if(!bitTest(ship->header.flags, SOF_Disabled))
         {
             if (ship->shiptype == ResourceCollector)
             {
@@ -6097,7 +6094,7 @@ DONT_MOVE_ME_YET:
                 }
                 else if ((UNIVERSE_WOODPECKER(CHECK_PASSIVE_ATTACK_RATE, ship->shipID.shipNumber & CHECK_PASSIVE_ATTACK_RATE)) && (ship->staticinfo->passiveRetaliateZone != 0.0f))
                 {
-                    if(bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
+                    if(bitTest(ship->header.flags,SOF_Cloaked) || bitTest(ship->header.flags,SOF_Cloaking))
                     {   //if a ship is cloaked or it is cloaking, don't passive attack because we
                         //want to act stealthy :)
                         return;
@@ -6164,7 +6161,7 @@ DONT_MOVE_ME_YET:
         //ship isn't idle
         //so lets do a check every so often to see if
         //ship should attempt passive attacking
-        if(!bitTest(ship->flags, SOF_Disabled))
+        if(!bitTest(ship->header.flags, SOF_Disabled))
         {
             if ((UNIVERSE_WOODPECKER(CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE, ship->shipID.shipNumber & CHECK_PASSIVE_ATTACK_WHILEMOVING_RATE)) && (ship->staticinfo->passiveRetaliateZone != 0.0f) && (isCapitalShip(ship)))
             {
@@ -6175,7 +6172,7 @@ DONT_MOVE_ME_YET:
                     if(command->ordertype.order == COMMAND_MOVE
                     ||command->ordertype.order == COMMAND_DOCK)
                     {
-                        if(bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
+                        if(bitTest(ship->header.flags,SOF_Cloaked) || bitTest(ship->header.flags,SOF_Cloaking))
                         {   //if a ship is cloaked or it is cloaking, don't passive attack because we
                             //want to act stealthy :)
                             return;
@@ -6323,15 +6320,15 @@ void univFreeDerelictContents(Derelict *derelict)
         memFree(derelict->navLightInfo);
         derelict->navLightInfo = NULL;
     }
-    if(derelict->salvageInfo != NULL)
+    if(derelict->shipOrDerelict.salvageInfo != NULL)
     {
-        memFree(derelict->salvageInfo);
-        derelict->salvageInfo = NULL;
+        memFree(derelict->shipOrDerelict.salvageInfo);
+        derelict->shipOrDerelict.salvageInfo = NULL;
     }
-    if(derelict->clampInfo != NULL)
+    if(derelict->guidance.clampInfo != NULL)
     {
-        memFree(derelict->clampInfo);
-        derelict->clampInfo = NULL;
+        memFree(derelict->guidance.clampInfo);
+        derelict->guidance.clampInfo = NULL;
     }
 
 }
@@ -6345,7 +6342,7 @@ void univFreeDerelictContents(Derelict *derelict)
 ----------------------------------------------------------------------------*/
 void univFreeAsteroidContents(Asteroid *asteroid)
 {
-    if (asteroid->flags & SOF_StaticInfoIsDynamic)
+    if (asteroid->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(asteroid->staticinfo);
     }
@@ -6359,7 +6356,7 @@ void univFreeNebulaContents(Nebula *nebula)
         nebula->stub = NULL;
     }
 
-    if (nebula->flags & SOF_StaticInfoIsDynamic)
+    if (nebula->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(nebula->staticinfo);
     }
@@ -6367,7 +6364,7 @@ void univFreeNebulaContents(Nebula *nebula)
 
 void univFreeGasCloudContents(GasCloud *gascloud)
 {
-    if (gascloud->flags & SOF_StaticInfoIsDynamic)
+    if (gascloud->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(gascloud->staticinfo);
     }
@@ -6381,7 +6378,7 @@ void univFreeDustCloudContents(DustCloud *dustcloud)
         dustcloud->stub = NULL;
     }
 
-    if (dustcloud->flags & SOF_StaticInfoIsDynamic)
+    if (dustcloud->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(dustcloud->staticinfo);
     }
@@ -6389,7 +6386,7 @@ void univFreeDustCloudContents(DustCloud *dustcloud)
 
 void univFreeResourceContents(Resource *resource)
 {
-    switch (resource->objtype)
+    switch (resource->header.objtype)
     {
         case OBJ_AsteroidType:
             univFreeAsteroidContents((Asteroid *)resource);
@@ -6441,10 +6438,10 @@ void univFreeMissileContents(Missile *missile)
         mistrailDelete(missile->trail);
         missile->trail = NULL;
     }
-    if(missile->clampInfo != NULL)
+    if(missile->guidance.clampInfo != NULL)
     {
-        memFree(missile->clampInfo);
-        missile->clampInfo = NULL;
+        memFree(missile->guidance.clampInfo);
+        missile->guidance.clampInfo = NULL;
     }
 }
 
@@ -6458,8 +6455,8 @@ void univFreeMissileContents(Missile *missile)
 ----------------------------------------------------------------------------*/
 void univRemoveShipReferences(Ship *ship)
 {
-    ship->flags |= SOF_Dead;
-    bitClear(ship->flags,SOF_Selectable);
+    ship->header.flags |= SOF_Dead;
+    bitClear(ship->header.flags,SOF_Selectable);
 
     //hopefully, at this point, the ships howDidIDied variable is set and valid!
     gameStatsShipDied(ship);
@@ -6489,7 +6486,7 @@ void univRemoveShipReferences(Ship *ship)
         DeleteShipsInsideMe(ship);
     }
 
-    if (bitTest(ship->flags,SOF_Slaveable))
+    if (bitTest(ship->header.flags,SOF_Slaveable))
     {
         dockDealWithDeadSlaveable(ship);        //this probably won't be called ever
     }
@@ -6579,15 +6576,15 @@ void univFreeShipContents(Ship *ship)
         memFree(ship->navLightInfo);
         ship->navLightInfo = NULL;
     }
-    if(ship->salvageInfo != NULL)
+    if(ship->shipOrDerelict.salvageInfo != NULL)
     {
-        memFree(ship->salvageInfo);
-        ship->salvageInfo = NULL;
+        memFree(ship->shipOrDerelict.salvageInfo);
+        ship->shipOrDerelict.salvageInfo = NULL;
     }
-    if(ship->clampInfo != NULL)
+    if(ship->guidance.clampInfo != NULL)
     {
-        memFree(ship->clampInfo);
-        ship->clampInfo = NULL;
+        memFree(ship->guidance.clampInfo);
+        ship->guidance.clampInfo = NULL;
     }
     //remove lightnings
     for (i = 0; i < 2; i++)
@@ -6638,7 +6635,7 @@ void univFreeShipContents(Ship *ship)
         ((ShipStaticInfo *)ship->staticinfo)->custshipheader.CustShipClose(ship);
     }
     univMeshBindingsDelete(ship);
-    if (ship->flags & SOF_StaticInfoIsDynamic)
+    if (ship->header.flags & SOF_StaticInfoIsDynamic)
     {
         memFree(ship->staticinfo);
     }
@@ -6670,7 +6667,7 @@ void univupdateCloseAllObjectsAndMissionSpheres()
     {
         obj = (SpaceObj *)listGetStructOfNode(objnode);
 
-        switch (obj->objtype)
+        switch (obj->header.objtype)
         {
             case OBJ_ShipType:
                 ((Ship *)obj)->howDidIDie = DEATH_BY_GAME_END;
@@ -6723,7 +6720,7 @@ void univupdateCloseAllObjectsAndMissionSpheres()
     {
         obj = (SpaceObj *)listGetStructOfNode(objnode);
 
-        switch (obj->objtype)
+        switch (obj->header.objtype)
         {
             case OBJ_AsteroidType:
                 univFreeAsteroidContents((Asteroid *)obj);
@@ -6792,30 +6789,17 @@ void univupdateClose()
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-void setSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *object)
+void setSalvageInfo(ShipOrDerelict *object)
 {
-    StaticInfoHealthGuidanceShipDerelict *statinfo = (StaticInfoHealthGuidanceShipDerelict *)object->staticinfo;
+    StaticInfoShipOrDerelict *statinfo = object->staticinfo;
     sdword sizeofSalvageInfo;
 
-    switch(object->objtype)
+    if(object->staticinfo->salvageStaticInfo == NULL)
     {
-    case OBJ_ShipType:
-        if(((Ship *)object)->staticinfo->salvageStaticInfo == NULL)
-        {
-            object->salvageInfo = NULL;
-            return;
-        }
-        break;
-    case OBJ_DerelictType:
-        if(((Derelict *)object)->staticinfo->salvageStaticInfo == NULL)
-        {
-            object->salvageInfo = NULL;
-            return;
-        }
-        break;
-    default:
+        object->salvageInfo = NULL;
         return;
     }
+
     {
         SalvagePoint *cursalvagepoint;
         SalvageStaticPoint *cursalvagestaticpoint;
@@ -6897,9 +6881,9 @@ void univAddObjToRenderListIf(SpaceObj *newobj,SpaceObj *ifobj)
     listVerify(&universe.RenderList);
     if (univSpaceObjInRenderList(ifobj))
     {
-        if ((newobj->flags & SOF_Hide) == 0)        // don't add hidden objects
+        if ((newobj->header.flags & SOF_Hide) == 0)        // don't add hidden objects
         {
-            if (bitTest(newobj->flags, SOF_AlwaysSortFront))
+            if (bitTest(newobj->header.flags, SOF_AlwaysSortFront))
             {
                 univAddObjToRenderList(newobj);
                 return;
@@ -6922,7 +6906,7 @@ void univAddObjToRenderListIf(SpaceObj *newobj,SpaceObj *ifobj)
 void univAddObjToRenderList(SpaceObj *newobj)
 {
     listVerify(&universe.RenderList);
-    if ((newobj->flags & SOF_Hide) == 0)
+    if ((newobj->header.flags & SOF_Hide) == 0)
     {
         vector eyeposition = universe.mainCameraCommand.actualcamera.eyeposition;
         Node *objnode;
@@ -6935,7 +6919,7 @@ void univAddObjToRenderList(SpaceObj *newobj)
 
         // render list is sorted from back to front, so find first node which has cameraDistanceSquared less than ours
 
-        if (bitTest(newobj->flags, SOF_AlwaysSortFront))
+        if (bitTest(newobj->header.flags, SOF_AlwaysSortFront))
         {                                                   //if this object has to go in front
             objnode = universe.RenderList.tail;
             while (objnode != NULL)
@@ -7006,7 +6990,7 @@ void univUpdateMinorRenderList()
 
         if (distsqr < RENDER_VIEWABLE_DISTANCE_SQR)
         {
-            if ((obj->flags & SOF_Hide) == 0)   // don't add hidden objects
+            if ((obj->header.flags & SOF_Hide) == 0)   // don't add hidden objects
             {
                 vecSub(obj->cameraDistanceVector,eyeposition,obj->posinfo.position);
                 obj->cameraDistanceSquared = vecMagnitudeSquared(obj->cameraDistanceVector);
@@ -7074,7 +7058,7 @@ void univUpdateRenderList()
         vecSub(distvec,lookatposition,obj->posinfo.position);
         distsqr = vecMagnitudeSquared(distvec);
 
-        if (obj->flags & SOF_ForceVisible)
+        if (obj->header.flags & SOF_ForceVisible)
         {                                                   //if object is to always be in render list
             vecSub(obj->cameraDistanceVector, eyeposition, obj->posinfo.position);
             obj->cameraDistanceSquared = vecMagnitudeSquared(obj->cameraDistanceVector);
@@ -7083,7 +7067,7 @@ void univUpdateRenderList()
         }
         else
         {                                                   //else check if object should be in render list
-            if (obj->objtype == OBJ_ShipType)
+            if (obj->header.objtype == OBJ_ShipType)
             {
                 ShipClass shipclass;
                 real32 limit;
@@ -7100,7 +7084,7 @@ void univUpdateRenderList()
                     limit = limits[(sdword)shipclass];
                 }
 
-                if ((distsqr < limit) && !(obj->flags & SOF_Hide))
+                if ((distsqr < limit) && !(obj->header.flags & SOF_Hide))
                 {
                     vecSub(obj->cameraDistanceVector, eyeposition, obj->posinfo.position);
                     obj->cameraDistanceSquared = vecMagnitudeSquared(obj->cameraDistanceVector);
@@ -7108,7 +7092,7 @@ void univUpdateRenderList()
                     listAddNode(&universe.RenderList, &obj->renderlink, obj);
                 }
             }
-            else if (obj->objtype == OBJ_DerelictType)
+            else if (obj->header.objtype == OBJ_DerelictType)
             {
                 real32 limit;
 
@@ -7118,17 +7102,17 @@ void univUpdateRenderList()
                 }
                 else
                 {
-                    limit = (obj->flags & SOF_BigObject) ? RENDER_MAXVIEWABLE_DISTANCE_SQR : RENDER_VIEWABLE_DISTANCE_SQR;
+                    limit = (obj->header.flags & SOF_BigObject) ? RENDER_MAXVIEWABLE_DISTANCE_SQR : RENDER_VIEWABLE_DISTANCE_SQR;
                 }
 
                 if (distsqr < limit)
                 {
-                    if ((obj->flags & SOF_Hide) == 0)
+                    if ((obj->header.flags & SOF_Hide) == 0)
                     {
                         vecSub(obj->cameraDistanceVector, eyeposition, obj->posinfo.position);
                         obj->cameraDistanceSquared = vecMagnitudeSquared(obj->cameraDistanceVector);
 
-                        if (bitTest(obj->flags, SOF_AlwaysSortFront))
+                        if (bitTest(obj->header.flags, SOF_AlwaysSortFront))
                         {
                             listAddNode(&sortFrontList, &obj->renderlink, obj);
                         }
@@ -7143,14 +7127,14 @@ void univUpdateRenderList()
             {
                 if (distsqr < RENDER_MAXVIEWABLE_DISTANCE_SQR)
                 {
-                    if ((distsqr < RENDER_VIEWABLE_DISTANCE_SQR) || (obj->flags & SOF_BigObject))
+                    if ((distsqr < RENDER_VIEWABLE_DISTANCE_SQR) || (obj->header.flags & SOF_BigObject))
                     {
-                        if ((obj->flags & SOF_Hide) == 0)   // don't add hidden objects
+                        if ((obj->header.flags & SOF_Hide) == 0)   // don't add hidden objects
                         {
                             vecSub(obj->cameraDistanceVector,eyeposition,obj->posinfo.position);
                             obj->cameraDistanceSquared = vecMagnitudeSquared(obj->cameraDistanceVector);
 
-                            if (bitTest(obj->flags, SOF_AlwaysSortFront))
+                            if (bitTest(obj->header.flags, SOF_AlwaysSortFront))
                             {
                                 listAddNode(&sortFrontList, &obj->renderlink, obj);
                             }

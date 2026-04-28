@@ -606,11 +606,11 @@ bool32 mouseLDoubleClick(void)
         // the actions are intuitively right.  Unfortunately the cursor shape follows
         // an entirely separate logic (in mouseSetCursorSetting).
         if (mouseCursorObjPtr &&                // if there's an object being clicked on
-            (((isShipOfClass((Ship *)mouseCursorObjPtr, CLASS_Fighter) ||        // Carriers only support strikecraft
-               isShipOfClass((Ship *)mouseCursorObjPtr, CLASS_Corvette)) &&
+            (((isShipOfClass(mouseCursorObjPtr, CLASS_Fighter) ||        // Carriers only support strikecraft
+               isShipOfClass(mouseCursorObjPtr, CLASS_Corvette)) &&
               ShiptypeInSelection((SelectCommand *)&mouseCursorSelect, Carrier)) ||
-            (!isShipOfClass((Ship *)mouseCursorObjPtr, CLASS_Mothership) &&     // RCorvs dock instead if possible.
-             !isShipOfClass((Ship *)mouseCursorObjPtr, CLASS_Carrier) &&
+            (!isShipOfClass(mouseCursorObjPtr, CLASS_Mothership) &&     // RCorvs dock instead if possible.
+             !isShipOfClass(mouseCursorObjPtr, CLASS_Carrier) &&
              ShiptypeInSelection((SelectCommand *)&mouseCursorSelect, RepairCorvette)) ||
             ShiptypeInSelection((SelectCommand *)&mouseCursorSelect, AdvanceSupportFrigate)))
         {
@@ -675,7 +675,7 @@ bool32 mouseLDoubleClick(void)
         }
     }
 //    else if ((mouseCursorObjPtr != NULL) &&
-//             (mouseCursorObjPtr->objtype != OBJ_ShipType))
+//             (mouseCursorObjPtr->header.objtype != OBJ_ShipType))
 //    {
 //        if (mouseCursorSelect.numShips > 0)
 //        {
@@ -1251,7 +1251,7 @@ void mouseSelectCursorSetting(void)
             //-- Set flags for selected ships under the cursor --//
             //if the cursor is over a selected ship
             if ((mouseCursorObjPtr != NULL) &&
-                ((Ship *)mouseCursorObjPtr == selSelected.ShipPtr[i]))
+                (mouseCursorObjPtr == &ship->obj))
             {
                 //set flags for all GUI or special op ships
                 switch (ship->shiptype)
@@ -1271,7 +1271,7 @@ void mouseSelectCursorSetting(void)
                         break;
                     case CloakGenerator:
                     case CloakedFighter:
-                        if (bitTest(ship->flags, SOF_Cloaked))
+                        if (bitTest(ship->header.flags, SOF_Cloaked))
                         {
                             bitSet(mouseInfo.flags, MCF_SpecialOpDeployed);
                         }

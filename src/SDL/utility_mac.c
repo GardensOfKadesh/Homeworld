@@ -3203,11 +3203,11 @@ void utyTeaserStart(void)
         shiptype = utyTeaserHeader->objectPath[index].type;
         shiprace = utyTeaserHeader->objectPath[index].race;
         info = GetShipStaticInfo(shiptype,shiprace);
-        bitSet(info->staticheader.infoFlags, IF_InfoNeeded);
+        bitSet(info->common.infoFlags, IF_InfoNeeded);
         if (shiptype == DDDFrigate)
         {
             info = GetShipStaticInfo(Drone, shiprace);
-            bitSet(info->staticheader.infoFlags, IF_InfoNeeded);
+            bitSet(info->common.infoFlags, IF_InfoNeeded);
         }
     }
     universeStaticInit();

@@ -789,7 +789,7 @@ void speechPlayQueue(SPEECHQUEUE *pSQueue, sdword streamchannel)
         {
             shipclass = pSQueue->current.pShip->staticinfo->shipclass;
 
-            damageratio = 1.0f - ((real32)pSQueue->current.pShip->health * (real32)pSQueue->current.pShip->staticinfo->oneOverMaxHealth);
+            damageratio = 1.0f - ((real32)pSQueue->current.pShip->targetable.health * (real32)pSQueue->current.pShip->staticinfo->health.oneOverMaxHealth);
         }
 
         /* get the appropriate EQ */
@@ -1404,7 +1404,7 @@ sdword speechEventQueue(void *object, sdword event, sdword var, sdword variation
             }
         }
 
-        if (spaceobject->objtype != OBJ_ShipType)
+        if (spaceobject->header.objtype != OBJ_ShipType)
         {
             return (SOUND_ERR);
         }
@@ -1458,7 +1458,7 @@ sdword speechEventQueue(void *object, sdword event, sdword var, sdword variation
         if (object != NULL)
         {
             spaceobject = (SpaceObj *)object;
-            if (spaceobject->objtype == OBJ_ShipType)
+            if (spaceobject->header.objtype == OBJ_ShipType)
             {
                 pShip = (Ship *)object;
             }
@@ -1967,7 +1967,7 @@ sdword speechEventPlay(void *object, sdword event, sdword var, sdword playernum,
     {
         spaceobject = (SpaceObj *)object;
 
-        if (spaceobject->objtype != OBJ_ShipType)
+        if (spaceobject->header.objtype != OBJ_ShipType)
         {
             return (SOUND_ERR);
         }
@@ -2014,9 +2014,9 @@ sdword speechEventPlay(void *object, sdword event, sdword var, sdword playernum,
                 actor = ship->soundevent.actorNum;
             }
 
-            damageratio = 1.0f - ((real32)ship->health * (real32)shipstatic->oneOverMaxHealth);      // (real32)shipstatic->maxhealth);
+            damageratio = 1.0f - ((real32)ship->targetable.health * (real32)shipstatic->health.oneOverMaxHealth);      // (real32)shipstatic->health.maxhealth);
 
-            dist = fsqrt(spaceobject->cameraDistanceSquared);
+            dist = fsqrt(spaceobject->obj.cameraDistanceSquared);
 
             vol = SOUND_VOL_MAX - (sword)(SPEECH_VOL_FACTOR * dist);
             if (vol < SPEECH_VOL_LOW)
@@ -2379,7 +2379,7 @@ bool32 speechEventAttack(void)
     {
         for (i = 0; i < selSelecting.numTargets; i++)
         {
-            objtype = selSelecting.TargetPtr[i]->objtype;
+            objtype = selSelecting.TargetPtr[i]->header.objtype;
             if (objtype == OBJ_ShipType)
             {
                 ship = (Ship *)selSelecting.TargetPtr[i];
@@ -2488,7 +2488,7 @@ void speechEventUnderAttack(Ship *target)
                 }
                 else if (target->shiptype == HeavyCruiser)
                 {
-                    if ((target->health / target->staticinfo->maxhealth) < SEL_ShipHealthYellowFactor)
+                    if ((target->targetable.health / target->staticinfo->health.maxhealth) < SEL_ShipHealthYellowFactor)
                     {
                         speechEvent(target, STAT_Cruiser_Damaged, 0);
                         target->soundevent.timeLastStatus = universe.totaltimeelapsed;

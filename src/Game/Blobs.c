@@ -229,45 +229,43 @@ void FillInCollisionBlobSpecificLists(blob *thisBlob)
     {
         spaceobj = blobObjects->SpaceObjPtr[i];
 
-        if (spaceobj->flags & SOF_Targetable)
+        if (spaceobj->header.flags & SOF_Targetable)
         {
-            if(spaceobj->objtype != OBJ_MissileType)
+            if(spaceobj->header.objtype != OBJ_MissileType)
             {
-                real32 originalcollspheresize = ((TargetPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize;
-
-                if (originalcollspheresize >= BIG_TARGET_SIZE)
+                real32 originalCollSphereSize = spaceobj->staticinfo->staticCollInfo.originalCollSphereSize;
+                if (originalCollSphereSize >= BIG_TARGET_SIZE)
                 {
                     thisBlob->blobBigTargets->TargetPtr[numBigTargets++] = (TargetPtr)spaceobj;
-                    AssignIfBigger(thisBlob->blobMaxBTargetCollSphereSize,originalcollspheresize)
+                    AssignIfBigger(thisBlob->blobMaxBTargetCollSphereSize, originalCollSphereSize)
                 }
                 else
                 {
                     //don't add missiles because they're bitches
                     thisBlob->blobSmallTargets->TargetPtr[numSmallTargets++] = (TargetPtr)spaceobj;
-                    AssignIfBigger(thisBlob->blobMaxSTargetCollSphereSize,originalcollspheresize)
+                    AssignIfBigger(thisBlob->blobMaxSTargetCollSphereSize, originalCollSphereSize)
                 }
             }
         }
 
-        switch (spaceobj->objtype)
+        switch (spaceobj->header.objtype)
         {
             case OBJ_ShipType:
             {
-                real32 originalcollspheresize = ((ShipPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize;
-
-                if (originalcollspheresize >= BIG_SHIP_SIZE)
+                real32 originalCollSphereSize = spaceobj->staticinfo->staticCollInfo.originalCollSphereSize;
+                if (originalCollSphereSize >= BIG_SHIP_SIZE)
                 {
                     thisBlob->blobBigShips->ShipPtr[numBigShips++] = (ShipPtr)spaceobj;
-                    AssignIfBigger(thisBlob->blobMaxBigShipCollSphereSize,originalcollspheresize)
+                    AssignIfBigger(thisBlob->blobMaxBigShipCollSphereSize, originalCollSphereSize)
                 }
                 else
                 {
                     thisBlob->blobSmallShips->ShipPtr[numSmallShips++] = (ShipPtr)spaceobj;
-                    AssignIfBigger(thisBlob->blobMaxSmallShipCollSphereSize,originalcollspheresize)
+                    AssignIfBigger(thisBlob->blobMaxSmallShipCollSphereSize, originalCollSphereSize)
                 }
 
                 thisBlob->blobShips->ShipPtr[numShips++] = (ShipPtr)spaceobj;
-                AssignIfBigger(thisBlob->blobMaxShipCollSphereSize,((ShipPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.collspheresize)
+                AssignIfBigger(thisBlob->blobMaxShipCollSphereSize, originalCollSphereSize)
             }
                 break;
 
@@ -280,12 +278,12 @@ void FillInCollisionBlobSpecificLists(blob *thisBlob)
             case OBJ_GasType:
             case OBJ_DustType:
                 thisBlob->blobResources->ResourcePtr[numResources++] = (ResourcePtr)spaceobj;
-                AssignIfBigger(thisBlob->blobMaxResourceCollSphereSize,((ResourcePtr)spaceobj)->staticinfo->staticheader.staticCollInfo.collspheresize)
+                AssignIfBigger(thisBlob->blobMaxResourceCollSphereSize, spaceobj->staticinfo->staticCollInfo.originalCollSphereSize)
                 break;
 
             case OBJ_DerelictType:
                 thisBlob->blobDerelicts->DerelictPtr[numDerelicts++] = (DerelictPtr)spaceobj;
-                AssignIfBigger(thisBlob->blobMaxDerelictCollSphereSize,((DerelictPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.collspheresize)
+                AssignIfBigger(thisBlob->blobMaxDerelictCollSphereSize, spaceobj->staticinfo->staticCollInfo.originalCollSphereSize)
                 break;
 
             case OBJ_MissileType:
@@ -337,21 +335,22 @@ void bobUpdateObjsInBlobCollInfo(blob *thisBlob)
     {
         spaceobj = blobObjects->SpaceObjPtr[i];
 
-        dbgAssertOrIgnore((spaceobj->flags & SOF_Dead) == 0);
+        dbgAssertOrIgnore((spaceobj->header.flags & SOF_Dead) == 0);
 #if BOB_ERROR_CHECKING
-        if (spaceobj->objtype == OBJ_AsteroidType)
+        if (spaceobj->header.objtype == OBJ_AsteroidType)
         {
             dbgAssertOrIgnore(((Asteroid *)spaceobj)->asteroidtype != Asteroid0);    // don't put Asteroid0 in for speed
         }
         else
 #endif
-        if (spaceobj->objtype == OBJ_ShipType)
+        if (spaceobj->header.objtype == OBJ_ShipType)
         {                                                   //keep the "action flags" up-to-date
-            if (((Ship *)spaceobj)->recentlyAttacked != 0)
+            Ship* ship = (Ship *)spaceobj;
+            if (ship->recentlyAttacked != 0)
             {
                 bitSet(thisBlob->flags, BTF_GettingAttacked);
             }
-            if (((Ship *)spaceobj)->shipisattacking)
+            if (ship->shipisattacking)
             {
                 bitSet(thisBlob->flags, BTF_Attacking);
             }
@@ -429,12 +428,17 @@ void bobUpdateExtraCollBobInfo(LinkedList *list)
         for (i=0;i<blobObjects->numSpaceObjs;i++)
         {
             spaceobj = blobObjects->SpaceObjPtr[i];
+            // TODO(refactor, 2026-04-28): Apparently it is safe to make the following assumptions at this point.
+            // Maybe get rid of unnecessary ifs below?
+            dbgAssertOrIgnore(spaceobj->staticinfo);
+            dbgAssertOrIgnore(spaceobj->header.objtype != OBJ_MissileType);
+            real32 originalCollSphereSize = spaceobj->staticinfo->staticCollInfo.originalCollSphereSize;
 
-            if (spaceobj->flags & SOF_Targetable)
+            if (spaceobj->header.flags & SOF_Targetable)
             {
-                if(spaceobj->objtype != OBJ_MissileType)
+                if(spaceobj->header.objtype != OBJ_MissileType)
                 {
-                    if (((TargetPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_TARGET_SIZE)
+                    if (originalCollSphereSize >= BIG_TARGET_SIZE)
                     {
                         numBigTargets++;
                     }
@@ -445,10 +449,10 @@ void bobUpdateExtraCollBobInfo(LinkedList *list)
                 }
             }
 
-            switch (spaceobj->objtype)
+            switch (spaceobj->header.objtype)
             {
                 case OBJ_ShipType:
-                    if (((ShipPtr)spaceobj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_SHIP_SIZE)
+                    if (originalCollSphereSize >= BIG_SHIP_SIZE)
                     {
                         numBigShips++;
                     }
@@ -584,14 +588,14 @@ void bobSubBlobListCreate(BlobProperties *blobProperties, LinkedList *list, blob
         spaceobj = superBlob->blobObjects->SpaceObjPtr[index];
         if (criteria(superBlob, spaceobj))
         {                                                   //if this object satisfies some criteria
-            switch (spaceobj->objtype)
+            switch (spaceobj->header.objtype)
             {
                 case OBJ_ShipType:
                     if (((Ship *)spaceobj)->shiptype == Drone)
                     {
                         continue;
                     }
-                    mass = ((Ship *)spaceobj)->staticinfo->staticheader.mass;
+                    mass = ((Ship *)spaceobj)->staticinfo->common.mass;
                     break;
                 case OBJ_BulletType:
                     continue;                                   //no sphere for you!
@@ -599,14 +603,14 @@ void bobSubBlobListCreate(BlobProperties *blobProperties, LinkedList *list, blob
                 case OBJ_NebulaType:
                 case OBJ_GasType:
                 case OBJ_DustType:
-                    mass = ((Resource *)spaceobj)->staticinfo->staticheader.mass;
+                    mass = ((Resource *)spaceobj)->staticinfo->common.mass;
                     break;
                 case OBJ_DerelictType:
                     if (((Derelict *)spaceobj)->staticinfo->worldRender)
                     {                                           //don't include worlds in the blobs.  They wouldn't fit anyhow.
                         continue;
                     }
-                    mass = ((Derelict *)spaceobj)->staticinfo->staticheader.mass;
+                    mass = ((Derelict *)spaceobj)->staticinfo->common.mass;
                     break;
                 case OBJ_EffectType:
                 case OBJ_MissileType:
@@ -752,7 +756,7 @@ void bobAllObjectsFlagDontUpdate(blob *thisBlob)
 
     for (count = thisBlob->blobObjects->numSpaceObjs; count > 0; count--, spaceobjPointer++)
     {                                                       //flag all objects
-        if ((*spaceobjPointer)->objtype == OBJ_BulletType)  //remove all bullets and missile missiles (not mines) from the list
+        if ((*spaceobjPointer)->header.objtype == OBJ_BulletType)  //remove all bullets and missile missiles (not mines) from the list
 
         {
             *spaceobjPointer = thisBlob->blobObjects->SpaceObjPtr[thisBlob->blobObjects->numSpaceObjs - 1];
@@ -760,7 +764,7 @@ void bobAllObjectsFlagDontUpdate(blob *thisBlob)
             thisBlob->blobObjects->numSpaceObjs--;
             continue;
         }
-        else if ((((*spaceobjPointer)->objtype == OBJ_MissileType)) &&
+        else if ((((*spaceobjPointer)->header.objtype == OBJ_MissileType)) &&
                  (((Missile*)(*spaceobjPointer))->missileType != MISSILE_Mine))
         {                                                   //else it's a missile missile
             // missile could be in small target list and also in missile missile list
@@ -773,8 +777,8 @@ void bobAllObjectsFlagDontUpdate(blob *thisBlob)
             thisBlob->blobObjects->numSpaceObjs--;
             continue;
         }
-        dbgAssertOrIgnore(!bitTest((*spaceobjPointer)->flags, SOF_DontCreateBlob));
-        bitSet((*spaceobjPointer)->flags, SOF_DontCreateBlob);
+        dbgAssertOrIgnore(!bitTest((*spaceobjPointer)->header.flags, SOF_DontCreateBlob));
+        bitSet((*spaceobjPointer)->header.flags, SOF_DontCreateBlob);
     }
 
     thisBlob->sqrtSortDistance = 0.0f;
@@ -800,7 +804,7 @@ void bobAllObjectsUnflagDontUpdate(blob *thisBlob)
 
     for (count = thisBlob->blobObjects->numSpaceObjs; count > 0; count--, spaceobjPointer++)
     {                                                       //flag all objects
-        bitClear((*spaceobjPointer)->flags, SOF_DontCreateBlob);
+        bitClear((*spaceobjPointer)->header.flags, SOF_DontCreateBlob);
     }
     bitClear(thisBlob->flags, (BTF_ClearObjectFlags));//flag the blob
 }
@@ -886,14 +890,14 @@ void bobListCreate(BlobProperties *blobProperties, LinkedList *list, udword play
     {
         spaceobj = (SpaceObj *)listGetStructOfNode(node);
         node = node->next;
-        if (spaceobj->flags & (SOF_Dead | SOF_DontCreateBlob))
+        if (spaceobj->header.flags & (SOF_Dead | SOF_DontCreateBlob))
         {                                                   //don't process dead or satisfactory objects
             continue;
         }
-        switch (spaceobj->objtype)
+        switch (spaceobj->header.objtype)
         {
             case OBJ_ShipType:
-                mass = ((Ship *)spaceobj)->staticinfo->staticheader.mass;
+                mass = ((Ship *)spaceobj)->staticinfo->common.mass;
                 break;
             case OBJ_BulletType:
                 spaceobj->collMyBlob = NULL;
@@ -908,14 +912,14 @@ void bobListCreate(BlobProperties *blobProperties, LinkedList *list, udword play
             case OBJ_NebulaType:
             case OBJ_GasType:
             case OBJ_DustType:
-                mass = ((Resource *)spaceobj)->staticinfo->staticheader.mass;
+                mass = ((Resource *)spaceobj)->staticinfo->common.mass;
                 break;
             case OBJ_DerelictType:
                 if (((Derelict *)spaceobj)->staticinfo->worldRender)
                 {                                           //don't include worlds in the blobs.  They wouldn't fit anyhow.
                     continue;
                 }
-                mass = ((Derelict *)spaceobj)->staticinfo->staticheader.mass;
+                mass = ((Derelict *)spaceobj)->staticinfo->common.mass;
                 break;
             case OBJ_EffectType:
                 continue;
@@ -1028,9 +1032,9 @@ void bobListCreate(BlobProperties *blobProperties, LinkedList *list, udword play
 
         target = ((Bullet *)spaceobj)->target;
 
-        if ((target != NULL) && (target->collMyBlob != NULL))
+        if ((target != NULL) && (target->obj.collMyBlob != NULL))
         {
-            bobAddObjToSpecificBlob(target->collMyBlob,spaceobj);
+            bobAddObjToSpecificBlob(target->obj.collMyBlob,spaceobj);
         }
         else
         {
@@ -1044,7 +1048,7 @@ void bobListCreate(BlobProperties *blobProperties, LinkedList *list, udword play
         spaceobj = (SpaceObj *)listGetStructOfNode(node);
         node = node->next;
 
-        if (spaceobj->flags & SOF_Dead)
+        if (spaceobj->header.flags & SOF_Dead)
         {
             continue;
         }
@@ -1053,9 +1057,9 @@ void bobListCreate(BlobProperties *blobProperties, LinkedList *list, udword play
         {
             target = ((Missile *)spaceobj)->target;
 
-            if ((target != NULL) && (target->collMyBlob != NULL))
+            if ((target != NULL) && (target->obj.collMyBlob != NULL))
             {
-                bobAddObjToSpecificBlob(target->collMyBlob,spaceobj);
+                bobAddObjToSpecificBlob(target->obj.collMyBlob,spaceobj);
             }
             else
             {
@@ -1083,9 +1087,9 @@ void bobObjectListMedian(vector *dest, real32 *destRadius, sdword nObjects, Spac
 
     for (index = 0; index < nObjects; index++, objects++)
     {
-        if (bitTest((*objects)->flags, SOF_Impactable))
+        if (bitTest((*objects)->header.flags, SOF_Impactable))
         {                                                   //if there's a collision sphere
-            radius = (*objects)->staticinfo->staticheader.staticCollInfo.collspheresize;
+            radius = (*objects)->staticinfo->staticCollInfo.collspheresize;
             val = (*objects)->posinfo.position.x - radius;
             minV.x = min(minV.x, val);
             val = (*objects)->posinfo.position.y - radius;
@@ -1220,7 +1224,7 @@ void bobBlobItemize(blob *thisBlob, sdword sensorsLevel)
     for (index = 0; index < blobObjects->numSpaceObjs; index++)
     {                                                       //for every object in this blob
         object = blobObjects->SpaceObjPtr[index];
-        switch (object->objtype)
+        switch (object->header.objtype)
         {                                                   //see what type of ship it is
             case OBJ_ShipType:
                 if (!allianceIsShipAlly((Ship *)object, universe.curPlayerPtr))
@@ -1238,7 +1242,7 @@ void bobBlobItemize(blob *thisBlob, sdword sensorsLevel)
                     {
                         thisBlob->nNonCombat++;
                     }
-                    if (!bitTest(object->flags,SOF_Cloaked))
+                    if (!bitTest(object->header.flags,SOF_Cloaked))
                     {                                       //if there is an uncloaked enemy ship here
                         bitSet(thisBlob->flags, BTF_UncloakedEnemies);
                     }
@@ -1247,11 +1251,11 @@ void bobBlobItemize(blob *thisBlob, sdword sensorsLevel)
                 {
                     thisBlob->nFriendlyShips++;
                 }
-                thisBlob->shipMass += ((Ship *)object)->staticinfo->staticheader.mass;
+                thisBlob->shipMass += ((Ship *)object)->staticinfo->common.mass;
 //!!! bryce: change this definition
 #define probeActive(ship)       TRUE
                 if (((Ship *)object)->playerowner == universe.curPlayerPtr &&
-                    !(object->flags & SOF_Disabled))        //if shipis players and isn't disabled!
+                    !(object->header.flags & SOF_Disabled))        //if shipis players and isn't disabled!
                 {                                           //if this is one of the player's ships
                     bitSet(thisBlob->flags, BTF_Explored);
                     if (((Ship *)object)->shiptype == Probe && probeActive((Ship *)object))
@@ -1268,7 +1272,7 @@ void bobBlobItemize(blob *thisBlob, sdword sensorsLevel)
                     }
                 }
                 else if (allianceIsShipAlly((Ship *)object,universe.curPlayerPtr) &&
-                    !(object->flags & SOF_Disabled))
+                    !(object->header.flags & SOF_Disabled))
                 {
                     bitSet(thisBlob->flags, BTF_Explored);
                 }
@@ -1324,11 +1328,11 @@ resourceCommon:
     {
         if (bProbeDetected)
         {
-            battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_ProbeDetected, SOUND_EVENT_DEFAULT, &probe->posinfo.position);
+            battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_ProbeDetected, SOUND_EVENT_DEFAULT, &probe->obj.posinfo.position);
         }
         if (bGravWellDetected)
         {
-            battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_GravwellDetected, SOUND_EVENT_DEFAULT, &gravWell->posinfo.position);
+            battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_GravwellDetected, SOUND_EVENT_DEFAULT, &gravWell->obj.posinfo.position);
         }
     }
 
@@ -1573,7 +1577,7 @@ void bobRemoveMineFromSpecificBlob(blob *thisBlob,Missile *mine)
 {
     RemoveSpaceObjFromSelectionPreserveOrder((SpaceObjSelection *)thisBlob->blobObjects,(SpaceObj *)mine);
     RemoveSpaceObjFromSelectionPreserveOrder((SpaceObjSelection *)thisBlob->blobMissileMines,(SpaceObj *)mine);
-    mine->collMyBlob = NULL;
+    mine->obj.collMyBlob = NULL;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1602,7 +1606,7 @@ void bobObjectDied(SpaceObj *object,LinkedList *list)
 
         for (index = 0; index < blobObjects->numSpaceObjs; index++)
         {                                                   //search every object in blob
-            if ((SpaceObj *)object == blobObjects->SpaceObjPtr[index])
+            if (object == blobObjects->SpaceObjPtr[index])
             {                                               //if this is the blob
                 for (; index < blobObjects->numSpaceObjs - 1; index++)
                 {                                           //for the rest of the list
@@ -1610,11 +1614,11 @@ void bobObjectDied(SpaceObj *object,LinkedList *list)
                 }
                 blobObjects->numSpaceObjs--;                //mode one notch back in the array
 
-                if (object->flags & SOF_Targetable)
+                if (object->header.flags & SOF_Targetable)
                 {
-                    if(object->objtype != OBJ_MissileType)
+                    if(object->header.objtype != OBJ_MissileType)
                     {
-                        if (((TargetPtr)object)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_TARGET_SIZE)
+                        if (object->staticinfo->staticCollInfo.originalCollSphereSize >= BIG_TARGET_SIZE)
                         {
                             if (thisBlob->blobBigTargets != NULL)
                             {
@@ -1632,10 +1636,10 @@ void bobObjectDied(SpaceObj *object,LinkedList *list)
                     }
                 }
 
-                switch (object->objtype)
+                switch (object->header.objtype)
                 {
-                    case OBJ_ShipType:
-                        if (((ShipPtr)object)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_SHIP_SIZE)
+                    case OBJ_ShipType: 
+                        if (object->staticinfo->staticCollInfo.originalCollSphereSize >= BIG_SHIP_SIZE)
                         {
                             if (thisBlob->blobBigShips != NULL)
                             {
@@ -1736,7 +1740,7 @@ void AddSpaceObjToSelectionPreserveOrder(SpaceObjSelection *selection,SpaceObj *
 #if BOB_ANAL_CHECKING
     if (ShipInSelection((SelectCommand *)selection,(Ship *)obj))
     {
-        dbgFatalf(DBG_Loc,"obj %d already in selection!",obj->objtype);
+        dbgFatalf(DBG_Loc,"obj %d already in selection!",obj->header.objtype);
     }
 #endif
 
@@ -1779,12 +1783,12 @@ void AddSpaceObjToSelectionPreserveOrder(SpaceObjSelection *selection,SpaceObj *
 ----------------------------------------------------------------------------*/
 void AddObjToObjectListsOfBlob(SpaceObj *obj,blob *putInBlob)
 {
-    if (obj->flags & SOF_Targetable)
+    if (obj->header.flags & SOF_Targetable)
     {
-        if(obj->objtype != OBJ_MissileType)
+        if(obj->header.objtype != OBJ_MissileType)
         {
             //don't add missiles to big/small target lists.
-            if (((TargetPtr)obj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_TARGET_SIZE)
+            if (obj->staticinfo->staticCollInfo.originalCollSphereSize >= BIG_TARGET_SIZE)
             {
                 if ((putInBlob->blobBigTargets->numTargets+1) > putInBlob->maxNumBigTargets)
                 {
@@ -1805,10 +1809,10 @@ void AddObjToObjectListsOfBlob(SpaceObj *obj,blob *putInBlob)
         }
     }
 
-    switch (obj->objtype)
+    switch (obj->header.objtype)
     {
         case OBJ_ShipType:
-            if (((ShipPtr)obj)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_SHIP_SIZE)
+            if (obj->staticinfo->staticCollInfo.originalCollSphereSize >= BIG_SHIP_SIZE)
             {
                 if ((putInBlob->blobBigShips->numShips+1) > putInBlob->maxNumBigShips)
                 {
@@ -1913,8 +1917,8 @@ void bobAddObjToSpecificBlob(blob *putInBlob,SpaceObj *obj)
 {
     vector distvec;
 
-    dbgAssertOrIgnore((obj->flags & SOF_Dead) == 0);
-    if (obj->objtype == OBJ_AsteroidType)
+    dbgAssertOrIgnore((obj->header.flags & SOF_Dead) == 0);
+    if (obj->header.objtype == OBJ_AsteroidType)
     {
         dbgAssertOrIgnore(((Asteroid *)obj)->asteroidtype != Asteroid0);    // don't put Asteroid0 in for speed
     }
@@ -1944,8 +1948,8 @@ void bobAddObjToNearestBlob(LinkedList *list,SpaceObj *obj)
     real32 distsqr;
     blob *putInBlob;
 
-    dbgAssertOrIgnore((obj->flags & SOF_Dead) == 0);
-    if (obj->objtype == OBJ_AsteroidType)
+    dbgAssertOrIgnore((obj->header.flags & SOF_Dead) == 0);
+    if (obj->header.objtype == OBJ_AsteroidType)
     {
         dbgAssertOrIgnore(((Asteroid *)obj)->asteroidtype != Asteroid0);    // don't put Asteroid0 in for speed
     }
@@ -2009,15 +2013,15 @@ void blobAnalVerifyFn(blob *thisBlob)
     for (index = 0; index < blobObjects->numSpaceObjs; index++)
     {                                                   //search every object in blob
         object = blobObjects->SpaceObjPtr[index];
-        dbgAssertOrIgnore(object->collMyBlob == thisBlob);
+        dbgAssertOrIgnore(object->obj.collMyBlob == thisBlob);
 
         dbgAssertOrIgnore(1 == bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects,(Ship *)object));
 
-        if (object->flags & SOF_Targetable)
+        if (object->header.flags & SOF_Targetable)
         {
-            if(obj->objtype != OBJ_MissileType)
+            if(obj->header.objtype != OBJ_MissileType)
             {
-                if (((TargetPtr)object)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_TARGET_SIZE)
+                if (((TargetPtr)object)->staticinfo->common.staticCollInfo.originalCollSphereSize >= BIG_TARGET_SIZE)
                 {
                     dbgAssertOrIgnore(thisBlob->blobBigTargets != NULL);
                     result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobBigTargets, (Ship *)object);
@@ -2031,10 +2035,10 @@ void blobAnalVerifyFn(blob *thisBlob)
                 }
             }
         }
-        switch (object->objtype)
+        switch (object->header.objtype)
         {
             case OBJ_ShipType:
-                if (((ShipPtr)object)->staticinfo->staticheader.staticCollInfo.originalcollspheresize >= BIG_SHIP_SIZE)
+                if (((ShipPtr)object)->staticinfo->common.staticCollInfo.originalCollSphereSize >= BIG_SHIP_SIZE)
                 {
                     dbgAssertOrIgnore(thisBlob->blobBigShips != NULL);
                     result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobBigShips, (Ship *)object);
@@ -2106,8 +2110,8 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->collMyBlob == thisBlob);
-        dbgAssertOrIgnore(object->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(object->obj.collMyBlob == thisBlob);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_ShipType);
     }
     //verify small ship list
     blobObjects = (SpaceObjSelection *)thisBlob->blobSmallShips;
@@ -2119,8 +2123,8 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->collMyBlob == thisBlob);
-        dbgAssertOrIgnore(object->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(object->obj.collMyBlob == thisBlob);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_ShipType);
     }
     //verify big ship list
     blobObjects = (SpaceObjSelection *)thisBlob->blobBigShips;
@@ -2132,8 +2136,8 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->collMyBlob == thisBlob);
-        dbgAssertOrIgnore(object->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(object->obj.collMyBlob == thisBlob);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_ShipType);
     }
     //verify target lists
     blobObjects = (SpaceObjSelection *)thisBlob->blobSmallTargets;
@@ -2145,7 +2149,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(bitTest(object->flags, SOF_Targetable));
+        dbgAssertOrIgnore(bitTest(object->header.flags, SOF_Targetable));
     }
     blobObjects = (SpaceObjSelection *)thisBlob->blobBigTargets;
     dbgAssertOrIgnore(blobObjects->numSpaceObjs <= universe.ImpactableList.num);
@@ -2156,7 +2160,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(bitTest(object->flags, SOF_Targetable));
+        dbgAssertOrIgnore(bitTest(object->header.flags, SOF_Targetable));
     }
     //verify resource list
     blobObjects = (SpaceObjSelection *)thisBlob->blobResources;
@@ -2168,7 +2172,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->objtype == OBJ_AsteroidType || object->objtype == OBJ_NebulaType || object->objtype == OBJ_DustType || object->objtype == OBJ_GasType);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_AsteroidType || object->header.objtype == OBJ_NebulaType || object->header.objtype == OBJ_DustType || object->header.objtype == OBJ_GasType);
     }
     //verify derelict list
     blobObjects = (SpaceObjSelection *)thisBlob->blobDerelicts;
@@ -2180,7 +2184,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->objtype == OBJ_DerelictType);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_DerelictType);
     }
     //verify bullet list
     blobObjects = (SpaceObjSelection *)thisBlob->blobBullets;
@@ -2192,7 +2196,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->objtype == OBJ_BulletType);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_BulletType);
     }
     //verify missile list
     blobObjects = (SpaceObjSelection *)thisBlob->blobMissileMissiles;
@@ -2204,7 +2208,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->objtype == OBJ_MissileType);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_MissileType);
         dbgAssertOrIgnore(((MissilePtr)object)->missileType == MISSILE_Regular);
     }
     //verify mine list
@@ -2217,7 +2221,7 @@ void blobAnalVerifyFn(blob *thisBlob)
         object = blobObjects->SpaceObjPtr[index];
         result = bobAnalShipInSelection((SelectCommand *)thisBlob->blobObjects, (Ship *)object);
         dbgAssertOrIgnore(result == 1);
-        dbgAssertOrIgnore(object->objtype == OBJ_MissileType);
+        dbgAssertOrIgnore(object->header.objtype == OBJ_MissileType);
         dbgAssertOrIgnore(((MissilePtr)object)->missileType == MISSILE_Mine);
     }
 

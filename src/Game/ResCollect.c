@@ -150,9 +150,9 @@ bool32 ResourceMovingTooFast(Resource *resource)
         maxvelocitychase = MAX_RESOURCE_VELOCITY_TO_CHASE_LEVEL6;
     }
 
-    if ((ABS(resource->posinfo.velocity.x) > maxvelocitychase) ||
-        (ABS(resource->posinfo.velocity.y) > maxvelocitychase) ||
-        (ABS(resource->posinfo.velocity.z) > maxvelocitychase) )
+    if ((ABS(resource->obj.posinfo.velocity.x) > maxvelocitychase) ||
+        (ABS(resource->obj.posinfo.velocity.y) > maxvelocitychase) ||
+        (ABS(resource->obj.posinfo.velocity.z) > maxvelocitychase) )
     {
 #if DEBUG_COLLECT_RESOURCES
             dbgMessage("Resource moving too fast. Picking different one...");
@@ -318,7 +318,7 @@ void clCollectResource(CommandLayer *comlayer,SelectCommand *selectcom,ResourceP
         if (resource)
         {
             newcommand->collect.resourceVolumeSize = COLLECTRESOURCE_ZONE;
-            newcommand->collect.resourceVolumePosition = resource->posinfo.position;
+            newcommand->collect.resourceVolumePosition = resource->obj.posinfo.position;
         }
 
         PrepareShipsForCommand(newcommand,TRUE);
@@ -329,12 +329,12 @@ void clCollectResource(CommandLayer *comlayer,SelectCommand *selectcom,ResourceP
 
 void HandleAsteroidScaling(Asteroid *asteroid)
 {
-    AsteroidStaticInfo *asteroidstatic = (AsteroidStaticInfo *)asteroid->staticinfo;
+    AsteroidStaticInfo *asteroidstatic = asteroid->staticinfo;
     if (asteroidstatic->asteroidCanShrink)
     {
         real32 oldscaling = asteroid->scaling;
 
-        asteroid->scaling = (real32)asteroid->resourcevalue / (real32)asteroidstatic->resourcevalue;
+        asteroid->scaling = (real32)asteroid->resource.resourcevalue / (real32)asteroidstatic->resource.resourcevalue;
         if (asteroid->scaling < asteroidstatic->asteroidMinShrink)
         {
             asteroid->scaling = asteroidstatic->asteroidMinShrink;
@@ -356,7 +356,7 @@ void HandleDustCloudScaling(DustCloud* dustcloud)
     {
         real32 oldscaling = dustcloud->scaling;
 
-        dustcloud->scaling = (real32)dustcloud->resourcevalue / (real32)dustcloudstatic->resourcevalue;
+        dustcloud->scaling = (real32)dustcloud->resource.resourcevalue / (real32)dustcloudstatic->resource.resourcevalue;
         if (dustcloud->scaling > 1.0f)
         {
             dustcloud->scaling = 1.0f;
@@ -387,7 +387,7 @@ void HandleGasCloudScaling(GasCloud *gascloud)
     {
         real32 oldscaling = gascloud->scaling;
 
-        gascloud->scaling = (real32)gascloud->resourcevalue / (real32)gascloudstatic->resourcevalue;
+        gascloud->scaling = (real32)gascloud->resource.resourcevalue / (real32)gascloudstatic->resource.resourcevalue;
         if (gascloud->scaling < gascloudstatic->gascloudMinShrink)
         {
             gascloud->scaling = gascloudstatic->gascloudMinShrink;
@@ -406,7 +406,7 @@ void HandleNebulaScaling(Nebula* nebula)
     real32 factor;
 
     nebulastatic = (NebulaStaticInfo*)nebula->staticinfo;
-    factor = (real32)nebula->resourcevalue / (real32)nebulastatic->resourcevalue;
+    factor = (real32)nebula->resource.resourcevalue / (real32)nebulastatic->resource.resourcevalue;
 
     nebFadeAttachedTendrils((nebChunk*)nebula->stub, factor);
 }
@@ -429,14 +429,14 @@ bool32 DustCloudTakesDamage(DustCloud* dustcloud, sdword damagetaken, bool32 tar
     }
 
     RUdamage = (sdword) (damagetaken * DUSTCLOUD_RU_DAMAGE_RATIO);
-    dustcloud->resourcevalue -= RUdamage;
+    dustcloud->resource.resourcevalue -= RUdamage;
 
-    if (dustcloud->resourcevalue <= 0)
+    if (dustcloud->resource.resourcevalue <= 0)
     {
         return TRUE;        // all RU's have been sapped out.  Just kill asteroid without splitting it up.
     }
 
-    if (dustcloud->health <= 0)
+    if (dustcloud->targetable.health <= 0)
     {
         //clouds can't break.  instead they do something cool upon losing all health
         return TRUE;
@@ -481,7 +481,7 @@ void DustCloudChargesUp(DustCloud* dustcloud, sdword damagetaken, bool32 targetW
 ----------------------------------------------------------------------------*/
 void BreakAsteroidUp(Asteroid *asteroid)
 {
-    AsteroidStaticInfo *asteroidstatic = (AsteroidStaticInfo *)asteroid->staticinfo;
+    AsteroidStaticInfo *asteroidstatic = asteroid->staticinfo;
     Asteroid *newasteroid;
     AsteroidType asteroidtype;
     udword j;
@@ -491,13 +491,13 @@ void BreakAsteroidUp(Asteroid *asteroid)
     vector originalvelocity;
     vector randomvelocity;
 
-    dbgAssertOrIgnore(asteroid->objtype == OBJ_AsteroidType);
+    dbgAssertOrIgnore(asteroid->header.objtype == OBJ_AsteroidType);
 
     // asteroid has been destroyed.  Split it up into multiple asteroids
     if (asteroidstatic->asteroidCanBreak)
     {
-        randposrange = asteroidstatic->staticheader.staticCollInfo.collspheresize * ASTEROIDBREAK_RADIUS_SCALE;
-        originalvelocity = asteroid->posinfo.velocity;
+        randposrange = asteroidstatic->common.staticCollInfo.collspheresize * ASTEROIDBREAK_RADIUS_SCALE;
+        originalvelocity = asteroid->obj.posinfo.velocity;
 
         for (asteroidtype=Asteroid0;asteroidtype<NUM_ASTEROIDTYPES;asteroidtype++)
         {
@@ -507,21 +507,21 @@ void BreakAsteroidUp(Asteroid *asteroid)
                 randpos.x = frandombetween(-randposrange,randposrange);
                 randpos.y = frandombetween(-randposrange,randposrange);
                 randpos.z = frandombetween(-randposrange,randposrange);
-                vecAddTo(randpos,asteroid->collInfo.collPosition);
+                vecAddTo(randpos,asteroid->impactable.collInfo.collPosition);
                 newasteroid = univAddAsteroid(asteroidtype,&randpos);
                 randomvelocity.x = frandombetween(ASTEROIDBREAK_LO_VELOCITY,ASTEROIDBREAK_HI_VELOCITY);
                 randomvelocity.y = frandombetween(ASTEROIDBREAK_LO_VELOCITY,ASTEROIDBREAK_HI_VELOCITY);
                 randomvelocity.z = frandombetween(ASTEROIDBREAK_LO_VELOCITY,ASTEROIDBREAK_HI_VELOCITY);
-                vecAdd(newasteroid->posinfo.velocity,randomvelocity,originalvelocity);
+                vecAdd(newasteroid->obj.posinfo.velocity,randomvelocity,originalvelocity);
                 if (asteroid->asteroidtype >= Asteroid2)
                 if (((udword)(gamerand() & 255)) <= ASTEROID_ROTATE_PROB)
                 {
-                    newasteroid->rotinfo.rotspeed.x = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
-                    newasteroid->rotinfo.rotspeed.y = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
-                    newasteroid->rotinfo.rotspeed.z = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
+                    newasteroid->rotatable.rotinfo.rotspeed.x = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
+                    newasteroid->rotatable.rotinfo.rotspeed.y = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
+                    newasteroid->rotatable.rotinfo.rotspeed.z = frandombetween(ASTEROIDBREAK_LO_ROTATE,ASTEROIDBREAK_HI_ROTATE);
                 }
-                newasteroid->attributes = asteroid->attributes;     // inherit attributes
-                bitClear(newasteroid->attributes,ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage);
+                newasteroid->obj.attributes = asteroid->obj.attributes;     // inherit attributes
+                bitClear(newasteroid->obj.attributes,ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage);
                 if (asteroidtype != Asteroid0) univAddObjToRenderListIf((SpaceObj *)newasteroid,(SpaceObj *)asteroid);     // add to render list if parent is in render list
             }
         }
@@ -548,14 +548,14 @@ bool32 AsteroidTakesDamage(Asteroid *asteroid,sdword damagetaken,bool32 targetWa
     dbgAssertOrIgnore(asteroid->asteroidtype < NUM_ASTEROIDTYPES);
 
     RUdamage = (sdword) (damagetaken * ASTEROID_RU_DAMAGE_RATIO[asteroid->asteroidtype]);
-    asteroid->resourcevalue -= RUdamage;
+    asteroid->resource.resourcevalue -= RUdamage;
 
-    if (asteroid->resourcevalue <= 0)
+    if (asteroid->resource.resourcevalue <= 0)
     {
         return TRUE;        // all RU's have been sapped out.  Just kill asteroid
     }
 
-    if (asteroid->health <= 0)
+    if (asteroid->targetable.health <= 0)
     {
         return TRUE;
     }
@@ -579,7 +579,7 @@ bool32 CollectResources(Ship *ship,Resource *resource)
 
     bool32 resourceWasAlive;
 
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
     shipstatic = (ShipStaticInfo *)ship->staticinfo;
 
@@ -595,7 +595,7 @@ bool32 CollectResources(Ship *ship,Resource *resource)
 
     if (UNIVERSE_WOODPECKER(shipstatic->harvestRate, 0))
     {
-        resourceWasAlive = ((resource->flags & SOF_Dead) == 0);
+        resourceWasAlive = ((resource->header.flags & SOF_Dead) == 0);
 
         eat = (shipstatic->harvestAmount <= resource->resourcevalue) ? shipstatic->harvestAmount : resource->resourcevalue;
         ship->resources += eat;
@@ -612,24 +612,24 @@ bool32 CollectResources(Ship *ship,Resource *resource)
         if ((resource->resourcevalue <= 0) && (resourceWasAlive))
         {
             AddResourceToDeleteResourceList(resource);
-            bitSet(ship->specialFlags, SPECIAL_Finished_Resource);
-            bitClear(ship->specialFlags, SPECIAL_Resourcing);
+            bitSet(ship->shipOrDerelict.specialFlags, SPECIAL_Finished_Resource);
+            bitClear(ship->shipOrDerelict.specialFlags, SPECIAL_Resourcing);
         }
         else
         {
-            if (resource->objtype == OBJ_AsteroidType)
+            if (resource->header.objtype == OBJ_AsteroidType)
             {
                 HandleAsteroidScaling((Asteroid *)resource);
             }
-            else if (resource->objtype == OBJ_DustType)
+            else if (resource->header.objtype == OBJ_DustType)
             {
                 HandleDustCloudScaling((DustCloud *)resource);
             }
-            else if (resource->objtype == OBJ_GasType)
+            else if (resource->header.objtype == OBJ_GasType)
             {
                 HandleGasCloudScaling((GasCloud *)resource);
             }
-            else if (resource->objtype == OBJ_NebulaType)
+            else if (resource->header.objtype == OBJ_NebulaType)
             {
                 HandleNebulaScaling((Nebula*)resource);
             }
@@ -651,7 +651,7 @@ void TurnHarvestEffectOff(Ship *ship)
 {
     dbgAssertOrIgnore(ship->rceffect != NULL);
 
-    if (bitTest(((etgeffectstatic *)ship->rceffect->staticinfo)->specialOps, ESO_SelfDeleting))
+    if (bitTest(ship->rceffect->staticinfo->specialOps, ESO_SelfDeleting))
     {                                                       //if the effect will delete itself
         ((real32 *)ship->rceffect->variable)[ETG_ResourceDurationParam] =
             ship->rceffect->timeElapsed;                            //time it out
@@ -659,8 +659,8 @@ void TurnHarvestEffectOff(Ship *ship)
     else
     {                                                       //else it's a free-running effect... delete it
         etgEffectDelete(ship->rceffect);
-        univRemoveObjFromRenderList((SpaceObj *)ship->rceffect);
-        listDeleteNode(&ship->rceffect->objlink);
+        univRemoveObjFromRenderList(&ship->rceffect->obj);
+        listDeleteNode(&ship->rceffect->header.objlink);
     }
 
     soundEventStop(ship->soundevent.specialHandle);
@@ -711,7 +711,7 @@ void TurnHarvestEffectOn(Ship *ship,Resource *resource,vector *trajectory, real3
 
     dbgAssertOrIgnore(resNozzleStatic);
 
-    matMultiplyMatByVec(&nozzleposition,&ship->rotinfo.coordsys,&resNozzleStatic->position);
+    matMultiplyMatByVec(&nozzleposition,&ship->rotatable.rotinfo.coordsys,&resNozzleStatic->position);
 
     vecSub(nozzletrajectory,*trajectory,nozzleposition);
 
@@ -723,12 +723,12 @@ void TurnHarvestEffectOn(Ship *ship,Resource *resource,vector *trajectory, real3
     intLength = Real32ToUdword(nozzletrajectorydist);
     intWidth = Real32ToUdword(resourceRadius);
 
-    vecAddTo(nozzleposition,ship->posinfo.position);
+    vecAddTo(nozzleposition,ship->obj.posinfo.position);
 
     //create an effect for bullet, if applicable
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -748,12 +748,12 @@ void TurnHarvestEffectOn(Ship *ship,Resource *resource,vector *trajectory, real3
     if (stat != NULL && !etgFrequencyExceeded(stat))
 #endif
     {
-        if (resource->objtype == OBJ_AsteroidType)
+        if (resource->header.objtype == OBJ_AsteroidType)
             ship->soundevent.specialHandle = soundEvent(ship, Ship_ResourceAsteroid);
-        else //if (resource->objtype == OBJ_DustType)
+        else //if (resource->header.objtype == OBJ_DustType)
             ship->soundevent.specialHandle = soundEvent(ship, Ship_ResourceDustCloud);
         /* should have other resource types too? */
-        ship->rceffect = etgEffectCreate(stat, ship, &nozzleposition, &ship->posinfo.velocity, &nozzlecoordsys, 1.0f, EAF_Velocity | EAF_NLips, 2, SCALECAST(intLength), SCALECAST(intWidth));
+        ship->rceffect = etgEffectCreate(stat, ship, &nozzleposition, &ship->obj.posinfo.velocity, &nozzlecoordsys, 1.0f, EAF_Velocity | EAF_NLips, 2, SCALECAST(intLength), SCALECAST(intWidth));
     }
     else
     {
@@ -781,16 +781,16 @@ void ModifyHarvestEffect(Effect *effect,Ship *ship,vector *trajectory, real32 re
     dbgAssertOrIgnore(resNozzleStatic);
     dbgAssertOrIgnore(effect);
 
-    matMultiplyMatByVec(&nozzleposition,&ship->rotinfo.coordsys,&resNozzleStatic->position);
+    matMultiplyMatByVec(&nozzleposition,&ship->rotatable.rotinfo.coordsys,&resNozzleStatic->position);
 
     vecSub(nozzletrajectory,*trajectory,nozzleposition);
 
-    vecAdd(effect->posinfo.position,nozzleposition,ship->posinfo.position);
+    vecAdd(effect->obj.posinfo.position,nozzleposition,ship->obj.posinfo.position);
 
     nozzletrajectorydist = fsqrt(vecMagnitudeSquared(nozzletrajectory));
     vecDivideByScalar(nozzletrajectory,nozzletrajectorydist,temp);
 
-    matCreateCoordSysFromHeading(&effect->rotinfo.coordsys,&nozzletrajectory);
+    matCreateCoordSysFromHeading(&effect->rotatable.rotinfo.coordsys,&nozzletrajectory);
 
     ((real32 *)effect->variable)[SCALESHIFT(ETG_ResourceLengthParam)] = nozzletrajectorydist;
     ((real32 *)effect->variable)[SCALESHIFT(ETG_ResourceRadiusParam)] = resourceRadius;
@@ -798,9 +798,9 @@ void ModifyHarvestEffect(Effect *effect,Ship *ship,vector *trajectory, real32 re
 
 void DefaultShipHarvestsResource(struct Ship *ship,struct Resource *resource)
 {
-    if (!MoveReachedDestinationVariable(ship,&resource->posinfo.position,COLLECTRESOURCE_DIST))
+    if (!MoveReachedDestinationVariable(ship,&resource->obj.posinfo.position,COLLECTRESOURCE_DIST))
     {
-        aishipFlyToPointAvoidingObjsWithVel(ship,&resource->posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&resource->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&resource->obj.posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&resource->obj.posinfo.velocity);
     }
     else
     {
@@ -829,7 +829,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
     etglod *lod;
     real32 resourceRadius;
 
-//    dbgAssertOrIgnore(resource->objtype == OBJ_AsteroidType);
+//    dbgAssertOrIgnore(resource->header.objtype == OBJ_AsteroidType);
 
     switch (ship->rcstate1)
     {
@@ -844,7 +844,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
             range = RangeToTargetGivenDist(ship,(SpaceObjRotImpTarg *)resource,dist);
             if (range > ASTEROID_HARVEST_RANGE)
             {
-                if (aishipFlyToPointAvoidingObjsWithVel(ship,&resource->posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_DontFlyToObscuredPoints,0.0f,&resource->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
+                if (aishipFlyToPointAvoidingObjsWithVel(ship,&resource->obj.posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying + AISHIP_DontFlyToObscuredPoints,0.0f,&resource->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
                     resource->resourceNotAccessible = (UNIVERSE_UPDATE_RATE * RESOURCE_NOT_ACCESSIBLE_SECONDS);
                 break;
             }
@@ -856,7 +856,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
 
         case R1RCASTEROID_HARVEST_ON:
             // turn on harvest effect here
-            if (resource->objtype == OBJ_AsteroidType)
+            if (resource->header.objtype == OBJ_AsteroidType)
             {
                 lod = etgResourceEffectTable[ship->shiprace][ETG_AsteroidEffect];
             }
@@ -864,7 +864,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
             {
                 lod = etgResourceEffectTable[ship->shiprace][ETG_GaseousEffect];
             }
-            resourceRadius = resource->staticinfo->staticheader.staticCollInfo.collspheresize;
+            resourceRadius = resource->staticinfo->common.staticCollInfo.collspheresize;
             TurnHarvestEffectOn(ship,resource,&trajectory, resourceRadius, lod);
 
             ship->rcstate1 = R1RCASTEROID_HARVEST;
@@ -877,7 +877,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
             if(ship->rceffect == NULL)
             {
                 //if the effect isn't playing...lets play it...
-                if (resource->objtype == OBJ_AsteroidType)
+                if (resource->header.objtype == OBJ_AsteroidType)
                 {
                     lod = etgResourceEffectTable[ship->shiprace][ETG_AsteroidEffect];
                 }
@@ -885,7 +885,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
                 {
                     lod = etgResourceEffectTable[ship->shiprace][ETG_GaseousEffect];
                 }
-                resourceRadius = resource->staticinfo->staticheader.staticCollInfo.collspheresize;
+                resourceRadius = resource->staticinfo->common.staticCollInfo.collspheresize;
                 TurnHarvestEffectOn(ship,resource,&trajectory, resourceRadius, lod);
             }
             if (range > ASTEROID_MAXHARVEST_RANGE)
@@ -904,7 +904,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
             // recalculate effect coordsys and length of effect
             if (ship->rceffect != NULL)
             {
-                resourceRadius = resource->staticinfo->staticheader.staticCollInfo.collspheresize;
+                resourceRadius = resource->staticinfo->common.staticCollInfo.collspheresize;
                 ModifyHarvestEffect(ship->rceffect,ship,&trajectory, resourceRadius);
             }
 
@@ -915,7 +915,7 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
             vecDivideByScalar(trajectory,dist,temp);
 
             // circle the asteroid if harvesting big asteroids
-            if ((resource->objtype == OBJ_AsteroidType) &&
+            if ((resource->header.objtype == OBJ_AsteroidType) &&
                 (((Asteroid *)resource)->asteroidtype < (AsteroidType)CIRCLE_HARVEST_ASTEROIDS_BIGGEREQUAL_THAN))
             {
                 aitrackHeading(ship,&trajectory,FLYSHIP_HEADINGACCURACY);
@@ -928,19 +928,19 @@ void R1ResourcerHarvestsAsteroid(struct Ship *ship,struct Resource *resource)
 
                 aitrackHeading(ship,&trajectory,FLYSHIP_HEADINGACCURACY);
 
-                matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
-                rightvelocity = vecDotProduct(right,ship->posinfo.velocity);
+                matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
+                rightvelocity = vecDotProduct(right,ship->obj.posinfo.velocity);
 
                 if (rightvelocity < CIRCLE_RIGHT_VELOCITY)
                 {
 //                    dbgMessagef("Applying right thrust %f",rightvelocity);
-                    physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_RIGHT]*CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
+                    physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_RIGHT]*CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
                 }
 
                 if (range > ASTEROID_HARVEST_RANGE)
                 {
 //                    dbgMessage("Going back towards");
-                    aishipFlyToPointAvoidingObjsWithVel(ship,&resource->posinfo.position,0,0.0f,&resource->posinfo.velocity);
+                    aishipFlyToPointAvoidingObjsWithVel(ship,&resource->obj.posinfo.position,0,0.0f,&resource->obj.posinfo.velocity);
                 }
                 else
                 {
@@ -1130,7 +1130,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
     etglod *lod;
     real32 targetRadius;
 
-//    dbgAssertOrIgnore(resource->objtype == OBJ_AsteroidType);
+//    dbgAssertOrIgnore(resource->header.objtype == OBJ_AsteroidType);
 
     switch (ship->rcstate1)
     {
@@ -1145,7 +1145,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
             range = RangeToTargetGivenDist(ship,(SpaceObjRotImpTarg *)target,dist);
             if (range > ASTEROID_HARVEST_RANGE)
             {
-                aishipFlyToPointAvoidingObjsWithVel(ship,&target->posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&target->posinfo.velocity);
+                aishipFlyToPointAvoidingObjsWithVel(ship,&target->obj.posinfo.position,AISHIP_FastAsPossible + AISHIP_FirstPointInDirectionFlying + AISHIP_PointInDirectionFlying,0.0f,&target->obj.posinfo.velocity);
                 break;
             }
 
@@ -1157,7 +1157,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
         case R1RCASTEROID_HARVEST_ON:
             lod = etgResourceEffectTable[ship->shiprace][ETG_AsteroidEffect];
 
-            targetRadius = target->staticinfo->staticheader.staticCollInfo.collspheresize;
+            targetRadius = target->staticinfo->common.staticCollInfo.collspheresize;
             TurnHarvestEffectOn(ship,(Resource *)target,&trajectory, targetRadius, lod);
 
             ship->rcstate1 = R1RCASTEROID_HARVEST;
@@ -1184,7 +1184,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
             {
                 lod = etgResourceEffectTable[ship->shiprace][ETG_AsteroidEffect];
 
-                targetRadius = target->staticinfo->staticheader.staticCollInfo.collspheresize;
+                targetRadius = target->staticinfo->common.staticCollInfo.collspheresize;
                 TurnHarvestEffectOn(ship,(Resource *)target,&trajectory, targetRadius, lod);
             }
 
@@ -1192,7 +1192,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
             // recalculate effect coordsys and length
             if (ship->rceffect != NULL)
             {
-                targetRadius = target->staticinfo->staticheader.staticCollInfo.collspheresize;
+                targetRadius = target->staticinfo->common.staticCollInfo.collspheresize;
                 ModifyHarvestEffect(ship->rceffect,ship,&trajectory, targetRadius);
             }
 
@@ -1205,7 +1205,7 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
             vecDivideByScalar(trajectory,dist,temp);
 
             // circle the asteroid if harvesting big asteroids
-            //if ((resource->objtype == OBJ_AsteroidType) &&
+            //if ((resource->header.objtype == OBJ_AsteroidType) &&
             //    (((Asteroid *)resource)->asteroidtype < (AsteroidType)CIRCLE_HARVEST_ASTEROIDS_BIGGEREQUAL_THAN))
             //{
             //    aitrackHeading(ship,&trajectory,FLYSHIP_HEADINGACCURACY);
@@ -1219,19 +1219,19 @@ void R1ResourcerAttacksShip(struct Ship *ship,struct SpaceObjRotImpTarg *target,
 
                 aitrackHeading(ship,&trajectory,FLYSHIP_HEADINGACCURACY);
 
-                matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
-                rightvelocity = vecDotProduct(right,ship->posinfo.velocity);
+                matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
+                rightvelocity = vecDotProduct(right,ship->obj.posinfo.velocity);
 
                 if (rightvelocity < CIRCLE_RIGHT_VELOCITY)
                 {
 //                    dbgMessagef("Applying right thrust %f",rightvelocity);
-                    physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_RIGHT]*CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
+                    physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_RIGHT]*CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
                 }
 
                 if (range > ASTEROID_HARVEST_RANGE)
                 {
 //                    dbgMessage("Going back towards");
-                    aishipFlyToPointAvoidingObjsWithVel(ship,&target->posinfo.position,0,0.0f,&target->posinfo.velocity);
+                    aishipFlyToPointAvoidingObjsWithVel(ship,&target->obj.posinfo.position,0,0.0f,&target->obj.posinfo.velocity);
                 }
                 else
                 {

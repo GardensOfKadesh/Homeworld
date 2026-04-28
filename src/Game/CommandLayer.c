@@ -189,7 +189,7 @@ void PrepareShipsForCommand(CommandToDo *command,bool32 rowClear)
     {
         ship = selection->ShipPtr[i];
         ship->command = command;
-        if ((rowClear) && (ship->specialFlags & SPECIAL_rowGettingOutOfWay))
+        if ((rowClear) && (ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay))
         {
             rowRemoveShipFromGettingOutOfWay(ship);
         }
@@ -207,7 +207,7 @@ void PrepareShipsForCommand(CommandToDo *command,bool32 rowClear)
 void PrepareOneShipForCommand(Ship *ship,CommandToDo *command,bool32 rowClear)
 {
     ship->command = command;
-    if ((rowClear) && (ship->specialFlags & SPECIAL_rowGettingOutOfWay))
+    if ((rowClear) && (ship->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay))
     {
         rowRemoveShipFromGettingOutOfWay(ship);
     }
@@ -229,7 +229,7 @@ void InitShipsForAI(SelectCommand *selection,bool32 fresh)
     for (i=0;i<selection->numShips;i++)
     {
         ship = selection->ShipPtr[i];
-        ship->aistate = 0;
+        ship->shipOrDerelict.aistate = 0;
         ship->aistateattack = 0;
         if(fresh)
             ship->aistatecommand = 0;
@@ -244,7 +244,7 @@ void InitShipsForAIDontResetAttack(SelectCommand *selection,bool32 fresh)
     for (i=0;i<selection->numShips;i++)
     {
         ship = selection->ShipPtr[i];
-        ship->aistate = 0;
+        ship->shipOrDerelict.aistate = 0;
         if(fresh)
             ship->aistatecommand = 0;
     }
@@ -267,11 +267,11 @@ real32 getRangeToClosestTarget(CommandToDo *command)
     dbgAssertOrIgnore(command->selection->numShips > 0);
     dbgAssertOrIgnore(command->ordertype.order == COMMAND_ATTACK);
 
-    commandPosition = command->selection->ShipPtr[0]->posinfo.position;
+    commandPosition = command->selection->ShipPtr[0]->obj.posinfo.position;
 
     for(i=0;i<command->attack->numTargets;i++)
     {
-        vecSub(distvec,commandPosition,command->attack->TargetPtr[0]->posinfo.position);
+        vecSub(distvec,commandPosition,command->attack->TargetPtr[0]->obj.posinfo.position);
         tempSqr = vecMagnitudeSquared(distvec);
         if(tempSqr < minDistanceSqr)
         {
@@ -291,7 +291,7 @@ real32 getRangeToClosestTarget(CommandToDo *command)
 ----------------------------------------------------------------------------*/
 void InitShipAI(Ship *ship,bool32 fresh)
 {
-    ship->aistate = 0;
+    ship->shipOrDerelict.aistate = 0;
     ship->aistateattack = 0;
     if(fresh)
         ship->aistatecommand = 0;
@@ -305,15 +305,15 @@ void InitShipAI(Ship *ship,bool32 fresh)
     Return      :
 ----------------------------------------------------------------------------*/
 #define COLLECTOR_STEADY_DIST   3000.0f
-void protectShip(Ship *ship,Ship *protectThisShip,bool32 passiveAttacked)
+void protectShip(Ship *ship, Ship *protectThisShip, bool32 passiveAttacked)
 {
     vector diff;
     real32 dist;
     real32 desiredrange;
-    real32 shipSize = ((ShipStaticInfo *)(ship->staticinfo))->staticheader.staticCollInfo.collspheresize;
-    real32 protectThisShipSize = ((ShipStaticInfo *)(protectThisShip->staticinfo))->staticheader.staticCollInfo.collspheresize;
+    real32 shipSize = ship->staticinfo->common.staticCollInfo.collspheresize;
+    real32 protectThisShipSize = protectThisShip->staticinfo->common.staticCollInfo.collspheresize;
     bool32 dontrotate;
-    vector protectPoint = protectThisShip->posinfo.position;
+    vector protectPoint = protectThisShip->obj.posinfo.position;
     vector heading;
 
     if (protectThisShipSize < shipSize)
@@ -334,11 +334,11 @@ void protectShip(Ship *ship,Ship *protectThisShip,bool32 passiveAttacked)
     if (ship->shiptype == ResourceController)
     {
         real32 followbehind = desiredrange * RESCONTROLLER_FOLLOW_BEHIND;      // follow behind 1.5 radii
-        matGetVectFromMatrixCol3(heading,protectThisShip->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(heading,protectThisShip->rotatable.rotinfo.coordsys);
         vecSubFromScalarMultiply(protectPoint,heading,followbehind);
     }
 
-    vecSub(diff,ship->posinfo.position,protectPoint);
+    vecSub(diff,ship->obj.posinfo.position,protectPoint);
     dist = getVectDistSloppy(diff);
 
 //    ship->shipidle = FALSE;
@@ -352,7 +352,7 @@ void protectShip(Ship *ship,Ship *protectThisShip,bool32 passiveAttacked)
 
     if (protectThisShip->dockvars.dockship == ship)     // if docking with me
     {
-        if(MoveReachedDestinationVariable(ship,&protectThisShip->posinfo.position,COLLECTOR_STEADY_DIST))
+        if(MoveReachedDestinationVariable(ship,&protectThisShip->obj.posinfo.position,COLLECTOR_STEADY_DIST))
         {
             //within range of steadyness
             goto juststeady;
@@ -361,8 +361,8 @@ void protectShip(Ship *ship,Ship *protectThisShip,bool32 passiveAttacked)
 
     if (dist < desiredrange)
     {
-        if ((ship->specialFlags2 & SPECIAL_2_CircularGuard) ||
-            (getVectDistSloppy(protectThisShip->posinfo.velocity) < PROTECT_STILL_VELOCITY) )
+        if ((ship->shipOrDerelict.specialFlags2 & SPECIAL_2_CircularGuard) ||
+            (getVectDistSloppy(protectThisShip->obj.posinfo.velocity) < PROTECT_STILL_VELOCITY) )
         {
 juststeady:
             if (dontrotate)
@@ -380,7 +380,7 @@ juststeady:
             if (dontrotate)
             {
                 if (aishipFlyToPointAvoidingObjsWithVel(ship,NULL,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,
-                                                        0.0f,&protectThisShip->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
+                                                        0.0f,&protectThisShip->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
                 {
                     aitrackSteadyShipDriftOnly(ship);
                 }
@@ -388,7 +388,7 @@ juststeady:
             else
             {
                 if (aishipFlyToPointAvoidingObjsWithVel(ship,NULL,AISHIP_PointInDirectionFlying|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,
-                                                        0.0f,&protectThisShip->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
+                                                        0.0f,&protectThisShip->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
                 {
                     aitrackSteadyShip(ship);
                 }
@@ -401,7 +401,7 @@ juststeady:
         if (dontrotate)
         {
             if (aishipFlyToPointAvoidingObjsWithVel(ship,&protectPoint,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,
-                                                   0.0f,&protectThisShip->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
+                                                   0.0f,&protectThisShip->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
             {
                 aitrackSteadyShipDriftOnly(ship);
             }
@@ -409,7 +409,7 @@ juststeady:
         else
         {
             if (aishipFlyToPointAvoidingObjsWithVel(ship,&protectPoint,AISHIP_PointInDirectionFlying|AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured,
-                0.0f,&protectThisShip->posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
+                0.0f,&protectThisShip->obj.posinfo.velocity) & AISHIP_FLY_OBJECT_IN_WAY)
             {
                 aitrackSteadyShip(ship);
             }
@@ -429,7 +429,7 @@ void protectShipsAvg(Ship *ship,ProtectCommand *protectShips,bool32 passiveAttac
     vector diff;
     real32 dist;
     real32 desiredrange;
-    real32 shipSize = ((ShipStaticInfo *)(ship->staticinfo))->staticheader.staticCollInfo.collspheresize;
+    real32 shipSize = ship->staticinfo->common.staticCollInfo.collspheresize;
     bool32 dontrotate;
     sdword numShips = protectShips->numShips;
     vector temp,guardposition;
@@ -441,17 +441,17 @@ void protectShipsAvg(Ship *ship,ProtectCommand *protectShips,bool32 passiveAttac
 
     dbgAssertOrIgnore(numShips > 1);
 
-    temp = protectShips->ShipPtr[0]->posinfo.position;
+    temp = protectShips->ShipPtr[0]->obj.posinfo.position;
     minx = maxx = temp.x;
     miny = maxy = temp.y;
     minz = maxz = temp.z;
 
-    protectShipsAvgVel = protectShips->ShipPtr[0]->posinfo.velocity;
+    protectShipsAvgVel = protectShips->ShipPtr[0]->obj.posinfo.velocity;
 
     for (i=1;i<numShips;i++)
     {
-        temp = protectShips->ShipPtr[i]->posinfo.position;
-        vecAddTo(protectShipsAvgVel,protectShips->ShipPtr[i]->posinfo.velocity);
+        temp = protectShips->ShipPtr[i]->obj.posinfo.position;
+        vecAddTo(protectShipsAvgVel,protectShips->ShipPtr[i]->obj.posinfo.velocity);
 
         if (temp.x < minx) minx = temp.x;
         else if (temp.x > maxx) maxx = temp.x;
@@ -471,7 +471,7 @@ void protectShipsAvg(Ship *ship,ProtectCommand *protectShips,bool32 passiveAttac
 
     // we now have the optimum guardposition and protectShipsAvgVel
 
-    vecSub(diff,ship->posinfo.position,guardposition);
+    vecSub(diff,ship->obj.posinfo.position,guardposition);
     dist = getVectDistSloppy(diff);
 
     if(isCapitalShip(ship) || ship->shiptype == GravWellGenerator || ship->shiptype == CloakGenerator)
@@ -513,7 +513,7 @@ void protectShipsAvg(Ship *ship,ProtectCommand *protectShips,bool32 passiveAttac
 
     if (dist < desiredrange)
     {
-        if ((ship->specialFlags2 & SPECIAL_2_CircularGuard) ||
+        if ((ship->shipOrDerelict.specialFlags2 & SPECIAL_2_CircularGuard) ||
             (getVectDistSloppy(protectShipsAvgVel) < PROTECT_STILL_VELOCITY))
         {
 juststeady:
@@ -588,7 +588,7 @@ bool32 processLaunchShipToDo(CommandToDo *launchtodo)
     /*
     if(launchtodo->launchship.receiverShip->shipSinglePlayerGameInfo->shipHyperspaceState != SHIPHYPERSPACE_NONE)
     {
-        if(ship->collMyBlob == NULL)
+        if(ship->obj.collMyBlob == NULL)
         {
             //carrier/mothership is going into hyperspace...
             //so halt launching ships!
@@ -604,7 +604,7 @@ bool32 processLaunchShipToDo(CommandToDo *launchtodo)
             if(shipcommand->ordertype.order == COMMAND_MP_HYPERSPACING)
             {
                 //launching ship is hyperspaceing...
-                if(ship->collMyBlob == NULL)
+                if(ship->obj.collMyBlob == NULL)
                 {
                     //wait
                     return FALSE;
@@ -615,7 +615,7 @@ bool32 processLaunchShipToDo(CommandToDo *launchtodo)
     }
     else if(singlePlayerGame && singlePlayerGameInfo.hyperspaceState != NO_HYPERSPACE)
     {
-        if(ship->collMyBlob == NULL)
+        if(ship->obj.collMyBlob == NULL)
         {
             //carrier/mothership is going into hyperspace...
             //so halt launching ships!
@@ -640,7 +640,7 @@ bool32 isThisShipThreateningMe(SpaceObjRotImpTarg *target,Ship *me)
     Ship *targetsLeader;
     Ship *targetsWingman;
 
-    if (target->objtype != OBJ_ShipType)
+    if (target->header.objtype != OBJ_ShipType)
     {
         return FALSE;       // non-ship objects are not considered threatening
     }
@@ -697,7 +697,7 @@ SpaceObjRotImpTarg *FindNewThreateningTarget(Ship *ship,AttackCommand *attack,Sp
         }
         if (isThisShipThreateningMe(newtarget,ship))
         {
-            vecSub(dist,newtarget->posinfo.position,ship->posinfo.position);
+            vecSub(dist,newtarget->obj.posinfo.position,ship->obj.posinfo.position);
             distsqr = vecMagnitudeSquared(dist);
 
             if (distsqr < fighterMaxThreatDist)
@@ -733,8 +733,8 @@ bool32 EnemyIsBehindMe(SpaceObjRotImpTarg *enemy,Ship *me)
     vector myheading;
     vector enemytome;
 
-    matGetVectFromMatrixCol3(myheading,me->rotinfo.coordsys);
-    vecSub(enemytome,me->posinfo.position,enemy->posinfo.position);
+    matGetVectFromMatrixCol3(myheading,me->rotatable.rotinfo.coordsys);
+    vecSub(enemytome,me->obj.posinfo.position,enemy->obj.posinfo.position);
 
     if (vecDotProduct(myheading,enemytome) > 0.0f)
     {
@@ -864,7 +864,7 @@ bool32 ShipsInPassiveAttackRange(SelectCommand *selection,AttackCommand *attack)
 
     for (i=0;i<numShipsToAttack;i++)
     {
-        vecAddTo(avgposition,attack->TargetPtr[i]->posinfo.position);
+        vecAddTo(avgposition,attack->TargetPtr[i]->obj.posinfo.position);
     }
 
     vecDivideByScalar(avgposition,(real32)numShipsToAttack,temp);
@@ -875,7 +875,7 @@ bool32 ShipsInPassiveAttackRange(SelectCommand *selection,AttackCommand *attack)
         retaliateZone = ship->staticinfo->passiveRetaliateZone;
         negRetaliateZone = -retaliateZone;
 
-        vecSub(diff,ship->posinfo.position,avgposition);
+        vecSub(diff,ship->obj.posinfo.position,avgposition);
 
         if (isBetweenExclusive(diff.x,negRetaliateZone,retaliateZone) &&
             isBetweenExclusive(diff.y,negRetaliateZone,retaliateZone) &&
@@ -965,7 +965,7 @@ bool32 processPassiveAttackToDo(CommandToDo *attacktodo)
             if(rotate == TRUE)
             {
                 vector dir;
-                vecSub(dir,target->posinfo.position,ship->posinfo.position);
+                vecSub(dir,target->obj.posinfo.position,ship->obj.posinfo.position);
                 vecNormalize(&dir);
                 aitrackHeading(ship,&dir,0.999f);
             }
@@ -974,7 +974,7 @@ bool32 processPassiveAttackToDo(CommandToDo *attacktodo)
 
         if (shipstaticinfo->custshipheader.CustShipAttackPassive)
         {
-            //dbgAssertOrIgnore(target->objtype == OBJ_ShipType);     // only target SHIPs should be passive attacked
+            //dbgAssertOrIgnore(target->header.objtype == OBJ_ShipType);     // only target SHIPs should be passive attacked
             shipstaticinfo->custshipheader.CustShipAttackPassive(ship,(Ship *)target,rotate);
         }
         attackvars->attackevents = 0;       // clear any events we received
@@ -1019,12 +1019,12 @@ bool32 processAttackToDo(CommandToDo *attacktodo)
             //use leaders heading for holding pattern
             attacktodo->turnAroundTimes = 0;
             //use leaders heading for holding pattern
-            matGetVectFromMatrixCol3(attacktodo->holdingPatternVec,selection->ShipPtr[0]->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(attacktodo->holdingPatternVec,selection->ShipPtr[0]->rotatable.rotinfo.coordsys);
             vecScalarMultiply(attacktodo->holdingPatternVec,attacktodo->holdingPatternVec,TW_HOLDING_PATTERN_PATH_DISTANCE);
             for (i=0;i<selection->numShips;i++)
             {
                 //save individual positions
-                attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->posinfo.position;
+                attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->obj.posinfo.position;
                 soundEventBurstStop(selection->ShipPtr[i],NULL);
             }
             ////////////////////
@@ -1048,7 +1048,7 @@ bool32 processAttackToDo(CommandToDo *attacktodo)
         for (i=0;i<selection->numShips;i++)
         {
             //save individual positions
-            attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->posinfo.position;
+            attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->obj.posinfo.position;
             soundEventBurstStop(selection->ShipPtr[i],NULL);
         }
         if (attacktodo->ordertype.attributes)
@@ -1173,8 +1173,8 @@ bool32 processAttackToDo(CommandToDo *attacktodo)
                             vector leadhead;
                             vector othervec;
 
-                            matGetVectFromMatrixCol3(leadhead,myLeader->rotinfo.coordsys);
-                            vecSub(othervec,ship->posinfo.position,myLeaderTarget->posinfo.position);
+                            matGetVectFromMatrixCol3(leadhead,myLeader->rotatable.rotinfo.coordsys);
+                            vecSub(othervec,ship->obj.posinfo.position,myLeaderTarget->obj.posinfo.position);
                             if(vecDotProduct(othervec,leadhead) < 0)
                             {
                                 shipstaticinfo->custshipheader.CustShipAttackPassive(ship,(Ship *)myLeaderTarget,TRUE);
@@ -1341,7 +1341,7 @@ bool32 processAttackToDo(CommandToDo *attacktodo)
                     attackvars->attacktarget = target = AttackClosestOpponent(ship,attack);
                     InitShipAI(ship,FALSE);
 
-                    if ((fighterpair) && (target->objtype == OBJ_ShipType) &&
+                    if ((fighterpair) && (target->header.objtype == OBJ_ShipType) &&
                         ((((Ship *)target)->attackvars.myWingmanIs == NULL) && (((Ship *)target)->attackvars.myLeaderIs == NULL)) &&
                         ((gamerand() & 255) < FLIGHTMAN_SANDWICH_PROB[ship->tacticstype]) )
                     {
@@ -1381,7 +1381,7 @@ bool32 processAttackToDo(CommandToDo *attacktodo)
 doattack:
         if(attackAndMoving)
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1392,7 +1392,7 @@ doattack:
         }
         else
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1578,7 +1578,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
 
         if(doform && !attackAndMoving)
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1589,7 +1589,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         }
         else
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1702,7 +1702,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
                     continue;
                 }
             }
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1717,8 +1717,8 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
                 }
                 else
                 {
-                    matGetVectFromMatrixCol3(leadhead,formationLeader->rotinfo.coordsys);
-                    vecSub(othervec,ship->posinfo.position,target->posinfo.position);
+                    matGetVectFromMatrixCol3(leadhead,formationLeader->rotatable.rotinfo.coordsys);
+                    vecSub(othervec,ship->obj.posinfo.position,target->obj.posinfo.position);
                     if(vecDotProduct(othervec,leadhead) < 0)
                     {
                         shipstaticinfo->custshipheader.CustShipAttackPassive(ship,(Ship *)target,TRUE);
@@ -1815,7 +1815,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         maxdist = tacticsMaxDistToTarget(selection,target);
         if(doform && !attackAndMoving)
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1826,7 +1826,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         }
         else
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1845,7 +1845,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
             attackvars = &ship->attackvars;
             target = attackvars->attacktarget;
 
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1887,7 +1887,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
 
         if(doform && !attackAndMoving)
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1898,7 +1898,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         }
         else
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1916,7 +1916,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
             attackvars = &ship->attackvars;
             target = attackvars->attacktarget;
 
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1928,7 +1928,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
             }
             else if(shipstaticinfo->shiptype == MinelayerCorvette)
             {
-                bitSet(ship->specialFlags,SPECIAL_BrokenFormation);
+                bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation);
                 shipstaticinfo->custshipheader.CustShipAttack(ship,target,ship->staticinfo->bulletRange[ship->tacticstype]);
             }
             attackvars->attackevents = 0;       // clear any events we received
@@ -1976,7 +1976,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         maxdist = tacticsMaxDistToTarget(selection,target);
         if(doform && !attackAndMoving)
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -1987,7 +1987,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
         }
         else
         {
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -2006,7 +2006,7 @@ bool32 delegateCommand(CommandToDo *attacktodo,sdword group,sdword doform, Selec
             attackvars = &ship->attackvars;
             target = attackvars->attacktarget;
 
-            if(bitTest(ship->specialFlags,SPECIAL_Kamikaze))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze))
             {
                 doKamikazeAttack(ship,target);
             }
@@ -2045,7 +2045,7 @@ bool32 targetIsntNearShip(Ship *ship,SpaceObjRotImpTarg *target)
 {
     vector distvect;
     real32 dist;
-    vecSub(distvect,target->posinfo.position,ship->posinfo.position);
+    vecSub(distvect,target->obj.posinfo.position,ship->obj.posinfo.position);
     dist = vecMagnitudeSquared(distvect);
     dist = fsqrt(dist);
 
@@ -2094,12 +2094,12 @@ bool32 processAttackToDoInFormation(CommandToDo *attacktodo)
             //use leaders heading for holding pattern
             attacktodo->turnAroundTimes = 0;
             //use leaders heading for holding pattern
-            matGetVectFromMatrixCol3(attacktodo->holdingPatternVec,selection->ShipPtr[0]->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(attacktodo->holdingPatternVec,selection->ShipPtr[0]->rotatable.rotinfo.coordsys);
             vecScalarMultiply(attacktodo->holdingPatternVec,attacktodo->holdingPatternVec,TW_HOLDING_PATTERN_PATH_DISTANCE);
             for (i=0;i<selection->numShips;i++)
             {
                 //save individual positions
-                attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->posinfo.position;
+                attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->obj.posinfo.position;
                 soundEventBurstStop(selection->ShipPtr[i],NULL);
             }
             ////////////////////
@@ -2125,7 +2125,7 @@ bool32 processAttackToDoInFormation(CommandToDo *attacktodo)
         for (i=0;i<selection->numShips;i++)
         {
             //save individual positions
-            attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->posinfo.position;
+            attacktodo->selection->ShipPtr[i]->holdingPatternPos = selection->ShipPtr[i]->obj.posinfo.position;
             soundEventBurstStop(selection->ShipPtr[i],NULL);
         }
         if (attacktodo->ordertype.attributes)
@@ -2189,7 +2189,7 @@ bool32 processAttackToDoInFormation(CommandToDo *attacktodo)
 
                 if ( leadertarget &&
                      (
-                     ( ((leadertarget->objtype != OBJ_ShipType) || (((Ship *)leadertarget)->formationcommand == NULL)) ) ||
+                     ( ((leadertarget->header.objtype != OBJ_ShipType) || (((Ship *)leadertarget)->formationcommand == NULL)) ) ||
                      (focusfire)
                      )
                    )
@@ -2207,7 +2207,7 @@ bool32 processAttackToDoInFormation(CommandToDo *attacktodo)
         if(i >= 1)
         {
             if ( leadertarget &&
-                 ((leadertarget->objtype != OBJ_ShipType) || (((Ship *)leadertarget)->formationcommand == NULL)) )
+                 ((leadertarget->header.objtype != OBJ_ShipType) || (((Ship *)leadertarget)->formationcommand == NULL)) )
             {
                 attackvars->attacktarget = leadertarget;    // override with leadertarget if we are attacking a ship that isn't in formation
             }
@@ -2328,7 +2328,7 @@ bool32 hyperspaceOutPingTimeOut(struct ping *hellaPing, SpaceObj *user, ubyte *u
         return(FALSE);
     }
 
-    if(((Ship *)user)->flags & SOF_Hyperspace)
+    if(user->header.flags & SOF_Hyperspace)
     {
         return(TRUE);
     }
@@ -2400,7 +2400,7 @@ bool32 needToWaitForThisShip(Ship *ship)
             {
                 if(command->launchship.receiverShip == ship)
                 {
-                    if(ship->collMyBlob != NULL)
+                    if(ship->obj.collMyBlob != NULL)
                     {
                         //ship hsing is launchiong a ship and that ship is outside...so finish it off.
                         return TRUE;        //need to wait for this ship!
@@ -2425,7 +2425,7 @@ bool32 needToWaitForThisShip(Ship *ship)
             {
                 if(command->launchship.receiverShip == ship)
                 {
-                    if(command->selection->ShipPtr[0]->collMyBlob != NULL)
+                    if(command->selection->ShipPtr[0]->obj.collMyBlob != NULL)
                     {
                         //ship hsing is launchiong a ship and that ship is outside...so finish it off.
                         return TRUE;        //need to wait for this ship!
@@ -2459,7 +2459,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
     bool32 dontgoyet=FALSE;
     for(i=0;i<movetodo->selection->numShips;i++)
     {
-       SET_MOVING_LINEARLY(movetodo->selection->ShipPtr[i]->posinfo.isMoving);
+       SET_MOVING_LINEARLY(movetodo->selection->ShipPtr[i]->obj.posinfo.isMoving);
     }
     switch(movetodo->hyperspaceState)
     {
@@ -2471,12 +2471,12 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
             if(aitrackZeroRotationAnywhere(movetodo->selection->ShipPtr[i])
                && aitrackZeroVelocity(movetodo->selection->ShipPtr[i]))
             {
-                movetodo->selection->ShipPtr[i]->rotinfo.rotspeed.x=0.0f;
-                movetodo->selection->ShipPtr[i]->rotinfo.rotspeed.y=0.0f;
-                movetodo->selection->ShipPtr[i]->rotinfo.rotspeed.z=0.0f;
-                movetodo->selection->ShipPtr[i]->posinfo.velocity.x=0.0f;
-                movetodo->selection->ShipPtr[i]->posinfo.velocity.y=0.0f;
-                movetodo->selection->ShipPtr[i]->posinfo.velocity.z=0.0f;
+                movetodo->selection->ShipPtr[i]->rotatable.rotinfo.rotspeed.x=0.0f;
+                movetodo->selection->ShipPtr[i]->rotatable.rotinfo.rotspeed.y=0.0f;
+                movetodo->selection->ShipPtr[i]->rotatable.rotinfo.rotspeed.z=0.0f;
+                movetodo->selection->ShipPtr[i]->obj.posinfo.velocity.x=0.0f;
+                movetodo->selection->ShipPtr[i]->obj.posinfo.velocity.y=0.0f;
+                movetodo->selection->ShipPtr[i]->obj.posinfo.velocity.z=0.0f;
                 continue;
             }
             dontgoyet=TRUE;
@@ -2544,7 +2544,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
                     ///////////////////////////////
                 }
             }
-            if(!(movetodo->selection->ShipPtr[0]->flags & SOF_Hyperspace))
+            if(!(movetodo->selection->ShipPtr[0]->header.flags & SOF_Hyperspace))
             {
                 return(FALSE);
             }
@@ -2569,7 +2569,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
             movetoplace.y = movetodo->move.destination.y;
             movetoplace.z = movetodo->move.destination.z;
 
-            matGetVectFromMatrixCol3(shipheading,movetodo->selection->ShipPtr[0]->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(shipheading,movetodo->selection->ShipPtr[0]->rotatable.rotinfo.coordsys);
             vecSet(othervector,1.0f,0.0f,0.0f);
 
             dotproduct = vecDotProduct(shipheading,othervector);
@@ -2613,7 +2613,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
                 //ship isn't a local players ship...
                 if(battleCanChatterAtThisTime(BCE_COMM_F_HyperspaceDetected, movetodo->selection->ShipPtr[i]))
                 {
-                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_COMM_F_HyperspaceDetected, SOUND_EVENT_DEFAULT, &movetodo->selection->ShipPtr[i]->posinfo.position);
+                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_COMM_F_HyperspaceDetected, SOUND_EVENT_DEFAULT, &movetodo->selection->ShipPtr[i]->obj.posinfo.position);
                 }
             }
 
@@ -2648,7 +2648,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
             else
             {
                 //individual ship is out of hyperspace...make it selectable!
-                bitSet(movetodo->selection->ShipPtr[i]->flags,SOF_Selectable);
+                bitSet(movetodo->selection->ShipPtr[i]->header.flags,SOF_Selectable);
             }
         }
         if(donehsflag == FALSE)
@@ -2663,7 +2663,7 @@ bool32 processMpHyperspaceingToDo(CommandToDo *movetodo)
         for(i=0;i<movetodo->selection->numShips;i++)
         {
             //make selectable again!
-            bitSet(movetodo->selection->ShipPtr[i]->flags,SOF_Selectable);
+            bitSet(movetodo->selection->ShipPtr[i]->header.flags,SOF_Selectable);
         }
         return(TRUE);
         break;
@@ -2731,7 +2731,7 @@ bool32 processMoveToDo(CommandToDo *movetodo,bool32 passiveAttacked)
 
         if(ship->shiptype == ResearchShip)
         {
-            if(ship->flags & SOF_Slaveable)
+            if(ship->header.flags & SOF_Slaveable)
             {
                 dontrotate = TRUE;
             }
@@ -2806,7 +2806,7 @@ bool32 processMoveToDo(CommandToDo *movetodo,bool32 passiveAttacked)
 state1:
             case 1:
                 if ((dontrotate) ||
-                    ((shipstatic->pitchdescend != 0.0f) && (ship->aidescend < 0.0f)))   // -ve aidescend indicates ship is primarily moving down
+                    ((shipstatic->shipOrDerelict.pitchdescend != 0.0f) && (ship->aidescend < 0.0f)))   // -ve aidescend indicates ship is primarily moving down
                 {
                     thisShipDone = aitrackSteadyShipDriftOnly(ship);
                 }
@@ -2815,7 +2815,7 @@ state1:
                     vector trackthisheading;
                     vecSet(trackthisheading,movetodo->move.heading.x,movetodo->move.heading.y,0.0f);
                     vecNormalize(&trackthisheading);
-                    thisShipDone = (aitrackSteadyShipDriftOnly(ship) & aitrackHeadingWithBank(ship,&trackthisheading,FLYSHIP_HEADINGACCURACY,shipstatic->sinbank));
+                    thisShipDone = (aitrackSteadyShipDriftOnly(ship) & aitrackHeadingWithBank(ship,&trackthisheading,FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank));
                 }
                 break;
         }
@@ -2853,7 +2853,7 @@ bool32 processMoveLeaderToDo(CommandToDo *movetodo,bool32 passiveAttacked)
 
     if(ship->shiptype == ResearchShip)
     {
-        if(ship->flags & SOF_Slaveable)
+        if(ship->header.flags & SOF_Slaveable)
         {
             dontrotate = TRUE;
         }
@@ -2921,7 +2921,7 @@ bool32 processMoveLeaderToDo(CommandToDo *movetodo,bool32 passiveAttacked)
 state1:
         case 1:
             if ((dontrotate) ||
-                ((shipstatic->pitchdescend != 0.0f) && (ship->aidescend < 0.0f)))   // -ve aidescend indicates ship is primarily moving down
+                ((shipstatic->shipOrDerelict.pitchdescend != 0.0f) && (ship->aidescend < 0.0f)))   // -ve aidescend indicates ship is primarily moving down
             {
                 return aitrackSteadyShipDriftOnly(ship);
             }
@@ -2930,7 +2930,7 @@ state1:
                 vector trackthisheading;
                 vecSet(trackthisheading,movetodo->move.heading.x,movetodo->move.heading.y,0.0f);
                 vecNormalize(&trackthisheading);
-                return (aitrackSteadyShipDriftOnly(ship) & aitrackHeadingWithBank(ship,&trackthisheading,FLYSHIP_HEADINGACCURACY,shipstatic->sinbank));
+                return (aitrackSteadyShipDriftOnly(ship) & aitrackHeadingWithBank(ship,&trackthisheading,FLYSHIP_HEADINGACCURACY,shipstatic->shipOrDerelict.sinbank));
             }
     }
     return FALSE;
@@ -2940,7 +2940,7 @@ void SalCapCancelOrder(Ship *ship);
 
 void RemoveShipFromSpecial(Ship *shiptoremove)
 {
-    if (shiptoremove->specialFlags & SPECIAL_IsASalvager)
+    if (shiptoremove->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
     {
         SalCapCancelOrder(shiptoremove);
         SalCapOrderChangedCleanUp(shiptoremove);
@@ -3218,7 +3218,7 @@ void RemoveShipsFromDoingStuff(CommandLayer *comlayer,SelectCommand *selectcom)
     for (i=0;i<selectcom->numShips;i++)
     {
         shiptoremove = selectcom->ShipPtr[i];
-        if (shiptoremove->specialFlags & SPECIAL_rowGettingOutOfWay)
+        if (shiptoremove->shipOrDerelict.specialFlags & SPECIAL_rowGettingOutOfWay)
         {
             rowRemoveShipFromGettingOutOfWay(shiptoremove);
         }
@@ -4353,7 +4353,7 @@ void CalculateMoveToPoints(SelectCommand *selection,vector from,vector to)
 
     for (i=0;i<numShips;i++)
     {
-        vecSub(r,selection->ShipPtr[i]->posinfo.position,from);
+        vecSub(r,selection->ShipPtr[i]->obj.posinfo.position,from);
         movecalcs[i].fromtoship = r;
         movecalcs[i].totoship = r;
 
@@ -4477,7 +4477,7 @@ void ChangeOrderToMove(CommandToDo *alreadycommand,vector from,vector to)
         {
 StillDoAttackMoveWithCapitals:
             //just capital ships in selection
-            if(!bitTest(alreadycommand->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL))
+            if(!bitTest(alreadycommand->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL))
             {
                 alreadycommand->ordertype.attributes |= COMMAND_MASK_ATTACKING_AND_MOVING;
                 alreadycommand->move.destination = to;
@@ -4491,13 +4491,13 @@ StillDoAttackMoveWithCapitals:
                 for (i=0;i<selectcom->numShips;i++)
                 {
                     //selectcom->ShipPtr[i]->moveTo = to;
-                    selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->posinfo.position;
+                    selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->obj.posinfo.position;
                     //soundEventStartEngine(selectcom->ShipPtr[i]);
                 }
                 PrepareShipsForCommand(alreadycommand,TRUE);
                 return;
             }
-            bitClear(alreadycommand->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+            bitClear(alreadycommand->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
         }
     }
 
@@ -4536,7 +4536,7 @@ StillDoAttackMoveWithCapitals:
     for (i=0;i<selectcom->numShips;i++)
     {
         //selectcom->ShipPtr[i]->moveTo   = to;
-        selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->posinfo.position;
+        selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->obj.posinfo.position;
         soundEventStartEngine(selectcom->ShipPtr[i]);
     }
 
@@ -4693,7 +4693,7 @@ void clMoveThese(CommandLayer *comlayer,SelectCommand *selectcom,vector from,vec
     for (i=0;i<numShips;i++)
     {
         //selection->ShipPtr[i]->moveTo = to;
-        selection->ShipPtr[i]->moveFrom = selection->ShipPtr[i]->posinfo.position;
+        selection->ShipPtr[i]->moveFrom = selection->ShipPtr[i]->obj.posinfo.position;
         soundEventStartEngine(selectcom->ShipPtr[i]);
     }
 
@@ -4843,7 +4843,7 @@ void ChangeOrderToHyperSpace(CommandToDo *alreadycommand,vector from,vector to)
     //for (i=0;i<selectcom->numShips;i++)
     //{
     //    //selectcom->ShipPtr[i]->moveTo   = to;
-    //    selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->posinfo.position;
+    //    selectcom->ShipPtr[i]->moveFrom = selectcom->ShipPtr[i]->obj.posinfo.position;
     //    //soundEventStartEngine(selectcom->ShipPtr[i]);
     //}
     alreadycommand->hyperSpaceingTime = 0.0f;
@@ -4913,7 +4913,7 @@ void clMpHyperspaceThese(CommandLayer *comlayer,SelectCommand *selectcom,vector 
       for (i=0;i<numShips;i++)
     {
         //selection->ShipPtr[i]->moveTo = to;
-        selection->ShipPtr[i]->moveFrom = selection->ShipPtr[i]->posinfo.position;
+        selection->ShipPtr[i]->moveFrom = selection->ShipPtr[i]->obj.posinfo.position;
         soundEventStartEngine(selectcom->ShipPtr[i]);
     }
     */
@@ -4940,11 +4940,11 @@ void getNewHyperspaceingDestination(vector *newTo,vector *from,vector *to,Select
     //groupPos.z=0.0f;
     //for(i=0;i<selection->numShips;i++)
     //{
-    //    vecAddTo(groupPos,selection->ShipPtr[i]->posinfo.position);
+    //    vecAddTo(groupPos,selection->ShipPtr[i]->obj.posinfo.position);
     //}
     //vecDivideByScalar(groupPos,((float)selection->numShips),temp);
     //grouppos is the average posiiton of the group
-    vecSub(*newTo,selection->ShipPtr[0]->posinfo.position,*from);
+    vecSub(*newTo,selection->ShipPtr[0]->obj.posinfo.position,*from);
     //add the offset to the desired desitination
     vecAddTo(*newTo,*to);
 }
@@ -5089,7 +5089,7 @@ SpaceObjRotImpTarg *AttackClosestOpponent(Ship *ship,AttackCommand *attack)
     {
         attackme = attack->TargetPtr[i];
 
-        vecSub(dist,ship->posinfo.position,attackme->posinfo.position);
+        vecSub(dist,ship->obj.posinfo.position,attackme->obj.posinfo.position);
         distsqr = vecMagnitudeSquared(dist);
 
         if (distsqr < mindist)
@@ -5127,7 +5127,7 @@ void RemoveShipFromAttacking(Ship *ship)
     ship->attackvars.myLeaderIs = NULL;
     ship->attackvars.myWingmanIs = NULL;
     ship->shipisattacking = FALSE;
-    bitClear(ship->specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation|SPECIAL_AttackFromAbove);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation|SPECIAL_AttackFromAbove);
     if (ship->flightman != FLIGHTMAN_NULL)
     {
         flightmanClose(ship);
@@ -5192,7 +5192,7 @@ void AttackCleanup(struct CommandToDo *attacktodo)
             vecZeroVector(selection->ShipPtr[i]->moveTo);
             vecZeroVector(selection->ShipPtr[i]->moveFrom);
         }
-        bitClear(selection->ShipPtr[i]->specialFlags,SPECIAL_BrokenFormation);
+        bitClear(selection->ShipPtr[i]->shipOrDerelict.specialFlags,SPECIAL_BrokenFormation);
 
 
     }
@@ -5275,7 +5275,7 @@ void removeShipFromMpHyperspaceing(Ship *ship)
 {
     vecZeroVector(ship->moveTo);
     vecZeroVector(ship->moveFrom);
-    bitSet(ship->flags,SOF_Selectable);
+    bitSet(ship->header.flags,SOF_Selectable);
 }
 
 /*-----------------------------------------------------------------------------
@@ -5461,7 +5461,7 @@ void pickMultipleAttackTargets(Ship *ship,AttackCommand *attack)
         target = attack->TargetPtr[i];
 
         aishipGetTrajectory(ship,target,&targetInWorldCoordSys);
-        matMultiplyVecByMat(&thisTargetInfo->targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotinfo.coordsys);
+        matMultiplyVecByMat(&thisTargetInfo->targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotatable.rotinfo.coordsys);
         thisTargetInfo->pickedMe = 1.0f;
     }
     if(ship->staticinfo->shipclass == CLASS_Fighter)
@@ -5480,7 +5480,7 @@ void pickMultipleAttackTargets(Ship *ship,AttackCommand *attack)
     if (ship->staticinfo->shipclass == CLASS_Frigate)
     {
         target = ship->attackvars.attacktarget;
-        if (target->objtype == OBJ_ShipType)
+        if (target->header.objtype == OBJ_ShipType)
         {
            if (((Ship *)target)->staticinfo->shipclass == CLASS_Corvette)
            {
@@ -5661,7 +5661,7 @@ void BreakupIntoLeaderWingman(SelectCommand *selection)
                 break;
             }
 
-            vecSub(dist,leader->posinfo.position,compareto->posinfo.position);
+            vecSub(dist,leader->obj.posinfo.position,compareto->obj.posinfo.position);
             distsqr = vecMagnitudeSquared(dist);
 
             if (distsqr >= WINGMAN_JOIN_MAX_DIST)
@@ -5749,18 +5749,18 @@ void InitExtraAttackInfo(SelectCommand *selection,AttackCommand *attack,bool32 f
         ship->attackvars.flightmansLeft = 0;
         ship->attackvars.attacksituation = 0;
         ship->attackvars.attackevents = 0;
-        bitClear(ship->specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation|SPECIAL_AttackFromAbove);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation|SPECIAL_AttackFromAbove);
 
         ship->tacticsNeedToFlightMan = FALSE;
         ship->tacticsTalk = 0;
 
-        vecAddTo(avgposSelection,ship->posinfo.position);
+        vecAddTo(avgposSelection,ship->obj.posinfo.position);
     }
 
     for (i=0;i<numTargetsToAttack;i++)
     {
         target = attack->TargetPtr[i];
-        vecAddTo(avgposTargets,target->posinfo.position);
+        vecAddTo(avgposTargets,target->obj.posinfo.position);
     }
 
     vecDivideByScalar(avgposSelection,((real32)numShips),temp);
@@ -5774,7 +5774,7 @@ void InitExtraAttackInfo(SelectCommand *selection,AttackCommand *attack,bool32 f
         for (i=0;i<numShips;i++)
         {
             ship = selection->ShipPtr[i];
-            bitSet(ship->specialFlags,SPECIAL_AttackFromAbove);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_AttackFromAbove);
         }
     }
 
@@ -5821,7 +5821,7 @@ void InitExtraAttackInfo(SelectCommand *selection,AttackCommand *attack,bool32 f
 
                 target = attack->TargetPtr[j];
 
-                vecSub(dist,ship->posinfo.position,target->posinfo.position);
+                vecSub(dist,ship->obj.posinfo.position,target->obj.posinfo.position);
                 distsqr = vecMagnitudeSquared(dist);
 
                 if (distsqr < mindist)
@@ -6673,7 +6673,7 @@ void clSetKamikaze(CommandLayer *comlayer,SelectCommand *selectcom)
             {
                 if(ship->shiptype == SalCapCorvette)
                 {
-                    bitSet(ship->specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation);
+                    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation);
                     continue;
                 }
             }
@@ -6691,7 +6691,7 @@ void clSetKamikaze(CommandLayer *comlayer,SelectCommand *selectcom)
          }
          else
          {
-            bitSet(ship->specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_Kamikaze|SPECIAL_BrokenFormation);
          }
      }
 }
@@ -6759,7 +6759,7 @@ void clHaltThese(CommandLayer *comlayer,SelectCommand *selectcom)
                 command->ordertype.order == COMMAND_LAUNCH_SHIP)
             {
                 //if docking ship is NULL, we can assume some stuff...
-                if (selectcom->ShipPtr[i]->dockingship != NULL)
+                if (selectcom->ShipPtr[i]->shipOrDerelict.dockingship != NULL)
                 {
                     if(selectcom->ShipPtr[i]->shiptype != ResearchShip)
                     {
@@ -6964,7 +6964,7 @@ void clLaunchShip(CommandLayer *comlayer,SelectCommand *selectcom,ShipPtr receiv
     dbgAssertOrIgnore(receiverShip != NULL);
     dbgAssertOrIgnore(receiverShipStaticInfo->canReceiveShips|receiverShipStaticInfo->canReceiveShipsPermanently);
 
-    if (ship->specialFlags & SPECIAL_Launching)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_Launching)
     {
         return;         // already launching
     }
@@ -7033,7 +7033,7 @@ void clLaunchMultipleShips(CommandLayer *comlayer,SelectCommand *selectcom,ShipP
     selectone.numShips = 1;
     for (i=0;i<numShips;i++)
     {
-        if (!(selectcom->ShipPtr[i]->attributes & ATTRIBUTES_Defector))      // don't let the defector launch
+        if (!(selectcom->ShipPtr[i]->obj.attributes & ATTRIBUTES_Defector))      // don't let the defector launch
         {
             selectone.ShipPtr[0] = selectcom->ShipPtr[i];
             clLaunchShip(comlayer,&selectone,launchFrom);
@@ -7056,7 +7056,7 @@ void LaunchAllInternalShipsOfPlayerThatMustBeLaunched(struct Player *player)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -7069,10 +7069,10 @@ void LaunchAllInternalShipsOfPlayerThatMustBeLaunched(struct Player *player)
                 while (insidenode != NULL)
                 {
                     insideship = (InsideShip *)listGetStructOfNode(insidenode);
-                    dbgAssertOrIgnore(insideship->ship->objtype == OBJ_ShipType);
+                    dbgAssertOrIgnore(insideship->ship->header.objtype == OBJ_ShipType);
 
                         // make defector launch
-                    if ((insideship->ship->attributes & ATTRIBUTES_Defector) || (ShipHasToLaunch(ship,insideship->ship)))
+                    if ((insideship->ship->obj.attributes & ATTRIBUTES_Defector) || (ShipHasToLaunch(ship,insideship->ship)))
                     {
                         selectone.numShips = 1;
                         selectone.ShipPtr[0] = insideship->ship;
@@ -7142,7 +7142,7 @@ sdword LaunchAllInternalShipsOfPlayer(struct Player *player, udword carriermask)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -7161,9 +7161,9 @@ sdword LaunchAllInternalShipsOfPlayer(struct Player *player, udword carriermask)
                     while (insidenode != NULL)
                     {
                         insideship = (InsideShip *)listGetStructOfNode(insidenode);
-                        dbgAssertOrIgnore(insideship->ship->objtype == OBJ_ShipType);
+                        dbgAssertOrIgnore(insideship->ship->header.objtype == OBJ_ShipType);
 
-                        if (!(insideship->ship->attributes & ATTRIBUTES_Defector))      // don't let the defector launch
+                        if (!(insideship->ship->obj.attributes & ATTRIBUTES_Defector))      // don't let the defector launch
                         {
                             selectone.numShips = 1;
                             selectone.ShipPtr[0] = insideship->ship;
@@ -7262,7 +7262,7 @@ bool32 ShipHasToLaunch(Ship *InsideShip, Ship *ship)
         }
     }
 
-    if (ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH)
     {
         return FALSE;
     }
@@ -7352,7 +7352,7 @@ Ship *clCreateShip(CommandLayer *comlayer,ShipType shipType,ShipRace shipRace,uw
     dbgAssertOrIgnore(playerIndex < universe.numPlayers);
 
     // create ship
-    ship = univCreateShip(shipType,shipRace,&creator->posinfo.position,&universe.players[playerIndex],1);
+    ship = univCreateShip(shipType,shipRace,&creator->obj.posinfo.position,&universe.players[playerIndex],1);
 
     gameStatsAddShip(ship,playerIndex);
 
@@ -7596,7 +7596,7 @@ void CheckCircularGuard(CommandToDo *command)
 
         for (i=0;i<selection->numShips;i++)
         {
-            bitSet(selection->ShipPtr[i]->specialFlags2,SPECIAL_2_CircularGuard);
+            bitSet(selection->ShipPtr[i]->shipOrDerelict.specialFlags2,SPECIAL_2_CircularGuard);
         }
     }
     else
@@ -7606,7 +7606,7 @@ void CheckCircularGuard(CommandToDo *command)
 
         for (i=0;i<selection->numShips;i++)
         {
-            bitClear(selection->ShipPtr[i]->specialFlags2,SPECIAL_2_CircularGuard);
+            bitClear(selection->ShipPtr[i]->shipOrDerelict.specialFlags2,SPECIAL_2_CircularGuard);
         }
     }
 
@@ -7911,7 +7911,7 @@ void GroupShip(CommandLayer *comlayer,ShipPtr ship,ShipPtr aroundShip)
     {
         selection.numShips = 1;
         selection.ShipPtr[0] = ship;
-        bitClear(ship->flags,SOF_Selectable);
+        bitClear(ship->header.flags,SOF_Selectable);
         clDock(comlayer, &selection, DOCK_FOR_RESEARCH, NULL);
         return;
     }
@@ -8162,7 +8162,7 @@ bool32 salCapCorvettesInSelectionCantDoFormation(SelectCommand *selection)
     {
         if(selection->ShipPtr[i]->shiptype == SalCapCorvette)
         {
-            if(selection->ShipPtr[i]->specialFlags & SPECIAL_BrokenFormation)
+            if(selection->ShipPtr[i]->shipOrDerelict.specialFlags & SPECIAL_BrokenFormation)
             {
                 return TRUE;
             }
@@ -8191,8 +8191,8 @@ bool32 processHoldingPattern(CommandToDo *command,SelectCommand *selection)
     {
         //turn right
         command->holdingStartTime = universe.totaltimeelapsed;
-        matGetVectFromMatrixCol2(right,selection->ShipPtr[0]->rotinfo.coordsys);
-        matGetVectFromMatrixCol3(heading,selection->ShipPtr[0]->rotinfo.coordsys);
+        matGetVectFromMatrixCol2(right,selection->ShipPtr[0]->rotatable.rotinfo.coordsys);
+        matGetVectFromMatrixCol3(heading,selection->ShipPtr[0]->rotatable.rotinfo.coordsys);
         vecScalarMultiply(right,right,TW_HOLDING_PATTERN_RIGHT_COEFFICIENT);
         vecScalarMultiply(heading,heading,TW_HOLDING_PATTERN_HEADING_COEFFICIENT);
         vecAdd(command->holdingPatternVec,right,heading);
@@ -8254,7 +8254,7 @@ void clProcess(CommandLayer *comlayer)
             for (i=0;i<commandselection->numShips;i++)
             {
                 ship = commandselection->ShipPtr[i];
-                if (ship->flags & (SOF_Hyperspace|SOF_Crazy))
+                if (ship->header.flags & (SOF_Hyperspace|SOF_Crazy))
                 {
                     goto nextcommand;       // don't process command if any ships in hyperspace ether or Crazy
                 }
@@ -8267,7 +8267,7 @@ void clProcess(CommandLayer *comlayer)
             for (i=0;i<commandselection->numShips;i++)
             {
                 ship = commandselection->ShipPtr[i];
-                if (ship->flags & (SOF_Crazy))
+                if (ship->header.flags & (SOF_Crazy))
                 {
                     goto nextcommand;       // don't process command if any ships  Crazy
                 }
@@ -8296,7 +8296,7 @@ void clProcess(CommandLayer *comlayer)
                                     if(command->ordertype.attributes & COMMAND_MASK_ATTACKING_AND_MOVING &&
                                         command->selection->ShipPtr[0]->aistatecommand == 0)
                                     {
-                                        bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                        bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                         ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                                     }
                                     else
@@ -8317,7 +8317,7 @@ void clProcess(CommandLayer *comlayer)
                                             if(command->selection->ShipPtr[0]->aistatecommand == 0)
                                             {
                                                 //it is at this distance that the group of ships turns and hitails it out of there...
-                                                bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                                bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                                 ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                                                 break;
                                             }
@@ -8352,7 +8352,7 @@ void clProcess(CommandLayer *comlayer)
                                         command->selection->ShipPtr[0]->aistatecommand == 0)
                                     {
                                         //attacking and moving and HAVEN'T reached destination!
-                                        bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                        bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                         ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                                     }
                                     else
@@ -8373,7 +8373,7 @@ void clProcess(CommandLayer *comlayer)
                                             if(command->selection->ShipPtr[0]->aistatecommand == 0)
                                             {
                                                 //it is at this distance that the group of ships turns and hitails it out of there...
-                                                bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                                bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                                 ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                                                 break;
                                             }
@@ -8527,7 +8527,7 @@ processdock:
                             else
                             {
                                 protectShip(command->selection->ShipPtr[0],command->protect->ShipPtr[0],passiveAttacked);
-                                processFormationToDo(command,!command->protect->ShipPtr[0]->posinfo.isMoving,passiveAttacked);
+                                processFormationToDo(command,!command->protect->ShipPtr[0]->obj.posinfo.isMoving,passiveAttacked);
                             }
                         }
                     }
@@ -8640,7 +8640,7 @@ processdock:
                         {
                             if(command->ordertype.attributes & COMMAND_MASK_ATTACKING_AND_MOVING)
                             {
-                                bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                 ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                             }
                             else
@@ -8662,7 +8662,7 @@ processdock:
                             */
                             if(command->ordertype.attributes & COMMAND_MASK_ATTACKING_AND_MOVING)
                             {
-                                bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                 ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                             }
                             else
@@ -8683,7 +8683,7 @@ processdock:
                             if(getRangeToClosestTarget(command) >= tacticsInfo.movingAttackTurnsIntoMoveCommandDistanceSqr)
                             {
                                 //it is at this distance that the group of ships turns and hitails it out of there...
-                                bitSet(command->selection->ShipPtr[0]->specialFlags,SPECIAL_ATTACKMOVECANCEL);
+                                bitSet(command->selection->ShipPtr[0]->shipOrDerelict.specialFlags,SPECIAL_ATTACKMOVECANCEL);
                                 ChangeOrderToMove(command,command->selection->ShipPtr[0]->moveFrom,command->selection->ShipPtr[0]->moveTo);
                                 break;
                             }
@@ -9331,7 +9331,7 @@ void binwriteanyselection(udword header,SelectAnyCommand *selection)
         for (i=0;i<sel.numTargets;i++)
         {
             target = selection->TargetPtr[i];
-            objtype = target->objtype;
+            objtype = target->header.objtype;
             id = 0;
 
             switch (objtype)

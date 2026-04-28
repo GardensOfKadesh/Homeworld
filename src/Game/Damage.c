@@ -165,7 +165,7 @@ void dmgCoordSysFromChunk(Ship* ship, vector* location, matrix* coordsys, char* 
     real32 scale = ship->magnitudeSquared;
 
     shipStatic = ship->staticinfo;
-    mexChunk = mexGetChunk(shipStatic->staticheader.pMexData, type, name);
+    mexChunk = mexGetChunk(shipStatic->common.pMexData, type, name);
 
     if (mexChunk == NULL)
     {
@@ -273,7 +273,7 @@ void dmgPlayEffect(Ship* ship, etglod* effect, sdword level)
         return;
     }
 
-    LOD = ship->currentLOD;
+    LOD = ship->obj.currentLOD;
     if (LOD < effect->nLevels)
     {
         stat = effect->level[LOD];
@@ -308,9 +308,9 @@ void dmgPlayEffect(Ship* ship, etglod* effect, sdword level)
     }
 
     //obtain damage (health ratio)
-    floatDamage = ship->health * ship->staticinfo->oneOverMaxHealth;
+    floatDamage = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
     intDamage = Real32ToUdword(floatDamage);
-    floatSize = ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+    floatSize = ship->staticinfo->common.staticCollInfo.collspheresize;
     intSize = Real32ToUdword(floatSize);
 
 #if ETG_DISABLEABLE
@@ -324,19 +324,19 @@ void dmgPlayEffect(Ship* ship, etglod* effect, sdword level)
         hmatrix hmatA, hmatB, hmatC;
 
         hmatMakeHMatFromMatAndVec(&hmatB, &coordsys, &location);
-        hmatMakeHMatFromMatAndVec(&hmatA, &ship->rotinfo.coordsys, &ship->posinfo.position);
+        hmatMakeHMatFromMatAndVec(&hmatA, &ship->rotatable.rotinfo.coordsys, &ship->obj.posinfo.position);
         hmatMultiplyHMatByHMat(&hmatC, &hmatA, &hmatB);
         matGetMatFromHMat(&finalCoordSys, &hmatC);
         hmatGetVectFromHMatrixCol4(finalLocation, hmatC);
 
         effect = etgEffectCreate(stat, ship,
                                  &finalLocation,
-                                 &ship->posinfo.velocity,
+                                 &ship->obj.posinfo.velocity,
                                  &finalCoordSys,
                                  ship->magnitudeSquared, EAF_NLips | EAF_Velocity,
                                  2, SCALECAST(intDamage), SCALECAST(intSize));
 #else
-        Effect* effect = etgEffectCreate(stat, ship, &location, &ship->posinfo.velocity,
+        Effect* effect = etgEffectCreate(stat, ship, &location, &ship->obj.posinfo.velocity,
                                          &coordsys, ship->magnitudeSquared, EAF_NLips | EAF_Velocity | EAF_OwnerCoordSys,
                                          2, SCALECAST(intDamage), SCALECAST(intSize));
 #endif
@@ -487,8 +487,8 @@ void dmgShipThink(Ship* ship)
 
     shipClass = shipstaticinfo->shipclass;
 
-    maxhealth = shipstaticinfo->maxhealth;
-    health = ship->health;
+    maxhealth = shipstaticinfo->health.maxhealth;
+    health = ship->targetable.health;
     healthRatio = health / maxhealth;
 
     switch (shipClass)
@@ -579,7 +579,7 @@ void dmgGetLights(Ship* ship)
     for (i = numChunks = 0; i < 50; i++)
     {
         name[3] = '0' + i;
-        mexChunk = mexGetChunk(shipStatic->staticheader.pMexData, "Dmg", name);
+        mexChunk = mexGetChunk(shipStatic->common.pMexData, "Dmg", name);
         if (mexChunk == NULL)
         {
             break;
@@ -605,7 +605,7 @@ void dmgGetLights(Ship* ship)
     for (i = 0; i < numChunks; i++)
     {
         name[3] = '0' + i;
-        mexChunk = mexGetChunk(shipStatic->staticheader.pMexData, "Dmg", name);
+        mexChunk = mexGetChunk(shipStatic->common.pMexData, "Dmg", name);
         dbgAssertOrIgnore(mexChunk != NULL);    //shouldn't be NULL
 
         lightNormal = &((MEXEngineChunk*)mexChunk)->normal;

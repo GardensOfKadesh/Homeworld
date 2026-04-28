@@ -368,7 +368,7 @@ typedef struct
     real32 approxcollmodifier;    // approxcollspheresize = approxcollmodifier * collspheresize
     real32 avoidcollmodifier;     // avoidcollspheresize = avoidcollmodifier * collspheresize
 
-    real32 originalcollspheresize;  // original collspheresize DO NOT CHANGE THIS IF OBJECT SCALES!
+    real32 originalCollSphereSize;  // original collspheresize DO NOT CHANGE THIS IF OBJECT SCALES!
     real32 collspheresize;  // bounding sphere for rough collision detection
     real32 collspheresizeSqr; // square of collspheresize precomputed
     vector collsphereoffset;// bounding sphere offset in object co-ordinates
@@ -415,16 +415,11 @@ typedef struct
     bool8  immobile;        // flag indicating object is immobile
     sbyte  rightOfWay;
     StaticCollInfo staticCollInfo;
-} StaticHeader;
-
-typedef struct
-{
-    StaticHeader staticheader;
 } StaticInfo;
 
 typedef struct
 {
-    StaticHeader staticheader;
+    StaticInfo common;
     real32 maxhealth;
     real32 oneOverMaxHealth;
     real32 minCollDamage;
@@ -468,35 +463,41 @@ typedef struct
 
 typedef struct StaticInfoHealthGuidance
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
+    union {
+        StaticInfo common;
+        StaticInfoHealth _health;
+    };
+    //these 3 things are static and don't affect a ship after the
+    //ship has been built.  They are copied into the NonStats data
+    //structure due to a need for them to be nonstatic
     real32 thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
     real32 rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
     real32 turnspeedstat[NUM_TURN_TYPES];
 } StaticInfoHealthGuidance;
 
-typedef struct StaticInfoHealthGuidanceShipDerelict
-{
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-    real32 thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
-    real32 rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
-    real32 turnspeedstat[NUM_TURN_TYPES];
+typedef struct StaticInfoShipOrDerelict {
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+    };
 
-    bool8 teamColor[MAX_MULTIPLAYER_PLAYERS];           //what color schemes this can be
-    SalvageStaticInfo   *salvageStaticInfo;           //static info for salvageable objects
+    // Duplicates fields of StaticInfoHealthGuidance to keep everything byte-aligned with the previous implementation
+    // and maintain savegame compatibility
+    struct {
+        real32 _thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
+        real32 _rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
+        real32 _turnspeedstat[NUM_TURN_TYPES];
+    };
 
-    //these 3 variables must be next
-    real32 sinbank;             // variables used by the AIShip routines
+    // TODO(type safety, 2026-04-24): Extract into another type (e.g. `Colored`) to mutualize with MissileStaticInfo
+    bool8 teamColor[MAX_MULTIPLAYER_PLAYERS]; // what color schemes this can be
+    SalvageStaticInfo* salvageStaticInfo;     // static info for salvageable objects
+
+    // these 3 variables must be next
+    real32 sinbank; // variables used by the AIShip routines
     real32 pitchturn;
     real32 pitchdescend;
-} StaticInfoHealthGuidanceShipDerelict;
+} StaticInfoShipOrDerelict;
 
 //info for SpaceObjRotImpTarg objects that was once
 //static, but now needs to be non-static
@@ -543,26 +544,14 @@ typedef struct
 
 typedef struct ShipStaticInfo
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-    //these 3 things are static and don't affect a ship after the
-    //ship has been built.  They are copied into the NonStats data
-    //structure due to a need for them to be nonstatic
-    real32 thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
-    real32 rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
-    real32 turnspeedstat[NUM_TURN_TYPES];
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        StaticInfoHealthGuidance guidance;
+        StaticInfoShipOrDerelict shipOrDerelict;
+    };
 
-    bool8 teamColor[MAX_MULTIPLAYER_PLAYERS];           //what color schemes this can be
-    SalvageStaticInfo   *salvageStaticInfo;           //static info for salvageable objects
-
-    //these 3 variables must be next
-    real32 sinbank;             // variables used by the AIShip routines
-    real32 pitchturn;
-    real32 pitchdescend;
-
+    //TODO(type safety, 2026-04-24): Merge into StaticInfoShipOrDerelict
     NAVLightStaticInfo *navlightStaticInfo;
 /*ship specific stuff below */
     CustShipHeader custshipheader;
@@ -693,11 +682,10 @@ typedef struct ShipStaticInfo
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
+    union {
+        StaticInfo common;
+        StaticInfoHealth _health;
+    };
 
     sdword resourcevalue;
     udword harvestableByMultipleShips;
@@ -705,14 +693,11 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-
-    sdword resourcevalue;
-    udword harvestableByMultipleShips;
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        ResourceStaticInfo resource;
+    };
 
     AsteroidType asteroidtype;      // Asteroid specific stuff from here on
     bool8 asteroidCanShrink;
@@ -725,14 +710,11 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-
-    sdword resourcevalue;
-    udword harvestableByMultipleShips;
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        ResourceStaticInfo resource;
+    };
 
     NebulaType nebulatype;
     bool8 nebulaCanShrink;
@@ -742,14 +724,11 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-
-    sdword resourcevalue;
-    udword harvestableByMultipleShips;
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        ResourceStaticInfo resource;
+    };
 
     GasCloudType gascloudtype;
     bool8 gascloudCanShrink;
@@ -759,14 +738,11 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-
-    sdword resourcevalue;
-    udword harvestableByMultipleShips;
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        ResourceStaticInfo resource;
+    };
 
     DustCloudType dustcloudtype;
     bool8 dustcloudCanShrink;
@@ -776,23 +752,14 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-    real32 thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
-    real32 rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
-    real32 turnspeedstat[NUM_TURN_TYPES];
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        StaticInfoHealthGuidance guidance;
+        StaticInfoShipOrDerelict shipOrDerelict;
+    };
 
-    bool8 teamColor[MAX_MULTIPLAYER_PLAYERS];           //what color schemes this can be
-    SalvageStaticInfo   *salvageStaticInfo;           //static info for salvageable objects
-
-    //these 3 variables must be next to be compatible with ship static info for aiship stuff
-    real32 sinbank;             // variables used by the AIShip routines
-    real32 pitchturn;
-    real32 pitchdescend;
-
+    //TODO(type safety, 2026-04-24): Merge into StaticInfoShipOrDerelict
     NAVLightStaticInfo *navlightStaticInfo;
 /* Derelict specific below */
     DerelictType derelicttype;
@@ -807,14 +774,11 @@ typedef struct
 
 typedef struct
 {
-    StaticHeader staticheader;
-    real32 maxhealth;
-    real32 oneOverMaxHealth;
-    real32 minCollDamage;
-    real32 maxCollDamage;
-    real32 thruststrengthstat[NUM_TRANS_DEGOFFREEDOM];
-    real32 rotstrengthstat[NUM_ROT_DEGOFFREEDOM];
-    real32 turnspeedstat[NUM_TURN_TYPES];                   // these 8 first lines are same as ShipStaticInfo, allowing
+    union {
+        StaticInfo common;
+        StaticInfoHealth health;
+        StaticInfoHealthGuidance guidance;
+    };
     bool8 teamColor[MAX_MULTIPLAYER_PLAYERS];           //what color schemes this can be
 
 
@@ -979,6 +943,11 @@ typedef struct
     Node objlink;
     ObjType objtype;        // object type (ship or bullet, etc)
     udword flags;           // flags whether the object is rotatable, etc.
+} SpaceObjHeader;
+
+typedef struct
+{
+    SpaceObjHeader header;
     StaticInfo *staticinfo; // pointer to static info
     Node renderlink;        // link for rendering list
     ubyte currentLOD;       // current level of detail
@@ -1001,21 +970,16 @@ typedef SpaceObj *SpaceObjPtr;
 
 typedef struct
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;            // flags whether the object is rotatable, etc.
-    StaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;           // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
+    // https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf § 6.5.2.3 Structure and union members
+    // "If the member used to read the contents of a union object is not the same as the member last used to
+    // store a value in the object, the appropriate part of the object representation of the value is reinterpreted
+    // as an object representation in the new type"
+    // So, since C11, accessing a member of a union is guaranteed to reinterpret the memory at that location.
+    // As long as we guarantee the fields to be the same, then we should be safe.
+    union {
+        SpaceObjHeader header;
+        SpaceObj obj;
+    };
     RotInfo rotinfo;
 } SpaceObjRot;
 
@@ -1025,22 +989,11 @@ typedef struct
 
 typedef struct
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;            // flags whether the object is rotatable, etc.
-    StaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
+    union {
+        SpaceObjHeader header;
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+    };
     CollInfo collInfo;
     Node impactablelink;
 } SpaceObjRotImp;
@@ -1051,28 +1004,19 @@ typedef struct
 
 typedef struct SpaceObjRotImpTarg
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;            // flags whether the object is rotatable, etc.
-    StaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            StaticInfoHealth* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+    };
     real32 health;                  // hitpoints
     real32 flashtimer;              // determines if object flashes on screen
     real32 lasttimecollided;
-
 } SpaceObjRotImpTarg;
 
 typedef SpaceObjRotImpTarg *TargetPtr;
@@ -1081,59 +1025,42 @@ typedef SpaceObjRotImpTarg *TargetPtr;
     SpaceObj - rotatable, impactable, targetable, guidance
 =============================================================================*/
 
-typedef struct SpaceObjRotImpTargGuidance
-{
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;            // flags whether the object is rotatable, etc.
-    StaticInfoHealthGuidance *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
+typedef struct SpaceObjRotImpTargGuidance {
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            StaticInfoHealthGuidance* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp _impactable;
+    };
+    // Duplicates fields of SpaceObjRotImpTarg to keep everything byte-aligned with the previous implementation
+    // and maintain savegame compatibility
+    struct {
+        real32 _health;
+        real32 _flashtimer;
+        real32 _lasttimecollided;
+    };
     NonStats nonstatvars;
-    ClampInfo *clampInfo;
+    ClampInfo* clampInfo;
+} SpaceObjRotImpTargGuidance; // used by missiles, ships, derelicts
 
-} SpaceObjRotImpTargGuidance;   // used by missiles, ships, derelicts
-
-typedef struct SpaceObjRotImpTargGuidanceShipDerelict
+typedef struct ShipOrDerelict
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;            // flags whether the object is rotatable, etc.
-    StaticInfoHealthGuidanceShipDerelict *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-    NonStats nonstatvars;
-    ClampInfo *clampInfo;
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            StaticInfoShipOrDerelict* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        SpaceObjRotImpTargGuidance guidance;
+    };
 
     SalvageInfo *salvageInfo;       //salvage info...
 
@@ -1145,8 +1072,7 @@ typedef struct SpaceObjRotImpTargGuidanceShipDerelict
     udword specialFlags;            //general purpose ship flags, see above for defines
     udword specialFlags2;           //more general purpose ship flags, see above for defines
     sdword salvageNumTagged[MAX_MULTIPLAYER_PLAYERS];        //number of salcaps vying for ship...used to disperese them amonst many targets
-    // HERE UP SAME for Derelicts and Ships
-} SpaceObjRotImpTargGuidanceShipDerelict;   // ships, derelicts
+} ShipOrDerelict;   // ships, derelicts
 
 typedef struct TargetID
 {
@@ -1293,40 +1219,20 @@ struct Resource;
 
 typedef struct Ship         // Ship object
 {
-    Node objlink;
-    ObjType objtype;                // object type (ship or bullet, etc)
-    udword flags;                   // flags whether the object is rotatable, etc.
-    ShipStaticInfo *staticinfo;         // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;               // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-    NonStats nonstatvars;
-    ClampInfo *clampInfo;
-
-    SalvageInfo *salvageInfo;       //salvage info...
-
-    //must come next to be compatible with Derelict in aiship stuff
-    ubyte aistate;                  // AI state variable
-    ubyte pad1[2];
-    sbyte putOnDoor;
-    struct Ship *dockingship;       // if non-NULL, indicates no collisions should occur with this ship
-    bitflag32 specialFlags;         //general purpose ship flags, see above for defines
-    bitflag32 specialFlags2;        //general purpose ship flags, see above for defines
-    sdword salvageNumTagged[MAX_MULTIPLAYER_PLAYERS];        //number of salcaps vying for ship...used to disperese them amonst many targets
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            ShipStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        SpaceObjRotImpTargGuidance guidance;
+        ShipOrDerelict shipOrDerelict;
+    };
+    //TODO(type safety, 2026-04-24): Merge into ShipOrDerelict
     NAVLightInfo *navLightInfo;
     // HERE UP SAME for Derelicts and Ships
 
@@ -1468,29 +1374,18 @@ typedef struct MissileID
 
 typedef struct
 {
-    Node objlink;
-    ObjType objtype;                            // object type (ship or bullet, etc)
-    udword flags;                               // flags whether the object is rotatable, etc.
-    MissileStaticInfo *staticinfo;              // pointer to static info
-    Node renderlink;                            // link for rendering list
-    ubyte currentLOD;                           // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;               // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;                // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;                    // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-    NonStats nonstatvars;
-    ClampInfo *clampInfo;
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            MissileStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        SpaceObjRotImpTargGuidance guidance;
+    };
 
     //missile trail stuff
     missiletrail* trail;
@@ -1530,26 +1425,20 @@ typedef Missile *MissilePtr;
 
 typedef struct Effect
 {
-    Node objlink;
-    ObjType objtype;                            // object type (ship or bullet, etc)
-    udword flags;                               // flags whether the object is rotatable, etc.
-    StaticInfo *staticinfo;                     // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;                           // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;               // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;                    // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            etgeffectstatic* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+    };
 
     //... effect-specific stuff
     Node effectLink;
     udword effectFlags;                         //effects-specific flags
+    //TODO(type safety, 2026-04-24): Fix this pointer's type. There are some unsafe casts around (e.g. from Bullet*)
     Ship *owner;                                //owner of this effect (e.g. ship that blew up)
     real32 magnitudeSquared;                    //N-lips scale factor, if any
     sdword nSpawnedAttachedToOwner;             //number of spawned effects attached to this effect's owner
@@ -1577,22 +1466,11 @@ typedef struct Effect
 
 typedef struct                                  // Bullet object
 {
-    Node objlink;
-    ObjType objtype;                            // object type (ship or bullet, etc)
-    udword flags;                               // flags whether the object is rotatable, etc.
-    StaticInfo *staticinfo;                     // pointer to static info
-    Node renderlink;                            // link for rendering list
-    ubyte currentLOD;                           // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;               // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;                // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;                    // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
+    union {
+        SpaceObjHeader header;
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+    };
 
     Node bulletlink;
     vector bulletheading;                       // heading in universe
@@ -1632,40 +1510,19 @@ typedef struct DerelictID
 
 typedef struct
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    DerelictStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-    NonStats nonstatvars;
-    ClampInfo *clampInfo;
-
-    SalvageInfo *salvageInfo;       //salvage info...
-
-    //must come next to be compatible with Derelict in aiship stuff
-    ubyte aistate;                  // AI state variable
-    ubyte pad1[2];
-    sbyte putOnDoor;
-    struct Ship *dockingship;       //Used to trick collision detection when being sent into docking bays
-    udword specialFlags;            //general purpose ship flags, see above for defines
-    udword specialFlags2;           //more general purpose ship flags, see above for defines
-    sdword salvageNumTagged[MAX_MULTIPLAYER_PLAYERS];        //number of salcaps vying for ship...used to disperese them amonst many targets
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            DerelictStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        SpaceObjRotImpTargGuidance guidance;
+        ShipOrDerelict shipOrDerelict;
+    };
     NAVLightInfo *navLightInfo;
     // HERE UP SAME for Derelicts and Ships
 
@@ -1708,27 +1565,16 @@ typedef struct ResourceID
 
 typedef struct Resource
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    ResourceStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            ResourceStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+    };
 
     Node resourcelink;
     ResourceID resourceID;
@@ -1745,33 +1591,18 @@ typedef Resource *ResourcePtr;    // all resources are assumed to be rotatable, 
 
 typedef struct Asteroid
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    ResourceStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-
-    Node resourcelink;
-    ResourceID resourceID;
-    uword resourceNotAccessible;
-    sdword resourcevalue;
-    struct ResourceVolume *resourceVolume;      // resourceVolume I belong to
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            AsteroidStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        Resource resource;
+    };
 
     AsteroidType asteroidtype;  // asteroid specific information
     real32 scaling;
@@ -1783,33 +1614,18 @@ typedef struct Asteroid
 
 typedef struct Nebula
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    ResourceStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-
-    Node resourcelink;
-    ResourceID resourceID;
-    uword resourceNotAccessible;
-    sdword resourcevalue;
-    struct ResourceVolume *resourceVolume;      // resourceVolume I belong to
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            NebulaStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        Resource resource;
+    };
 
     // put nebula specific stuff here only
     NebulaType nebulatype;
@@ -1824,33 +1640,18 @@ typedef struct Nebula
 
 typedef struct GasCloud
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    ResourceStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-
-    Node resourcelink;
-    ResourceID resourceID;
-    uword resourceNotAccessible;
-    sdword resourcevalue;
-    struct ResourceVolume *resourceVolume;      // resourceVolume I belong to
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            GasCloudStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        Resource resource;
+    };
 
     // put Gas Cloud pecific stuff here only
     GasCloudType gascloudtype;  // gascloud specific information
@@ -1863,33 +1664,18 @@ typedef struct GasCloud
 
 typedef struct DustCloud
 {
-    Node objlink;
-    ObjType objtype;        // object type (ship or bullet, etc)
-    udword flags;           // flags whether the object is rotatable, etc.
-    ResourceStaticInfo *staticinfo; // pointer to static info
-    Node renderlink;        // link for rendering list
-    ubyte currentLOD;       // current level of detail
-    ubyte renderedLODs;     //what LODs have been rendered already
-    uword attributes;               // settable attributes from mission editor
-    sword attributesParam;          // parameter for attributes, set from mission editor
-    ubyte attributesPad[2];          // leftover, free space
-    real32 cameraDistanceSquared;    // distance to camera (for sound, level of detail)
-    vector cameraDistanceVector;     // vector to camera (camera eyeposition - obj->posinfo.position)
-    real32 collOptimizeDist;         // distance used for optimizing collision checking
-    struct blob *collMyBlob;         // collision blob I belong to
-    PosInfo posinfo;
-    RotInfo rotinfo;
-    CollInfo collInfo;
-    Node impactablelink;
-    real32 health;                  // hitpoints
-    real32 flashtimer;              // determines if object flashes on screen
-    real32 lasttimecollided;
-
-    Node resourcelink;
-    ResourceID resourceID;
-    uword resourceNotAccessible;
-    sdword resourcevalue;
-    struct ResourceVolume *resourceVolume;      // resourceVolume I belong to
+    union {
+        struct {
+            SpaceObjHeader header;
+            // Reinterprets `SpaceObj.staticinfo`
+            DustCloudStaticInfo* staticinfo;
+        };
+        SpaceObj obj;
+        SpaceObjRot rotatable;
+        SpaceObjRotImp impactable;
+        SpaceObjRotImpTarg targetable;
+        Resource resource;
+    };
 
     // Dust Cloud specific stuff
     DustCloudType dustcloudtype;

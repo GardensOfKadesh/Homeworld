@@ -517,14 +517,14 @@ void trailGetNozzleOffset(real32* vec, shiptrail* trail)
 void trailGetCoordsys(real32* mat, shiptrail* trail)
 {
     Ship* ship = (Ship*)trail->vship;
-    MATCOPY(mat, &ship->rotinfo.coordsys);
+    MATCOPY(mat, &ship->rotatable.rotinfo.coordsys);
 }
 
 //convenience fn.  copies ship.position into provided vector
 void trailGetTranslation(real32* trans, shiptrail* trail)
 {
     Ship* ship = (Ship*)trail->vship;
-    VECCOPY(trans, &ship->posinfo.position);
+    VECCOPY(trans, &ship->obj.posinfo.position);
 }
 
 //random real 0->n
@@ -817,9 +817,9 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
         trail->ribbonadjust = 1.0f;
     }
 
-//    maxvel = ship->staticinfo->staticheader.maxvelocity;
+//    maxvel = ship->staticinfo->common.maxvelocity;
     maxvel = tacticsGetShipsMaxVelocity(ship);
-    VECCOPY(&vel, &ship->posinfo.velocity);
+    VECCOPY(&vel, &ship->obj.posinfo.velocity);
     mag = fsqrt(vecMagnitudeSquared(vel));
     velratio = 0.5f * mag / maxvel;
     if (velratio == 0.0f)
@@ -883,8 +883,8 @@ void trailDrawCapitalGlow(shiptrail* trail, sdword LOD)
     }
 
     glPushMatrix();
-    hmatMakeHMatFromMat(&coordMatrixForGL, &ship->rotinfo.coordsys);
-    hmatPutVectIntoHMatrixCol4(ship->posinfo.position, coordMatrixForGL);
+    hmatMakeHMatFromMat(&coordMatrixForGL, &ship->rotatable.rotinfo.coordsys);
+    hmatPutVectIntoHMatrixCol4(ship->obj.posinfo.position, coordMatrixForGL);
     glMultMatrixf((GLfloat*)&coordMatrixForGL);
 
     if (moshipGlow && (moshipGlow != 2))
@@ -1107,7 +1107,7 @@ void trailDrawBillboardedSquareThingz(shiptrail* trail, trailsegment* seg, real3
     maxvel = tacticsGetShipsMaxVelocity(ship);
 
     //scale radius by velocity fn
-    VECCOPY(&vel, &ship->posinfo.velocity);
+    VECCOPY(&vel, &ship->obj.posinfo.velocity);
     mag = fsqrt(vecMagnitudeSquared(vel));
     velratio = mag / maxvel;
     if (velratio < VELRATIO_THRESH)
@@ -1887,11 +1887,11 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
         return;
     }
 
-    if (!IS_MOVING_LINEARLY(ship->posinfo.isMoving) || (ship->flags & (SOF_DontDrawTrails|SOF_Clamped|SOF_Disabled)))  // clamped objs dont draw trails either
+    if (!IS_MOVING_LINEARLY(ship->obj.posinfo.isMoving) || (ship->header.flags & (SOF_DontDrawTrails|SOF_Clamped|SOF_Disabled)))  // clamped objs dont draw trails either
     {
         dontdrawtrail = TRUE;
     }
-    else if ((ship->flags & SOF_NISShip) == 0)
+    else if ((ship->header.flags & SOF_NISShip) == 0)
     {
         // for non NIS ships, if they don't have a command or its NULL, don't draw engine trails
         if ((ship->isDodging) || (universe.totaltimeelapsed < ship->DodgeTime))
@@ -1971,7 +1971,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
     trail->segments[trail->iHead].wide = FALSE;
     if (LOD < 3)
     {
-        real32 rad = ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+        real32 rad = ship->staticinfo->common.staticCollInfo.collspheresize;
         segmentArray = trail->staticInfo->segmentColor[teamIndex];
         _afterburning = FALSE;
         trailDrawBillboardedSquareThingz(trail, &lastSegment, rad, ship, segmentArray[2]);
@@ -1989,7 +1989,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
     }
     trailCopySegment(&currentSegment, &lastSegment);
 
-    mag = fsqrt(vecMagnitudeSquared(ship->posinfo.velocity));
+    mag = fsqrt(vecMagnitudeSquared(ship->obj.posinfo.velocity));
     if (mag < 0.001f)   //decision
     {
         return;
@@ -2107,7 +2107,7 @@ void trailDraw(vector *current, shiptrail *trail, sdword LOD, sdword teamIndex)
         if (trail->ranCounter == 0)
         {
             trail->prevvelsquared = trail->lastvelsquared;
-            trail->lastvelsquared = vecMagnitudeSquared(ship->posinfo.velocity);
+            trail->lastvelsquared = vecMagnitudeSquared(ship->obj.posinfo.velocity);
         }
     }
 }

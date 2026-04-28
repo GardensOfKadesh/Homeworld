@@ -198,115 +198,75 @@ void selRectDragFunction(Node *startNode, Camera *camera, rectangle *screenRect,
     //of the object list.  However, for now we will walk the entire list.
     selSelecting.numTargets = 0;
 //    targetnode = universe.RenderList.head;                   //get first node in list
-    targetnode = startNode;
-    while (targetnode != NULL)
-    {
+    for (targetnode = startNode; targetnode != NULL; targetnode = targetnode->next) {
         target = (SpaceObjRotImpTarg *)listGetStructOfNode(targetnode);
-        if ((target->flags & (SOF_Selectable|SOF_Targetable)) == 0)
-        {
-            goto nexttarget;
-        }
+        if ((target->header.flags & (SOF_Selectable|SOF_Targetable)) == 0) continue;
 
-        if (target->collInfo.selCircleRadius <= 0.0f)
-        {
-            goto nexttarget;
-        }
+        if (target->impactable.collInfo.selCircleRadius <= 0.0f) continue;
 
-        if (target->flags & SOF_Dead)
-        {
-            goto nexttarget;
-        }
+        if (target->header.flags & SOF_Dead) continue;
 
         if (!selectAnything)
         {
-            if (target->objtype == OBJ_ShipType)
+            if (target->header.objtype == OBJ_ShipType)
             {
                 if (playerSpecific)
                 {
-                    if (!(target->flags & SOF_Selectable))
-                    {
-                        goto nexttarget;
-                    }
+                    if (!(target->header.flags & SOF_Selectable)) continue;
                     // only own player should be able to select it
-                    if (((Ship *)target)->playerowner != universe.curPlayerPtr)
-                    {
-                        goto nexttarget;
-                    }
+                    if (((Ship *)target)->playerowner != universe.curPlayerPtr) continue;
                 }
             }
-            else if (target->objtype == OBJ_DerelictType)
+            else if (target->header.objtype == OBJ_DerelictType)
             {
-                if (playerSpecific)
-                {
-                    goto nexttarget;
-                }
+                if (playerSpecific) continue;
             }
-            else
-            {
-                goto nexttarget;
+            else continue;
+        }
+        if(target->header.objtype == OBJ_ShipType)     //later optimize if ONLY ships are cloaked!
+        {
+            Ship* ship = (Ship*)target;
+            if (bitTest(ship->header.flags, SOF_Cloaked) &&          // target is cloaked
+                ship->playerowner != universe.curPlayerPtr && // ship isn't players so don't draw box, unless...
+                !proximityCanPlayerSeeShip(universe.curPlayerPtr, ship)) {
+                // not even the players proximity sensors can save this person now...
+                continue;
+            }
+            if (bitTest(ship->header.flags, SOF_Slaveable) && !bitTest(ship->slaveinfo->flags, SF_MASTER)) {
+                // don't add slaves/draw slaves seletion circles
+                continue;
+            }
+            if (bAttack && ship->staticinfo->cannotForceAttackIfOwnShip &&
+                (ship->playerowner == universe.curPlayerPtr)) {
+                // don't allow anysort of attacking of own cryotrays
+                continue;
             }
         }
-        if(target->objtype == OBJ_ShipType)     //later optimize if ONLY ships are cloaked!
+        else if (target->header.objtype == OBJ_AsteroidType)
         {
-            if(bitTest(target->flags,SOF_Cloaked))
-            {       //target is cloaked
-                if(((Ship *)target)->playerowner != universe.curPlayerPtr)
-                {
-                    //ship isn't players so don't draw box  unless../.
-                    if(!proximityCanPlayerSeeShip(universe.curPlayerPtr,(Ship *)target))
-                    {
-                        //not even the players proximity sensors can save this person now...
-                        goto nexttarget;
-                    }
-                }
-            }
-            if(bitTest(target->flags,SOF_Slaveable))
-            {
-                if(!bitTest(((Ship *)target)->slaveinfo->flags,SF_MASTER))
-                {   //don't add slaves/draw slaves seletion circles
-                    goto nexttarget;
-                }
-            }
-            if(bAttack && ((Ship *)target)->staticinfo->cannotForceAttackIfOwnShip)
-            {
-                if(((Ship *)target)->playerowner == universe.curPlayerPtr)
-                {
-                    //don't allow anysort of attacking of own cryotrays
-                    goto nexttarget;
-                }
-            }
-        }
-        else if (target->objtype == OBJ_AsteroidType)
-        {
-            if (playerSpecific)
-            {
-                goto nexttarget;
-            }
+            if (playerSpecific) continue;
 
-            if (selectAnything || (bAttack && (target->attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))))
+            if (selectAnything || (bAttack && (target->obj.attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))))
             {
                 ;  // allow this target
             }
-            else
-            {
-                goto nexttarget;
-            }
+            else continue;
         }
 
 
         //here we do a test of the overlap of the selection rect
         //and a rectangle representing the target's selection sphere.
-        selectRect.x0 = target->collInfo.selCircleX - target->collInfo.selCircleRadius - dragMargin;
-        selectRect.x1 = target->collInfo.selCircleX + target->collInfo.selCircleRadius + dragMargin;
-        selectRect.y0 = (target->collInfo.selCircleY - target->collInfo.selCircleRadius) - dragMargin;
-        selectRect.y1 = (target->collInfo.selCircleY + target->collInfo.selCircleRadius) + dragMargin;
-        if (target->collInfo.precise != NULL &&
-            target->currentLOD <= target->staticinfo->staticheader.staticCollInfo.preciseSelection)
+        selectRect.x0 = target->impactable.collInfo.selCircleX - target->impactable.collInfo.selCircleRadius - dragMargin;
+        selectRect.x1 = target->impactable.collInfo.selCircleX + target->impactable.collInfo.selCircleRadius + dragMargin;
+        selectRect.y0 = (target->impactable.collInfo.selCircleY - target->impactable.collInfo.selCircleRadius) - dragMargin;
+        selectRect.y1 = (target->impactable.collInfo.selCircleY + target->impactable.collInfo.selCircleRadius) + dragMargin;
+        if (target->impactable.collInfo.precise != NULL &&
+            target->obj.currentLOD <= target->staticinfo->common.staticCollInfo.preciseSelection)
         {                                               //if we should perform precise collision checking
-            point = target->collInfo.precise->worldRectPos;//list of points
-            pIndex = target->collInfo.precise->corner;    //list of vertices
+            point = target->impactable.collInfo.precise->worldRectPos;//list of points
+            pIndex = target->impactable.collInfo.precise->corner;    //list of vertices
             areaUnion = areaTotal = 0.0f;
-            for (index = base = 0; index < target->collInfo.precise->nPolys; index++, base += 4)
+            for (index = base = 0; index < target->impactable.collInfo.precise->nPolys; index++, base += 4)
             {                                           //for each poly
                 val = min(point[pIndex[base + 0]].x, min(point[pIndex[base + 1]].x, min(point[pIndex[base + 2]].x, point[pIndex[base + 3]].x)));
                 polyRect.x0 = val;
@@ -342,9 +302,6 @@ void selRectDragFunction(Node *startNode, Camera *camera, rectangle *screenRect,
                 dbgMessage("Warning: Tried to select too many ships");
             }
         }
-
-nexttarget:
-        targetnode = targetnode->next;
     }
 }
 
@@ -424,7 +381,7 @@ void selSelectionSetSingleShip(Ship *ship)
     dbgAssertOrIgnore(ship->playerowner == universe.curPlayerPtr);
     selSelected.numShips = 1;
     selSelected.ShipPtr[0] = ship;
-    selCentrePoint = ship->posinfo.position;
+    selCentrePoint = ship->obj.posinfo.position;
 }
 
 /*-----------------------------------------------------------------------------
@@ -515,18 +472,18 @@ Ship *selSelectionClick(Node *listHead, Camera *camera, sdword x, sdword y, bool
     while (shipnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(shipnode);
-        if (ship->objtype == OBJ_ShipType)
+        if (ship->header.objtype == OBJ_ShipType)
         {
             if (ship->shiptype == Drone)
             {                                               //can't click on drones
                 goto nextship;
             }
         }
-        else if (bIncludeResources && (ship->objtype == OBJ_AsteroidType || ship->objtype == OBJ_DustType))
+        else if (bIncludeResources && (ship->header.objtype == OBJ_AsteroidType || ship->header.objtype == OBJ_DustType))
         {
             ;                                               //good
         }
-        else if (bIncludeDerelicts && ship->objtype == OBJ_DerelictType)
+        else if (bIncludeDerelicts && ship->header.objtype == OBJ_DerelictType)
         {
             ;                                               //good
         }
@@ -534,28 +491,28 @@ Ship *selSelectionClick(Node *listHead, Camera *camera, sdword x, sdword y, bool
         {                                                   //not anything we want
             goto nextship;                                  //skip this one
         }
-        if(bitTest(ship->flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
+        if(bitTest(ship->header.flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
         {                                                   //ship is cloaked and isn't players so ignore it
             if(!proximityCanPlayerSeeShip(universe.curPlayerPtr,ship))
             {
                 goto nextship;
             }
         }
-        if(bitTest(ship->flags,SOF_Slaveable))
+        if(bitTest(ship->header.flags,SOF_Slaveable))
            if(!bitTest(ship->slaveinfo->flags, SF_MASTER))
                goto nextship;   //don't let slaves get single clicked!
-        if ((ship->collInfo.selCircleRadius > 0) && ((ship->flags & SOF_Dead) == 0))   //and it is in front of the camera
+        if ((ship->impactable.collInfo.selCircleRadius > 0) && ((ship->header.flags & SOF_Dead) == 0))   //and it is in front of the camera
         {
             //here we do a test of the overlap of the selection rect
             //and a rectangle representing the ship's selection sphere.
-            if (ship->collInfo.precise != NULL &&
-                ship->currentLOD <= ship->staticinfo->staticheader.staticCollInfo.preciseSelection)
+            if (ship->impactable.collInfo.precise != NULL &&
+                ship->obj.currentLOD <= ship->staticinfo->common.staticCollInfo.preciseSelection)
             {                                               //if we should perform precise collision checking
-                point = ship->collInfo.precise->worldRectPos;//list of points
-                pIndex = ship->collInfo.precise->corner;    //list of vertices
+                point = ship->impactable.collInfo.precise->worldRectPos;//list of points
+                pIndex = ship->impactable.collInfo.precise->corner;    //list of vertices
                 xReal = primScreenToGLX(x);                 //floating-point location of points
                 yReal = primScreenToGLY(y);
-                for (index = base = 0; index < ship->collInfo.precise->nPolys; index++, base += 4)
+                for (index = base = 0; index < ship->impactable.collInfo.precise->nPolys; index++, base += 4)
                 {                                           //for each poly
                     p0 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 0]].x, point[pIndex[base + 0]].y, point[pIndex[base + 1]].x, point[pIndex[base + 1]].y);
                     p1 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 1]].x, point[pIndex[base + 1]].y, point[pIndex[base + 2]].x, point[pIndex[base + 2]].y);
@@ -563,9 +520,9 @@ Ship *selSelectionClick(Node *listHead, Camera *camera, sdword x, sdword y, bool
                     p3 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 3]].x, point[pIndex[base + 3]].y, point[pIndex[base + 0]].x, point[pIndex[base + 0]].y);
                     if (p0 > 0.0f && p1 > 0.0f && p2 > 0.0f && p3 > 0.0f)
                     {                                       //if point inside this poly
-                        distance = ABS(primGLToScreenX(ship->collInfo.selCircleX) - x) +
-                            ABS(primGLToScreenY(ship->collInfo.selCircleY) - y) +
-                            primGLToScreenScaleX(ship->collInfo.selCircleDepth);
+                        distance = ABS(primGLToScreenX(ship->impactable.collInfo.selCircleX) - x) +
+                            ABS(primGLToScreenY(ship->impactable.collInfo.selCircleY) - y) +
+                            primGLToScreenScaleX(ship->impactable.collInfo.selCircleDepth);
                         if (distance < closestDistance)
                         {
                             closestDistance = distance;
@@ -577,18 +534,18 @@ Ship *selSelectionClick(Node *listHead, Camera *camera, sdword x, sdword y, bool
             }
             else
             {
-                selectRect.x0 = primGLToScreenX(ship->collInfo.selCircleX - ship->collInfo.selCircleRadius) - selClickMargin;
-                selectRect.x1 = primGLToScreenX(ship->collInfo.selCircleX + ship->collInfo.selCircleRadius) + selClickMargin;
-                selectRect.y0 = primGLToScreenY(ship->collInfo.selCircleY + ship->collInfo.selCircleRadius) - selClickMargin;
-                selectRect.y1 = primGLToScreenY(ship->collInfo.selCircleY - ship->collInfo.selCircleRadius) + selClickMargin;
+                selectRect.x0 = primGLToScreenX(ship->impactable.collInfo.selCircleX - ship->impactable.collInfo.selCircleRadius) - selClickMargin;
+                selectRect.x1 = primGLToScreenX(ship->impactable.collInfo.selCircleX + ship->impactable.collInfo.selCircleRadius) + selClickMargin;
+                selectRect.y0 = primGLToScreenY(ship->impactable.collInfo.selCircleY + ship->impactable.collInfo.selCircleRadius) - selClickMargin;
+                selectRect.y1 = primGLToScreenY(ship->impactable.collInfo.selCircleY - ship->impactable.collInfo.selCircleRadius) + selClickMargin;
 
                 //note that this is a rectangular intersection test
                 if ((selectRect.x0 <= x) && (x <= selectRect.x1) &&
                     (selectRect.y0 <= y) && (y <= selectRect.y1))
                 {                                           //found a matching object, return
-                    distance = ABS(primGLToScreenX(ship->collInfo.selCircleX) - x) +
-                        ABS(primGLToScreenY(ship->collInfo.selCircleY) - y) +
-                            primGLToScreenScaleX(ship->collInfo.selCircleDepth);
+                    distance = ABS(primGLToScreenX(ship->impactable.collInfo.selCircleX) - x) +
+                        ABS(primGLToScreenY(ship->impactable.collInfo.selCircleY) - y) +
+                            primGLToScreenScaleX(ship->impactable.collInfo.selCircleDepth);
                     if (distance < closestDistance)
                     {
                         closestDistance = distance;
@@ -615,57 +572,48 @@ nextship:
     Outputs     :
     Return      : selected object, or NULL
 ----------------------------------------------------------------------------*/
-SpaceObj *selClickFromArray(SpaceObj **list, sdword length, sdword x, sdword y)
-{
-    SpaceObj *object;
+SpaceObj* selClickFromArray(SpaceObj** list, sdword length, sdword x, sdword y) {
+    SpaceObj* object;
     rectangle selectRect;
     sdword closestDistance = SDWORD_Max, distance;
-    SpaceObj *closestObject = NULL;
+    SpaceObj* closestObject = NULL;
 
-    while (length > 0)
-    {
-        object = (SpaceObj *)(*list);
-        if ((object->flags & (SOF_Selectable | SOF_Targetable)) == 0)
-        {
-            goto nextship;
-        }
-        if(object->objtype == OBJ_ShipType &&
-           bitTest(((Ship *)object)->flags,SOF_Cloaked) &&
-           ((Ship *)object)->playerowner != universe.curPlayerPtr)
-        {       //object is cloaked and isn't players so ignore it
-            if(!proximityCanPlayerSeeShip(universe.curPlayerPtr,(Ship *)object))
-            {
-                goto nextship;
+    for (; length > 0; list++, length--) {
+        object = *list;
+        udword flags = object->header.flags;
+        if (bitTest(flags, SOF_Selectable | SOF_Targetable) == 0) continue;
+        if (object->header.objtype == OBJ_ShipType) {
+            Ship* ship = (Ship*)object;
+            if (bitTest(flags, SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr &&
+                !proximityCanPlayerSeeShip(universe.curPlayerPtr, ship)) {
+                // object is cloaked and isn't players so ignore it
+                continue;
             }
         }
-        if ((((SpaceObjRotImpTarg *)object)->collInfo.selCircleRadius > 0) &&
-            ((((SpaceObjRotImpTarg *)object)->flags & SOF_Dead) == 0))   //and it is in front of the camera
+        // Object is at least targetable, so it is guaranteed to be impactable
+        CollInfo* collInfo = &((SpaceObjRotImp*)object)->collInfo;
+        if ((collInfo->selCircleRadius > 0) && (flags & SOF_Dead) == 0) // and it is in front of the camera
         {
-            //here we do a test of the overlap of the selection rect
-            //and a rectangle representing the object's selection sphere.
-            selectRect.x0 = primGLToScreenX(((SpaceObjRotImpTarg *)object)->collInfo.selCircleX - ((SpaceObjRotImpTarg *)object)->collInfo.selCircleRadius) - selClickMargin;
-            selectRect.x1 = primGLToScreenX(((SpaceObjRotImpTarg *)object)->collInfo.selCircleX + ((SpaceObjRotImpTarg *)object)->collInfo.selCircleRadius) + selClickMargin;
-            selectRect.y0 = primGLToScreenY(((SpaceObjRotImpTarg *)object)->collInfo.selCircleY + ((SpaceObjRotImpTarg *)object)->collInfo.selCircleRadius) - selClickMargin;
-            selectRect.y1 = primGLToScreenY(((SpaceObjRotImpTarg *)object)->collInfo.selCircleY - ((SpaceObjRotImpTarg *)object)->collInfo.selCircleRadius) + selClickMargin;
+            // here we do a test of the overlap of the selection rect
+            // and a rectangle representing the object's selection sphere.
+            selectRect.x0 = primGLToScreenX(collInfo->selCircleX - collInfo->selCircleRadius) - selClickMargin;
+            selectRect.x1 = primGLToScreenX(collInfo->selCircleX + collInfo->selCircleRadius) + selClickMargin;
+            selectRect.y0 = primGLToScreenY(collInfo->selCircleY + collInfo->selCircleRadius) - selClickMargin;
+            selectRect.y1 = primGLToScreenY(collInfo->selCircleY - collInfo->selCircleRadius) + selClickMargin;
             //!!! note that this is a rectangular intersection test
-            if ((selectRect.x0 <= x) && (x <= selectRect.x1) &&
-                (selectRect.y0 <= y) && (y <= selectRect.y1))
-            {                                           //found a matching object, return
-                distance = ABS(primGLToScreenX(((SpaceObjRotImpTarg *)object)->collInfo.selCircleX) - x) +
-                    ABS(primGLToScreenY(((SpaceObjRotImpTarg *)object)->collInfo.selCircleY) - y);//manhattan distance
-                if (distance < closestDistance)
-                {
+            if ((selectRect.x0 <= x) && (x <= selectRect.x1) && (selectRect.y0 <= y) &&
+                (y <= selectRect.y1)) { // found a matching object, return
+                distance = ABS(primGLToScreenX(collInfo->selCircleX) - x) +
+                           ABS(primGLToScreenY(collInfo->selCircleY) - y); // manhattan distance
+                if (distance < closestDistance) {
                     closestDistance = distance;
                     closestObject = object;
                 }
-//                return(object);
+                //  return(object);
             }
         }
-nextship:
-        list++;
-        length--;
     }
-    return(closestObject);
+    return (closestObject);
 }
 
 //I know I shouldn't be making external references like this but hey, Falko put
@@ -699,9 +647,9 @@ void selShipUnderMouse(SpaceObjRotImpTarg *target, sdword distance)
     //process object for move near to command
     if (piePointSpecMode == PSM_XY || piePointSpecMode == PSM_Z)
     {                                                       //if in point spec mode
-        if ((target->objtype == OBJ_ShipType && ((Ship*)target)->shiptype != Mothership)  ||
-            (target->objtype == OBJ_AsteroidType/* &&
-             target->staticinfo->staticheader.staticCollInfo.collspheresize > selAsteroidMoveNeartoSize*/))
+        if ((target->header.objtype == OBJ_ShipType && ((Ship*)target)->shiptype != Mothership)  ||
+            (target->header.objtype == OBJ_AsteroidType/* &&
+             target->staticinfo->common.staticCollInfo.collspheresize > selAsteroidMoveNeartoSize*/))
         {                                                   //if it's a valid object type
             if (distance < smClosestDistance)
             {
@@ -715,33 +663,33 @@ void selShipUnderMouse(SpaceObjRotImpTarg *target, sdword distance)
     // only the closest ship gets named
     if (mrHoldRight == mrNULL)
     {                                                       //if no mouse action going down
-        if (target->cameraDistanceSquared < mouseCursorOverDistance)
+        if (target->obj.cameraDistanceSquared < mouseCursorOverDistance)
         {                                                   //if closer than previous close object
-            mouseCursorOverDistance = target->cameraDistanceSquared;
+            mouseCursorOverDistance = target->obj.cameraDistanceSquared;
 
-            if (target->objtype == OBJ_ShipType)
+            if (target->header.objtype == OBJ_ShipType)
             {
+                Ship* targetShip = (Ship*)target;
                 // enemy ships are only identified as "enemy ship"
-                if ( (((Ship *)target)->playerowner == universe.curPlayerPtr) ||
-                     ((((Ship *)target)->specialFlags & SPECIAL_FriendlyStatus) &&
-                      (tutorial!=TUTORIAL_ONLY)))    //ships with special friendly status are still considered enemies in the tutorial
+                if ((targetShip->playerowner == universe.curPlayerPtr) ||
+                    (targetShip->shipOrDerelict.specialFlags & SPECIAL_FriendlyStatus) &&
+                        (tutorial != TUTORIAL_ONLY)) // ships with special friendly status are still considered enemies
+                                                     // in the tutorial
                 {
-                    mouseCursorOverShipType  = ((Ship *)target)->shiptype;
-                    mouseCursorObjPtr        = (SpaceObj *)target;
+                    mouseCursorOverShipType = targetShip->shiptype;
+                    mouseCursorObjPtr = &targetShip->obj;
                     bitSet(mouseCursorMode, MCM_CursorOverObj);
-                }
-                else
-                {
+                } else {
                     //the trader ship refuses not to be buggy in these "general" cases,
                     //so I'll just put special case code for the trader, seeing as it's
                     //a special case anyway.
-                    if (((Ship *)target)->shiptype == FloatingCity)
+                    if (targetShip->shiptype == FloatingCity)
                     {
                         mouseCursorOverShipType = FloatingCity;
                         mouseCursorObjPtr       = NULL;
                         bitClear(mouseCursorMode, MCM_CursorOverObj);
                     }
-                    else if (allianceIsShipAlly((Ship *)target, universe.curPlayerPtr))
+                    else if (allianceIsShipAlly(targetShip, universe.curPlayerPtr))
                     {
                         mouseCursorOverShipType = MC_ALLIED_SHIP;
                         mouseCursorObjPtr       = NULL;
@@ -754,12 +702,12 @@ void selShipUnderMouse(SpaceObjRotImpTarg *target, sdword distance)
                         bitClear(mouseCursorMode, MCM_CursorOverObj);
                     }
                 }
-                mouseCursorOverLODs     = target->renderedLODs;
-                mouseCursorEnemyType    = ((Ship *)target)->shiptype;
-                mouseCursorEnemyPlayer  = ((Ship *)target)->playerowner->playerIndex;
+                mouseCursorOverLODs     = target->obj.renderedLODs;
+                mouseCursorEnemyType    = targetShip->shiptype;
+                mouseCursorEnemyPlayer  = targetShip->playerowner->playerIndex;
                 mouseCursorTextExpire   = universe.totaltimeelapsed + TW_CURSORTEXT_DELAY_TIME;
             }
-            else if (target->objtype == OBJ_DerelictType)
+            else if (target->header.objtype == OBJ_DerelictType)
             {
                 //since this is only used for salvaging,
                 //set shiptype only when a salvageable derelict is under the cursor
@@ -779,15 +727,14 @@ void selShipUnderMouse(SpaceObjRotImpTarg *target, sdword distance)
                         break;
                     default:
                         mouseCursorOverShipType = MC_DERELICT;
-                        mouseCursorObjPtr       = (SpaceObj *)target;
+                        mouseCursorObjPtr       = &target->obj;
                         bitSet(mouseCursorMode, MCM_CursorOverObj);
                         break;
                 }*/
-                if ( (((Derelict *)target)->derelicttype == HyperspaceGate) ||
-                     (((DerelictStaticInfo *)target->staticinfo)->salvageable) )
-                {
+                Derelict* derelict = (Derelict*)target;
+                if ((derelict->derelicttype == HyperspaceGate) || derelict->staticinfo->salvageable) {
                     mouseCursorOverShipType = MC_DERELICT;
-                    mouseCursorObjPtr       = (SpaceObj *)target;
+                    mouseCursorObjPtr = &derelict->obj;
                     bitSet(mouseCursorMode, MCM_CursorOverObj);
                 }
             }
@@ -795,11 +742,11 @@ void selShipUnderMouse(SpaceObjRotImpTarg *target, sdword distance)
             {
                 // only consider dustclouds as cursor objects if there's a
                 // resource collector selected
-                if ((target->objtype != OBJ_DustType) ||
+                if ((target->header.objtype != OBJ_DustType) ||
                     ShiptypeInSelection((SelectCommand *)&selSelected, ResourceCollector))
                 {
                     mouseCursorOverShipType = MC_RESOURCE;
-                    mouseCursorObjPtr = (SpaceObj *)target;
+                    mouseCursorObjPtr = &target->obj;
                     bitSet(mouseCursorMode, MCM_CursorOverObj);
                 }
             }
@@ -835,38 +782,38 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
     real32 xReal, yReal;
     real32 p0, p1, p2, p3;
 
-    collision = &target->collInfo;
+    collision = &target->impactable.collInfo;
 
     //Research Ship SLAVEABLE ship addition
 
-    if(bitTest(target->flags,SOF_Slaveable))
+    if(bitTest(target->header.flags,SOF_Slaveable))
     {    //object is slaveable...
         if(bitTest(((Ship *)target)->slaveinfo->flags,SF_MASTER))
         {   //object is a master...so calculate Biggey selection circle based on all slave circles
             master = ((Ship *)target);
             slavenode = master->slaveinfo->slaves.head;
-            centre.x = master->collInfo.collPosition.x;
-            centre.y = master->collInfo.collPosition.y;
-            centre.z = master->collInfo.collPosition.z;
+            centre.x = master->impactable.collInfo.collPosition.x;
+            centre.y = master->impactable.collInfo.collPosition.y;
+            centre.z = master->impactable.collInfo.collPosition.z;
             centre.w = 1.0f;
 
             while(slavenode != NULL)
             {
                 slave = (Ship *) listGetStructOfNode(slavenode);
-                centre.x += slave->collInfo.collPosition.x;                    //vector at centre of target
-                centre.y += slave->collInfo.collPosition.y;
-                centre.z += slave->collInfo.collPosition.z;
+                centre.x += slave->impactable.collInfo.collPosition.x;                    //vector at centre of target
+                centre.y += slave->impactable.collInfo.collPosition.y;
+                centre.z += slave->impactable.collInfo.collPosition.z;
                 slavenode = slavenode->next;
             }
             centre.x /= (real32 )(master->slaveinfo->slaves.num+1);
             centre.y /= (real32 )(master->slaveinfo->slaves.num+1);
             centre.z /= (real32 )(master->slaveinfo->slaves.num+1);
-            vecSub(distvec,centre,master->collInfo.collPosition);
+            vecSub(distvec,centre,master->impactable.collInfo.collPosition);
             dist = vecMagnitudeSquared(distvec);
             hmatMultiplyHMatByHVec(&selCameraSpace, modelView, &centre);//in camera space
             radius = selCameraSpace;
             dist = fsqrt(dist);
-            radius.x += dist + (master->staticinfo->staticheader.staticCollInfo.collspheresize);
+            radius.x += dist + (master->staticinfo->common.staticCollInfo.collspheresize);
             hmatMultiplyHMatByHVec(&screenSpace, projection, &selCameraSpace);//in screen space
             hmatMultiplyHMatByHVec(&radiusProjected, projection, &radius);
             collision->selCircleX = screenSpace.x / screenSpace.w;
@@ -882,7 +829,7 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
             centre.w = 1.0f;
             hmatMultiplyHMatByHVec(&selCameraSpace, modelView, &centre);//in camera space
             radius = selCameraSpace;                                   //project another point to determine selection sphere size
-            radius.x += (target->staticinfo->staticheader.staticCollInfo.collspheresize);
+            radius.x += (target->staticinfo->common.staticCollInfo.collspheresize);
             hmatMultiplyHMatByHVec(&screenSpace, projection, &selCameraSpace);//in screen space
             hmatMultiplyHMatByHVec(&radiusProjected, projection, &radius);
             collision->selCircleX = screenSpace.x / screenSpace.w;
@@ -901,7 +848,7 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
     centre.w = 1.0f;
     hmatMultiplyHMatByHVec(&selCameraSpace, modelView, &centre);//in camera space
     radius = selCameraSpace;                                   //project another point to determine selection sphere size
-    radius.x += (target->staticinfo->staticheader.staticCollInfo.collspheresize);
+    radius.x += (target->staticinfo->common.staticCollInfo.collspheresize);
     hmatMultiplyHMatByHVec(&screenSpace, projection, &selCameraSpace);//in screen space
     hmatMultiplyHMatByHVec(&radiusProjected, projection, &radius);
     collision->selCircleX = screenSpace.x / screenSpace.w;
@@ -912,7 +859,7 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
     //compute the precise selection if the ship type demands it
     if (collision->precise != NULL)
     {
-        if (target->currentLOD <= target->staticinfo->staticheader.staticCollInfo.preciseSelection)
+        if (target->obj.currentLOD <= target->staticinfo->common.staticCollInfo.preciseSelection)
         {                                                   //if we should do precise selection
             precise = collision->precise;
             point = precise->worldRectPos;
@@ -920,9 +867,9 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
             //transform the corners into camera space and project into screen space
             for (index = 0; index < 8; index++)
             {
-                centre.x = collision->rectpos[index].x + target->posinfo.position.x;//make a hvector (w is already 1.0f)
-                centre.y = collision->rectpos[index].y + target->posinfo.position.y;
-                centre.z = collision->rectpos[index].z + target->posinfo.position.z;
+                centre.x = collision->rectpos[index].x + target->obj.posinfo.position.x;//make a hvector (w is already 1.0f)
+                centre.y = collision->rectpos[index].y + target->obj.posinfo.position.y;
+                centre.z = collision->rectpos[index].z + target->obj.posinfo.position.z;
                 hmatMultiplyHMatByHVec(&cameraSpace, modelView, &centre);//transform collision rectangle into world space
                 hmatMultiplyHMatByHVec(&screenSpace, projection, &cameraSpace);//transform into screen space
                 point[index].x = screenSpace.x / screenSpace.w;
@@ -1042,7 +989,7 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
             //find the target under the mouse cursor for the move near to command/mouse cursor text
             xReal = primScreenToGLX(mouseCursorX());        //floating-point location of mouse
             yReal = primScreenToGLY(mouseCursorY());
-            for (index = base = 0; index < target->collInfo.precise->nPolys; index++, base += 4)
+            for (index = base = 0; index < target->impactable.collInfo.precise->nPolys; index++, base += 4)
             {                                               //for each poly
                 p0 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 0]].x, point[pIndex[base + 0]].y, point[pIndex[base + 1]].x, point[pIndex[base + 1]].y);
                 p1 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 1]].x, point[pIndex[base + 1]].y, point[pIndex[base + 2]].x, point[pIndex[base + 2]].y);
@@ -1050,10 +997,10 @@ void selCircleCompute(hmatrix *modelView, hmatrix *projection, SpaceObjRotImpTar
                 p3 = primPointLineIntersection(xReal, yReal, point[pIndex[base + 3]].x, point[pIndex[base + 3]].y, point[pIndex[base + 0]].x, point[pIndex[base + 0]].y);
                 if (p0 > 0.0f && p1 > 0.0f && p2 > 0.0f && p3 > 0.0f)
                 {                                       //if mouse inside this poly
-                    if (target->collInfo.selCircleRadius > 0.0f)
+                    if (target->impactable.collInfo.selCircleRadius > 0.0f)
                     {
-                        distance = ABS(primGLToScreenX(target->collInfo.selCircleX) - mouseCursorX()) +
-                            ABS(primGLToScreenY(target->collInfo.selCircleY) - mouseCursorY());
+                        distance = ABS(primGLToScreenX(target->impactable.collInfo.selCircleX) - mouseCursorX()) +
+                            ABS(primGLToScreenY(target->impactable.collInfo.selCircleY) - mouseCursorY());
                         selShipUnderMouse(target, distance);
                     }
                     break;
@@ -1095,10 +1042,10 @@ void selDrawBoxes(SpaceObjRotImpTarg *target)
     ubyte *pIndex;
     CollInfo *collision;
 
-    collision = &target->collInfo;
+    collision = &target->impactable.collInfo;
     if (collision->precise != NULL)
     {
-        if (target->currentLOD <= target->staticinfo->staticheader.staticCollInfo.preciseSelection)
+        if (target->obj.currentLOD <= target->staticinfo->common.staticCollInfo.preciseSelection)
         {                                                   //if we should do precise selection
             point = collision->precise->worldRectPos;
             pIndex = collision->precise->corner;
@@ -1214,9 +1161,9 @@ void selSelectionDraw5(Ship *ship)      // PLEASE DON'T COMMENT THIS FUNCTION OU
     sdword segments = 20;
     color c = selShipHealthGreen;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = primGLToScreenScaleX(ship->collInfo.selCircleRadius);
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = primGLToScreenScaleX(ship->impactable.collInfo.selCircleRadius);
 
     outline.centreX = x;                                    //draw inner outline circle
     outline.centreY = y;
@@ -1240,14 +1187,14 @@ void selStatusDraw0(Ship *ship)
     sdword i;                       //counter
     udword cloaktime,maxcloaktime,gravtime,maxgravtime,maxTechTime,techtime;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = max(ship->collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = max(ship->impactable.collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
     halfWidth = primGLToScreenScaleX(radius * selSelectionWidthFactor0);//width of bars
-    //health = (sdword) ship->health;                                  //get ship health color and size
-    //maxHealth = (sdword) ((ShipStaticInfo *)ship->staticinfo)->maxhealth;
+    //health = (sdword) ship->targetable.health;                                  //get ship health color and size
+    //maxHealth = (sdword) ship->staticinfo->health.maxhealth;
     //factor = (real32)health / (real32)maxHealthmaxHealth;            //amount percentage of full health
-    factor = ship->health * ((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+    factor = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
 
     if (factor > selShipHealthGreenFactor)
     {
@@ -1298,7 +1245,7 @@ void selStatusDraw0(Ship *ship)
         }
     }
     //Add cloaking Status if ship is for some reason cloaked...
-    if(bitTest(ship->flags,SOF_Cloaked))    //if the ship is cloaked
+    if(bitTest(ship->header.flags,SOF_Cloaked))    //if the ship is cloaked
     {
         fontMakeCurrent(selGroupFont0);
         fontPrint(x - halfWidth - fontWidth("C") - 1, rect.y1 + 5 - fontHeight(" "), selHotKeyNumberColor, "C");
@@ -1309,8 +1256,8 @@ void selStatusDraw0(Ship *ship)
         numGuns = ship->gunInfo->numGuns;
         for (i=0;i < numGuns;i++)
         {
-            //gunstatic = ((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
-            gunstatic = &((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
+            //gunstatic = ship->staticinfo->gunStaticInfo->gunstatics[i];
+            gunstatic = &ship->staticinfo->gunStaticInfo->gunstatics[i];
             if (gunstatic->guntype == GUN_MissileLauncher || gunstatic->guntype == GUN_MineLauncher)
             {
                 Gun *gun;
@@ -1322,8 +1269,8 @@ void selStatusDraw0(Ship *ship)
         fontPrintf(x - halfWidth , rect.y1 + 5, selHotKeyNumberColor, "%d", missilecount);
     }
 
-    maxFuel = ((ShipStaticInfo *)ship->staticinfo)->maxfuel;
-    maxResources = ((ShipStaticInfo *)ship->staticinfo)->maxresources;
+    maxFuel = ship->staticinfo->maxfuel;
+    maxResources = ship->staticinfo->maxresources;
     if (maxFuel != 0.0f)
     {                                                       //if ship has any fuel
         fuel = ship->fuel;
@@ -1411,7 +1358,7 @@ void selStatusDraw0(Ship *ship)
         if(tutorial && tutPointerShip == ship && tutPointerShipHealthRect)
             tutPointerShipHealthRect->y1 += 5;
     }
-    else if(ship->specialFlags & SPECIAL_IsASalvager)
+    else if(ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
     {
         if(((SalCapCorvetteSpec *) ship->ShipSpecifics)->salvageState != 0)
         {
@@ -1439,7 +1386,7 @@ void selStatusDraw0(Ship *ship)
                     tutPointerShipHealthRect->y1 += 5;
             }
         }
-        else if (bitTest(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology))
+        else if (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology))
         {
             //if the salvage corvette has just stripped a technology, the
             //brown stripe should stay until the salcapcorvette docks to
@@ -1490,14 +1437,14 @@ void selStatusDraw1(Ship *ship)
     sdword i;                       //counter
     udword maxcloaktime, cloaktime,maxTechTime,techtime;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = max(ship->collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = max(ship->impactable.collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
     halfWidth = primGLToScreenScaleX(radius * selSelectionWidthFactor0);//width of bars
-    //health = (sdword) ship->health;                                  //get ship health color and size
-    //maxHealth = (sdword) ((ShipStaticInfo *)ship->staticinfo)->maxhealth;
+    //health = (sdword) ship->targetable.health;                                  //get ship health color and size
+    //maxHealth = (sdword) ship->staticinfo->health.maxhealth;
     //factor = (real32)health / (real32)maxHealth;            //amount percentage of full health
-    factor = ship->health * ((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+    factor = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
     if (factor > selShipHealthGreenFactor)
     {
         healthColor = selShipHealthGreen;
@@ -1547,7 +1494,7 @@ void selStatusDraw1(Ship *ship)
         }
     }
     //Add cloaking Status if ship is for some reason cloaked...
-    if(bitTest(ship->flags,SOF_Cloaked))    //if the ship is cloaked
+    if(bitTest(ship->header.flags,SOF_Cloaked))    //if the ship is cloaked
     {
         fontMakeCurrent(selGroupFont1);
         fontPrint(x - halfWidth - fontWidth("C") - 1,rect.y1 + 4 - fontHeight(" ") , selHotKeyNumberColor, "C");
@@ -1558,8 +1505,8 @@ void selStatusDraw1(Ship *ship)
         numGuns = ship->gunInfo->numGuns;
         for (i=0;i < numGuns;i++)
         {
-            //gunstatic = ((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
-            gunstatic = &((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
+            //gunstatic = ship->staticinfo->gunStaticInfo->gunstatics[i];
+            gunstatic = &ship->staticinfo->gunStaticInfo->gunstatics[i];
             if (gunstatic->guntype == GUN_MissileLauncher || gunstatic->guntype == GUN_MineLauncher)
             {
                 Gun *gun;
@@ -1572,8 +1519,8 @@ void selStatusDraw1(Ship *ship)
     }
 
 
-    maxFuel = ((ShipStaticInfo *)ship->staticinfo)->maxfuel;
-    maxResources = ((ShipStaticInfo *)ship->staticinfo)->maxresources;
+    maxFuel = ship->staticinfo->maxfuel;
+    maxResources = ship->staticinfo->maxresources;
     if (maxFuel != 0.0f)
     {                                                       //if ship has any fuel
         fuel = ship->fuel;
@@ -1659,7 +1606,7 @@ void selStatusDraw1(Ship *ship)
         if(tutorial && tutPointerShip == ship && tutPointerShipHealthRect)
             tutPointerShipHealthRect->y1 += 4;
     }
-    else if(ship->specialFlags & SPECIAL_IsASalvager)
+    else if(ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
     {
         if(((SalCapCorvetteSpec *) ship->ShipSpecifics)->salvageState != 0)
         {
@@ -1714,14 +1661,14 @@ void selStatusDraw2(Ship *ship)
     sdword i;                       //counter
     udword maxcloaktime, cloaktime,maxTechTime,techtime;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = max(ship->collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = max(ship->impactable.collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
     halfWidth = primGLToScreenScaleX(radius * selSelectionWidthFactor0);//width of bars
-    //health = (sdword) ship->health;                                  //get ship health color and size
-    //maxHealth = (sdword) ((ShipStaticInfo *)ship->staticinfo)->maxhealth;
+    //health = (sdword) ship->targetable.health;                                  //get ship health color and size
+    //maxHealth = (sdword) ship->staticinfo->health.maxhealth;
     //factor = (real32)health / (real32)maxHealth;            //amount percentage of full health
-    factor = ship->health * ((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+    factor = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
     if (factor > selShipHealthGreenFactor)
     {
         healthColor = selShipHealthGreen;
@@ -1777,8 +1724,8 @@ void selStatusDraw2(Ship *ship)
         numGuns = ship->gunInfo->numGuns;
         for (i=0;i < numGuns;i++)
         {
-            //gunstatic = ((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
-            gunstatic = &((ShipStaticInfo *)ship->staticinfo)->gunStaticInfo->gunstatics[i];
+            //gunstatic = ship->staticinfo->gunStaticInfo->gunstatics[i];
+            gunstatic = &ship->staticinfo->gunStaticInfo->gunstatics[i];
             if (gunstatic->guntype == GUN_MissileLauncher || gunstatic->guntype == GUN_MineLauncher)
             {
                 Gun *gun;
@@ -1791,13 +1738,13 @@ void selStatusDraw2(Ship *ship)
     }
 
     //Add cloaking Status if ship is for some reason cloaked...
-    if(bitTest(ship->flags,SOF_Cloaked))    //if the ship is cloaked
+    if(bitTest(ship->header.flags,SOF_Cloaked))    //if the ship is cloaked
     {
         fontMakeCurrent(selGroupFont2);
         fontPrint(x - halfWidth - fontWidth("C") - 1, rect.y1 + 1 - fontHeight(" "), selHotKeyNumberColor, "C");
     }
-    maxFuel = ((ShipStaticInfo *)ship->staticinfo)->maxfuel;
-    maxResources = ((ShipStaticInfo *)ship->staticinfo)->maxresources;
+    maxFuel = ship->staticinfo->maxfuel;
+    maxResources = ship->staticinfo->maxresources;
     if (maxFuel != 0.0f)
     {                                                       //if ship has any fuel
         fuel = ship->fuel;
@@ -1883,7 +1830,7 @@ void selStatusDraw2(Ship *ship)
         if(tutorial && tutPointerShip == ship && tutPointerShipGroupRect)
             tutPointerShipGroupRect->y1 += 3;
     }
-    else if(ship->specialFlags & SPECIAL_IsASalvager)
+    else if(ship->shipOrDerelict.specialFlags & SPECIAL_IsASalvager)
     {
         if(((SalCapCorvetteSpec *) ship->ShipSpecifics)->salvageState != 0)
         {
@@ -1923,14 +1870,14 @@ void selStatusDraw3(Ship *ship)
     color healthColor, fuelColor;
     real32 fuel, maxFuel;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = max(ship->collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = max(ship->impactable.collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
     halfWidth = primGLToScreenScaleX(radius * selSelectionWidthFactor0);//width of bars
-    //health = (sdword) ship->health;                                  //get ship health color and size
-    //maxHealth = (sdword) ((ShipStaticInfo *)ship->staticinfo)->maxhealth;
+    //health = (sdword) ship->targetable.health;                                  //get ship health color and size
+    //maxHealth = (sdword) ship->staticinfo->health.maxhealth;
     //factor = (real32)health / (real32)maxHealth;            //amount percentage of full health
-    factor = ship->health * ((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+    factor = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
     if (factor > selShipHealthGreenFactor)
     {
         healthColor = selShipHealthSolidGreen;
@@ -1970,12 +1917,12 @@ void selStatusDraw3(Ship *ship)
         }
     }
     //Add cloaking Status if ship is for some reason cloaked...
-    if(bitTest(ship->flags,SOF_Cloaked))    //if the ship is cloaked
+    if(bitTest(ship->header.flags,SOF_Cloaked))    //if the ship is cloaked
     {
         fontMakeCurrent(selGroupFont3);
         fontPrint(x - halfWidth - fontWidth("C") - 1, y + 1 - fontHeight(" "), selHotKeyNumberColor, "C");
     }
-    maxFuel = ((ShipStaticInfo *)ship->staticinfo)->maxfuel;
+    maxFuel = ship->staticinfo->maxfuel;
     if (maxFuel != 0.0f)
     {                                                       //if ship has any fuel
         fuel = ship->fuel;
@@ -2003,14 +1950,14 @@ void selStatusDraw4(Ship *ship)
     sdword x, y, halfWidth;
     color healthColor;
 
-    x = primGLToScreenX(ship->collInfo.selCircleX);
-    y = primGLToScreenY(ship->collInfo.selCircleY);
-    radius = max(ship->collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
+    x = primGLToScreenX(ship->impactable.collInfo.selCircleX);
+    y = primGLToScreenY(ship->impactable.collInfo.selCircleY);
+    radius = max(ship->impactable.collInfo.selCircleRadius, selMinSelectionRadius);//radius of selection circle
     halfWidth = primGLToScreenScaleX(radius * selSelectionWidthFactor0);//width of bars
-    //health = (sdword) ship->health;                                  //get ship health color and size
-    //maxHealth = (sdword) ((ShipStaticInfo *)ship->staticinfo)->maxhealth;
+    //health = (sdword) ship->targetable.health;                                  //get ship health color and size
+    //maxHealth = (sdword) ship->staticinfo->health.maxhealth;
     //factor = (real32)health / (real32)maxHealth;            //amount percentage of full health
-    factor = ship->health * ((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+    factor = ship->targetable.health * ship->staticinfo->health.oneOverMaxHealth;
     if (factor > selShipHealthGreenFactor)
     {
         healthColor = selShipHealthSolidGreen;
@@ -2050,7 +1997,7 @@ void selStatusDraw4(Ship *ship)
         }
     }
     //Add cloaking Status if ship is for some reason cloaked...
-    if(bitTest(ship->flags,SOF_Cloaked))    //if the ship is cloaked
+    if(bitTest(ship->header.flags,SOF_Cloaked))    //if the ship is cloaked
     {
         fontMakeCurrent(selGroupFont3);
         fontPrint(x - halfWidth - fontWidth("C") - 1, y + 1 - fontHeight(" "), selHotKeyNumberColor, "C");
@@ -2107,13 +2054,13 @@ void selSelectedDraw(void)
     for (index = 0; index < selSelected.numShips; index++)
     {
         ship = selSelected.ShipPtr[index];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (univSpaceObjInRenderList((SpaceObj *)ship))
         {
-            if (ship->collInfo.selCircleRadius > 0.0f)
+            if (ship->impactable.collInfo.selCircleRadius > 0.0f)
             {
-                currentLOD = ship->currentLOD;
+                currentLOD = ship->obj.currentLOD;
                 dbgAssertOrIgnore(currentLOD < SEL_NumberLOD);
                 if ((ship->shiptype == Mothership) && (currentLOD > 0))
                 {
@@ -2148,14 +2095,14 @@ void selSelectingDraw(void)
     {
         target = selSelecting.TargetPtr[index];
 
-        if (univSpaceObjInRenderList((SpaceObj *)target))
+        if (univSpaceObjInRenderList(&target->obj))
         {
-            if (target->collInfo.selCircleRadius > 0.0f)
+            if (target->impactable.collInfo.selCircleRadius > 0.0f)
             {
-                if (target->collInfo.precise != NULL &&
-                    target->currentLOD <= target->staticinfo->staticheader.staticCollInfo.preciseSelection)
+                if (target->impactable.collInfo.precise != NULL &&
+                    target->obj.currentLOD <= target->staticinfo->common.staticCollInfo.preciseSelection)
                 {                                           //if we should perform precise collision checking
-                    point = target->collInfo.precise->worldRectPos;//list of points
+                    point = target->impactable.collInfo.precise->worldRectPos;//list of points
                     x0 = y1 = REALlyBig;
                     x1 = y0 = REALlyNegative;
                     for (j = 0; j < 8; j++)
@@ -2172,14 +2119,14 @@ void selSelectingDraw(void)
                 }
                 else
                 {
-                    if (target->objtype == OBJ_ShipType)
-                        radius = max(target->collInfo.selCircleRadius * ((Ship *)target)->staticinfo->tacticalSelectionScale, selMinSelectionRadius);
+                    if (target->header.objtype == OBJ_ShipType)
+                        radius = max(target->impactable.collInfo.selCircleRadius * ((Ship *)target)->staticinfo->tacticalSelectionScale, selMinSelectionRadius);
                     else
-                        radius = max(target->collInfo.selCircleRadius, selMinSelectionRadius);
-                    rect.x0 = primGLToScreenX(target->collInfo.selCircleX - radius);
-                    rect.x1 = primGLToScreenX(target->collInfo.selCircleX + radius);
-                    rect.y0 = primGLToScreenY(target->collInfo.selCircleY + radius);
-                    rect.y1 = primGLToScreenY(target->collInfo.selCircleY - radius);
+                        radius = max(target->impactable.collInfo.selCircleRadius, selMinSelectionRadius);
+                    rect.x0 = primGLToScreenX(target->impactable.collInfo.selCircleX - radius);
+                    rect.x1 = primGLToScreenX(target->impactable.collInfo.selCircleX + radius);
+                    rect.y0 = primGLToScreenY(target->impactable.collInfo.selCircleY + radius);
+                    rect.y1 = primGLToScreenY(target->impactable.collInfo.selCircleY - radius);
                 }
                 primRectOutline2(&rect, 1, selSelectingColor);//!!! note the hard-coded numbers
                 if (tutorial == TUTORIAL_ONLY)
@@ -2213,18 +2160,18 @@ vector selCentrePointComputeGeneral(MaxSelection *selection, real32 *average_siz
     for (index = 0; index < selection->numShips; index++)
     {
         ship = selection->ShipPtr[index];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
-        minVector.x = min(minVector.x, ship->posinfo.position.x);
-        minVector.y = min(minVector.y, ship->posinfo.position.y);
-        minVector.z = min(minVector.z, ship->posinfo.position.z);
-        maxVector.x = max(maxVector.x, ship->posinfo.position.x);
-        maxVector.y = max(maxVector.y, ship->posinfo.position.y);
-        maxVector.z = max(maxVector.z, ship->posinfo.position.z);
-        *average_size += ship->staticinfo->staticheader.staticCollInfo.collspheresize * ship->magnitudeSquared;
-//        returnVector.x += ship->posinfo.position.x;
-//        returnVector.y += ship->posinfo.position.y;
-//        returnVector.z += ship->posinfo.position.z;
+        minVector.x = min(minVector.x, ship->obj.posinfo.position.x);
+        minVector.y = min(minVector.y, ship->obj.posinfo.position.y);
+        minVector.z = min(minVector.z, ship->obj.posinfo.position.z);
+        maxVector.x = max(maxVector.x, ship->obj.posinfo.position.x);
+        maxVector.y = max(maxVector.y, ship->obj.posinfo.position.y);
+        maxVector.z = max(maxVector.z, ship->obj.posinfo.position.z);
+        *average_size += ship->staticinfo->common.staticCollInfo.collspheresize * ship->magnitudeSquared;
+//        returnVector.x += ship->obj.posinfo.position.x;
+//        returnVector.y += ship->obj.posinfo.position.y;
+//        returnVector.z += ship->obj.posinfo.position.z;
     }
     realIndex = (real32)index;
     *average_size /= realIndex;
@@ -2351,7 +2298,7 @@ sdword selSelectionCopyByClass(MaxSelection *dest, MaxSelection *source, ShipCla
 
     for (index = source->numShips; index > 0; index--)
     {                                                       //for each ship in source
-        dbgAssertOrIgnore((*sourceP)->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore((*sourceP)->header.objtype == OBJ_ShipType);
         if ((*sourceP)->staticinfo->shipclass == classMask)
         {                                                   //if classes match
             *destP = *sourceP;                              //copy a single ShipPtr
@@ -2387,7 +2334,7 @@ sdword selSelectionCopyByType(MaxSelection *dest, MaxSelection *source, ShipType
 
     for (index = source->numShips; index > 0; index--)
     {                                                       //for each ship in source
-        dbgAssertOrIgnore((*sourceP)->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore((*sourceP)->header.objtype == OBJ_ShipType);
         if ((*sourceP)->shiptype == typeMask)
         {                                                   //if classes match
             *destP = *sourceP;                              //copy a single ShipPtr
@@ -2406,8 +2353,7 @@ sdword selSelectionCopyByType(MaxSelection *dest, MaxSelection *source, ShipType
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-int selSortCompare(const void *p0, const void *p1)
-{
+int selSortCompare(void const* p0, void const* p1) {
     if (*((TargetPtr *)p0) > *((TargetPtr *)p1))
     {
         return(1);
@@ -2510,7 +2456,7 @@ void selSelectHotKeyGroup(MaxSelection *hotkeygroup)
     for (i=0;i<hotkeygroup->numShips;i++)
     {
         ship = hotkeygroup->ShipPtr[i];
-        if ((ship->flags & (SOF_Hide|SOF_Disabled|SOF_Hyperspace|SOF_Crazy)) == 0 && bitTest(ship->flags, SOF_Selectable))
+        if ((ship->header.flags & (SOF_Hide|SOF_Disabled|SOF_Hyperspace|SOF_Crazy)) == 0 && bitTest(ship->header.flags, SOF_Selectable))
         {
             selSelected.ShipPtr[selSelected.numShips++] = ship;
         }
@@ -2639,7 +2585,7 @@ void selHotKeyGroupsVerify(void)
     {                                                       //for all hot-key groups
         for (j = 0; j < selHotKeyGroup[index].numShips; j++)
         {
-            dbgAssertOrIgnore(selHotKeyGroup[index].ShipPtr[j]->objtype == OBJ_ShipType);
+            dbgAssertOrIgnore(selHotKeyGroup[index].ShipPtr[j]->header.objtype == OBJ_ShipType);
             if (selAnyHotKeyTest(selHotKeyGroup[index].ShipPtr[j]))
             {
                 dbgAssertOrIgnore(selHotKeyGroupNumberTest(selHotKeyGroup[index].ShipPtr[j]) != SEL_InvalidHotKey);
@@ -2684,7 +2630,7 @@ void selSelectionDimensions(hmatrix *modelView, hmatrix *projection, SelectComma
         for (index = 0; index < selection->numShips; index++)
         {
             ship = selection->ShipPtr[index];
-            vecAddTo(centre, ship->posinfo.position);
+            vecAddTo(centre, ship->obj.posinfo.position);
         }
         radius = 1.0f / (real32)index;
         vecMultiplyByScalar(centre, radius);                //compute mean position
@@ -2693,8 +2639,8 @@ void selSelectionDimensions(hmatrix *modelView, hmatrix *projection, SelectComma
         for (index = 0; index < selection->numShips; index++)
         {
             ship = selection->ShipPtr[index];
-            vecSub(distance, centre, ship->posinfo.position);//distance to mean
-            radius = ship->staticinfo->staticheader.staticCollInfo.collspheresize;
+            vecSub(distance, centre, ship->obj.posinfo.position);//distance to mean
+            radius = ship->staticinfo->common.staticCollInfo.collspheresize;
             radius = vecMagnitudeSquared(distance) + radius * radius;//square of distance
             if (radius > maxRadius)
             {

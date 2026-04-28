@@ -792,7 +792,7 @@ sdword battleChatterAttempt(sdword linkTo, sdword event, Ship *ship, sdword vari
     randomWeight = chat->randomWeight * batGlobalFrequencyModifier / BIT8;
     if (batRandom() < randomWeight)
     {                                                       //if it passes random weight test
-        vecSub(dist, mrCamera->eyeposition, ship->posinfo.position);
+        vecSub(dist, mrCamera->eyeposition, ship->obj.posinfo.position);
         distance = (double)vecMagnitudeSquared(dist);       //get length of vector
         distance = fmathSqrtDouble(distance);
         if (distance < chat->maxDistance)
@@ -812,7 +812,7 @@ sdword battleChatterAttempt(sdword linkTo, sdword event, Ship *ship, sdword vari
                 }
 #endif
                 chat->lastTimeSpoken = universe.totaltimeelapsed;
-                chat->lastPlaceSpoken = ship->posinfo.position;
+                chat->lastPlaceSpoken = ship->obj.posinfo.position;
                 return(speechEventQueue(ship, chat->eventNumber,
                     variable, SOUND_EVENT_DEFAULT, SOUND_EVENT_DEFAULT,
                     universe.curPlayerIndex, linkTo,
@@ -890,7 +890,7 @@ bool32 battleCanChatterAtThisTime(sdword event, Ship *ship)
     {                                                       //if we should consider location of last time this event was spoken
         if (ship != NULL)
         {
-            vecSub(diff, ship->posinfo.position, chat->lastPlaceSpoken);
+            vecSub(diff, ship->obj.posinfo.position, chat->lastPlaceSpoken);
         }
         else
         {
@@ -1042,7 +1042,7 @@ Ship *battleMouthPieceFind(Ship **ships, sdword numShips)
     }
     while ( mouthPiece->playerowner != universe.curPlayerPtr);
 
-    dbgAssertOrIgnore(mouthPiece->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(mouthPiece->header.objtype == OBJ_ShipType);
     return(mouthPiece);
 }
 
@@ -1074,7 +1074,7 @@ Ship *battleMouthPieceFindAnother(Ship *firstMouthPiece, Ship **ships, sdword nu
     }
     while ( mouthPiece->playerowner != universe.curPlayerPtr && mouthPiece != firstMouthPiece);
 
-    dbgAssertOrIgnore(mouthPiece->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(mouthPiece->header.objtype == OBJ_ShipType);
     return(mouthPiece);
 }
 
@@ -1091,8 +1091,8 @@ bool32 battleShipOnMyTail(Ship *meShip, Ship *badGuyShip)
     vector temp, bogeyPosition;
     matrix transpose;
 
-    matCopyAndTranspose(&meShip->rotinfo.coordsys, &transpose);//transpose of coordsys
-    vecSub(temp, badGuyShip->posinfo.position, meShip->posinfo.position);//vector from us to them
+    matCopyAndTranspose(&meShip->rotatable.rotinfo.coordsys, &transpose);//transpose of coordsys
+    vecSub(temp, badGuyShip->obj.posinfo.position, meShip->obj.posinfo.position);//vector from us to them
     matMultiplyMatByVec(&bogeyPosition, &transpose, &temp); //badguy's position in our local space
     if (bogeyPosition.z < 0.0f)
     {                                           //if they're behind us
@@ -1100,7 +1100,7 @@ bool32 battleShipOnMyTail(Ship *meShip, Ship *badGuyShip)
         if (ABS(bogeyPosition.x) + ABS(bogeyPosition.y) < -bogeyPosition.z * batBogeyAspect)
         {                                       //and they're on our 6
             vecNegate(temp);                    //vector from them to us
-            matCopyAndTranspose(&badGuyShip->rotinfo.coordsys, &transpose);//transpose of coordsys
+            matCopyAndTranspose(&badGuyShip->rotatable.rotinfo.coordsys, &transpose);//transpose of coordsys
             matMultiplyMatByVec(&bogeyPosition, &transpose, &temp); //our position in badguy's local space
             if (bogeyPosition.z > 0.0f)
             {                                   //if they're ahead of us
@@ -1200,7 +1200,7 @@ void battlePingEvaluateNoEnemies(void *voidPing, battleping *battlePing)
     for (index = 0; index < battlePing->nShips; index++)
     {
         ship = battlePing->ship[index];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         dbgAssertOrIgnore(ship->playerowner != NULL);
         if (ship->shiptype == Mothership)
         {                                                   //don't even have the mothership talking
@@ -1237,7 +1237,7 @@ void battlePingEvaluateNoEnemies(void *voidPing, battleping *battlePing)
                 }
                 else
                 {                                           //not a group number; report from fleet command
-                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_AttackFromAlly, SOUND_EVENT_DEFAULT, &ship->posinfo.position);
+                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_AttackFromAlly, SOUND_EVENT_DEFAULT, &ship->obj.posinfo.position);
                 }
                 bitClear(ship->chatterBits, BCB_AlliedFire);
                 bFriendlyFire = TRUE;
@@ -1259,7 +1259,7 @@ void battlePingEvaluateNoEnemies(void *voidPing, battleping *battlePing)
                 }
                 if (handle == ERROR && selHotKeyGroupNumberTest(mouthPiece))
                 {                                               //if could not play the ship's victory dance
-                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_GroupVictory, selHotKeyGroupNumberTest(mouthPiece), &mouthPiece->posinfo.position);
+                    battleChatterFleetAttempt(SOUND_EVENT_DEFAULT, BCE_GroupVictory, selHotKeyGroupNumberTest(mouthPiece), &mouthPiece->obj.posinfo.position);
                 }
             }
         }
@@ -1298,9 +1298,9 @@ void battlePingEvaluate(void *voidPing, battleping *battlePing)
     for (index = 0; index < battlePing->nShips; index++)
     {
         ship = battlePing->ship[index];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         dbgAssertOrIgnore(ship->playerowner != NULL);
-        if (ship->flags & SOF_Dead)
+        if (ship->header.flags & SOF_Dead)
         {
             continue;   // dead ships shouldn't interfere
         }
@@ -1312,7 +1312,7 @@ void battlePingEvaluate(void *voidPing, battleping *battlePing)
         {                                                   //if this is a friendly ship (thus we can hear it speak)
             //count up the power and cost of your ships
             friendlyPower += gunShipFirePower(ship->staticinfo, ship->tacticstype);
-//            friendlyValue += (real32)ship->staticinfo->buildCost * ship->health / ship->staticinfo->maxhealth;
+//            friendlyValue += (real32)ship->staticinfo->buildCost * ship->targetable.health / ship->staticinfo->health.maxhealth;
             friendlyValue += (real32)ship->staticinfo->buildCost;
 
             // do some high-g grunting if flight maneuvers are going on
@@ -1462,13 +1462,13 @@ void battlePingEvaluate(void *voidPing, battleping *battlePing)
             if (allianceIsShipAlly(ship, universe.curPlayerPtr))
             {                                               //!!! consider your allies in the battle
                 friendlyPower += gunShipFirePower(ship->staticinfo, ship->tacticstype);
-//                friendlyValue += (real32)ship->staticinfo->buildCost * ship->health / ship->staticinfo->maxhealth;
+//                friendlyValue += (real32)ship->staticinfo->buildCost * ship->targetable.health / ship->staticinfo->health.maxhealth;
                 friendlyValue += (real32)ship->staticinfo->buildCost;
             }
             else
             {
                 enemyPower += gunShipFirePower(ship->staticinfo, ship->tacticstype);
-//                enemyValue += (real32)ship->staticinfo->buildCost * ship->health / ship->staticinfo->maxhealth;
+//                enemyValue += (real32)ship->staticinfo->buildCost * ship->targetable.health / ship->staticinfo->health.maxhealth;
                 enemyValue += (real32)ship->staticinfo->buildCost;
             }
         }
@@ -1658,7 +1658,7 @@ void battlePingEvaluate(void *voidPing, battleping *battlePing)
             mothership = universe.curPlayerPtr->PlayerMothership;
             if (mothership != NULL && selShipInSelection(battlePing->ship, battlePing->nShips, mothership))
             {
-                //ships = mothership->collMyBlob->blobShips;
+                //ships = mothership->obj.collMyBlob->blobShips;
                 //dbgAssertOrIgnore(ships != NULL);
                 //if (selShipInSelection(ships->ShipPtr, ships->numShips, mothership))
                 //{                                               //if the mothership is involved in this battle
@@ -1727,7 +1727,7 @@ void battlePingEvaluate(void *voidPing, battleping *battlePing)
             mothership = universe.curPlayerPtr->PlayerMothership;
             if (mothership != NULL && selShipInSelection(battlePing->ship, battlePing->nShips, mothership))
             {
-                //ships = mothership->collMyBlob->blobShips;
+                //ships = mothership->obj.collMyBlob->blobShips;
                 //dbgAssertOrIgnore(ships != NULL);
                 //if (selShipInSelection(ships->ShipPtr, ships->numShips, mothership))
                 //{                                               //if the mothership is involved in this battle
@@ -1824,9 +1824,9 @@ sameAsCapitalShips:
             {
                 handle = battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_CapitalShipDies, ship, SOUND_EVENT_DEFAULT);
             }
-            if (handle != ERROR/* && ship->collMyBlob*/)        // blob ptr is always NULL here
+            if (handle != ERROR/* && ship->obj.collMyBlob*/)        // blob ptr is always NULL here
             {
-                //ships = ship->collMyBlob->blobShips;
+                //ships = ship->obj.collMyBlob->blobShips;
                 ships = (SelectCommand *)&selSelected;
                 dbgAssertOrIgnore(ships != NULL);
                 mouthpiece = battleMouthPieceFindAnother(ship, ships->ShipPtr, ships->numShips);
@@ -1880,9 +1880,9 @@ void battleLaunchWelcomeExchange(Ship *ship)
     {
         handle = battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_CapitalShipLaunched, ship, ship->shiptype);
     }
-    if (handle != ERROR && ship->collMyBlob != NULL)
+    if (handle != ERROR && ship->obj.collMyBlob != NULL)
     {
-        ships = ship->collMyBlob->blobShips;
+        ships = ship->obj.collMyBlob->blobShips;
         dbgAssertOrIgnore(ships != NULL);
         mouthpiece = battleMouthPieceFindAnother(ship, ships->ShipPtr, ships->numShips);
         if (mouthpiece != NULL)

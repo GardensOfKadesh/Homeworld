@@ -497,27 +497,27 @@ scriptEntry ShipStaticCapLimits[] =
 
 scriptStructEntry ShipStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(ShipStaticInfoR1[0].staticheader.LOD),  &(ShipStaticInfoR1[0]) },
-    { "pMexData",       loadMexDataCB,       &(ShipStaticInfoR1[0].staticheader.pMexData),  &(ShipStaticInfoR1[0]) },
-    { "mass",           scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.mass),       &(ShipStaticInfoR1[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.momentOfInertiaX),  &(ShipStaticInfoR1[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.momentOfInertiaY),  &(ShipStaticInfoR1[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.momentOfInertiaZ),  &(ShipStaticInfoR1[0]) },
+    { "LODFile",        LODScriptLoad,       &(ShipStaticInfoR1[0].common.LOD),  &(ShipStaticInfoR1[0]) },
+    { "pMexData",       loadMexDataCB,       &(ShipStaticInfoR1[0].common.pMexData),  &(ShipStaticInfoR1[0]) },
+    { "mass",           scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.mass),       &(ShipStaticInfoR1[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.momentOfInertiaX),  &(ShipStaticInfoR1[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.momentOfInertiaY),  &(ShipStaticInfoR1[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.momentOfInertiaZ),  &(ShipStaticInfoR1[0]) },
 
-    { "collBoxScaleRight",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxScaleRight),  &(ShipStaticInfoR1[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxScaleUp),  &(ShipStaticInfoR1[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxScaleForward),  &(ShipStaticInfoR1[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxOffsetX),  &(ShipStaticInfoR1[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxOffsetY),  &(ShipStaticInfoR1[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(ShipStaticInfoR1[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxScaleRight),  &(ShipStaticInfoR1[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxScaleUp),  &(ShipStaticInfoR1[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxScaleForward),  &(ShipStaticInfoR1[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxOffsetX),  &(ShipStaticInfoR1[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxOffsetY),  &(ShipStaticInfoR1[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(ShipStaticInfoR1[0].common.staticCollInfo.collBoxOffsetZ),  &(ShipStaticInfoR1[0]) },
 
-    { "immobile",        scriptSetBool8,     &(ShipStaticInfoR1[0].staticheader.immobile),  &(ShipStaticInfoR1[0]) },
-    { "rightOfWay",      scriptSetSbyteCB,   &(ShipStaticInfoR1[0].staticheader.rightOfWay),  &(ShipStaticInfoR1[0]) },
-    { "collspheresize", scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.staticCollInfo.collspheresize),   &(ShipStaticInfoR1[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.staticCollInfo.approxcollmodifier),   &(ShipStaticInfoR1[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.staticCollInfo.avoidcollmodifier),   &(ShipStaticInfoR1[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.maxvelocity),   &(ShipStaticInfoR1[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(ShipStaticInfoR1[0].staticheader.maxrot),   &(ShipStaticInfoR1[0]) },
+    { "immobile",        scriptSetBool8,     &(ShipStaticInfoR1[0].common.immobile),  &(ShipStaticInfoR1[0]) },
+    { "rightOfWay",      scriptSetSbyteCB,   &(ShipStaticInfoR1[0].common.rightOfWay),  &(ShipStaticInfoR1[0]) },
+    { "collspheresize", scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.staticCollInfo.collspheresize),   &(ShipStaticInfoR1[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.staticCollInfo.approxcollmodifier),   &(ShipStaticInfoR1[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.staticCollInfo.avoidcollmodifier),   &(ShipStaticInfoR1[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.maxvelocity),   &(ShipStaticInfoR1[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(ShipStaticInfoR1[0].common.maxrot),   &(ShipStaticInfoR1[0]) },
     { "bulletRange[0]", scriptSetReal32CB,  &(ShipStaticInfoR1[0].bulletRange[0]),   &(ShipStaticInfoR1[0]) },
     { "bulletRange[1]", scriptSetReal32CB,  &(ShipStaticInfoR1[0].bulletRange[1]),   &(ShipStaticInfoR1[0]) },
     { "bulletRange[2]", scriptSetReal32CB,  &(ShipStaticInfoR1[0].bulletRange[2]),   &(ShipStaticInfoR1[0]) },
@@ -557,9 +557,9 @@ scriptStructEntry ShipStaticScriptTable[] =
     { "maxresources",   scriptSetSdwordCB,   &(ShipStaticInfoR1[0].maxresources),  &(ShipStaticInfoR1[0]) },
     { "harvestAmount",  scriptSetSdwordCB,   &(ShipStaticInfoR1[0].harvestAmount),  &(ShipStaticInfoR1[0]) },
     { "harvestRate",    scriptSetSdwordCB,   &(ShipStaticInfoR1[0].harvestRate),  &(ShipStaticInfoR1[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].maxhealth),  &(ShipStaticInfoR1[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].minCollDamage),  &(ShipStaticInfoR1[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].maxCollDamage),  &(ShipStaticInfoR1[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].health.maxhealth),  &(ShipStaticInfoR1[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].health.minCollDamage),  &(ShipStaticInfoR1[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].health.maxCollDamage),  &(ShipStaticInfoR1[0]) },
     { "groupSize",      scriptSetSdwordCB,   &(ShipStaticInfoR1[0].groupSize),  &(ShipStaticInfoR1[0]) },
     { "maxfuel",        scriptSetReal32CB,   &(ShipStaticInfoR1[0].maxfuel),    &(ShipStaticInfoR1[0]) },
     { "lowfuelpoint",   scriptSetReal32CB,   &(ShipStaticInfoR1[0].lowfuelpoint),    &(ShipStaticInfoR1[0]) },
@@ -593,21 +593,21 @@ scriptStructEntry ShipStaticScriptTable[] =
     { "collSideModifiers[TRANS_LEFT]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].collSideModifiers[TRANS_LEFT]),  &(ShipStaticInfoR1[0]) },
     { "collSideModifiers[TRANS_FORWARD]",  scriptSetReal32CB,   &(ShipStaticInfoR1[0].collSideModifiers[TRANS_FORWARD]),  &(ShipStaticInfoR1[0]) },
     { "collSideModifiers[TRANS_BACK]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].collSideModifiers[TRANS_BACKWARD]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_UP]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_DOWN]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_RIGHT]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_LEFT]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_FORWARD]),  &(ShipStaticInfoR1[0]) },
-    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].thruststrengthstat[TRANS_BACKWARD]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_YAWLEFT]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_YAWRIGHT]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_PITCHUP]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_PITCHDOWN]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_ROLLRIGHT]),  &(ShipStaticInfoR1[0]) },
-    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].rotstrengthstat[ROT_ROLLLEFT]),  &(ShipStaticInfoR1[0]) },
-    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(ShipStaticInfoR1[0].turnspeedstat[TURN_YAW]),  &(ShipStaticInfoR1[0]) },
-    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(ShipStaticInfoR1[0].turnspeedstat[TURN_PITCH]),  &(ShipStaticInfoR1[0]) },
-    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(ShipStaticInfoR1[0].turnspeedstat[TURN_ROLL]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_UP]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_DOWN]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_RIGHT]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_LEFT]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_FORWARD]),  &(ShipStaticInfoR1[0]) },
+    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.thruststrengthstat[TRANS_BACKWARD]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_YAWLEFT]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_YAWRIGHT]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_PITCHUP]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_PITCHDOWN]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_ROLLRIGHT]),  &(ShipStaticInfoR1[0]) },
+    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.rotstrengthstat[ROT_ROLLLEFT]),  &(ShipStaticInfoR1[0]) },
+    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.turnspeedstat[TURN_YAW]),  &(ShipStaticInfoR1[0]) },
+    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.turnspeedstat[TURN_PITCH]),  &(ShipStaticInfoR1[0]) },
+    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(ShipStaticInfoR1[0].guidance.turnspeedstat[TURN_ROLL]),  &(ShipStaticInfoR1[0]) },
     { "N-LIPS",                         scriptSetReal32CB,   &(ShipStaticInfoR1[0].scaleCap),  &(ShipStaticInfoR1[0]) },
 //    { "scaleCap",                       scriptSetReal32CB,   &(ShipStaticInfoR1[0].scaleCap),  &(ShipStaticInfoR1[0]) },
 #if SO_CLOOGE_SCALE
@@ -657,7 +657,7 @@ scriptStructEntry ShipStaticScriptTable[] =
     { "dockLightFar",                   scriptSetReal32CB,   &(ShipStaticInfoR1[0].dockLightFar),  &(ShipStaticInfoR1[0]) },
     { "dockLightColor",                 scriptSetRGBCB,      &(ShipStaticInfoR1[0].dockLightColor),  &(ShipStaticInfoR1[0]) },
     { "hyperspaceColor",                scriptSetRGBCB,      &(ShipStaticInfoR1[0].hyperspaceColor),  &(ShipStaticInfoR1[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
     { "madGunOpenDamagedHealthThreshold",  scriptSetReal32CB, &(ShipStaticInfoR1[0].madGunOpenDamagedHealthThreshold),  &(ShipStaticInfoR1[0]) },
     { "madWingOpenDamagedHealthThreshold", scriptSetReal32CB, &(ShipStaticInfoR1[0].madWingOpenDamagedHealthThreshold),  &(ShipStaticInfoR1[0]) },
     { "NUMBER_OF_SALVAGE_POINTS", scriptSetSalvageStatCB, &(ShipStaticInfoR1[0]), &(ShipStaticInfoR1[0]) },
@@ -687,30 +687,30 @@ scriptStructEntry MadMaxMadInfoLoad[] =
 
 scriptStructEntry AsteroidStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(asteroidStaticInfos[0].staticheader.LOD),  &(asteroidStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(asteroidStaticInfos[0].staticheader.pMexData),  &(asteroidStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(asteroidStaticInfos[0].staticheader.mass),       &(asteroidStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.momentOfInertiaX),  &(asteroidStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.momentOfInertiaY),  &(asteroidStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.momentOfInertiaZ),  &(asteroidStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(asteroidStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(asteroidStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(asteroidStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(asteroidStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(asteroidStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(asteroidStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(asteroidStaticInfos[0]) },
+    { "LODFile",        LODScriptLoad,       &(asteroidStaticInfos[0].common.LOD),  &(asteroidStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(asteroidStaticInfos[0].common.pMexData),  &(asteroidStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(asteroidStaticInfos[0].common.mass),       &(asteroidStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.momentOfInertiaX),  &(asteroidStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.momentOfInertiaY),  &(asteroidStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.momentOfInertiaZ),  &(asteroidStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(asteroidStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(asteroidStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(asteroidStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(asteroidStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(asteroidStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(asteroidStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(asteroidStaticInfos[0]) },
 
-    { "immobile",        scriptSetBool8,     &(asteroidStaticInfos[0].staticheader.immobile),  &(asteroidStaticInfos[0]) },
-    { "rightOfWay",      scriptSetSbyteCB,   &(asteroidStaticInfos[0].staticheader.rightOfWay),  &(asteroidStaticInfos[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,   &(asteroidStaticInfos[0].staticheader.staticCollInfo.approxcollmodifier),   &(asteroidStaticInfos[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,   &(asteroidStaticInfos[0].staticheader.staticCollInfo.avoidcollmodifier),   &(asteroidStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(asteroidStaticInfos[0].staticheader.maxvelocity),   &(asteroidStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(asteroidStaticInfos[0].staticheader.maxrot),   &(asteroidStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(asteroidStaticInfos[0].maxhealth),  &(asteroidStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(asteroidStaticInfos[0].minCollDamage),  &(asteroidStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(asteroidStaticInfos[0].maxCollDamage),  &(asteroidStaticInfos[0]) },
-    { "resourcevalue",  scriptSetSdwordCB,   &(asteroidStaticInfos[0].resourcevalue),  &(asteroidStaticInfos[0]) },
-    { "harvestableByMultipleShips",  scriptSetUdwordCB,   &(asteroidStaticInfos[0].harvestableByMultipleShips),  &(asteroidStaticInfos[0]) },
+    { "immobile",        scriptSetBool8,     &(asteroidStaticInfos[0].common.immobile),  &(asteroidStaticInfos[0]) },
+    { "rightOfWay",      scriptSetSbyteCB,   &(asteroidStaticInfos[0].common.rightOfWay),  &(asteroidStaticInfos[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,   &(asteroidStaticInfos[0].common.staticCollInfo.approxcollmodifier),   &(asteroidStaticInfos[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,   &(asteroidStaticInfos[0].common.staticCollInfo.avoidcollmodifier),   &(asteroidStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(asteroidStaticInfos[0].common.maxvelocity),   &(asteroidStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(asteroidStaticInfos[0].common.maxrot),   &(asteroidStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(asteroidStaticInfos[0].health.maxhealth),  &(asteroidStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(asteroidStaticInfos[0].health.minCollDamage),  &(asteroidStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(asteroidStaticInfos[0].health.maxCollDamage),  &(asteroidStaticInfos[0]) },
+    { "resourcevalue",  scriptSetSdwordCB,   &(asteroidStaticInfos[0].resource.resourcevalue),  &(asteroidStaticInfos[0]) },
+    { "harvestableByMultipleShips",  scriptSetUdwordCB,   &(asteroidStaticInfos[0].resource.harvestableByMultipleShips),  &(asteroidStaticInfos[0]) },
 
     { "asteroidCanShrink",scriptSetBool8,  &(asteroidStaticInfos[0].asteroidCanShrink),  &(asteroidStaticInfos[0]) },
     { "asteroidCanBreak", scriptSetBool8,  &(asteroidStaticInfos[0].asteroidCanBreak),   &(asteroidStaticInfos[0]) },
@@ -720,155 +720,155 @@ scriptStructEntry AsteroidStaticScriptTable[] =
     { "breakinto[Asteroid2]",scriptSetUdwordCB,  &(asteroidStaticInfos[0].breakinto[Asteroid2]),  &(asteroidStaticInfos[0]) },
     { "breakinto[Asteroid3]",scriptSetUdwordCB,  &(asteroidStaticInfos[0].breakinto[Asteroid3]),  &(asteroidStaticInfos[0]) },
     { "breakinto[Asteroid4]",scriptSetUdwordCB,  &(asteroidStaticInfos[0].breakinto[Asteroid4]),  &(asteroidStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
 
 scriptStructEntry DustCloudStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(dustcloudStaticInfos[0].staticheader.LOD),  &(dustcloudStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(dustcloudStaticInfos[0].staticheader.pMexData),  &(dustcloudStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(dustcloudStaticInfos[0].staticheader.mass),      &(dustcloudStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.momentOfInertiaX),  &(dustcloudStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.momentOfInertiaY),  &(dustcloudStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.momentOfInertiaZ),  &(dustcloudStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(dustcloudStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(dustcloudStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(dustcloudStaticInfos[0]) },
+    { "LODFile",        LODScriptLoad,       &(dustcloudStaticInfos[0].common.LOD),  &(dustcloudStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(dustcloudStaticInfos[0].common.pMexData),  &(dustcloudStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(dustcloudStaticInfos[0].common.mass),      &(dustcloudStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.momentOfInertiaX),  &(dustcloudStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.momentOfInertiaY),  &(dustcloudStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.momentOfInertiaZ),  &(dustcloudStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(dustcloudStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(dustcloudStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(dustcloudStaticInfos[0]) },
 
-    { "collBoxOffsetX",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(dustcloudStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(dustcloudStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(dustcloudStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(dustcloudStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(dustcloudStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(dustcloudStaticInfos[0]) },
 
-    { "immobile",        scriptSetBool8,     &(dustcloudStaticInfos[0].staticheader.immobile),  &(dustcloudStaticInfos[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.approxcollmodifier),   &(dustcloudStaticInfos[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,  &(dustcloudStaticInfos[0].staticheader.staticCollInfo.avoidcollmodifier),   &(dustcloudStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(dustcloudStaticInfos[0].staticheader.maxvelocity),   &(dustcloudStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(dustcloudStaticInfos[0].staticheader.maxrot),   &(dustcloudStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].maxhealth),  &(dustcloudStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].minCollDamage),  &(dustcloudStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].maxCollDamage),  &(dustcloudStaticInfos[0]) },
-    { "resourcevalue",  scriptSetSdwordCB,   &(dustcloudStaticInfos[0].resourcevalue),  &(dustcloudStaticInfos[0]) },
-    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(dustcloudStaticInfos[0].harvestableByMultipleShips),  &(dustcloudStaticInfos[0]) },
+    { "immobile",        scriptSetBool8,     &(dustcloudStaticInfos[0].common.immobile),  &(dustcloudStaticInfos[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.approxcollmodifier),   &(dustcloudStaticInfos[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,  &(dustcloudStaticInfos[0].common.staticCollInfo.avoidcollmodifier),   &(dustcloudStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(dustcloudStaticInfos[0].common.maxvelocity),   &(dustcloudStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(dustcloudStaticInfos[0].common.maxrot),   &(dustcloudStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].health.maxhealth),  &(dustcloudStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].health.minCollDamage),  &(dustcloudStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(dustcloudStaticInfos[0].health.maxCollDamage),  &(dustcloudStaticInfos[0]) },
+    { "resourcevalue",  scriptSetSdwordCB,   &(dustcloudStaticInfos[0].resource.resourcevalue),  &(dustcloudStaticInfos[0]) },
+    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(dustcloudStaticInfos[0].resource.harvestableByMultipleShips),  &(dustcloudStaticInfos[0]) },
 
     { "dustcloudCanShrink",scriptSetBool8,  &(dustcloudStaticInfos[0].dustcloudCanShrink),  &(dustcloudStaticInfos[0]) },
     { "dustcloudMinShrink",scriptSetReal32CB,  &(dustcloudStaticInfos[0].dustcloudMinShrink),  &(dustcloudStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
 
 scriptStructEntry NebulaStaticScriptTable[] =
 {
-    { "LODFile", LODScriptLoad, &(nebulaStaticInfos[0].staticheader.LOD), &(nebulaStaticInfos[0]) },
-    { "pMexData", loadMexDataCB, &(nebulaStaticInfos[0].staticheader.pMexData), &(nebulaStaticInfos[0]) },
-    { "mass", scriptSetReal32CB, &(nebulaStaticInfos[0].staticheader.mass), &(nebulaStaticInfos[0]) },
-    { "momentOfInertiaX", scriptSetReal32CB, &(nebulaStaticInfos[0].staticheader.momentOfInertiaX), &(nebulaStaticInfos[0]) },
-    { "momentOfInertiaY", scriptSetReal32CB, &(nebulaStaticInfos[0].staticheader.momentOfInertiaY), &(nebulaStaticInfos[0]) },
-    { "momentOfInertiaZ", scriptSetReal32CB, &(nebulaStaticInfos[0].staticheader.momentOfInertiaZ), &(nebulaStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(nebulaStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(nebulaStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(nebulaStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(nebulaStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(nebulaStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(nebulaStaticInfos[0]) },
-    { "immobile", scriptSetBool8, &(nebulaStaticInfos[0].staticheader.immobile), &(nebulaStaticInfos[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.approxcollmodifier),   &(nebulaStaticInfos[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,  &(nebulaStaticInfos[0].staticheader.staticCollInfo.avoidcollmodifier),   &(nebulaStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(nebulaStaticInfos[0].staticheader.maxvelocity),   &(nebulaStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(nebulaStaticInfos[0].staticheader.maxrot),   &(nebulaStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(nebulaStaticInfos[0].maxhealth),  &(nebulaStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(nebulaStaticInfos[0].minCollDamage),  &(nebulaStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(nebulaStaticInfos[0].maxCollDamage),  &(nebulaStaticInfos[0]) },
-    { "resourcevalue",  scriptSetSdwordCB,   &(nebulaStaticInfos[0].resourcevalue),  &(nebulaStaticInfos[0]) },
-    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(nebulaStaticInfos[0].harvestableByMultipleShips),  &(nebulaStaticInfos[0]) },
+    { "LODFile", LODScriptLoad, &(nebulaStaticInfos[0].common.LOD), &(nebulaStaticInfos[0]) },
+    { "pMexData", loadMexDataCB, &(nebulaStaticInfos[0].common.pMexData), &(nebulaStaticInfos[0]) },
+    { "mass", scriptSetReal32CB, &(nebulaStaticInfos[0].common.mass), &(nebulaStaticInfos[0]) },
+    { "momentOfInertiaX", scriptSetReal32CB, &(nebulaStaticInfos[0].common.momentOfInertiaX), &(nebulaStaticInfos[0]) },
+    { "momentOfInertiaY", scriptSetReal32CB, &(nebulaStaticInfos[0].common.momentOfInertiaY), &(nebulaStaticInfos[0]) },
+    { "momentOfInertiaZ", scriptSetReal32CB, &(nebulaStaticInfos[0].common.momentOfInertiaZ), &(nebulaStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(nebulaStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(nebulaStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(nebulaStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(nebulaStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(nebulaStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(nebulaStaticInfos[0]) },
+    { "immobile", scriptSetBool8, &(nebulaStaticInfos[0].common.immobile), &(nebulaStaticInfos[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.approxcollmodifier),   &(nebulaStaticInfos[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,  &(nebulaStaticInfos[0].common.staticCollInfo.avoidcollmodifier),   &(nebulaStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(nebulaStaticInfos[0].common.maxvelocity),   &(nebulaStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(nebulaStaticInfos[0].common.maxrot),   &(nebulaStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(nebulaStaticInfos[0].health.maxhealth),  &(nebulaStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(nebulaStaticInfos[0].health.minCollDamage),  &(nebulaStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(nebulaStaticInfos[0].health.maxCollDamage),  &(nebulaStaticInfos[0]) },
+    { "resourcevalue",  scriptSetSdwordCB,   &(nebulaStaticInfos[0].resource.resourcevalue),  &(nebulaStaticInfos[0]) },
+    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(nebulaStaticInfos[0].resource.harvestableByMultipleShips),  &(nebulaStaticInfos[0]) },
 
     { "nebulaCanShrink",scriptSetBool8,  &(nebulaStaticInfos[0].nebulaCanShrink),  &(nebulaStaticInfos[0]) },
     { "nebulaMinShrink",scriptSetReal32CB,  &(nebulaStaticInfos[0].nebulaMinShrink),  &(nebulaStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
 
 scriptStructEntry GasCloudStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(gascloudStaticInfos[0].staticheader.LOD),  &(gascloudStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(gascloudStaticInfos[0].staticheader.pMexData),  &(gascloudStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(gascloudStaticInfos[0].staticheader.mass),      &(gascloudStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.momentOfInertiaX),  &(gascloudStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.momentOfInertiaY),  &(gascloudStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.momentOfInertiaZ),  &(gascloudStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(gascloudStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(gascloudStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(gascloudStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(gascloudStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(gascloudStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(gascloudStaticInfos[0]) },
+    { "LODFile",        LODScriptLoad,       &(gascloudStaticInfos[0].common.LOD),  &(gascloudStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(gascloudStaticInfos[0].common.pMexData),  &(gascloudStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(gascloudStaticInfos[0].common.mass),      &(gascloudStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.momentOfInertiaX),  &(gascloudStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.momentOfInertiaY),  &(gascloudStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.momentOfInertiaZ),  &(gascloudStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(gascloudStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(gascloudStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(gascloudStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(gascloudStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(gascloudStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(gascloudStaticInfos[0]) },
 
-    { "immobile",        scriptSetBool8,     &(gascloudStaticInfos[0].staticheader.immobile),  &(gascloudStaticInfos[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.approxcollmodifier),   &(gascloudStaticInfos[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,  &(gascloudStaticInfos[0].staticheader.staticCollInfo.avoidcollmodifier),   &(gascloudStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(gascloudStaticInfos[0].staticheader.maxvelocity),   &(gascloudStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(gascloudStaticInfos[0].staticheader.maxrot),   &(gascloudStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(gascloudStaticInfos[0].maxhealth),  &(gascloudStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(gascloudStaticInfos[0].minCollDamage),  &(gascloudStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(gascloudStaticInfos[0].maxCollDamage),  &(gascloudStaticInfos[0]) },
-    { "resourcevalue",  scriptSetSdwordCB,   &(gascloudStaticInfos[0].resourcevalue),  &(gascloudStaticInfos[0]) },
-    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(gascloudStaticInfos[0].harvestableByMultipleShips),  &(gascloudStaticInfos[0]) },
+    { "immobile",        scriptSetBool8,     &(gascloudStaticInfos[0].common.immobile),  &(gascloudStaticInfos[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.approxcollmodifier),   &(gascloudStaticInfos[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,  &(gascloudStaticInfos[0].common.staticCollInfo.avoidcollmodifier),   &(gascloudStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(gascloudStaticInfos[0].common.maxvelocity),   &(gascloudStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(gascloudStaticInfos[0].common.maxrot),   &(gascloudStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(gascloudStaticInfos[0].health.maxhealth),  &(gascloudStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(gascloudStaticInfos[0].health.minCollDamage),  &(gascloudStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(gascloudStaticInfos[0].health.maxCollDamage),  &(gascloudStaticInfos[0]) },
+    { "resourcevalue",  scriptSetSdwordCB,   &(gascloudStaticInfos[0].resource.resourcevalue),  &(gascloudStaticInfos[0]) },
+    { "harvestableByMultipleShips",  scriptSetUdwordCB,  &(gascloudStaticInfos[0].resource.harvestableByMultipleShips),  &(gascloudStaticInfos[0]) },
 
     { "gascloudCanShrink",scriptSetBool8,  &(gascloudStaticInfos[0].gascloudCanShrink),  &(gascloudStaticInfos[0]) },
     { "gascloudMinShrink",scriptSetReal32CB,  &(gascloudStaticInfos[0].gascloudMinShrink),  &(gascloudStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
 
 scriptStructEntry DerelictStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(derelictStaticInfos[0].staticheader.LOD),  &(derelictStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(derelictStaticInfos[0].staticheader.pMexData),  &(derelictStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(derelictStaticInfos[0].staticheader.mass),       &(derelictStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.momentOfInertiaX),  &(derelictStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.momentOfInertiaY),  &(derelictStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.momentOfInertiaZ),  &(derelictStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(derelictStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(derelictStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(derelictStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(derelictStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(derelictStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(derelictStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(derelictStaticInfos[0]) },
-    { "rightOfWay",      scriptSetSbyteCB,   &(derelictStaticInfos[0].staticheader.rightOfWay),  &(derelictStaticInfos[0]) },
-    { "immobile",        scriptSetBool8,     &(derelictStaticInfos[0].staticheader.immobile),  &(derelictStaticInfos[0]) },
-    { "approxcollmodifier", scriptSetReal32CB,   &(derelictStaticInfos[0].staticheader.staticCollInfo.approxcollmodifier),   &(derelictStaticInfos[0]) },
-    { "avoidcollmodifier", scriptSetReal32CB,   &(derelictStaticInfos[0].staticheader.staticCollInfo.avoidcollmodifier),   &(derelictStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(derelictStaticInfos[0].staticheader.maxvelocity),   &(derelictStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(derelictStaticInfos[0].staticheader.maxrot),   &(derelictStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(derelictStaticInfos[0].maxhealth),  &(derelictStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(derelictStaticInfos[0].minCollDamage),  &(derelictStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(derelictStaticInfos[0].maxCollDamage),  &(derelictStaticInfos[0]) },
+    { "LODFile",        LODScriptLoad,       &(derelictStaticInfos[0].common.LOD),  &(derelictStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(derelictStaticInfos[0].common.pMexData),  &(derelictStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(derelictStaticInfos[0].common.mass),       &(derelictStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(derelictStaticInfos[0].common.momentOfInertiaX),  &(derelictStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(derelictStaticInfos[0].common.momentOfInertiaY),  &(derelictStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(derelictStaticInfos[0].common.momentOfInertiaZ),  &(derelictStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(derelictStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(derelictStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(derelictStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(derelictStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(derelictStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(derelictStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(derelictStaticInfos[0]) },
+    { "rightOfWay",      scriptSetSbyteCB,   &(derelictStaticInfos[0].common.rightOfWay),  &(derelictStaticInfos[0]) },
+    { "immobile",        scriptSetBool8,     &(derelictStaticInfos[0].common.immobile),  &(derelictStaticInfos[0]) },
+    { "approxcollmodifier", scriptSetReal32CB,   &(derelictStaticInfos[0].common.staticCollInfo.approxcollmodifier),   &(derelictStaticInfos[0]) },
+    { "avoidcollmodifier", scriptSetReal32CB,   &(derelictStaticInfos[0].common.staticCollInfo.avoidcollmodifier),   &(derelictStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(derelictStaticInfos[0].common.maxvelocity),   &(derelictStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(derelictStaticInfos[0].common.maxrot),   &(derelictStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(derelictStaticInfos[0].health.maxhealth),  &(derelictStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(derelictStaticInfos[0].health.minCollDamage),  &(derelictStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(derelictStaticInfos[0].health.maxCollDamage),  &(derelictStaticInfos[0]) },
 
-    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_UP]),  &(derelictStaticInfos[0]) },
-    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_DOWN]),  &(derelictStaticInfos[0]) },
-    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_RIGHT]),  &(derelictStaticInfos[0]) },
-    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_LEFT]),  &(derelictStaticInfos[0]) },
-    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_FORWARD]),  &(derelictStaticInfos[0]) },
-    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(derelictStaticInfos[0].thruststrengthstat[TRANS_BACKWARD]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_YAWLEFT]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_YAWRIGHT]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_PITCHUP]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_PITCHDOWN]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_ROLLRIGHT]),  &(derelictStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(derelictStaticInfos[0].rotstrengthstat[ROT_ROLLLEFT]),  &(derelictStaticInfos[0]) },
-    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(derelictStaticInfos[0].turnspeedstat[TURN_YAW]),  &(derelictStaticInfos[0]) },
-    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(derelictStaticInfos[0].turnspeedstat[TURN_PITCH]),  &(derelictStaticInfos[0]) },
-    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(derelictStaticInfos[0].turnspeedstat[TURN_ROLL]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_UP]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_DOWN]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_RIGHT]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_LEFT]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_FORWARD]),  &(derelictStaticInfos[0]) },
+    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.thruststrengthstat[TRANS_BACKWARD]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_YAWLEFT]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_YAWRIGHT]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHUP]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHDOWN]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLRIGHT]),  &(derelictStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLLEFT]),  &(derelictStaticInfos[0]) },
+    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.turnspeedstat[TURN_YAW]),  &(derelictStaticInfos[0]) },
+    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.turnspeedstat[TURN_PITCH]),  &(derelictStaticInfos[0]) },
+    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(derelictStaticInfos[0].guidance.turnspeedstat[TURN_ROLL]),  &(derelictStaticInfos[0]) },
 
-    { "pitchdescend",               scriptSetReal32CB,   &(derelictStaticInfos[0].pitchdescend),  &(derelictStaticInfos[0]) },
-    { "sinbank",                    scriptSetReal32CB,   &(derelictStaticInfos[0].sinbank),  &(derelictStaticInfos[0]) },
-    { "pitchturn",                  scriptSetReal32CB,   &(derelictStaticInfos[0].pitchturn),  &(derelictStaticInfos[0]) },
+    { "pitchdescend",               scriptSetReal32CB,   &(derelictStaticInfos[0].shipOrDerelict.pitchdescend),  &(derelictStaticInfos[0]) },
+    { "sinbank",                    scriptSetReal32CB,   &(derelictStaticInfos[0].shipOrDerelict.sinbank),  &(derelictStaticInfos[0]) },
+    { "pitchturn",                  scriptSetReal32CB,   &(derelictStaticInfos[0].shipOrDerelict.pitchturn),  &(derelictStaticInfos[0]) },
 
-    { "preciseSelection",           scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",           scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
     { "NUMBER_OF_SALVAGE_POINTS",   scriptSetSalvageStatCB, &(derelictStaticInfos[0]), &(derelictStaticInfos[0]) },
 
     { "scaleFactor",          scriptSetReal32CB,   &(derelictStaticInfos[0].scaleFactor),  &(derelictStaticInfos[0]) },
@@ -885,82 +885,82 @@ scriptStructEntry DerelictStaticScriptTable[] =
 
 scriptStructEntry MissileStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(missileStaticInfos[0].staticheader.LOD),  &(missileStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(missileStaticInfos[0].staticheader.pMexData),  &(missileStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(missileStaticInfos[0].staticheader.mass),       &(missileStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.momentOfInertiaX),  &(missileStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.momentOfInertiaY),  &(missileStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.momentOfInertiaZ),  &(missileStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(missileStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(missileStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(missileStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(missileStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(missileStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(missileStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(missileStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(missileStaticInfos[0].staticheader.maxvelocity),   &(missileStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(missileStaticInfos[0].staticheader.maxrot),   &(missileStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(missileStaticInfos[0].maxhealth),  &(missileStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(missileStaticInfos[0].minCollDamage),  &(missileStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(missileStaticInfos[0].maxCollDamage),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_UP]),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_DOWN]),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_RIGHT]),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_LEFT]),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_FORWARD]),  &(missileStaticInfos[0]) },
-    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(missileStaticInfos[0].thruststrengthstat[TRANS_BACKWARD]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_YAWLEFT]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_YAWRIGHT]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_PITCHUP]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_PITCHDOWN]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_ROLLRIGHT]),  &(missileStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(missileStaticInfos[0].rotstrengthstat[ROT_ROLLLEFT]),  &(missileStaticInfos[0]) },
-    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(missileStaticInfos[0].turnspeedstat[TURN_YAW]),  &(missileStaticInfos[0]) },
-    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(missileStaticInfos[0].turnspeedstat[TURN_PITCH]),  &(missileStaticInfos[0]) },
-    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(missileStaticInfos[0].turnspeedstat[TURN_ROLL]),  &(missileStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "LODFile",        LODScriptLoad,       &(missileStaticInfos[0].common.LOD),  &(missileStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(missileStaticInfos[0].common.pMexData),  &(missileStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(missileStaticInfos[0].common.mass),       &(missileStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(missileStaticInfos[0].common.momentOfInertiaX),  &(missileStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(missileStaticInfos[0].common.momentOfInertiaY),  &(missileStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(missileStaticInfos[0].common.momentOfInertiaZ),  &(missileStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(missileStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(missileStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(missileStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(missileStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(missileStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(missileStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(missileStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(missileStaticInfos[0].common.maxvelocity),   &(missileStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(missileStaticInfos[0].common.maxrot),   &(missileStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(missileStaticInfos[0].health.maxhealth),  &(missileStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(missileStaticInfos[0].health.minCollDamage),  &(missileStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(missileStaticInfos[0].health.maxCollDamage),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_UP]),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_DOWN]),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_RIGHT]),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_LEFT]),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_FORWARD]),  &(missileStaticInfos[0]) },
+    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(missileStaticInfos[0].guidance.thruststrengthstat[TRANS_BACKWARD]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_YAWLEFT]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_YAWRIGHT]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHUP]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHDOWN]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLRIGHT]),  &(missileStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(missileStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLLEFT]),  &(missileStaticInfos[0]) },
+    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(missileStaticInfos[0].guidance.turnspeedstat[TURN_YAW]),  &(missileStaticInfos[0]) },
+    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(missileStaticInfos[0].guidance.turnspeedstat[TURN_PITCH]),  &(missileStaticInfos[0]) },
+    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(missileStaticInfos[0].guidance.turnspeedstat[TURN_ROLL]),  &(missileStaticInfos[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
 
 scriptStructEntry MineStaticScriptTable[] =
 {
-    { "LODFile",        LODScriptLoad,       &(mineStaticInfos[0].staticheader.LOD),  &(mineStaticInfos[0]) },
-    { "pMexData",       loadMexDataCB,       &(mineStaticInfos[0].staticheader.pMexData),  &(mineStaticInfos[0]) },
-    { "mass",           scriptSetReal32CB,   &(mineStaticInfos[0].staticheader.mass),       &(mineStaticInfos[0]) },
-    { "momentOfInertiaX",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.momentOfInertiaX),  &(mineStaticInfos[0]) },
-    { "momentOfInertiaY",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.momentOfInertiaY),  &(mineStaticInfos[0]) },
-    { "momentOfInertiaZ",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.momentOfInertiaZ),  &(mineStaticInfos[0]) },
-    { "collBoxScaleRight",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxScaleRight),  &(asteroidStaticInfos[0]) },
-    { "collBoxScaleUp",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxScaleUp),  &(asteroidStaticInfos[0]) },
-    { "collBoxScaleForward",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxScaleForward),  &(asteroidStaticInfos[0]) },
-    { "maxvelocity",    scriptSetReal32CB,   &(mineStaticInfos[0].staticheader.maxvelocity),   &(mineStaticInfos[0]) },
-    { "collBoxOffsetX",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetX),  &(mineStaticInfos[0]) },
-    { "collBoxOffsetY",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetY),  &(mineStaticInfos[0]) },
-    { "collBoxOffsetZ",scriptSetReal32CB,  &(mineStaticInfos[0].staticheader.staticCollInfo.collBoxOffsetZ),  &(mineStaticInfos[0]) },
+    { "LODFile",        LODScriptLoad,       &(mineStaticInfos[0].common.LOD),  &(mineStaticInfos[0]) },
+    { "pMexData",       loadMexDataCB,       &(mineStaticInfos[0].common.pMexData),  &(mineStaticInfos[0]) },
+    { "mass",           scriptSetReal32CB,   &(mineStaticInfos[0].common.mass),       &(mineStaticInfos[0]) },
+    { "momentOfInertiaX",scriptSetReal32CB,  &(mineStaticInfos[0].common.momentOfInertiaX),  &(mineStaticInfos[0]) },
+    { "momentOfInertiaY",scriptSetReal32CB,  &(mineStaticInfos[0].common.momentOfInertiaY),  &(mineStaticInfos[0]) },
+    { "momentOfInertiaZ",scriptSetReal32CB,  &(mineStaticInfos[0].common.momentOfInertiaZ),  &(mineStaticInfos[0]) },
+    { "collBoxScaleRight",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxScaleRight),  &(asteroidStaticInfos[0]) },
+    { "collBoxScaleUp",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxScaleUp),  &(asteroidStaticInfos[0]) },
+    { "collBoxScaleForward",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxScaleForward),  &(asteroidStaticInfos[0]) },
+    { "maxvelocity",    scriptSetReal32CB,   &(mineStaticInfos[0].common.maxvelocity),   &(mineStaticInfos[0]) },
+    { "collBoxOffsetX",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxOffsetX),  &(mineStaticInfos[0]) },
+    { "collBoxOffsetY",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxOffsetY),  &(mineStaticInfos[0]) },
+    { "collBoxOffsetZ",scriptSetReal32CB,  &(mineStaticInfos[0].common.staticCollInfo.collBoxOffsetZ),  &(mineStaticInfos[0]) },
     { "maxvelocity_FORCED",    scriptSetReal32CB,   &(mineStaticInfos[0].maxvelocity_FORCED),   &(mineStaticInfos[0]) },
-    { "maxrot",         scriptSetReal32CB,   &(mineStaticInfos[0].staticheader.maxrot),   &(mineStaticInfos[0]) },
-    { "maxhealth",      scriptSetReal32CB,   &(mineStaticInfos[0].maxhealth),  &(mineStaticInfos[0]) },
-    { "minCollDamage",      scriptSetReal32CB,   &(mineStaticInfos[0].minCollDamage),  &(mineStaticInfos[0]) },
-    { "maxCollDamage",      scriptSetReal32CB,   &(mineStaticInfos[0].maxCollDamage),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_UP]),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_DOWN]),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_RIGHT]),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_LEFT]),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_FORWARD]),  &(mineStaticInfos[0]) },
-    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(mineStaticInfos[0].thruststrengthstat[TRANS_BACKWARD]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_YAWLEFT]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_YAWRIGHT]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_PITCHUP]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_PITCHDOWN]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_ROLLRIGHT]),  &(mineStaticInfos[0]) },
-    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(mineStaticInfos[0].rotstrengthstat[ROT_ROLLLEFT]),  &(mineStaticInfos[0]) },
-    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(mineStaticInfos[0].turnspeedstat[TURN_YAW]),  &(mineStaticInfos[0]) },
-    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(mineStaticInfos[0].turnspeedstat[TURN_PITCH]),  &(mineStaticInfos[0]) },
-    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(mineStaticInfos[0].turnspeedstat[TURN_ROLL]),  &(mineStaticInfos[0]) },
+    { "maxrot",         scriptSetReal32CB,   &(mineStaticInfos[0].common.maxrot),   &(mineStaticInfos[0]) },
+    { "maxhealth",      scriptSetReal32CB,   &(mineStaticInfos[0].health.maxhealth),  &(mineStaticInfos[0]) },
+    { "minCollDamage",      scriptSetReal32CB,   &(mineStaticInfos[0].health.minCollDamage),  &(mineStaticInfos[0]) },
+    { "maxCollDamage",      scriptSetReal32CB,   &(mineStaticInfos[0].health.maxCollDamage),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_UP]",       scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_UP]),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_DOWN]",     scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_DOWN]),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_RIGHT]",    scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_RIGHT]),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_LEFT]",     scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_LEFT]),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_FORWARD]",  scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_FORWARD]),  &(mineStaticInfos[0]) },
+    { "thruststrength[TRANS_BACK]",     scriptSetReal32CB,   &(mineStaticInfos[0].guidance.thruststrengthstat[TRANS_BACKWARD]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_YAWLEFT]",       scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_YAWLEFT]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_YAWRIGHT]",      scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_YAWRIGHT]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHUP]",       scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHUP]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_PITCHDOWN]",     scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_PITCHDOWN]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLRIGHT]",     scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLRIGHT]),  &(mineStaticInfos[0]) },
+    { "rotstrength[ROT_ROLLLEFT]",      scriptSetReal32CB,   &(mineStaticInfos[0].guidance.rotstrengthstat[ROT_ROLLLEFT]),  &(mineStaticInfos[0]) },
+    { "turnspeed[TURN_YAW]",            scriptSetReal32CB,   &(mineStaticInfos[0].guidance.turnspeedstat[TURN_YAW]),  &(mineStaticInfos[0]) },
+    { "turnspeed[TURN_PITCH]",          scriptSetReal32CB,   &(mineStaticInfos[0].guidance.turnspeedstat[TURN_PITCH]),  &(mineStaticInfos[0]) },
+    { "turnspeed[TURN_ROLL]",           scriptSetReal32CB,   &(mineStaticInfos[0].guidance.turnspeedstat[TURN_ROLL]),  &(mineStaticInfos[0]) },
     { "MINE_STOP_FRICTION",           scriptSetReal32CB,   &(mineStaticInfos[0].MINE_STOP_FRICTION),  &(mineStaticInfos[0]) },
     { "MINE_RANGESQR",           scriptSetReal32SqrCB,   &(mineStaticInfos[0].MINE_RANGESQR),  &(mineStaticInfos[0]) },
     { "MINE_RANGESQR_FORCED",           scriptSetReal32SqrCB,   &(mineStaticInfos[0].MINE_RANGESQR_FORCED),  &(mineStaticInfos[0]) },
-    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].staticheader.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
+    { "preciseSelection",scriptSetUdwordCB, &(ShipStaticInfoR1[0].common.staticCollInfo.preciseSelection),  &(ShipStaticInfoR1[0]) },
 
     END_SCRIPT_STRUCT_ENTRY
 };
@@ -1017,11 +1017,11 @@ static void setGunBindInfo(char *directory,char *field,void *dataToFillIn)
             flags |= frequency;
         }
     }
-    info->hierarchySize = lodHierarchySizeCompute(info->staticheader.LOD);
+    info->hierarchySize = lodHierarchySizeCompute(info->common.LOD);
     nBound = 0;
-    for (index = 0; index < info->staticheader.LOD->nLevels; index++)
+    for (index = 0; index < info->common.LOD->nLevels; index++)
     {                                                       //for all levels of detail
-        level = &info->staticheader.LOD->level[index];
+        level = &info->common.LOD->level[index];
         binding = NULL;
         if ((level->flags & LM_LODType) != LT_Mesh)
         {
@@ -1057,7 +1057,7 @@ static void setAnimationBindInfo(char *directory,char *field,void *dataToFillIn)
     info->madStatic = memAlloc(sizeof(madstatic), "madBindings", NonVolatile);
     memset(info->madStatic,0,sizeof(madstatic));
     info->madStatic->header = madFileLoad(fileName);
-    info->hierarchySize = lodHierarchySizeCompute(info->staticheader.LOD);
+    info->hierarchySize = lodHierarchySizeCompute(info->common.LOD);
 }
 
 static void setMadStartInfo(char *directory,char *field,void *dataToFillIn)
@@ -1413,7 +1413,7 @@ static void scriptSetFramesCB(char *directory,char *field,void *dataToFillIn)
 
 void gunGetDefaultOrientationFromBindings(GunStatic *gunstatic,ShipStaticInfo *statinfo)
 {
-    lod *level = &statinfo->staticheader.LOD->level[0];
+    lod *level = &statinfo->common.LOD->level[0];
     //udword numHierarchys = ((meshdata *)level->pData)->nPolygonObjects;
     hmatrix concatenated, nonConcatenated;
 //    mhbinding *binding;
@@ -1482,7 +1482,7 @@ void gunSetStaticGunInfoFromBindings(ShipStaticInfo *statinfo)
     Outputs     : *staticheader updated appropriately
     Return      :
 ----------------------------------------------------------------------------*/
-void precalcStaticHeader(StaticHeader *staticheader)
+void precalcStaticHeader(StaticInfo *staticheader)
 {
     real32 avoidcollsize;
 
@@ -1534,17 +1534,17 @@ void precalcStaticInfoGuidance(StaticInfoHealthGuidance *staticinfo)
 
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-        staticinfo->thruststrengthstat[i] *= staticinfo->staticheader.mass * GLOBAL_SHIP_SPEED_MODIFIER;
+        staticinfo->thruststrengthstat[i] *= staticinfo->common.mass * GLOBAL_SHIP_SPEED_MODIFIER;
     }
 
-    staticinfo->staticheader.maxvelocity *= GLOBAL_SHIP_SPEED_MODIFIER;
+    staticinfo->common.maxvelocity *= GLOBAL_SHIP_SPEED_MODIFIER;
 
-    staticinfo->rotstrengthstat[ROT_ABOUTXCCW] *= staticinfo->staticheader.momentOfInertiaX;
-    staticinfo->rotstrengthstat[ROT_ABOUTXCW]  *= staticinfo->staticheader.momentOfInertiaX;
-    staticinfo->rotstrengthstat[ROT_ABOUTYCCW] *= staticinfo->staticheader.momentOfInertiaY;
-    staticinfo->rotstrengthstat[ROT_ABOUTYCW]  *= staticinfo->staticheader.momentOfInertiaY;
-    staticinfo->rotstrengthstat[ROT_ABOUTZCCW] *= staticinfo->staticheader.momentOfInertiaZ;
-    staticinfo->rotstrengthstat[ROT_ABOUTZCW]  *= staticinfo->staticheader.momentOfInertiaZ;
+    staticinfo->rotstrengthstat[ROT_ABOUTXCCW] *= staticinfo->common.momentOfInertiaX;
+    staticinfo->rotstrengthstat[ROT_ABOUTXCW]  *= staticinfo->common.momentOfInertiaX;
+    staticinfo->rotstrengthstat[ROT_ABOUTYCCW] *= staticinfo->common.momentOfInertiaY;
+    staticinfo->rotstrengthstat[ROT_ABOUTYCW]  *= staticinfo->common.momentOfInertiaY;
+    staticinfo->rotstrengthstat[ROT_ABOUTZCCW] *= staticinfo->common.momentOfInertiaZ;
+    staticinfo->rotstrengthstat[ROT_ABOUTZCW]  *= staticinfo->common.momentOfInertiaZ;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1583,11 +1583,11 @@ void InitStatAsteroidInfo(AsteroidStaticInfo *asteroidStatInfo,AsteroidType aste
     {
         scriptSetStruct(directory,shipname,AsteroidStaticScriptTable,(ubyte *)asteroidStatInfo);
 
-        precalcStaticHeader(&asteroidStatInfo->staticheader);
+        precalcStaticHeader(&asteroidStatInfo->common);
         precalcStaticInfoHealth((StaticInfoHealth *)asteroidStatInfo);
 
         // optimization for Asteroid0
-        if (asteroidtype == Asteroid0) collZeroRectInfo(&asteroidStatInfo->staticheader.staticCollInfo);
+        if (asteroidtype == Asteroid0) collZeroRectInfo(&asteroidStatInfo->common.staticCollInfo);
     }
 }
 
@@ -1632,13 +1632,13 @@ void InitStatDustCloudInfo(DustCloudStaticInfo *dustcloudStatInfo, DustCloudType
 
         scriptSetStruct(directory,shipname,DustCloudStaticScriptTable,(ubyte *)dustcloudStatInfo);
 
-        precalcStaticHeader(&dustcloudStatInfo->staticheader);
+        precalcStaticHeader(&dustcloudStatInfo->common);
         precalcStaticInfoHealth((StaticInfoHealth *)dustcloudStatInfo);
 
-        coll = &dustcloudStatInfo->staticheader.staticCollInfo;
+        coll = &dustcloudStatInfo->common.staticCollInfo;
         collZeroRectInfo(coll);
 
-        coll->originalcollspheresize = r;
+        coll->originalCollSphereSize = r;
         coll->approxcollspheresize = r;
         coll->avoidcollspheresize = r;
         coll->avoidcollspherepad = r;
@@ -1683,7 +1683,7 @@ void InitStatGasCloudInfo(GasCloudStaticInfo *gascloudStatInfo, GasCloudType gas
     {
         scriptSetStruct(directory,shipname,GasCloudStaticScriptTable,(ubyte *)gascloudStatInfo);
 
-        precalcStaticHeader(&gascloudStatInfo->staticheader);
+        precalcStaticHeader(&gascloudStatInfo->common);
         precalcStaticInfoHealth((StaticInfoHealth *)gascloudStatInfo);
     }
 }
@@ -1728,13 +1728,13 @@ void InitStatNebulaInfo(NebulaStaticInfo* nebulaStatInfo, NebulaType nebulatype)
 
         scriptSetStruct(directory, shipname, NebulaStaticScriptTable, (ubyte*)nebulaStatInfo);
 
-        precalcStaticHeader(&nebulaStatInfo->staticheader);
+        precalcStaticHeader(&nebulaStatInfo->common);
         precalcStaticInfoHealth((StaticInfoHealth*)nebulaStatInfo);
 
-        coll = &nebulaStatInfo->staticheader.staticCollInfo;
+        coll = &nebulaStatInfo->common.staticCollInfo;
         collZeroRectInfo(coll);
 
-        coll->originalcollspheresize = NEB_RADIUS;
+        coll->originalCollSphereSize = NEB_RADIUS;
         coll->approxcollspheresize = NEB_RADIUS;
         coll->avoidcollspheresize = NEB_RADIUS;
         coll->avoidcollspherepad = NEB_RADIUS;
@@ -1750,12 +1750,12 @@ void InitStatHyperspaceGateInfo(DerelictStaticInfo *derelictStatInfo)
 
     memset(derelictStatInfo, 0, sizeof(DerelictStaticInfo));
 
-    derelictStatInfo->maxhealth = HYPERSPACEGATE_HEALTH;
-    derelictStatInfo->oneOverMaxHealth = (1.0f / derelictStatInfo->maxhealth);
+    derelictStatInfo->health.maxhealth = HYPERSPACEGATE_HEALTH;
+    derelictStatInfo->health.oneOverMaxHealth = (1.0f / derelictStatInfo->health.maxhealth);
 
     derelictStatInfo->renderlistLimitSqr = 5.0e8f;
 
-    sci = &derelictStatInfo->staticheader.staticCollInfo;
+    sci = &derelictStatInfo->common.staticCollInfo;
 
     sci->uplength = HYPERSPACEGATE_HEIGHT;
     sci->rightlength = HYPERSPACEGATE_WIDTH;
@@ -1771,7 +1771,7 @@ void InitStatHyperspaceGateInfo(DerelictStaticInfo *derelictStatInfo)
     sci->avoidcollmodifier = 1.0f;
     sci->approxcollmodifier = 1.0f;
 
-    sci->originalcollspheresize = r;
+    sci->originalCollSphereSize = r;
     sci->collspheresize = r;
     sci->collspheresizeSqr = r*r;
 
@@ -1825,7 +1825,7 @@ void InitStatDerelictInfo(DerelictStaticInfo *derelictStatInfo, DerelictType der
     scriptSetNAVLightStatics(directory, shipname, (ShipStaticInfo *)derelictStatInfo);
     if (derelictStatInfo->navlightStaticInfo != NULL)
     {
-        mexGetNAVLightStaticInfo(derelictStatInfo->navlightStaticInfo,derelictStatInfo->staticheader.pMexData);
+        mexGetNAVLightStaticInfo(derelictStatInfo->navlightStaticInfo,derelictStatInfo->common.pMexData);
     }
 }
 
@@ -1845,15 +1845,15 @@ void InitStatDerelictInfoByPath(DerelictStaticInfo *derelictStatInfo, DerelictTy
 {
     bool8 teamColor[MAX_MULTIPLAYER_PLAYERS];
 
-    memcpy(teamColor, derelictStatInfo->teamColor, sizeof(teamColor));//save the default team colors
+    memcpy(teamColor, derelictStatInfo->shipOrDerelict.teamColor, sizeof(teamColor));//save the default team colors
     derelictStatInfo->derelicttype = derelicttype;
     memset(derelictStatInfo, 0, sizeof(DerelictStaticInfo));
-    memcpy(derelictStatInfo->teamColor, teamColor, sizeof(teamColor));
-    derelictStatInfo->staticheader.rightOfWay = 1;      // default to derelicts having a right of way same as frigates
+    memcpy(derelictStatInfo->shipOrDerelict.teamColor, teamColor, sizeof(teamColor));
+    derelictStatInfo->common.rightOfWay = 1;      // default to derelicts having a right of way same as frigates
     derelictStatInfo->salvageable = FALSE;              //default salvageability to FALSE!
     scriptSetStruct(directory,shipFile,DerelictStaticScriptTable,(ubyte *)derelictStatInfo);
 
-    precalcStaticHeader(&derelictStatInfo->staticheader);
+    precalcStaticHeader(&derelictStatInfo->common);
     precalcStaticInfoHealth((StaticInfoHealth *)derelictStatInfo);
     precalcStaticInfoGuidance((StaticInfoHealthGuidance *)derelictStatInfo);
 }
@@ -1888,15 +1888,15 @@ void InitStatMissileInfo(MissileStaticInfo *missileStatInfo,ShipRace race)
         return;
     }
 
-    missileStatInfo->turnspeedstat[TURN_YAW]   = 1.0f;
-    missileStatInfo->turnspeedstat[TURN_PITCH] = 1.0f;
-    missileStatInfo->turnspeedstat[TURN_ROLL]  = 1.0f;
+    missileStatInfo->guidance.turnspeedstat[TURN_YAW]   = 1.0f;
+    missileStatInfo->guidance.turnspeedstat[TURN_PITCH] = 1.0f;
+    missileStatInfo->guidance.turnspeedstat[TURN_ROLL]  = 1.0f;
 
-    missileStatInfo->staticheader.rightOfWay = -1;
+    missileStatInfo->common.rightOfWay = -1;
 
     scriptSetStruct(directory,shipname,MissileStaticScriptTable,(ubyte *)missileStatInfo);
 
-    precalcStaticHeader(&missileStatInfo->staticheader);
+    precalcStaticHeader(&missileStatInfo->common);
     precalcStaticInfoHealth((StaticInfoHealth *)missileStatInfo);
     precalcStaticInfoGuidance((StaticInfoHealthGuidance *)missileStatInfo);
 
@@ -1936,18 +1936,18 @@ void InitStatMineInfo(MissileStaticInfo *mineStatInfo,ShipRace race)
         return;
     }
 
-    mineStatInfo->turnspeedstat[TURN_YAW]   = 1.0f;
-    mineStatInfo->turnspeedstat[TURN_PITCH] = 1.0f;
-    mineStatInfo->turnspeedstat[TURN_ROLL]  = 1.0f;
+    mineStatInfo->guidance.turnspeedstat[TURN_YAW]   = 1.0f;
+    mineStatInfo->guidance.turnspeedstat[TURN_PITCH] = 1.0f;
+    mineStatInfo->guidance.turnspeedstat[TURN_ROLL]  = 1.0f;
 
-    mineStatInfo->staticheader.rightOfWay = -1;
+    mineStatInfo->common.rightOfWay = -1;
 
     scriptSetStruct(directory,shipname,MineStaticScriptTable,(ubyte *)mineStatInfo);
 
     mineStatInfo->mineRange = fsqrt(mineStatInfo->MINE_RANGESQR);
     mineStatInfo->mineRangeForced = fsqrt(mineStatInfo->MINE_RANGESQR_FORCED);
 
-    precalcStaticHeader(&mineStatInfo->staticheader);
+    precalcStaticHeader(&mineStatInfo->common);
     precalcStaticInfoHealth((StaticInfoHealth *)mineStatInfo);
     precalcStaticInfoGuidance((StaticInfoHealthGuidance *)mineStatInfo);
 }
@@ -2063,9 +2063,9 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
     statinfo->scaleFactor = 1.0f;
 #endif
 
-    statinfo->turnspeedstat[TURN_YAW]   = 1.0f;
-    statinfo->turnspeedstat[TURN_PITCH] = 1.0f;
-    statinfo->turnspeedstat[TURN_ROLL]  = 1.0f;
+    statinfo->guidance.turnspeedstat[TURN_YAW]   = 1.0f;
+    statinfo->guidance.turnspeedstat[TURN_PITCH] = 1.0f;
+    statinfo->guidance.turnspeedstat[TURN_ROLL]  = 1.0f;
 
     statinfo->minimumZoomDistance = 0.0f;
 
@@ -2102,7 +2102,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
         statinfo->trailSpriteRadius[i] = -1.0f;
         statinfo->trailSpriteOffset[i] = 0.0f;
     }
-    statinfo->staticheader.staticCollInfo.preciseSelection = 0xff;//default is no precise selection
+    statinfo->common.staticCollInfo.preciseSelection = 0xff;//default is no precise selection
 
     // collSideModifiers reset
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
@@ -2110,7 +2110,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
         statinfo->collSideModifiers[i] = 0.0f;
     }
 
-    statinfo->staticheader.rightOfWay = rightOfWays[type];      // defaults for right of way
+    statinfo->common.rightOfWay = rightOfWays[type];      // defaults for right of way
 
     scriptSetStruct(directory,shipname,ShipStaticScriptTable,(ubyte *)statinfo);
 
@@ -2178,7 +2178,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
     {
         statinfo->trailStatic[i] = trailStaticInfoParse(directory, shipname);
     }
-    if (mexGetChunk(statinfo->staticheader.pMexData, "Eng", "Eng1") != NULL)
+    if (mexGetChunk(statinfo->common.pMexData, "Eng", "Eng1") != NULL)
     {
         statinfo->multipleEngines = (udword)TRUE;
     }
@@ -2189,11 +2189,11 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
 
     statinfo->lowfuelpoint *= statinfo->maxfuel;
 
-    precalcStaticHeader(&statinfo->staticheader);
+    precalcStaticHeader(&statinfo->common);
 #if 1  // comment out when MiningBase properly moved hack,  fix later
     if (type == MiningBase)
     {
-        StaticCollInfo *staticCollInfo = &statinfo->staticheader.staticCollInfo;
+        StaticCollInfo *staticCollInfo = &statinfo->common.staticCollInfo;
         staticCollInfo->collsphereoffset.x += MINING_BASE_VERTICAL_DIST_HACK;
         staticCollInfo->collrectoffset.x += MINING_BASE_VERTICAL_DIST_HACK;
     }
@@ -2203,7 +2203,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
 
     if (statinfo->dockShipRange != 0.0f)
     {
-        statinfo->dockShipRange += statinfo->staticheader.staticCollInfo.approxcollspheresize;
+        statinfo->dockShipRange += statinfo->common.staticCollInfo.approxcollspheresize;
         statinfo->dockShipRange *= statinfo->dockShipRange;
     }
 
@@ -2211,7 +2211,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
 
     for (i = 0; i < MAX_NUM_TRAILS; i++)
     {
-        mexSetEngineNozzle(statinfo->engineNozzleOffset + i, statinfo->staticheader.pMexData, i);
+        mexSetEngineNozzle(statinfo->engineNozzleOffset + i, statinfo->common.pMexData, i);
     }
 
     if (stubbedOut == FALSE)
@@ -2222,7 +2222,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
 
     if (statinfo->dockStaticInfo != NULL)
     {
-        mexGetDockStaticInfo(statinfo->dockStaticInfo,statinfo->staticheader.pMexData);
+        mexGetDockStaticInfo(statinfo->dockStaticInfo,statinfo->common.pMexData);
     }
 
     if (stubbedOut == FALSE)
@@ -2233,25 +2233,25 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
     if (ShipCanHarvest(statinfo))
     {
         // find resource collection nozzle
-        statinfo->resNozzleStatic = mexGetResNozzleStatic(statinfo->staticheader.pMexData);
+        statinfo->resNozzleStatic = mexGetResNozzleStatic(statinfo->common.pMexData);
     }
 
     if(statinfo->repairBeamCapable)
     {
         //find repair beam nozzle
-        statinfo->repairNozzleStatic = mexGetRepairNozzleStatic(statinfo->staticheader.pMexData);
+        statinfo->repairNozzleStatic = mexGetRepairNozzleStatic(statinfo->common.pMexData);
     }
 
     if(type == SalCapCorvette)
     {
         //find tractor beam emmitter
-        statinfo->tractorEmitterStatic = mexGetTractorBeamStatic(statinfo->staticheader.pMexData);
+        statinfo->tractorEmitterStatic = mexGetTractorBeamStatic(statinfo->common.pMexData);
     }
 
     scriptSetNAVLightStatics(directory, shipname, statinfo);
     if (statinfo->navlightStaticInfo != NULL)
     {
-        mexGetNAVLightStaticInfo(statinfo->navlightStaticInfo,statinfo->staticheader.pMexData);
+        mexGetNAVLightStaticInfo(statinfo->navlightStaticInfo,statinfo->common.pMexData);
     }
 
     scriptSetGunStatics(directory,shipname,statinfo);
@@ -2262,7 +2262,7 @@ void InitStatShipInfo(ShipStaticInfo *statinfo,ShipType type,ShipRace race)
         {
             gunstaticinfo->gunstatics[i].gunindex = i;
         }
-        mexGetGunStaticInfo(gunstaticinfo,statinfo->staticheader.pMexData);
+        mexGetGunStaticInfo(gunstaticinfo,statinfo->common.pMexData);
     }
 
     if (statinfo->bulletRange[0] != 0.0f)
@@ -2328,12 +2328,12 @@ void InitStatShipInfoPost(ShipStaticInfo *statinfo)
 {
     if (GLOBAL_SHIP_HEALTH_MODIFIER != 1.0f)
     {
-        statinfo->maxhealth = ((statinfo->maxhealth) * GLOBAL_SHIP_HEALTH_MODIFIER);
-        if (statinfo->maxhealth == 0.0f)
+        statinfo->health.maxhealth = ((statinfo->health.maxhealth) * GLOBAL_SHIP_HEALTH_MODIFIER);
+        if (statinfo->health.maxhealth == 0.0f)
         {
-            statinfo->maxhealth = 1.0f;
+            statinfo->health.maxhealth = 1.0f;
         }
-        statinfo->oneOverMaxHealth = 1.0f/statinfo->maxhealth;
+        statinfo->health.oneOverMaxHealth = 1.0f/statinfo->health.maxhealth;
     }
 
     if (statinfo->custshipheader.CustShipStaticInitPost != NULL)
@@ -2351,19 +2351,19 @@ void InitStatShipInfoPost(ShipStaticInfo *statinfo)
 ----------------------------------------------------------------------------*/
 void CloseStatInfo(StaticInfo *statinfo)
 {
-    if ((statinfo->staticheader.pMexData != defaultmex) && (statinfo->staticheader.pMexData != NULL))
+    if ((statinfo->pMexData != defaultmex) && (statinfo->pMexData != NULL))
     {
-        mexFree(statinfo->staticheader.pMexData);
-        statinfo->staticheader.pMexData = NULL;
+        mexFree(statinfo->pMexData);
+        statinfo->pMexData = NULL;
     }
 
-    if ((statinfo->staticheader.LOD != defaultlod) && (statinfo->staticheader.LOD != NULL))
+    if ((statinfo->LOD != defaultlod) && (statinfo->LOD != NULL))
     {
-        lodFree(statinfo->staticheader.LOD);
-        statinfo->staticheader.LOD = NULL;
+        lodFree(statinfo->LOD);
+        statinfo->LOD = NULL;
     }
-    //statinfo->staticheader.infoLoaded = statinfo->staticheader.infoNeeded = FALSE;
-    statinfo->staticheader.infoFlags = 0;
+    //statinfo->common.infoLoaded = statinfo->common.infoNeeded = FALSE;
+    statinfo->infoFlags = 0;
     memset(statinfo, 0, sizeof(StaticInfo));
 }
 
@@ -2472,10 +2472,10 @@ void CloseStatShipInfo(ShipStaticInfo *statinfo)
         statinfo->repairNozzleStatic = NULL;
     }
 
-    if (statinfo->salvageStaticInfo != NULL)
+    if (statinfo->shipOrDerelict.salvageStaticInfo != NULL)
     {
-        memFree(statinfo->salvageStaticInfo);
-        statinfo->salvageStaticInfo = NULL;
+        memFree(statinfo->shipOrDerelict.salvageStaticInfo);
+        statinfo->shipOrDerelict.salvageStaticInfo = NULL;
     }
 
 
@@ -2562,10 +2562,10 @@ void CloseStatNebulaInfo(NebulaStaticInfo *nebulaStatInfo)
 ----------------------------------------------------------------------------*/
 void CloseStatDerelictInfo(DerelictStaticInfo *derelictStatInfo)
 {
-    if (derelictStatInfo->salvageStaticInfo != NULL)
+    if (derelictStatInfo->shipOrDerelict.salvageStaticInfo != NULL)
     {
-        memFree(derelictStatInfo->salvageStaticInfo);
-        derelictStatInfo->salvageStaticInfo = NULL;
+        memFree(derelictStatInfo->shipOrDerelict.salvageStaticInfo);
+        derelictStatInfo->shipOrDerelict.salvageStaticInfo = NULL;
     }
     CloseStatInfo((StaticInfo *)derelictStatInfo);
 }
@@ -2610,7 +2610,7 @@ void CloseStatEffectInfo(etgeffectstatic *effectStatInfo)
 static sdword bNeededParam;
 void universeInfoNeededSetCB(StaticInfo *info, ObjType objType)
 {
-    bitSetTo(info->staticheader.infoFlags, IF_InfoNeeded, bNeededParam);
+    bitSetTo(info->infoFlags, IF_InfoNeeded, bNeededParam);
 }
 
 /*=============================================================================
@@ -2671,7 +2671,7 @@ void universeDefaultTeamColors(void)
         for (shiptype=firstshiptype;shiptype<=lastshiptype;shiptype++)
         {
             shipstaticinfo = GetShipStaticInfo(shiptype,shiprace);
-            memcpy(shipstaticinfo->teamColor, racePlayerTable[shiprace], sizeof(shipstaticinfo->teamColor));
+            memcpy(shipstaticinfo->shipOrDerelict.teamColor, racePlayerTable[shiprace], sizeof(shipstaticinfo->shipOrDerelict.teamColor));
         }
         missileInfo = &missileStaticInfos[shiprace];
         memcpy(missileInfo->teamColor, racePlayerTable[shiprace], sizeof(missileInfo->teamColor));
@@ -2684,7 +2684,7 @@ void universeDefaultTeamColors(void)
     //plug default team colors into derelicts (last team color scheme, like traders)
     for (derelicttype = 0; derelicttype < NUM_DERELICTTYPES; derelicttype++)
     {
-        memcpy(derelictStaticInfos[derelicttype].teamColor, racePlayerTable[Traders], sizeof(racePlayerTable[Traders]));
+        memcpy(derelictStaticInfos[derelicttype].shipOrDerelict.teamColor, racePlayerTable[Traders], sizeof(racePlayerTable[Traders]));
     }
 }
 
@@ -2804,7 +2804,7 @@ void universeAllStaticsScan(univstatcallback forShips, univstatcallback forDerel
 /*
     for (shiprace=0;shiprace<2;shiprace++)
     {
-        bitSet(mineStaticInfos[shiprace].staticheader.infoFlags, IF_InfoNeeded);
+        bitSet(mineStaticInfos[shiprace].common.infoFlags, IF_InfoNeeded);
     }
 */
     }
@@ -2885,8 +2885,8 @@ void universeSaveEverythingNeeded(void)
         for (shiptype=firstshiptype;shiptype<=lastshiptype;shiptype++)
         {
             shipstatic = GetShipStaticInfo(shiptype,shiprace);
-            data[0] = bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded);      // anything loaded is needed
-            data[1] = bitpackTeamColor(shipstatic->teamColor);
+            data[0] = bitTest(shipstatic->common.infoFlags, IF_InfoLoaded);      // anything loaded is needed
+            data[1] = bitpackTeamColor(shipstatic->shipOrDerelict.teamColor);
             data[2] = 0;
             data[3] = 0;
             SaveInfoNumber(TreatAsUdword(data[0]));
@@ -2895,25 +2895,25 @@ void universeSaveEverythingNeeded(void)
 
     for (asteroidtype=0;asteroidtype<NUM_ASTEROIDTYPES;asteroidtype++)
     {
-        SaveInfoNumber(bitTest(asteroidStaticInfos[asteroidtype].staticheader.infoFlags, IF_InfoLoaded));
+        SaveInfoNumber(bitTest(asteroidStaticInfos[asteroidtype].common.infoFlags, IF_InfoLoaded));
     }
     for (dustcloudtype = 0; dustcloudtype < NUM_DUSTCLOUDTYPES; dustcloudtype++)
     {
-        SaveInfoNumber(bitTest(dustcloudStaticInfos[dustcloudtype].staticheader.infoFlags, IF_InfoLoaded));
+        SaveInfoNumber(bitTest(dustcloudStaticInfos[dustcloudtype].common.infoFlags, IF_InfoLoaded));
     }
     for (gascloudtype = 0; gascloudtype < NUM_GASCLOUDTYPES; gascloudtype++)
     {
-        SaveInfoNumber(bitTest(gascloudStaticInfos[gascloudtype].staticheader.infoFlags, IF_InfoLoaded));
+        SaveInfoNumber(bitTest(gascloudStaticInfos[gascloudtype].common.infoFlags, IF_InfoLoaded));
     }
     for (nebulatype = 0; nebulatype < NUM_NEBULATYPES; nebulatype++)
     {
-        SaveInfoNumber(bitTest(nebulaStaticInfos[nebulatype].staticheader.infoFlags, IF_InfoLoaded));
+        SaveInfoNumber(bitTest(nebulaStaticInfos[nebulatype].common.infoFlags, IF_InfoLoaded));
     }
     for (derelicttype=0;derelicttype<NUM_DERELICTTYPES;derelicttype++)
     {
         DerelictStaticInfo *dstaticinfo = &derelictStaticInfos[derelicttype];
-        data[0] = bitTest(dstaticinfo->staticheader.infoFlags, IF_InfoLoaded);
-        data[1] = bitpackTeamColor(dstaticinfo->teamColor);
+        data[0] = bitTest(dstaticinfo->common.infoFlags, IF_InfoLoaded);
+        data[1] = bitpackTeamColor(dstaticinfo->shipOrDerelict.teamColor);
         data[2] = 0;
         data[3] = 0;
         SaveInfoNumber(TreatAsUdword(data[0]));
@@ -2921,7 +2921,7 @@ void universeSaveEverythingNeeded(void)
     for (shiprace=0;shiprace<NUM_RACES;shiprace++)
     {
         MissileStaticInfo *misstaticinfo = &missileStaticInfos[shiprace];
-        data[0] = bitTest(misstaticinfo->staticheader.infoFlags, IF_InfoLoaded);
+        data[0] = bitTest(misstaticinfo->common.infoFlags, IF_InfoLoaded);
         data[1] = bitpackTeamColor(misstaticinfo->teamColor);
         data[2] = 0;
         data[3] = 0;
@@ -2930,7 +2930,7 @@ void universeSaveEverythingNeeded(void)
     for (shiprace=0;shiprace<2;shiprace++)
     {
         MissileStaticInfo *misstaticinfo = &mineStaticInfos[shiprace];
-        data[0] = bitTest(misstaticinfo->staticheader.infoFlags, IF_InfoLoaded);
+        data[0] = bitTest(misstaticinfo->common.infoFlags, IF_InfoLoaded);
         data[1] = bitpackTeamColor(misstaticinfo->teamColor);
         data[2] = 0;
         data[3] = 0;
@@ -2970,47 +2970,47 @@ void universeLoadEverythingNeeded(void)
         {
             shipstatic = GetShipStaticInfo(shiptype,shiprace);
             data = LoadInfoNumber();
-            bitSetTo(shipstatic->staticheader.infoFlags, IF_InfoNeeded, datab[0]);
+            bitSetTo(shipstatic->common.infoFlags, IF_InfoNeeded, datab[0]);
             rmEnableShip(shiprace, shiptype, datab[0]);
-            unbitpackTeamColor(shipstatic->teamColor,datab[1]);
+            unbitpackTeamColor(shipstatic->shipOrDerelict.teamColor,datab[1]);
         }
     }
 
     for (asteroidtype=0;asteroidtype<NUM_ASTEROIDTYPES;asteroidtype++)
     {
-        bitSetTo(asteroidStaticInfos[asteroidtype].staticheader.infoFlags, IF_InfoNeeded, LoadInfoNumber());
+        bitSetTo(asteroidStaticInfos[asteroidtype].common.infoFlags, IF_InfoNeeded, LoadInfoNumber());
     }
     for (dustcloudtype = 0; dustcloudtype < NUM_DUSTCLOUDTYPES; dustcloudtype++)
     {
-        bitSetTo(dustcloudStaticInfos[dustcloudtype].staticheader.infoFlags, IF_InfoNeeded, LoadInfoNumber());
+        bitSetTo(dustcloudStaticInfos[dustcloudtype].common.infoFlags, IF_InfoNeeded, LoadInfoNumber());
     }
     for (gascloudtype = 0; gascloudtype < NUM_GASCLOUDTYPES; gascloudtype++)
     {
-        bitSetTo(gascloudStaticInfos[gascloudtype].staticheader.infoFlags, IF_InfoNeeded, LoadInfoNumber());
+        bitSetTo(gascloudStaticInfos[gascloudtype].common.infoFlags, IF_InfoNeeded, LoadInfoNumber());
     }
     for (nebulatype = 0; nebulatype < NUM_NEBULATYPES; nebulatype++)
     {
-        bitSetTo(nebulaStaticInfos[nebulatype].staticheader.infoFlags, IF_InfoNeeded, LoadInfoNumber());
+        bitSetTo(nebulaStaticInfos[nebulatype].common.infoFlags, IF_InfoNeeded, LoadInfoNumber());
     }
     for (derelicttype=0;derelicttype<NUM_DERELICTTYPES;derelicttype++)
     {
         DerelictStaticInfo *dstaticinfo = &derelictStaticInfos[derelicttype];
         data = LoadInfoNumber();
-        bitSetTo(dstaticinfo->staticheader.infoFlags, IF_InfoNeeded, datab[0]);
-        unbitpackTeamColor(dstaticinfo->teamColor,datab[1]);
+        bitSetTo(dstaticinfo->common.infoFlags, IF_InfoNeeded, datab[0]);
+        unbitpackTeamColor(dstaticinfo->shipOrDerelict.teamColor,datab[1]);
     }
     for (shiprace=0;shiprace<NUM_RACES;shiprace++)
     {
         MissileStaticInfo *misstaticinfo = &missileStaticInfos[shiprace];
         data = LoadInfoNumber();
-        bitSetTo(misstaticinfo->staticheader.infoFlags, IF_InfoNeeded, datab[0]);
+        bitSetTo(misstaticinfo->common.infoFlags, IF_InfoNeeded, datab[0]);
         unbitpackTeamColor(misstaticinfo->teamColor,datab[1]);
     }
     for (shiprace=0;shiprace<2;shiprace++)
     {
         MissileStaticInfo *misstaticinfo = &mineStaticInfos[shiprace];
         data = LoadInfoNumber();
-        bitSetTo(misstaticinfo->staticheader.infoFlags, IF_InfoNeeded, datab[0]);
+        bitSetTo(misstaticinfo->common.infoFlags, IF_InfoNeeded, datab[0]);
         unbitpackTeamColor(misstaticinfo->teamColor,datab[1]);
     }
 
@@ -3040,6 +3040,7 @@ void universeStaticInit(void)
     NebulaType nebulatype;
     DerelictType derelicttype;
     ShipStaticInfo *shipstaticinfo;
+    //TODO(type safety, 2026-04-24): Replace with scoped variables of the appropriate type
     StaticInfo *staticinfo;
     udword max,count;
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3112,12 +3113,12 @@ void universeStaticInit(void)
             }
             count++;
             shipstaticinfo = GetShipStaticInfo(shiptype,shiprace);
-            if (bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoNeeded))
+            if (bitTest(shipstaticinfo->common.infoFlags, IF_InfoNeeded))
             {                                               //if this info needed
-                if (!bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded))
+                if (!bitTest(shipstaticinfo->common.infoFlags, IF_InfoLoaded))
                 {                                           //if this info not loaded
                     InitStatShipInfo(shipstaticinfo,shiptype,shiprace);
-                    bitSet(shipstaticinfo->staticheader.infoFlags, IF_NotPostLoaded);
+                    bitSet(shipstaticinfo->common.infoFlags, IF_NotPostLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                     if (logFile)
                     {
@@ -3127,15 +3128,15 @@ void universeStaticInit(void)
                 }
                 else
                 {
-                    if (shipstaticinfo->staticheader.LOD != NULL)
+                    if (shipstaticinfo->common.LOD != NULL)
                     {
-                        lodAllMeshesRecolorize(shipstaticinfo->staticheader.LOD);
+                        lodAllMeshesRecolorize(shipstaticinfo->common.LOD);
                     }
                 }
             }
             else
             {                                               //static info not needed this round
-                if (bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded))
+                if (bitTest(shipstaticinfo->common.infoFlags, IF_InfoLoaded))
                 {                                           //if it's been loaded
                     CloseStatShipInfo(shipstaticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3158,12 +3159,12 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&asteroidStaticInfos[asteroidtype];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatAsteroidInfo((AsteroidStaticInfo *)staticinfo,asteroidtype);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
                 {
@@ -3174,7 +3175,7 @@ void universeStaticInit(void)
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatAsteroidInfo((AsteroidStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3196,12 +3197,12 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&dustcloudStaticInfos[dustcloudtype];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatDustCloudInfo((DustCloudStaticInfo *)staticinfo, dustcloudtype);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
                 {
@@ -3212,7 +3213,7 @@ void universeStaticInit(void)
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatDustCloudInfo((DustCloudStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3234,12 +3235,12 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&nebulaStaticInfos[nebulatype];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatNebulaInfo((NebulaStaticInfo *)staticinfo, nebulatype);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
                 {
@@ -3250,7 +3251,7 @@ void universeStaticInit(void)
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatNebulaInfo((NebulaStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3272,12 +3273,12 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&derelictStaticInfos[derelicttype];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatDerelictInfo((DerelictStaticInfo *)staticinfo,derelicttype);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
                 {
@@ -3287,15 +3288,15 @@ void universeStaticInit(void)
             }
             else
             {
-                if (staticinfo->staticheader.LOD != NULL)
+                if (staticinfo->LOD != NULL)
                 {
-                    lodAllMeshesRecolorize(staticinfo->staticheader.LOD);
+                    lodAllMeshesRecolorize(staticinfo->LOD);
                 }
             }
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatDerelictInfo((DerelictStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3317,12 +3318,12 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&missileStaticInfos[shiprace];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatMissileInfo((MissileStaticInfo *)staticinfo,shiprace);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
                 {
@@ -3333,7 +3334,7 @@ void universeStaticInit(void)
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatMissileInfo((MissileStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3356,15 +3357,15 @@ void universeStaticInit(void)
             goto abortloadinggame;
         }
         staticinfo = (StaticInfo *)&mineStaticInfos[shiprace];
-        if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoNeeded))
+        if (bitTest(staticinfo->infoFlags, IF_InfoNeeded))
         {                                                   //if info needed
-            if (!bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (!bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info needed and not loaded
                 InitStatMineInfo((MissileStaticInfo *)staticinfo,shiprace);
-                bitSet(staticinfo->staticheader.infoFlags, IF_InfoLoaded);
-                if (mineStaticInfos[shiprace].staticheader.staticCollInfo.collspheresize > maxMineCollSphereSize)
+                bitSet(staticinfo->infoFlags, IF_InfoLoaded);
+                if (mineStaticInfos[shiprace].common.staticCollInfo.collspheresize > maxMineCollSphereSize)
                 {
-                    maxMineCollSphereSize = mineStaticInfos[shiprace].staticheader.staticCollInfo.collspheresize;
+                    maxMineCollSphereSize = mineStaticInfos[shiprace].common.staticCollInfo.collspheresize;
                 }
 #if UNIV_SHIP_LOADFREE_LOG
                 if (logFile)
@@ -3376,7 +3377,7 @@ void universeStaticInit(void)
         }
         else
         {                                                   //info not needed
-            if (bitTest(staticinfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticinfo->infoFlags, IF_InfoLoaded))
             {                                               //info loaded
                 CloseStatMineInfo((MissileStaticInfo *)staticinfo);
 #if UNIV_SHIP_LOADFREE_LOG
@@ -3403,14 +3404,14 @@ abortloadinggame:
         for (shiptype=firstshiptype;shiptype<=lastshiptype;shiptype++)
         {
             shipstaticinfo = GetShipStaticInfo(shiptype,shiprace);
-            if (bitTest(shipstaticinfo->staticheader.infoFlags, IF_InfoNeeded))
+            if (bitTest(shipstaticinfo->common.infoFlags, IF_InfoNeeded))
             {
-                if (bitTest(shipstaticinfo->staticheader.infoFlags, IF_NotPostLoaded))
+                if (bitTest(shipstaticinfo->common.infoFlags, IF_NotPostLoaded))
                 {                                           //if ship just now loaded
                     InitStatShipInfoPost(shipstaticinfo);
-                    //shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded) = TRUE;
-                    bitClear(shipstaticinfo->staticheader.infoFlags, IF_NotPostLoaded);
-                    bitSet(shipstaticinfo->staticheader.infoFlags, IF_InfoLoaded);
+                    //shipstaticinfo->common.infoFlags, IF_InfoLoaded) = TRUE;
+                    bitClear(shipstaticinfo->common.infoFlags, IF_NotPostLoaded);
+                    bitSet(shipstaticinfo->common.infoFlags, IF_InfoLoaded);
                 }
             }
         }
@@ -3432,13 +3433,13 @@ abortloadinggame:
     {
         if (singlePlayerGame)
         {
-            GetShipStaticInfo(Mothership,R1)->staticheader.immobile = TRUE;
-            GetShipStaticInfo(Mothership,R2)->staticheader.immobile = TRUE;
+            GetShipStaticInfo(Mothership,R1)->common.immobile = TRUE;
+            GetShipStaticInfo(Mothership,R2)->common.immobile = TRUE;
         }
         else
         {
-            GetShipStaticInfo(Mothership,R1)->staticheader.immobile = FALSE;
-            GetShipStaticInfo(Mothership,R2)->staticheader.immobile = FALSE;
+            GetShipStaticInfo(Mothership,R1)->common.immobile = FALSE;
+            GetShipStaticInfo(Mothership,R2)->common.immobile = FALSE;
         }
     }
 }
@@ -3651,6 +3652,7 @@ void universeStaticCloseAllStatics(void)
     DustCloudType dustcloudtype;
     GasCloudType gascloudtype;
     DerelictType derelicttype;
+    //TODO(type safety, 2026-04-27): Replace with scoped variables of the appropriate type
     StaticInfo *staticInfo;
 
 //    CloseStatEffectInfo(&effectStaticInfo);
@@ -3664,7 +3666,7 @@ void universeStaticCloseAllStatics(void)
     for (shiprace=0;shiprace<NUM_RACES;shiprace++)
     {
         staticInfo = (StaticInfo *)&missileStaticInfos[shiprace];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatMissileInfo((MissileStaticInfo *)staticInfo);
         }
@@ -3673,7 +3675,7 @@ void universeStaticCloseAllStatics(void)
     for (shiprace=0;shiprace<2;shiprace++)        //only two races have mines
     {
         staticInfo = (StaticInfo *)&mineStaticInfos[shiprace];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatMineInfo((MissileStaticInfo *)staticInfo);
         }
@@ -3682,7 +3684,7 @@ void universeStaticCloseAllStatics(void)
     for (derelicttype=0;derelicttype<NUM_DERELICTTYPES;derelicttype++)
     {
         staticInfo = (StaticInfo *)&derelictStaticInfos[derelicttype];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatDerelictInfo((DerelictStaticInfo *)staticInfo);
         }
@@ -3691,7 +3693,7 @@ void universeStaticCloseAllStatics(void)
     for (asteroidtype=0;asteroidtype<NUM_ASTEROIDTYPES;asteroidtype++)
     {
         staticInfo = (StaticInfo *)&asteroidStaticInfos[asteroidtype];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatAsteroidInfo((AsteroidStaticInfo *)staticInfo);
         }
@@ -3700,7 +3702,7 @@ void universeStaticCloseAllStatics(void)
     for (dustcloudtype = 0; dustcloudtype < NUM_DUSTCLOUDTYPES; dustcloudtype++)
     {
         staticInfo = (StaticInfo *)&dustcloudStaticInfos[dustcloudtype];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatDustCloudInfo((DustCloudStaticInfo *)staticInfo);
         }
@@ -3709,7 +3711,7 @@ void universeStaticCloseAllStatics(void)
     for (gascloudtype = 0; gascloudtype < NUM_GASCLOUDTYPES; gascloudtype++)
     {
         staticInfo = (StaticInfo *)&gascloudStaticInfos[gascloudtype];
-        if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
         {
             CloseStatGasCloudInfo((GasCloudStaticInfo *)staticInfo);
         }
@@ -3722,7 +3724,7 @@ void universeStaticCloseAllStatics(void)
         for (shiptype=firstshiptype;shiptype<=lastshiptype;shiptype++)
         {
             staticInfo = (StaticInfo *)GetShipStaticInfo(shiptype,shiprace);
-            if (bitTest(staticInfo->staticheader.infoFlags, IF_InfoLoaded))
+            if (bitTest(staticInfo->infoFlags, IF_InfoLoaded))
             {
                 CloseStatShipInfo((ShipStaticInfo *)staticInfo);
             }
@@ -4148,7 +4150,7 @@ ShipStaticInfo *GetShipStaticInfoSafe(ShipType shiptype,ShipRace shiprace)
     }
 
     shipstatic = &raceInfo[offset];
-    if (!bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded))
+    if (!bitTest(shipstatic->common.infoFlags, IF_InfoLoaded))
     {
         return NULL;
     }
@@ -4206,7 +4208,7 @@ ShipRace GetValidRaceForShipType(ShipType shiptype)
 ShipStaticInfo *GetShipStaticInfoValidate(ShipType shiptype,ShipRace shiprace)
 {
     ShipStaticInfo *shipstatic = GetShipStaticInfo(shiptype,shiprace);
-    if (!bitTest(shipstatic->staticheader.infoFlags, IF_InfoLoaded))
+    if (!bitTest(shipstatic->common.infoFlags, IF_InfoLoaded))
     {
         dbgFatalf(DBG_Loc,"Ship %s %s not loaded",ShipRaceToStr(shiprace),ShipTypeToStr(shiptype));
     }
@@ -4234,12 +4236,12 @@ void unitCapCreateShip(Ship *ship, Player *player)
         (ship->shiptype != TargetDrone) &&
         (ship->shiptype != HeadShotAsteroid) &&
         (ship->shiptype != CryoTray) &&
-        (! (bitTest(ship->specialFlags2,SPECIAL_2_InUnitCaps)) ) )
+        (! (bitTest(ship->shipOrDerelict.specialFlags2,SPECIAL_2_InUnitCaps)) ) )
     {
         player->totalships++;
         player->shiptotals[ship->shiptype]++;
         player->classtotals[ship->staticinfo->shipclass]++;
-        bitSet(ship->specialFlags2,SPECIAL_2_InUnitCaps);
+        bitSet(ship->shipOrDerelict.specialFlags2,SPECIAL_2_InUnitCaps);
     }
 }
 
@@ -4263,7 +4265,7 @@ void unitCapDeleteShip(Ship *ship, Player *player)
         (ship->shiptype != TargetDrone) &&
         (ship->shiptype != HeadShotAsteroid) &&
         (ship->shiptype != CryoTray) &&
-        ( (bitTest(ship->specialFlags2,SPECIAL_2_InUnitCaps)) ))
+        ( (bitTest(ship->shipOrDerelict.specialFlags2,SPECIAL_2_InUnitCaps)) ))
     {
         player->totalships--;
 
@@ -4291,7 +4293,7 @@ void unitCapDeleteShip(Ship *ship, Player *player)
             player->classtotals[ship->staticinfo->shipclass] = 0;
             dbgMessagef("WARNING: classtotals of class %d went below 0",ship->staticinfo->shipclass);
         }
-        bitClear(ship->specialFlags2,SPECIAL_2_InUnitCaps);
+        bitClear(ship->shipOrDerelict.specialFlags2,SPECIAL_2_InUnitCaps);
     }
 }
 

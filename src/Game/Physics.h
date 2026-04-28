@@ -15,7 +15,7 @@
     Macros:
 =============================================================================*/
 
-#define physApplyForceVectorToObj(obj,forcevector) vecAddTo((obj)->posinfo.force,(forcevector))
+#define physApplyForceVectorToObj(target,forcevector) vecAddTo((target)->obj.posinfo.force,(forcevector))
 
 /*=============================================================================
     Functions:
@@ -23,7 +23,6 @@
 
 void physApplyForceToObj(SpaceObj *obj,real32 force,uword transdir);
 void physApplyRotToObj(SpaceObjRot *obj,real32 torque,uword rotdir);
-void physUpdateObjPosVel(SpaceObj *obj,real32 phystimeelapsed);
 bool32 physUpdateBulletPosVel(Bullet *bullet,real32 phystimeelapsed);
 
 void physUpdateObjPosVelShip(Ship *obj,real32 phystimeelapsed);

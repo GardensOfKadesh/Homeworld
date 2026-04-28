@@ -14,8 +14,8 @@
 typedef struct
 {
     sdword doorFlags;
-    SpaceObjRotImpTargGuidanceShipDerelict *doorCargo;
-    SpaceObjRotImpTargGuidanceShipDerelict *droptarget[MAX_NUM_DROP];
+    ShipOrDerelict *doorCargo;
+    ShipOrDerelict *droptarget[MAX_NUM_DROP];
     sdword dropstate[MAX_NUM_DROP];
     sdword dockindex[MAX_NUM_DROP];
     sdword CAP_NumInBuildCue;
@@ -36,10 +36,10 @@ typedef struct
 
 extern CustShipHeader MothershipHeader;
 
-void MothershipAttachObjectToDoor(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *object);
+void MothershipAttachObjectToDoor(Ship *ship,ShipOrDerelict *object);
 void mothershipCleanDoorForHSInstant(Ship *ship);
 void MothershipDettachObjectFromDoor(Ship *ship);
 void MothershipDoorUpKeep(Ship *ship);
-void mothershipGetCargoPosition(Ship *ship,SpaceObjRotImpTargGuidanceShipDerelict *cargo, vector *position, matrix *coordsys, vector *heading, vector *up,vector *right);
+void mothershipGetCargoPosition(Ship *ship,ShipOrDerelict *cargo, vector *position, matrix *coordsys, vector *heading, vector *up,vector *right);
 
 #endif

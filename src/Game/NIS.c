@@ -777,7 +777,7 @@ Ship *nisNewObjectCreate(nisplaying *NIS, sdword index, nisheader *header, space
         case Traders:
             race = path->race;
             /*
-            if (!(bitTest(GetShipStaticInfo(path->type,path->race)->staticheader.infoFlags, IF_InfoLoaded)))
+            if (!(bitTest(GetShipStaticInfo(path->type,path->race)->common.infoFlags, IF_InfoLoaded)))
             {
                 if (path->race == R1)       // try other race
                     race = R2;
@@ -787,21 +787,21 @@ Ship *nisNewObjectCreate(nisplaying *NIS, sdword index, nisheader *header, space
             */
             newShip = univAddShip(path->type, race,                                                //2 is flag to indicate no animation doctoring should occur
                  &startVector, &universe.players[((path->race == universe.players[0].race)) ? 0 : 1],2);//universe.curPlayerPtr);
-            newShip->health = REALlyBig;                   //by default, ships are invincible
+            newShip->targetable.health = REALlyBig;                   //by default, ships are invincible
             univAddObjToRenderList((SpaceObj *)newShip);
-            newShip->flags |= SOF_DontApplyPhysics | SOF_Selectable | SOF_Targetable;
+            newShip->header.flags |= SOF_DontApplyPhysics | SOF_Selectable | SOF_Targetable;
             break;
         case NSR_Asteroid:
             newShip = (Ship *)univAddAsteroid(path->type, &startVector);
-            newShip->health = REALlyBig;
+            newShip->targetable.health = REALlyBig;
             break;
         case NSR_DustCloud:
             newShip = (Ship *)univAddDustCloud(path->type, &startVector);
-            newShip->health = REALlyBig;
+            newShip->targetable.health = REALlyBig;
             break;
         case NSR_GasCloud:
             newShip = (Ship *)univAddGasCloud(path->type, &startVector);
-            newShip->health = REALlyBig;
+            newShip->targetable.health = REALlyBig;
             break;
         case NSR_Nebula:
 #if NIS_ERROR_CHECKING
@@ -810,28 +810,28 @@ Ship *nisNewObjectCreate(nisplaying *NIS, sdword index, nisheader *header, space
             break;
         case NSR_Derelict:
             newShip = (Ship *)univAddDerelict(path->type, &startVector);
-            newShip->health = REALlyBig;
+            newShip->targetable.health = REALlyBig;
             break;
         case NSR_Effect:
             newShip = (Ship *)memAlloc(sizeof(SpaceObjRot), "NISEffectSpaceObj", NonVolatile);
             memset(newShip, 0, sizeof(SpaceObjRot));
-            newShip->objtype = -1;
+            newShip->header.objtype = -1;
             break;
         case NSR_Generic:
             newShip = (Ship *)univAddDerelictByStatInfo(NUM_DERELICTTYPES, header->genericObject[path->type]->staticInfo, &startVector);
-            newShip->health = REALlyBig;
+            newShip->targetable.health = REALlyBig;
             break;
         case NSR_Missile:
             newShip = (Ship *)univAddMissile(path->type);   //type is really the race
             ((Missile *)newShip)->totallifetime = header->length;//missile should last the length of the NIS
-            newShip->posinfo.position = startVector;
+            newShip->obj.posinfo.position = startVector;
             break;
         default:;                                            //!!! add asteroids and other stuff
 #if NIS_ERROR_CHECKING
             dbgFatalf(DBG_Loc, "Undefined ship race for NIS spaceobj %d: %d.", index, path->race);
 #endif
     }
-    newShip->flags |= SOF_NISShip;
+    newShip->header.flags |= SOF_NISShip;
     if (path->nSamples == NIS_OneKeyframe)
     {                                                       //if only one keyframe in motion path
         //set the position and rotation of the object only once
@@ -840,15 +840,15 @@ Ship *nisNewObjectCreate(nisplaying *NIS, sdword index, nisheader *header, space
         xyzTemp.y = path->curve[0][NIS_FirstKeyFrame];
         xyzTemp.z = path->curve[1][NIS_FirstKeyFrame];
         matMultiplyMatByVec(&xyz, &NIS->nisMatrix, &xyzTemp);//multiply NIS world matrix
-        newShip->posinfo.position.x = position->x + xyz.x;
-        newShip->posinfo.position.y = position->y + xyz.y;
-        newShip->posinfo.position.z = position->z + xyz.z;
+        newShip->obj.posinfo.position.x = position->x + xyz.x;
+        newShip->obj.posinfo.position.y = position->y + xyz.y;
+        newShip->obj.posinfo.position.z = position->z + xyz.z;
 
         startVector.x = path->curve[3][NIS_FirstKeyFrame];
         startVector.y = path->curve[4][NIS_FirstKeyFrame];
         startVector.z = path->curve[5][NIS_FirstKeyFrame];
         nisShipEulerToMatrix(&tempCoordsys, &startVector);
-        matMultiplyMatByMat(&newShip->rotinfo.coordsys, &NIS->nisMatrix, &tempCoordsys);
+        matMultiplyMatByMat(&newShip->rotatable.rotinfo.coordsys, &NIS->nisMatrix, &tempCoordsys);
 
         univUpdateObjRotInfo((SpaceObjRot *)newShip);
 
@@ -1197,16 +1197,16 @@ void nisStop(nisplaying *NIS)
                 case Traders:
                     ship = (Ship *)NIS->objectsInMotion[index].spaceobj;
 
-                    ship->flags &= ~(SOF_DontApplyPhysics);
+                    ship->header.flags &= ~(SOF_DontApplyPhysics);
                     if (!bitTest(NIS->objectsInMotion[index].flags, OMF_KeepOnMoving))
                     {                                       //if we should stop this ship
-                        vecZeroVector(ship->posinfo.velocity);
-                        vecZeroVector(ship->posinfo.force);
-                        vecZeroVector(ship->rotinfo.torque);
-                        vecZeroVector(ship->rotinfo.rotspeed);
-                        SET_MOVING_IMMOBILE(ship->posinfo.isMoving);
+                        vecZeroVector(ship->obj.posinfo.velocity);
+                        vecZeroVector(ship->obj.posinfo.force);
+                        vecZeroVector(ship->rotatable.rotinfo.torque);
+                        vecZeroVector(ship->rotatable.rotinfo.rotspeed);
+                        SET_MOVING_IMMOBILE(ship->obj.posinfo.isMoving);
                     }
-                    ship->health = ship->staticinfo->maxhealth; //make it 'vincible'
+                    ship->targetable.health = ship->staticinfo->health.maxhealth; //make it 'vincible'
 
                     unitCapEnable();
                     unitCapCreateShip(ship,ship->playerowner);
@@ -1217,25 +1217,25 @@ void nisStop(nisplaying *NIS)
                 case NSR_GasCloud:
                     ship = (Ship *)NIS->objectsInMotion[index].spaceobj;
 
-                    ship->flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
-                    vecZeroVector(ship->posinfo.velocity);
-                    SET_MOVING_IMMOBILE(ship->posinfo.isMoving);
+                    ship->header.flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
+                    vecZeroVector(ship->obj.posinfo.velocity);
+                    SET_MOVING_IMMOBILE(ship->obj.posinfo.isMoving);
                     ship = NULL;
                     break;
                 case NSR_Derelict:
                     derelict = (Derelict *)NIS->objectsInMotion[index].spaceobj;
-                    derelict->health = derelict->staticinfo->maxhealth;//make it 'vincible'
-                    derelict->flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
-                    vecZeroVector(derelict->posinfo.velocity);
-                    SET_MOVING_IMMOBILE(derelict->posinfo.isMoving);
+                    derelict->targetable.health = derelict->staticinfo->health.maxhealth;//make it 'vincible'
+                    derelict->header.flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
+                    vecZeroVector(derelict->obj.posinfo.velocity);
+                    SET_MOVING_IMMOBILE(derelict->obj.posinfo.isMoving);
                     ship = NULL;
                     break;
                 case NSR_Effect:
                     ship = (Ship *)NIS->objectsInMotion[index].spaceobj;
 
-                    ship->flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
-                    vecZeroVector(ship->posinfo.velocity);
-                    SET_MOVING_IMMOBILE(ship->posinfo.isMoving);
+                    ship->header.flags &= ~(SOF_DontApplyPhysics | SOF_NISShip);
+                    vecZeroVector(ship->obj.posinfo.velocity);
+                    SET_MOVING_IMMOBILE(ship->obj.posinfo.isMoving);
                     ship = NULL;
                     break;
 #if NIS_ERROR_CHECKING
@@ -1245,7 +1245,7 @@ void nisStop(nisplaying *NIS)
             }
             if (ship != NULL)
             {
-                bitClear(ship->flags, SOF_NISShip);
+                bitClear(ship->header.flags, SOF_NISShip);
             }
         }
         else
@@ -1502,14 +1502,14 @@ void nisSeek(nisplaying *NIS, real32 seekTime)
 
             if (currentPos[j] != REALlyBig)
             {                                               //seek to the current position
-                newShip->posinfo.position.x = position.x - currentPos[2];
-                newShip->posinfo.position.y = position.y + currentPos[0];
-                newShip->posinfo.position.z = position.z + currentPos[1];
+                newShip->obj.posinfo.position.x = position.x - currentPos[2];
+                newShip->obj.posinfo.position.y = position.y + currentPos[0];
+                newShip->obj.posinfo.position.z = position.z + currentPos[1];
 
                 startVector.x = currentPos[3];
                 startVector.y = currentPos[4];
                 startVector.z = currentPos[5];
-                nisShipEulerToMatrix(&newShip->rotinfo.coordsys, &startVector);
+                nisShipEulerToMatrix(&newShip->rotatable.rotinfo.coordsys, &startVector);
 
                 univUpdateObjRotInfo((SpaceObjRot *)newShip);
             }
@@ -1626,13 +1626,13 @@ void nisObjectHierarchyMatrixCompute(objectmotion *paths, sdword index, matrix *
     if (paths[index].parentIndex != -1)
     {
         nisObjectHierarchyMatrixCompute(paths, paths[index].parentIndex, &temp, &tempVec);
-        matMultiplyMatByMat(mat, &paths[index].spaceobj->rotinfo.coordsys, &temp);
-        vecAdd(*vec, paths[index].spaceobj->posinfo.position, tempVec);
+        matMultiplyMatByMat(mat, &paths[index].spaceobj->rotatable.rotinfo.coordsys, &temp);
+        vecAdd(*vec, paths[index].spaceobj->obj.posinfo.position, tempVec);
     }
     else
     {
-        *mat = paths[index].spaceobj->rotinfo.coordsys;
-        *vec = paths[index].spaceobj->posinfo.position;
+        *mat = paths[index].spaceobj->rotatable.rotinfo.coordsys;
+        *vec = paths[index].spaceobj->obj.posinfo.position;
     }
 }
 
@@ -1792,14 +1792,14 @@ real32 nisUpdate(nisplaying *NIS, real32 timeElapsed)
         }
         if (path->curve[0] == NULL)
         {                                                   //if NULL motion path or NULL object
-            SET_MOVING_IMMOBILE(path->spaceobj->posinfo.isMoving);
+            SET_MOVING_IMMOBILE(path->spaceobj->obj.posinfo.isMoving);
             continue;                                       //leave this object where it was
         }
         xyz.x = bsCurveUpdate(path->curve[0], timeElapsed); //update the first curve
         //this chunk of code checks if the NIS loops
         if (xyz.x == REALlyBig)                             //if curve ends
         {                                                   //(all curves should end at same time)
-            SET_MOVING_IMMOBILE(path->spaceobj->posinfo.isMoving);
+            SET_MOVING_IMMOBILE(path->spaceobj->obj.posinfo.isMoving);
             continue;                                       //don't update this one anymore
         }
         //get rest of motion path
@@ -1814,28 +1814,29 @@ real32 nisUpdate(nisplaying *NIS, real32 timeElapsed)
         nisShipEulerToMatrix(&tempCoordsys, &rot);          //multiply NIS world matrix
         matMultiplyMatByMat(&coordsys, &NIS->nisMatrix, &tempCoordsys);
         //stuff the new coordinate system and position into the spaceobj
-        lastPos = path->spaceobj->posinfo.position;
+        lastPos = path->spaceobj->obj.posinfo.position;
         //object position:-Z, X, Y (UZI position mode 33)
         xyzTemp.x = -xyz.z;
         xyzTemp.y = xyz.x;
         xyzTemp.z = xyz.y;
         matMultiplyMatByVec(&xyz, &NIS->nisMatrix, &xyzTemp);//multiply NIS world matrix
-        path->spaceobj->posinfo.position.x = nisPos.x + xyz.x;
-        path->spaceobj->posinfo.position.y = nisPos.y + xyz.y;
-        path->spaceobj->posinfo.position.z = nisPos.z + xyz.z;
-        path->spaceobj->rotinfo.coordsys = coordsys;        //set new object coordinate system
+        path->spaceobj->obj.posinfo.position.x = nisPos.x + xyz.x;
+        path->spaceobj->obj.posinfo.position.y = nisPos.y + xyz.y;
+        path->spaceobj->obj.posinfo.position.z = nisPos.z + xyz.z;
+        path->spaceobj->rotatable.rotinfo.coordsys = coordsys;        //set new object coordinate system
 
         //get velocity of ship
-        vecSub(tempVect, path->spaceobj->posinfo.position, lastPos);
+        vecSub(tempVect, path->spaceobj->obj.posinfo.position, lastPos);
         //kill the trails if the ship has jumped to new queue point
-        if (path->spaceobj->objtype == OBJ_ShipType &&
+        if (path->spaceobj->header.objtype == OBJ_ShipType &&
             getVectDistSloppy(tempVect) >= NIS_JumpDistance)
         {
+            Ship* ship = (Ship*)path->spaceobj;
             for (j = 0; j < MAX_NUM_TRAILS; j++)
             {
-                if (((Ship*)path->spaceobj)->trail[j] != NULL)
+                if (ship->trail[j] != NULL)
                 {
-                    trailZeroLength(((Ship*)path->spaceobj)->trail[j]);
+                    trailZeroLength(ship->trail[j]);
                 }
             }
         }
@@ -1844,21 +1845,21 @@ real32 nisUpdate(nisplaying *NIS, real32 timeElapsed)
         {
             if (NIS->header->objectPath[index].type < NUM_RACES)
             {
-                vecCapVector(&tempVect, ((Ship *)path->spaceobj)->staticinfo->staticheader.maxvelocity);
+                vecCapVector(&tempVect, path->spaceobj->obj.staticinfo->maxvelocity);
             }
-            SET_MOVING_LINEARLY(path->spaceobj->posinfo.isMoving);
+            SET_MOVING_LINEARLY(path->spaceobj->obj.posinfo.isMoving);
         }
         else
         {
-            SET_MOVING_IMMOBILE(path->spaceobj->posinfo.isMoving);
+            SET_MOVING_IMMOBILE(path->spaceobj->obj.posinfo.isMoving);
         }
-        path->spaceobj->posinfo.velocity = tempVect;
-        if (path->spaceobj->flags & SOF_Rotatable)
+        path->spaceobj->obj.posinfo.velocity = tempVect;
+        if (path->spaceobj->header.flags & SOF_Rotatable)
         {
-            univUpdateObjRotInfo((SpaceObjRot *)path->spaceobj);
+            univUpdateObjRotInfo(&path->spaceobj->rotatable);
         }
 #if NIS_VERBOSE_LEVEL >= 4
-        dbgMessagef("NIS object at 0x%x at (%.2f, %.2f, %.2f) angles (%.2f, %.2f, %.2f).", path->spaceobj, path->spaceobj->posinfo.position.x, path->spaceobj->posinfo.position.y, path->spaceobj->posinfo.position.z, rot.x, rot.y, rot.z);
+        dbgMessagef("NIS object at 0x%x at (%.2f, %.2f, %.2f) angles (%.2f, %.2f, %.2f).", path->spaceobj, path->spaceobj->obj.posinfo.position.x, path->spaceobj->obj.posinfo.position.y, path->spaceobj->obj.posinfo.position.z, rot.x, rot.y, rot.z);
 #endif
     }
     for (index = 0; index < NIS->nCameras; index++)
@@ -1961,7 +1962,7 @@ real32 nisUpdate(nisplaying *NIS, real32 timeElapsed)
                 if ((Ship *)NIS->objectsInMotion[index].spaceobj == selSelected.ShipPtr[0])
                 {
                     strcat(nisInfoString, " Selected: '");
-                    if (NIS->objectsInMotion[index].spaceobj->objtype == OBJ_ShipType)
+                    if (NIS->objectsInMotion[index].spaceobj->header.objtype == OBJ_ShipType)
                     {                                       //if it's a ship
                         pString = NisRaceToStr(((Ship *)NIS->objectsInMotion[index].spaceobj)->shiprace);
                         if (pString != NULL)
@@ -2281,7 +2282,7 @@ void nisDeathAnything(nisplaying *NIS, nisevent *event)
         return;
     }
 
-    if (deadShip->objtype == OBJ_ShipType)
+    if (deadShip->header.objtype == OBJ_ShipType)
     {
         deleteShip = memAlloc(sizeof(DeleteShip),"DeleteShip",Pyrophoric);
         deleteShip->ship = deadShip;
@@ -2290,7 +2291,7 @@ void nisDeathAnything(nisplaying *NIS, nisevent *event)
     }
     else
     {
-        dbgAssertOrIgnore(deadShip->objtype == OBJ_DerelictType);
+        dbgAssertOrIgnore(deadShip->header.objtype == OBJ_DerelictType);
         AddDerelictToDeleteDerelictList((Derelict *)deadShip, event->param[0]);
     }
     bitSet(NIS->objectsInMotion[event->shipID].flags, OMF_ObjectDied);
@@ -2352,11 +2353,11 @@ void nisObjectShow(nisplaying *NIS, nisevent *event)
         {
             stat = (etgeffectstatic *)NIS->header->objectPath[event->shipID].type;
             univAddObjToRenderList(obj);                    //temp. add this object to render list
-            dbgAssertOrIgnore(obj->objtype != OBJ_BulletType);
+            dbgAssertOrIgnore(obj->header.objtype != OBJ_BulletType);
             newEffect = etgEffectCreate(stat, (Ship *)obj, NULL, NULL, NULL, 1.0f, EAF_AllButNLips, 0);
             univRemoveObjFromRenderList(obj);               //don't leave this dummy object in the render list
             obj->staticinfo = (StaticInfo *)newEffect;      //store reference to effect in unused member of the spaceobj structure
-            bitSet(newEffect->flags, SOF_ForceVisible);     //NIS effects should always be on-screen so force them to be visible
+            bitSet(newEffect->header.flags, SOF_ForceVisible);     //NIS effects should always be on-screen so force them to be visible
         }
     }
     else
@@ -2371,8 +2372,8 @@ void nisObjectShow(nisplaying *NIS, nisevent *event)
             dbgMessagef("nisObjectShow: at time %.2f, object#%d is already visible.", event->time, event->shipID);
         }
 #endif
-        bitClear(obj->flags, SOF_Hide);                     //make sure it stays in render list
-        //bitSet(obj->flags, SOF_ForceVisible);
+        bitClear(obj->header.flags, SOF_Hide);                     //make sure it stays in render list
+        //bitSet(obj->header.flags, SOF_ForceVisible);
     }
 }
 void nisObjectHide(nisplaying *NIS, nisevent *event)
@@ -2388,7 +2389,7 @@ void nisObjectHide(nisplaying *NIS, nisevent *event)
             obj = (SpaceObj *)obj->staticinfo;              //this is where the effect pointer is stored.  It better not have deleted itself.
             etgEffectDelete((Effect *)obj);                 //delete the effect
             univRemoveObjFromRenderList(obj);               //remove from render list
-            listDeleteNode(&obj->objlink);                  //remove from object list
+            listDeleteNode(&obj->header.objlink);                  //remove from object list
         }
     }
     else
@@ -2403,18 +2404,18 @@ void nisObjectHide(nisplaying *NIS, nisevent *event)
             dbgMessagef("nisObjectHide: at time %.2f, object#%d is already hidden.", event->time, event->shipID);
         }
 #endif
-        bitSet(obj->flags, SOF_Hide);                       //make sure it stays out of render list
-        //bitClear(obj->flags, SOF_ForceVisible);
+        bitSet(obj->header.flags, SOF_Hide);                       //make sure it stays out of render list
+        //bitClear(obj->header.flags, SOF_ForceVisible);
     }
 }
 void nisInvincible(nisplaying *NIS, nisevent *event)
 {
-    ((Ship *)NIS->objectsInMotion[event->shipID].spaceobj)->health = REALlyBig;
+    ((Ship *)NIS->objectsInMotion[event->shipID].spaceobj)->targetable.health = REALlyBig;
 }
 void nisVincible(nisplaying *NIS, nisevent *event)
 {
     Ship *ship = (Ship *)NIS->objectsInMotion[event->shipID].spaceobj;
-    ship->health = ship->staticinfo->maxhealth;
+    ship->targetable.health = ship->staticinfo->health.maxhealth;
 }
 void nisSoundEvent(nisplaying *NIS, nisevent *event)
 {
@@ -2569,7 +2570,7 @@ void nisHideDerelict(nisplaying *NIS, nisevent *event)
                 }
                 else
                 {
-                    bitSet(derelict->flags, SOF_Hide);
+                    bitSet(derelict->header.flags, SOF_Hide);
                     if (univSpaceObjInRenderList((SpaceObj *)derelict))
                     {
                         univRemoveObjFromRenderList((SpaceObj *)derelict);
@@ -2584,7 +2585,7 @@ void nisHideDerelict(nisplaying *NIS, nisevent *event)
                 }
                 else
                 {
-                    bitClear(derelict->flags, SOF_Hide);
+                    bitClear(derelict->header.flags, SOF_Hide);
                 }
             }
             break;                                          //only process 1 derelict
@@ -2641,7 +2642,7 @@ void nisMinimumLOD(nisplaying *NIS, nisevent *event)
     Ship *goodShip;
 
     goodShip = (Ship *)NIS->objectsInMotion[event->shipID].spaceobj;
-    goodShip->staticinfo->staticheader.LOD->nLevels = event->param[0];
+    goodShip->staticinfo->common.LOD->nLevels = event->param[0];
 }
 
 void nisDamageLevel(nisplaying *NIS, nisevent *event)
@@ -2650,7 +2651,7 @@ void nisDamageLevel(nisplaying *NIS, nisevent *event)
     real32 health = SdwordToReal32(event->param[0]);
 
     goodShip = (Ship *)NIS->objectsInMotion[event->shipID].spaceobj;
-    goodShip->health = health * goodShip->staticinfo->maxhealth;
+    goodShip->targetable.health = health * goodShip->staticinfo->health.maxhealth;
 }
 
 void nisRemainAtEnd(nisplaying *NIS, nisevent *event)
@@ -2661,7 +2662,7 @@ void nisRemainAtEnd(nisplaying *NIS, nisevent *event)
         char *str = (char *)event->param[0];
         Ship *ship = (Ship *)NIS->objectsInMotion[event->shipID].spaceobj;
         dbgAssertOrIgnore(strlen(str) > 0);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (singlePlayerGame)
         {
@@ -2931,7 +2932,7 @@ void nisColorScheme(nisplaying *NIS, nisevent *event)
 {
     SpaceObjRotImp *goodShip = NIS->objectsInMotion[event->shipID].spaceobj;
 
-    switch (goodShip->objtype)
+    switch (goodShip->header.objtype)
     {
         case OBJ_ShipType:
             ((Ship *)goodShip)->colorScheme = event->param[0];
@@ -3148,7 +3149,7 @@ void nisTrailMove(nisplaying *NIS, nisevent *event)
     }
 */
     ship = (Ship *)NIS->objectsInMotion[event->shipID].spaceobj;
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
     curve = NIS->objectsInMotion[event->shipID].curve;
     pointIndex = max(curve[0]->currentPoint + 1, 0);
     for (; pointIndex < curve[0]->nPoints - 1; pointIndex++)

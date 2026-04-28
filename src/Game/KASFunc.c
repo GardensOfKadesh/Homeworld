@@ -391,8 +391,8 @@ sdword kasfBulgeAttack(GrowSelection *targets, GrowSelection *bulgetargets,
             // find target ships within the alloted radius
             for (j=0;j < num_targets;j++)
             {
-                distsq = aiuFindDistanceSquared(targets->selection->ShipPtr[j]->posinfo.position,
-                                                teamship->posinfo.position);
+                distsq = aiuFindDistanceSquared(targets->selection->ShipPtr[j]->obj.posinfo.position,
+                                                teamship->obj.posinfo.position);
 
                 if (distsq < radiussq)
                 {
@@ -654,8 +654,8 @@ sdword kasfTeamHealthAverage(void)
 
     for (i = 0; i < numShips; ++i)
     {
-        maxHealth += CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->maxhealth;
-        actualHealth += CurrentTeamP->shipList.selection->ShipPtr[i]->health;
+        maxHealth += CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth;
+        actualHealth += CurrentTeamP->shipList.selection->ShipPtr[i]->targetable.health;
     }
     return (sdword) (100 * actualHealth / maxHealth);
 }
@@ -674,7 +674,7 @@ sdword kasfTeamHealthLowest(void)
 
     for (i = 0; i < numShips; ++i)
     {
-        thisOne = (sdword) (100 * CurrentTeamP->shipList.selection->ShipPtr[i]->health / CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->maxhealth);
+        thisOne = (sdword) (100 * CurrentTeamP->shipList.selection->ShipPtr[i]->targetable.health / CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth);
         if (thisOne < lowestOne)
             lowestOne = thisOne;
     }
@@ -779,9 +779,9 @@ sdword kasfFindShipsInside(Volume *volume, GrowSelection *ships)
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
-            if (volPointInside(volume, &(ship->posinfo.position)))
+            if (volPointInside(volume, &(ship->obj.posinfo.position)))
                 // add it
                 growSelectAddShip(ships, ship);
         }
@@ -813,9 +813,9 @@ sdword kasfFindEnemyShipsInside(Volume *volume, GrowSelection *ships)
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
-            if (!ship->playerowner->playerIndex && (!bitTest(ship->flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)) && volPointInside(volume, &(ship->posinfo.position)))
+            if (!ship->playerowner->playerIndex && (!bitTest(ship->header.flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)) && volPointInside(volume, &(ship->obj.posinfo.position)))
                 // add it
                 growSelectAddShip(ships, ship);
         }
@@ -864,13 +864,13 @@ sdword kasfFindEnemiesNearby(GrowSelection *ships, sdword radius)
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             // is it an enemy?  (simplifying assumption: "is it the human"?)
-            if ((!ship->playerowner->playerIndex) && (!bitTest(ship->flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)))
+            if ((!ship->playerowner->playerIndex) && (!bitTest(ship->header.flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)))
             {
                 // within the radius?
-                if (medianShip == ship || aiuFindDistanceSquared(medianShip->posinfo.position, ship->posinfo.position) <= rangeSquared)
+                if (medianShip == ship || aiuFindDistanceSquared(medianShip->obj.posinfo.position, ship->obj.posinfo.position) <= rangeSquared)
                 {
                     // add it
                     growSelectAddShip(ships, ship);
@@ -914,13 +914,13 @@ sdword kasfFindEnemiesNearTeam(GrowSelection *ships, sdword radius)
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             // is it an enemy?  (simplifying assumption: "is it the human"?)
-            if (!ship->playerowner->playerIndex && (!bitTest(ship->flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)))
+            if (!ship->playerowner->playerIndex && (!bitTest(ship->header.flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled)))
             {
                 // within the radius?
-                if (medianShip == ship || aiuFindDistanceSquared(medianShip->posinfo.position, ship->posinfo.position) <= rangeSquared)
+                if (medianShip == ship || aiuFindDistanceSquared(medianShip->obj.posinfo.position, ship->obj.posinfo.position) <= rangeSquared)
                 {
                     // add it
                     growSelectAddShip(ships, ship);
@@ -958,13 +958,13 @@ sdword kasfFindShipsNearPoint(GrowSelection *ships, hvector *location, sdword ra
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             // is it an ship of some kind?
-            if (!bitTest(ship->flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled))
+            if (!bitTest(ship->header.flags,SOF_Crazy|SOF_Hide|SOF_Hyperspace|SOF_Disabled))
             {
                 // within the radius?
-                if (aiuFindDistanceSquared(position, ship->posinfo.position) <= rangeSquared)
+                if (aiuFindDistanceSquared(position, ship->obj.posinfo.position) <= rangeSquared)
                 {
                     // add it
                     growSelectAddShip(ships, ship);
@@ -1013,7 +1013,7 @@ void kasfShipsAttributesBitSet(GrowSelection *ships,sdword attributes)
 
     for (i=0;i<numShips;i++)
     {
-        bitSet(selection->ShipPtr[i]->attributes,attributes);
+        bitSet(selection->ShipPtr[i]->obj.attributes,attributes);
     }
 }
 
@@ -1025,7 +1025,7 @@ void kasfShipsAttributesBitClear(GrowSelection *ships,sdword attributes)
 
     for (i=0;i<numShips;i++)
     {
-        bitClear(selection->ShipPtr[i]->attributes,attributes);
+        bitClear(selection->ShipPtr[i]->obj.attributes,attributes);
     }
 }
 
@@ -1037,7 +1037,7 @@ void kasfShipsAttributesSet(GrowSelection *ships,sdword attributes)
 
     for (i=0;i<numShips;i++)
     {
-        selection->ShipPtr[i]->attributes = attributes;
+        selection->ShipPtr[i]->obj.attributes = attributes;
     }
 }
 
@@ -1054,7 +1054,7 @@ void kasfTeamAttributesBitSet(sdword attributes)
     for (i = 0; i < numShips; ++i)
     {
         shipP = CurrentTeamP->shipList.selection->ShipPtr[i];
-        bitSet(shipP->attributes,attributes);
+        bitSet(shipP->obj.attributes,attributes);
     }
 }
 
@@ -1071,7 +1071,7 @@ void kasfTeamAttributesBitClear(sdword attributes)
     for (i = 0; i < numShips; ++i)
     {
         shipP = CurrentTeamP->shipList.selection->ShipPtr[i];
-        bitClear(shipP->attributes,attributes);
+        bitClear(shipP->obj.attributes,attributes);
     }
 }
 
@@ -1088,7 +1088,7 @@ void kasfTeamAttributesSet(sdword attributes)
     for (i = 0; i < numShips; ++i)
     {
         shipP = CurrentTeamP->shipList.selection->ShipPtr[i];
-        shipP->attributes = attributes;
+        shipP->obj.attributes = attributes;
     }
 }
 
@@ -1108,11 +1108,11 @@ void kasfTeamMakeCrazy(sdword makecrazy)
         if (makecrazy)
         {
             ApplyCareenRotationDirectly(shipP);
-            bitSet(shipP->flags,SOF_Crazy);
+            bitSet(shipP->header.flags,SOF_Crazy);
         }
         else
         {
-            bitClear(shipP->flags,SOF_Crazy);
+            bitClear(shipP->header.flags,SOF_Crazy);
         }
     }
 }
@@ -1187,7 +1187,7 @@ void kasfTeamSetMaxVelocity(sdword maxVelocity)
     {
         shipP = CurrentTeamP->shipList.selection->ShipPtr[i];
         shipP->singlePlayerSpeedLimiter = (real32)maxVelocity;
-        bitSet(shipP->specialFlags,SPECIAL_SinglePlayerLimitSpeed);
+        bitSet(shipP->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerLimitSpeed);
     }
 }
 
@@ -1203,7 +1203,7 @@ void kasfTeamClearMaxVelocity(void)
     for (i = 0; i < numShips; ++i)
     {
         shipP = CurrentTeamP->shipList.selection->ShipPtr[i];
-        bitClear(shipP->specialFlags,SPECIAL_SinglePlayerLimitSpeed);
+        bitClear(shipP->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerLimitSpeed);
     }
 }
 
@@ -1229,7 +1229,7 @@ void kasfShipsSetMaxVelocity(GrowSelection *ships, sdword maxVelocity)
     {
         shipP = ships->selection->ShipPtr[i];
         shipP->singlePlayerSpeedLimiter = (real32)maxVelocity;
-        bitSet(shipP->specialFlags,SPECIAL_SinglePlayerLimitSpeed);
+        bitSet(shipP->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerLimitSpeed);
     }
 }
 
@@ -1254,7 +1254,7 @@ void kasfShipsClearMaxVelocity(GrowSelection *ships, sdword maxVelocity)
     for (i = 0; i < numShips; ++i)
     {
         shipP = ships->selection->ShipPtr[i];
-        bitClear(shipP->specialFlags,SPECIAL_SinglePlayerLimitSpeed);
+        bitClear(shipP->shipOrDerelict.specialFlags,SPECIAL_SinglePlayerLimitSpeed);
     }
 }
 
@@ -1280,7 +1280,7 @@ void kasfShipsSetDamageFactor(GrowSelection *ships, sdword damagePercent)
     {
         shipP = ships->selection->ShipPtr[i];
         shipP->damageModifier = ((real32)damagePercent)/100.0f;
-        bitSet(shipP->specialFlags,SPECIAL_KasSpecialDamageModifier);
+        bitSet(shipP->shipOrDerelict.specialFlags,SPECIAL_KasSpecialDamageModifier);
     }
 }
 /*-----------------------------------------------------------------------------
@@ -1304,7 +1304,7 @@ void kasfShipsClearDamageFactor(GrowSelection *ships)
     for (i = 0; i < numShips; ++i)
     {
         shipP = ships->selection->ShipPtr[i];
-        bitClear(shipP->specialFlags,SPECIAL_KasSpecialDamageModifier);
+        bitClear(shipP->shipOrDerelict.specialFlags,SPECIAL_KasSpecialDamageModifier);
     }
 }
 
@@ -1320,8 +1320,8 @@ void kasfTeamSetPercentDamaged(sdword percentDamaged)
     numShips = CurrentTeamP->shipList.selection->numShips;
 
     for (i = 0; i < numShips; ++i)
-        CurrentTeamP->shipList.selection->ShipPtr[i]->health =
-            CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->maxhealth * percentDamaged / 100;
+        CurrentTeamP->shipList.selection->ShipPtr[i]->targetable.health =
+            CurrentTeamP->shipList.selection->ShipPtr[i]->staticinfo->health.maxhealth * percentDamaged / 100;
 }
 
 void kasfTeamSetPercentFueled(sdword percentFueled)
@@ -1414,14 +1414,14 @@ void kasfForceCombatStatus(GrowSelection *ships, sdword on)
     {
         for (i=0;i<ships->selection->numShips;i++)
         {
-            bitSet(ships->selection->ShipPtr[i]->specialFlags, SPECIAL_ForcedAttackStatus);
+            bitSet(ships->selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_ForcedAttackStatus);
         }
     }
     else
     {
         for (i=0;i<ships->selection->numShips;i++)
         {
-            bitClear(ships->selection->ShipPtr[i]->specialFlags, SPECIAL_ForcedAttackStatus);
+            bitClear(ships->selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_ForcedAttackStatus);
         }
     }
 }
@@ -1542,8 +1542,8 @@ void SelectionSwitchPlayerOwner(SelectCommand *selection)
             univRemoveShipFromHotkeyGroup(ship,FALSE);
 
             ship->playerowner = &universe.players[1];
-            ship->attributes |= ATTRIBUTES_Defector;
-            bitClear(ship->flags,SOF_Selectable);
+            ship->obj.attributes |= ATTRIBUTES_Defector;
+            bitClear(ship->header.flags,SOF_Selectable);
 
             if (ship->shiptype == DDDFrigate)
             {
@@ -1555,9 +1555,9 @@ void SelectionSwitchPlayerOwner(SelectCommand *selection)
             // going from kas ships to human ships
             aiplayerShipDied(ship);
             ship->playerowner = &universe.players[0];
-            bitClear(ship->attributes,ATTRIBUTES_Defector);
-			bitClear(ship->flags,SOF_Disabled);
-            bitSet(ship->flags,SOF_Selectable);
+            bitClear(ship->obj.attributes,ATTRIBUTES_Defector);
+			bitClear(ship->header.flags,SOF_Disabled);
+            bitSet(ship->header.flags,SOF_Selectable);
 
             if (ship->shiptype == DDDFrigate)
             {
@@ -1626,7 +1626,7 @@ sdword kasfNearby(hvector *location, sdword distance)
     numShips = CurrentTeamP->shipList.selection->numShips;
     for (i = 0; i < numShips; ++i)
     {
-        if (aiuFindDistanceSquared(CurrentTeamP->shipList.selection->ShipPtr[i]->posinfo.position, loc) <= rangeSquared)
+        if (aiuFindDistanceSquared(CurrentTeamP->shipList.selection->ShipPtr[i]->obj.posinfo.position, loc) <= rangeSquared)
             return TRUE;
     }
     return FALSE;
@@ -1670,9 +1670,9 @@ sdword kasfUnderAttackElsewhere(struct AITeam *otherTeam, GrowSelection *attacke
     // if some of the team is hidden, try other members of the team
     for (i=0; i < teamSelection->numShips; i++)
     {
-        if (!bitTest(teamSelection->ShipPtr[i]->flags, SOF_Hide))
+        if (!bitTest(teamSelection->ShipPtr[i]->header.flags, SOF_Hide))
         {
-            leaderpos = teamSelection->ShipPtr[i]->posinfo.position;
+            leaderpos = teamSelection->ShipPtr[i]->obj.posinfo.position;
             break;
         }
     }
@@ -1815,7 +1815,7 @@ void kasfLaunch(void)
 
     for (i=0;i<CurrentTeamP->shipList.selection->numShips;i++)
     {
-        bitSet(CurrentTeamP->shipList.selection->ShipPtr[i]->specialFlags, SPECIAL_LaunchedFromKas|SPECIAL_KasCheckDoneLaunching);
+        bitSet(CurrentTeamP->shipList.selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_LaunchedFromKas|SPECIAL_KasCheckDoneLaunching);
     }
 
     aitDeleteAllTeamMoves(CurrentTeamP);
@@ -1830,14 +1830,14 @@ sdword kasfTeamDocking(void)
 
 bool32 ShipReadyForLaunch(Ship *ship)
 {
-    if ((ship->flags & (SOF_Hide | SOF_Hyperspace)) == SOF_Hide)
+    if ((ship->header.flags & (SOF_Hide | SOF_Hyperspace)) == SOF_Hide)
     {
         if (ShipIsRefuelingAtCarrierMother(ship))
             return FALSE;       // wait, refueling, we're not done yet!
         else
             return TRUE;        // ship definitely ready for launch, it is inside another ship
     }
-    else if ((ship->specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && (ShipIsWaitingForSoftLaunch(ship)))
+    else if ((ship->shipOrDerelict.specialFlags & SPECIAL_STAY_TILL_EXPLICITLAUNCH) && (ShipIsWaitingForSoftLaunch(ship)))
     {
         return TRUE;
     }
@@ -1846,7 +1846,7 @@ bool32 ShipReadyForLaunch(Ship *ship)
 
 bool32 ShipFinishedLaunching(Ship *ship)
 {
-    if (ship->specialFlags & SPECIAL_KasCheckDoneLaunching)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_KasCheckDoneLaunching)
     {
         return FALSE;
     }
@@ -1943,7 +1943,7 @@ static sdword kasfFindPlayersShipsOfType(GrowSelection *ships, char *shipType, s
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             //  1. is it an enemy?  (simplifying assumption: "is it the human"?)
             //  2. is the right type?
@@ -1991,7 +1991,7 @@ static sdword kasfFindPlayersShipsOfClass(GrowSelection *ships, char *shipClass,
     {
         ship = (Ship *)listGetStructOfNode(node);
 
-        if ((ship->flags & (SOF_Dead|SOF_Hide)) == 0)
+        if ((ship->header.flags & (SOF_Dead|SOF_Hide)) == 0)
         {
             //  1. is it an enemy?  (simplifying assumption: "is it the human"?)
             //  2. is the right class?
@@ -2456,7 +2456,7 @@ sdword kasfShipsSelectNotDocked(GrowSelection *newShips, GrowSelection *original
     for (i = 0; i < originalShips->selection->numShips; ++i)
     {
         ship = originalShips->selection->ShipPtr[i];
-        selected = ((ship->flags & (SOF_Hide | SOF_Hyperspace)) != SOF_Hide);  // not docked
+        selected = ((ship->header.flags & (SOF_Hide | SOF_Hyperspace)) != SOF_Hide);  // not docked
         if (!selected && sourceIsDest)
             // remove from source (dest)
             clRemoveShipFromSelection(originalShips->selection, ship);
@@ -2488,7 +2488,7 @@ sdword kasfShipsSelectDamaged(GrowSelection *newShips, GrowSelection *originalSh
     for (i = 0; i < originalShips->selection->numShips; ++i)
     {
         ship = originalShips->selection->ShipPtr[i];
-        selected = (ship->health <= maxHealthPercent * ship->staticinfo->maxhealth / 100);  // low health
+        selected = (ship->targetable.health <= maxHealthPercent * ship->staticinfo->health.maxhealth / 100);  // low health
         if (!selected && sourceIsDest)
             // remove from source (dest)
             clRemoveShipFromSelection(originalShips->selection, ship);
@@ -2520,7 +2520,7 @@ sdword kasfShipsSelectMoving(GrowSelection *newShips, GrowSelection *originalShi
     for (i = 0; i < originalShips->selection->numShips; ++i)
     {
         ship = originalShips->selection->ShipPtr[i];
-        selected = IS_MOVING_LINEARLY(ship->posinfo.isMoving);
+        selected = IS_MOVING_LINEARLY(ship->obj.posinfo.isMoving);
         if (!selected && sourceIsDest)
             // remove from source (dest)
             clRemoveShipFromSelection(originalShips->selection, ship);
@@ -2578,7 +2578,7 @@ sdword kasfShipsSelectNearby(GrowSelection *newShips, GrowSelection *originalShi
     {
         ship = originalShips->selection->ShipPtr[i];
 
-        if (aiuFindDistanceSquared(ship->posinfo.position,loc) < rangeSquared)
+        if (aiuFindDistanceSquared(ship->obj.posinfo.position,loc) < rangeSquared)
         {
             growSelectAddShip(newShips, ship);
         }
@@ -2602,11 +2602,11 @@ bool32 kasfShipMeetsCriteria(ShipPtr ship, sdword CriteriaFlag)
     {
         case kasSpecial_ReturningTechnology:
             if ((ship->shiptype == SalCapCorvette) &&
-                (bitTest(ship->specialFlags, SPECIAL_SalvageTakingHomeTechnology)))
+                (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_SalvageTakingHomeTechnology)))
                 return TRUE;
             break;
         case kasSpecial_ShipsDisabled:
-            if (bitTest(ship->flags, SOF_Disabled))
+            if (bitTest(ship->header.flags, SOF_Disabled))
                 return TRUE;
             break;
         case kasSpecial_ShipsAreArmed:
@@ -2642,7 +2642,7 @@ bool32 kasfShipMeetsCriteria(ShipPtr ship, sdword CriteriaFlag)
                     return FALSE;
             }
         case kasSpecial_ShipsDefected:
-            if (bitTest(ship->attributes, ATTRIBUTES_Defector))
+            if (bitTest(ship->obj.attributes, ATTRIBUTES_Defector))
                 return TRUE;
             break;
         default:
@@ -2803,7 +2803,7 @@ void kasfShipsSetNonRetaliation(GrowSelection *ships)
 
     for (i=0;i<ships->selection->numShips;i++)
     {
-        bitSet(ships->selection->ShipPtr[i]->specialFlags, SPECIAL_FriendlyStatus);
+        bitSet(ships->selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus);
     }
 }
 
@@ -2816,7 +2816,7 @@ void kasfShipsSetRetaliation(GrowSelection *ships)
 
     for (i=0;i<ships->selection->numShips;i++)
     {
-        bitClear(ships->selection->ShipPtr[i]->specialFlags, SPECIAL_FriendlyStatus);
+        bitClear(ships->selection->ShipPtr[i]->shipOrDerelict.specialFlags, SPECIAL_FriendlyStatus);
     }
 }
 
@@ -3635,7 +3635,7 @@ sdword kasfRenderedShips(GrowSelection *ships, sdword LOD) {
 
     for (i = 0; i < ships->selection->numShips; ++i) // see if ship rendered at the specified LOD or lower
     {
-        if (bitTest(ships->selection->ShipPtr[i]->renderedLODs, LODmask)) {
+        if (bitTest(ships->selection->ShipPtr[i]->obj.renderedLODs, LODmask)) {
             return 1;
         }
     }
@@ -3651,7 +3651,7 @@ void kasfResetShipRenderFlags(GrowSelection *ships)
         return;
 
     for (i=0; i < ships->selection->numShips; i++)
-        ships->selection->ShipPtr[i]->renderedLODs = 0;
+        ships->selection->ShipPtr[i]->obj.renderedLODs = 0;
 }
 
 sdword kasfRenderedDerelicts(char *derelictType, sdword LOD)
@@ -3666,7 +3666,7 @@ sdword kasfRenderedDerelicts(char *derelictType, sdword LOD)
     {
         derelict = (Derelict *)listGetStructOfNode(node);
         if ((derelict->derelicttype == dt) &&
-            bitTest(derelict->renderedLODs, 1 << LOD))
+            bitTest(derelict->obj.renderedLODs, 1 << LOD))
             return 1;
         node = node->next;
     }
@@ -3686,7 +3686,7 @@ void kasfResetDerelictRenderFlags(char *derelictType)
         derelict = (Derelict *)listGetStructOfNode(node);
         if (derelict->derelicttype == dt)
         {
-            derelict->renderedLODs = 0;
+            derelict->obj.renderedLODs = 0;
             break;
         }
         node = node->next;
@@ -3707,7 +3707,7 @@ void kasfGateMoveToNearest(void)
     if (selection == NULL || !selection->numShips)
         return;
 
-    shippos = selection->ShipPtr[0]->posinfo.position;
+    shippos = selection->ShipPtr[0]->obj.posinfo.position;
 
     for (i = 0; i < LabelledVectorsUsed; ++i)
     {
@@ -3735,10 +3735,10 @@ void kasfGateMoveToNearest(void)
         vector waypoint;
         vector gatePosition;
 
-        gatePosition = closest->posinfo.position;
+        gatePosition = closest->obj.posinfo.position;
 
         vecSub(shipToGate,gatePosition,shippos);
-        matGetVectFromMatrixCol3(gateNormal,closest->rotinfo.coordsys);
+        matGetVectFromMatrixCol3(gateNormal,closest->rotatable.rotinfo.coordsys);
 
         if (vecDotProduct(shipToGate,gateNormal) > 0.0f)
         {
@@ -3795,7 +3795,7 @@ sdword kasfGateShipsOutNearest(GrowSelection *ships)
         {
             vecGrabVecFromHVec(loc, *(LabelledVectors[i]->hvector));
             temp = aiuFindDistanceSquared(
-                        selection->ShipPtr[0]->posinfo.position,
+                        selection->ShipPtr[0]->obj.posinfo.position,
                         loc);
             if (closestDistSquared == -1 || temp <= closestDistSquared)
             {
@@ -3848,7 +3848,7 @@ sdword kasfShipsDisabled(GrowSelection *ships)
 
     for (i = 0; i < ships->selection->numShips; ++i)
     {
-        if (bitTest(ships->selection->ShipPtr[i]->flags, SOF_Disabled))
+        if (bitTest(ships->selection->ShipPtr[i]->header.flags, SOF_Disabled))
             ++count;
     }
 
@@ -3948,14 +3948,14 @@ void kasfHideShips(GrowSelection *ships)
 
     for (index = 0; index < ships->selection->numShips; index++)
     {
-        if (bitTest(ships->selection->ShipPtr[index]->flags, SOF_Hide))
+        if (bitTest(ships->selection->ShipPtr[index]->header.flags, SOF_Hide))
         {                                                   //if ship already hidden
-            bitSet(ships->selection->ShipPtr[index]->flags, SOF_HideSave);
+            bitSet(ships->selection->ShipPtr[index]->header.flags, SOF_HideSave);
         }
         else
         {
             univRemoveObjFromRenderList((SpaceObj *)ships->selection->ShipPtr[index]);
-            bitSet(ships->selection->ShipPtr[index]->flags, SOF_Hide);
+            bitSet(ships->selection->ShipPtr[index]->header.flags, SOF_Hide);
 
         }
     }
@@ -3968,13 +3968,13 @@ void kasfUnhideShips(GrowSelection *ships)
 
     for (index = 0; index < ships->selection->numShips; index++)
     {
-        if (bitTest(ships->selection->ShipPtr[index]->flags, SOF_HideSave))
+        if (bitTest(ships->selection->ShipPtr[index]->header.flags, SOF_HideSave))
         {                                                   //if ship was hidden to begin with
-            bitClear(ships->selection->ShipPtr[index]->flags, SOF_HideSave);
+            bitClear(ships->selection->ShipPtr[index]->header.flags, SOF_HideSave);
         }
         else
         {
-            bitClear(ships->selection->ShipPtr[index]->flags, SOF_Hide);
+            bitClear(ships->selection->ShipPtr[index]->header.flags, SOF_Hide);
 
         }
     }
@@ -4034,9 +4034,9 @@ void kasfRotateDerelictType(char *derelictType, sdword rot_x, sdword rot_y, sdwo
         derelict = (Derelict *)listGetStructOfNode(node);
         if (derelict->derelicttype == dt)
         {
-            derelict->rotinfo.rotspeed.x = realrot_x + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
-            derelict->rotinfo.rotspeed.y = realrot_y + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
-            derelict->rotinfo.rotspeed.z = realrot_z + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
+            derelict->rotatable.rotinfo.rotspeed.x = realrot_x + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
+            derelict->rotatable.rotinfo.rotspeed.y = realrot_y + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
+            derelict->rotatable.rotinfo.rotspeed.z = realrot_z + frandyrandombetween(RANDOM_AI_PLAYER, -realvariation, realvariation);
         }
         node = node->next;
     }
@@ -4280,10 +4280,10 @@ void kasfSpawnEffect(GrowSelection *ships, char *effectName, sdword parameter)
     shipPtr = ships->selection->ShipPtr;
     for (index = 0; index < count; index++, shipPtr++)
     {
-        floatParameter = ((ShipStaticInfo *)((*shipPtr)->staticinfo))->staticheader.staticCollInfo.collspheresize;
+        floatParameter = (*shipPtr)->staticinfo->common.staticCollInfo.collspheresize;
         intSize = Real32ToUdword(floatParameter);            //get the size
 
-        dbgAssertOrIgnore((**shipPtr).objtype != OBJ_BulletType);
+        dbgAssertOrIgnore((*shipPtr)->header.objtype != OBJ_BulletType);
         etgEffectCreate(lastEffect, *shipPtr, NULL, NULL, NULL, 0.0f, EAF_Full, 2, SCALECAST(intSize), SCALECAST(intParameter));
     }
 }

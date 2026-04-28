@@ -14,7 +14,7 @@
 typedef struct
 {
     udword dummy;
-    SpaceObjRotImpTargGuidanceShipDerelict *droptarget[MAX_NUM_DROP];
+    ShipOrDerelict *droptarget[MAX_NUM_DROP];
     sdword dropstate[MAX_NUM_DROP];
     sdword dockindex[MAX_NUM_DROP];
     sdword CAP_NumInBuildCue;

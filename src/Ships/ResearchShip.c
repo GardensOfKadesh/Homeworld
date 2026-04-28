@@ -94,11 +94,11 @@ bool32 ship_is_moving(Ship *ship)
     }
     return FALSE;
     /*
-    if(isBetweenInclusive(ship->posinfo.velocity.x,NOTMOVINGNEG,NOTMOVINGPOS))
+    if(isBetweenInclusive(ship->obj.posinfo.velocity.x,NOTMOVINGNEG,NOTMOVINGPOS))
     {
-        if(isBetweenInclusive(ship->posinfo.velocity.y,NOTMOVINGNEG,NOTMOVINGPOS))
+        if(isBetweenInclusive(ship->obj.posinfo.velocity.y,NOTMOVINGNEG,NOTMOVINGPOS))
         {
-            if(isBetweenInclusive(ship->posinfo.velocity.z,NOTMOVINGNEG,NOTMOVINGPOS))
+            if(isBetweenInclusive(ship->obj.posinfo.velocity.z,NOTMOVINGNEG,NOTMOVINGPOS))
             {
                 return(FALSE);
             }
@@ -113,14 +113,14 @@ void make_all_slaves_moving(Ship *ship)
     Node *slavenode;
     Ship *slave;
 
-    dbgAssertOrIgnore(ship->flags & SOF_Slaveable);     //ship should be slaveable
+    dbgAssertOrIgnore(ship->header.flags & SOF_Slaveable);     //ship should be slaveable
 
     slavenode = ship->slaveinfo->slaves.head;
     while (slavenode != NULL)
     {
         slave = (Ship *) listGetStructOfNode(slavenode);
-        SET_MOVING_LINEARLY(slave->posinfo.isMoving);
-        SET_MOVING_ROTATIONALLY(slave->posinfo.isMoving);
+        SET_MOVING_LINEARLY(slave->obj.posinfo.isMoving);
+        SET_MOVING_ROTATIONALLY(slave->obj.posinfo.isMoving);
         slavenode = slavenode->next;
     }
 
@@ -132,19 +132,19 @@ void getRotatePoint(Ship *ship, vector *point, real32 *distance)
     udword count;
     vector dist;
 
-    dbgAssertOrIgnore(ship->flags & SOF_Slaveable);     //ship should be slaveable
+    dbgAssertOrIgnore(ship->header.flags & SOF_Slaveable);     //ship should be slaveable
     dbgAssertOrIgnore(ship->slaveinfo->slaves.num >= 5);    //need enough for a pie plate!
 
     slavenode = ship->slaveinfo->slaves.head;
-    point->x = ship->posinfo.position.x;
-    point->y = ship->posinfo.position.y;
-    point->z = ship->posinfo.position.z;
+    point->x = ship->obj.posinfo.position.x;
+    point->y = ship->obj.posinfo.position.y;
+    point->z = ship->obj.posinfo.position.z;
 
     count = 0;
     while (count < 5)
     {
         slave = (Ship *) listGetStructOfNode(slavenode);
-        vecAdd(*point, *point, slave->posinfo.position);
+        vecAdd(*point, *point, slave->obj.posinfo.position);
         slavenode = slavenode->next;
         count++;
     }
@@ -152,7 +152,7 @@ void getRotatePoint(Ship *ship, vector *point, real32 *distance)
     point->y /= 6.0f;
     point->z /= 6.0f;
 
-    vecSub(dist,ship->posinfo.position, *point);
+    vecSub(dist,ship->obj.posinfo.position, *point);
     *distance = vecMagnitudeSquared(dist);
     *distance = fsqrt(*distance);
 }
@@ -169,10 +169,10 @@ void ResearchShipHouseKeep(Ship *ship)
     ResearchShipStatics *researchshipstatics;
     researchshipstatics = (ResearchShipStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
 
-    if(bitTest(ship->specialFlags,SPECIAL_StopForResearchDocking))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_StopForResearchDocking))
     {
-        vecScalarMultiply(ship->posinfo.velocity,ship->posinfo.velocity,0.94);
-        vecScalarMultiply(ship->rotinfo.rotspeed,ship->rotinfo.rotspeed,0.94);
+        vecScalarMultiply(ship->obj.posinfo.velocity,ship->obj.posinfo.velocity,0.94);
+        vecScalarMultiply(ship->rotatable.rotinfo.rotspeed,ship->rotatable.rotinfo.rotspeed,0.94);
         bitSet(ship->dontapplyforceever,1);
         bitSet(ship->dontrotateever,1);
     }
@@ -182,7 +182,7 @@ void ResearchShipHouseKeep(Ship *ship)
         bitClear(ship->dontrotateever,1);
     }
 
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {
         if(ship->slaveinfo->flags & SF_MASTER)
         {
@@ -209,7 +209,7 @@ void ResearchShipHouseKeep(Ship *ship)
                 //in parade
                     if(!InParadeandMoving)
                     {
-                        if(bitTest(ship->specialFlags,SPECIAL_ParadeNeedTomoveCloser))
+                        if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_ParadeNeedTomoveCloser))
                         {
                             InParadeandMoving = TRUE;
                             spec->rotate_state = ROTATE_WAIT;
@@ -219,9 +219,9 @@ void ResearchShipHouseKeep(Ship *ship)
             }
         }
     }
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {    //ship is slaveable
-        bitSet(ship->flags,SOF_DontDrawTrails);
+        bitSet(ship->header.flags,SOF_DontDrawTrails);
         ship->autostabilizeship = FALSE;        // never have univupdate autostabilize research ships
         if(ship->slaveinfo->flags & SF_MASTER)
         {    //ship is a master
@@ -248,7 +248,7 @@ void ResearchShipHouseKeep(Ship *ship)
                                     radangle = DEG_TO_RAD(researchshipstatics->RotationAngle);
                                     matMakeRotAboutX(&rotmat,(real32) cos(radangle),(real32) sin(radangle));
                                     matMultiplyMatByVec(&newup, &rotmat, &univup);
-                                    //matGetVectFromMatrixCol3(desiredHeading,ship->rotinfo.coordsys);
+                                    //matGetVectFromMatrixCol3(desiredHeading,ship->rotatable.rotinfo.coordsys);
                                     if(aitrackHeadingWithFlags(ship,&newup,0.96f,AITRACKHEADING_IGNOREUPVEC))
                                     {
                                         spec->rotate_state = ROTATE_DO;
@@ -269,8 +269,8 @@ void ResearchShipHouseKeep(Ship *ship)
                     case ROTATE_STOP:
                     case ROTATE_STOP_QUICK:
                     case ROTATE_DO:
-                            SET_MOVING_LINEARLY(ship->posinfo.isMoving);
-                            SET_MOVING_ROTATIONALLY(ship->posinfo.isMoving);
+                            SET_MOVING_LINEARLY(ship->obj.posinfo.isMoving);
+                            SET_MOVING_ROTATIONALLY(ship->obj.posinfo.isMoving);
                         make_all_slaves_moving(ship);
                         if(ship->slaveinfo->slaves.num < 5)
                         {
@@ -291,10 +291,10 @@ void ResearchShipHouseKeep(Ship *ship)
                             spec->rotate_state = ROTATE_DO;
                         }
 
-                        //matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
-                        matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
+                        //matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
+                        matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
                         //vecScalarMultiply(rotate_point, heading, -250.0f);
-                        //vecAdd(rotate_point,rotate_point, ship->posinfo.position);
+                        //vecAdd(rotate_point,rotate_point, ship->obj.posinfo.position);
 
                         switch(spec->rotate_state)
                         {
@@ -322,9 +322,9 @@ void ResearchShipHouseKeep(Ship *ship)
                             break;
                         }
                         matMakeRotAboutX(&rot_matrix,(real32) cos(spec->theta),(real32) sin(spec->theta));
-                        //matMultiplyMatByMat(&tmpmat, &rot_matrix, &ship->rotinfo.coordsys);
-                        matMultiplyMatByMat(&tmpmat, &ship->rotinfo.coordsys, &rot_matrix);
-                        //vecSub(tmpvec, ship->posinfo.position, spec->rotate_point);
+                        //matMultiplyMatByMat(&tmpmat, &rot_matrix, &ship->rotatable.rotinfo.coordsys);
+                        matMultiplyMatByMat(&tmpmat, &ship->rotatable.rotinfo.coordsys, &rot_matrix);
+                        //vecSub(tmpvec, ship->obj.posinfo.position, spec->rotate_point);
                         //dist = vecMagnitudeSquared(tmpvec);
                         //dist = fsqrt(dist);
 
@@ -332,8 +332,8 @@ void ResearchShipHouseKeep(Ship *ship)
                         vecScalarMultiply(destination, desiredheading, spec->rotate_distance);      //old was dist
                         vecAdd(destination,destination,spec->rotate_point);
 
-                        ship->posinfo.position = destination;
-                        ship->rotinfo.coordsys = tmpmat;
+                        ship->obj.posinfo.position = destination;
+                        ship->rotatable.rotinfo.coordsys = tmpmat;
                         univUpdateObjRotInfo((SpaceObjRot *)ship);
                         break;
                     default:
@@ -365,8 +365,8 @@ void ResearchShipHouseKeep(Ship *ship)
                             }
                             else
                             {
-                                vecSet(ship->rotinfo.rotspeed,0.0f,0.0f,0.0f);
-                                vecSet(ship->rotinfo.torque,0.0f,0.0f,0.0f);
+                                vecSet(ship->rotatable.rotinfo.rotspeed,0.0f,0.0f,0.0f);
+                                vecSet(ship->rotatable.rotinfo.torque,0.0f,0.0f,0.0f);
                             }
                         }
                         if(ship->slaveinfo->slaves.num >= 1)
@@ -384,8 +384,8 @@ void ResearchShipHouseKeep(Ship *ship)
                     case ROTATE_STOP:
                     case ROTATE_STOP_QUICK:
                     case ROTATE_DO:
-                        SET_MOVING_LINEARLY(ship->posinfo.isMoving);
-                        SET_MOVING_ROTATIONALLY(ship->posinfo.isMoving);
+                        SET_MOVING_LINEARLY(ship->obj.posinfo.isMoving);
+                        SET_MOVING_ROTATIONALLY(ship->obj.posinfo.isMoving);
                         make_all_slaves_moving(ship);
                         if(ship->slaveinfo->slaves.num < 3)
                         {
@@ -427,8 +427,8 @@ void ResearchShipHouseKeep(Ship *ship)
                             break;
                         }
                         matMakeRotAboutZ(&rot_matrix,(real32) cos(spec->theta),(real32) sin(spec->theta));
-                        tmpmat = ship->rotinfo.coordsys;
-                        matMultiplyMatByMat(&ship->rotinfo.coordsys,&tmpmat,&rot_matrix);
+                        tmpmat = ship->rotatable.rotinfo.coordsys;
+                        matMultiplyMatByMat(&ship->rotatable.rotinfo.coordsys,&tmpmat,&rot_matrix);
                         univUpdateObjRotInfo((SpaceObjRot *)ship);
                         break;
                     default:
@@ -441,7 +441,7 @@ void ResearchShipHouseKeep(Ship *ship)
         }
         else
         {
-            vecScalarMultiply(ship->posinfo.velocity,ship->posinfo.velocity, 0.0f);
+            vecScalarMultiply(ship->obj.posinfo.velocity,ship->obj.posinfo.velocity, 0.0f);
         }
 
     }
@@ -475,9 +475,9 @@ void CleanResearchShip(Ship *ship)
 void ResearchShipMakeReadyForHyperspace(Ship *ship)
 {
 //    ResearchShipSpec *spec = (ResearchShipSpec *)ship->ShipSpecifics;
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {
-        bitClear(ship->slaveinfo->Master->specialFlags,SPECIAL_StopForResearchDocking);
+        bitClear(ship->slaveinfo->Master->shipOrDerelict.specialFlags,SPECIAL_StopForResearchDocking);
         dockCrushMaster(ship->slaveinfo->Master);
     }
 /*
@@ -546,7 +546,7 @@ void ResearchShipDied(Ship *ship)
         }
     }
     selection.numShips = 0;
-    if(ship->flags & SOF_Slaveable)
+    if(ship->header.flags & SOF_Slaveable)
     {   //ship is slaved
         if(ship->slaveinfo->flags & SF_MASTER)
         {    //ship is a master
@@ -558,7 +558,7 @@ void ResearchShipDied(Ship *ship)
                 {
                     if(obj->playerowner == ship->playerowner)
                     {
-                        if(!bitTest(obj->flags,SOF_Slaveable))
+                        if(!bitTest(obj->header.flags,SOF_Slaveable))
                         {
                             if(obj != ship)
                             {
@@ -569,10 +569,10 @@ void ResearchShipDied(Ship *ship)
                                 {
                                     //don't reorder a dock for research
                                 }
-                                else if(obj->flags & SOF_Dead)
+                                else if(obj->header.flags & SOF_Dead)
                                 {
                                 }
-                                else if(!bitTest(obj->flags,SOF_Dead))
+                                else if(!bitTest(obj->header.flags,SOF_Dead))
                                 {   //as long as ship isn't considered dead
                                     //need better method
                                     CleanResearchShip(obj);
@@ -611,7 +611,7 @@ void ResearchShipDied(Ship *ship)
                             {
                                 //don't reorder a dock for research
                             }
-                            else if(obj->flags & SOF_Dead)
+                            else if(obj->header.flags & SOF_Dead)
                             {
                             }
                             else
@@ -669,49 +669,49 @@ void toFakeOneShip(Ship *ship, vector *oldpos, real32 *oldradius)
     vector newcenter;
     real32 newradius,tempreal;
 
-    if(!(ship->flags & SOF_Slaveable))
+    if(!(ship->header.flags & SOF_Slaveable))
         return;
 
     dbgAssertOrIgnore(ship->slaveinfo->flags & SF_MASTER);      //must be a master
     slavenode = ship->slaveinfo->slaves.head;
 
-    newcenter = ship->collInfo.collPosition;
+    newcenter = ship->impactable.collInfo.collPosition;
 
     while(slavenode != NULL)
     {   //add all slaves positions together
         slave = (Ship *) listGetStructOfNode(slavenode);
-        vecAddTo(newcenter,slave->collInfo.collPosition);
+        vecAddTo(newcenter,slave->impactable.collInfo.collPosition);
         slavenode = slavenode->next;
     }
     vecDivideByScalar(newcenter,(float) ship->slaveinfo->slaves.num+1,tempreal);   //take average of slavemaster position
 
     if(ship->shiprace == R1)
     {
-        newradius = ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize*2.5f;
+        newradius = ship->staticinfo->common.staticCollInfo.approxcollspheresize*2.5f;
     }
     else
     {   //Must be R2
         newradius = (float) ship->slaveinfo->slaves.num+1;
-        newradius = ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize*(newradius/4.0f)*1.25f;
+        newradius = ship->staticinfo->common.staticCollInfo.approxcollspheresize*(newradius/4.0f)*1.25f;
 
     }
 
-    *oldpos = ship->collInfo.collPosition;
-    *oldradius = ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize;
+    *oldpos = ship->impactable.collInfo.collPosition;
+    *oldradius = ship->staticinfo->common.staticCollInfo.approxcollspheresize;
 
-    ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize = newradius;
+    ship->staticinfo->common.staticCollInfo.approxcollspheresize = newradius;
 
-    ship->collInfo.collPosition = newcenter;
+    ship->impactable.collInfo.collPosition = newcenter;
 
 }
 
 void toUnFakeOneShip(Ship *ship, vector *oldpos,real32 *oldradius)
 {
-    if(!(ship->flags & SOF_Slaveable))
+    if(!(ship->header.flags & SOF_Slaveable))
         return;
 
-    ship->collInfo.collPosition = *oldpos;
-    ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize = *oldradius;
+    ship->impactable.collInfo.collPosition = *oldpos;
+    ship->staticinfo->common.staticCollInfo.approxcollspheresize = *oldradius;
 
 }
 
@@ -749,17 +749,17 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
     {
         dockwithstaticpoint = &dockwith->staticinfo->dockStaticInfo->dockstaticpoints[dockindex];
 
-        matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-        matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+        matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+        matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
 
         destinationoffset.x = coneheadingInWorldCoordSysDockWith.x*resstatics->R1final_dock_distance;
         destinationoffset.y = coneheadingInWorldCoordSysDockWith.y*resstatics->R1final_dock_distance;
         destinationoffset.z = coneheadingInWorldCoordSysDockWith.z*resstatics->R1final_dock_distance;
-        vecAdd(destination,dockwith->posinfo.position, destinationoffset);
+        vecAdd(destination,dockwith->obj.posinfo.position, destinationoffset);
         if(((ResearchShipSpec *)ship->ShipSpecifics)->pie_plate_num == 0)
         {    //ship is docking on'a'top so add upwards factor
-            matGetVectFromMatrixCol1(DockWithUp,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol1(DockWithUp,dockwith->rotatable.rotinfo.coordsys);
             vecScalarMultiply(DockWithUp,DockWithUp,resstatics->R1VerticalDockDistance);
             vecAdd(destination,destination,DockWithUp);
         }
@@ -767,21 +767,21 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
         theta = DEG_TO_RAD(60);
 
         matMakeRotAboutX(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-        matMultiplyMatByMat(&tmpmat, &dockwith->rotinfo.coordsys, &rotmatrix);
+        matMultiplyMatByMat(&tmpmat, &dockwith->rotatable.rotinfo.coordsys, &rotmatrix);
 
         //share a lot of these things...later...
-        ship->rotinfo.coordsys = tmpmat;
-        ship->posinfo.position = destination;
+        ship->rotatable.rotinfo.coordsys = tmpmat;
+        ship->obj.posinfo.position = destination;
     }
     else
     {
         //r2 positioning
         dockwithstaticpoint = &dockwith->staticinfo->dockStaticInfo->dockstaticpoints[dockindex];
 
-        matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->conenormal);
-        matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotinfo.coordsys,&dockwithstaticpoint->position);
-        vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->posinfo.position);
-        matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotinfo.coordsys)
+        matMultiplyMatByVec(&coneheadingInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->conenormal);
+        matMultiplyMatByVec(&conepositionInWorldCoordSysDockWith,&dockwith->rotatable.rotinfo.coordsys,&dockwithstaticpoint->position);
+        vecAddTo(conepositionInWorldCoordSysDockWith,dockwith->obj.posinfo.position);
+        matGetVectFromMatrixCol3(DockWithHeading,dockwith->rotatable.rotinfo.coordsys)
 
         destinationoffset.x = coneheadingInWorldCoordSysDockWith.x*resstatics->R2DockFinalDistance;
         destinationoffset.y = coneheadingInWorldCoordSysDockWith.y*resstatics->R2DockFinalDistance;
@@ -791,11 +791,11 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
         desiredHeading = coneheadingInWorldCoordSysDockWith;
         if(dockindex == 0)
         {
-            matGetVectFromMatrixCol3(desiredUp,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(desiredUp,dockwith->rotatable.rotinfo.coordsys);
         }
         else if(dockindex == 1)
         {
-            matGetVectFromMatrixCol3(desiredUp,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(desiredUp,dockwith->rotatable.rotinfo.coordsys);
         }
         else if(dockindex == 2)
         {
@@ -805,7 +805,7 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
         {
             theta = DEG_TO_RAD(60);
             matMakeRotAboutZ(&rotmatrix,(real32) cos(theta),(real32) sin(theta));
-            matMultiplyMatByMat(&tmpmat, &dockwith->rotinfo.coordsys, &rotmatrix);
+            matMultiplyMatByMat(&tmpmat, &dockwith->rotatable.rotinfo.coordsys, &rotmatrix);
             matGetVectFromMatrixCol1(desiredUp,tmpmat);
         }
         else if(dockindex == 4)
@@ -815,7 +815,7 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
             destinationoffset.z = coneheadingInWorldCoordSysDockWith.z*100;
             vecAdd(destination,conepositionInWorldCoordSysDockWith, destinationoffset);
 
-            matGetVectFromMatrixCol1(desiredUp,dockwith->rotinfo.coordsys);
+            matGetVectFromMatrixCol1(desiredUp,dockwith->rotatable.rotinfo.coordsys);
             vecScalarMultiply(desiredHeading,desiredHeading,-1.0f);
         }
         else
@@ -825,15 +825,15 @@ void addMonkeyResearchShipChangePosition(Ship *dockwith, Ship *ship,sdword docki
 
         vecNormalize(&desiredUp);
 
-        matPutVectIntoMatrixCol1(desiredUp,ship->rotinfo.coordsys);
+        matPutVectIntoMatrixCol1(desiredUp,ship->rotatable.rotinfo.coordsys);
         vecCrossProduct(tmpvec,desiredHeading,desiredUp);
-        matPutVectIntoMatrixCol2(tmpvec,ship->rotinfo.coordsys);
-        matPutVectIntoMatrixCol3(desiredHeading,ship->rotinfo.coordsys);
+        matPutVectIntoMatrixCol2(tmpvec,ship->rotatable.rotinfo.coordsys);
+        matPutVectIntoMatrixCol3(desiredHeading,ship->rotatable.rotinfo.coordsys);
 
-        ship->posinfo.position = destination;
-        ship->posinfo.velocity.x = 0.0f;
-        ship->posinfo.velocity.y = 0.0f;
-        ship->posinfo.velocity.z = 0.0f;
+        ship->obj.posinfo.position = destination;
+        ship->obj.posinfo.velocity.x = 0.0f;
+        ship->obj.posinfo.velocity.y = 0.0f;
+        ship->obj.posinfo.velocity.z = 0.0f;
     }
 }
 

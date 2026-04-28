@@ -81,7 +81,7 @@ void hsOrientEffect(Ship* ship)
     particle* part;
 
     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
-    StaticCollInfo* sinfo = &ship->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo* sinfo = &ship->staticinfo->common.staticCollInfo;
     Effect* effect = ssinfo->hyperspaceEffect;
 
     dbgAssertOrIgnore(effect != NULL);
@@ -127,13 +127,12 @@ void hsOrientEffect(Ship* ship)
 ----------------------------------------------------------------------------*/
 bool32 hsShouldDisplayEffect(Ship* ship)
 {
-    Ship* host;
+    //TODO(type safety, 2026-04-23): Take a Guidance pointer instead, for clarity
     bool32  displayEffect;
 
-    if (ship->clampInfo != NULL)
+    if (ship->guidance.clampInfo != NULL)
     {
-        host = (Ship*)ship->clampInfo->host;
-        if (host != NULL)// && host->shiptype == AdvanceSupportFrigate)
+        if (ship->guidance.clampInfo->host != NULL)// && host->shiptype == AdvanceSupportFrigate)
         {
             displayEffect = FALSE;
         }
@@ -160,7 +159,7 @@ bool32 hsShouldDisplayEffect(Ship* ship)
 void hsStart(Ship* ship, real32 cliptDelta, bool32 into, bool32 displayEffect)
 {
     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
-    StaticCollInfo* sinfo = &ship->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo* sinfo = &ship->staticinfo->common.staticCollInfo;
 
     ssinfo->clipt = 1.0f;
     ssinfo->cliptDelta = cliptDelta;
@@ -196,9 +195,9 @@ void hsStart(Ship* ship, real32 cliptDelta, bool32 into, bool32 displayEffect)
             vecToRotate.z *= ship->magnitudeSquared;
             vecToRotate.z -= sinfo->collsphereoffset.z;
 
-            matMultiplyMatByVec(&vecRotated, &ship->rotinfo.coordsys, &vecToRotate);
+            matMultiplyMatByVec(&vecRotated, &ship->rotatable.rotinfo.coordsys, &vecToRotate);
 
-            location = ship->collInfo.collPosition;
+            location = ship->impactable.collInfo.collPosition;
             vecAddTo(location, vecRotated);
 
             floatUpScale = 0.0f;//HS_DIST * sinfo->uplength;
@@ -210,11 +209,11 @@ void hsStart(Ship* ship, real32 cliptDelta, bool32 into, bool32 displayEffect)
             floatDepthScale = 0.25f * sinfo->forwardlength;
             intDepthScale = Real32ToSdword(floatDepthScale);
 
-            dbgAssertOrIgnore(ship->objtype != OBJ_BulletType);
+            dbgAssertOrIgnore(ship->header.objtype != OBJ_BulletType);
             effect = etgEffectCreate(stat, ship,
                                      &location,
-                                     &ship->posinfo.velocity,
-                                     &ship->rotinfo.coordsys, 1.0f,
+                                     &ship->obj.posinfo.velocity,
+                                     &ship->rotatable.rotinfo.coordsys, 1.0f,
                                      EAF_NLips, 3, SCALECAST(intUpScale), SCALECAST(intRightScale), SCALECAST(intDepthScale));
 
             ssinfo->hyperspaceEffect = effect;
@@ -230,7 +229,7 @@ void hsGetEquation(Ship* ship, GLfloat equation[])
 void hsGetEquation(Ship* ship, GLdouble equation[])
 #endif
 {
-    StaticCollInfo* sinfo = &ship->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo* sinfo = &ship->staticinfo->common.staticCollInfo;
     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
 
     equation[0] = 0.0f;
@@ -276,14 +275,15 @@ void hsContinue(Ship* ship, bool32 displayEffect)
 #else
     GLdouble equation[4] = {0.0, 0.0, 1.0, 0.0};
 #endif
-    StaticCollInfo* sinfo = &ship->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo* sinfo = &ship->staticinfo->common.staticCollInfo;
     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
 
     if (!displayEffect)
     {
-        if (ship->clampInfo != NULL)
+        if (ship->guidance.clampInfo != NULL)
         {
-            Ship* host = (Ship*)ship->clampInfo->host;
+            dbgAssertOrIgnore(ship->guidance.clampInfo->host->header.objtype == OBJ_ShipType);
+            Ship* host = (Ship*)ship->guidance.clampInfo->host;
             if (host != NULL)// && host->shiptype == AdvanceSupportFrigate)
             {
                 //we're in NLIP'ed shipspace;
@@ -297,8 +297,8 @@ void hsContinue(Ship* ship, bool32 displayEffect)
                 glPushMatrix();
                 
                 //put glstack info similar state as before
-                hmatMakeHMatFromMat(&coordMatrixForGL,&host->rotinfo.coordsys);
-                hmatPutVectIntoHMatrixCol4(host->posinfo.position,coordMatrixForGL);
+                hmatMakeHMatFromMat(&coordMatrixForGL,&host->rotatable.rotinfo.coordsys);
+                hmatPutVectIntoHMatrixCol4(host->obj.posinfo.position,coordMatrixForGL);
                 glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
 
                 nliphak = host->magnitudeSquared;
@@ -372,11 +372,11 @@ void hsContinue(Ship* ship, bool32 displayEffect)
         
         vecToRotate.z -= sinfo->collsphereoffset.z;
 
-        matMultiplyMatByVec(&vecRotated, &ship->rotinfo.coordsys, &vecToRotate);
+        matMultiplyMatByVec(&vecRotated, &ship->rotatable.rotinfo.coordsys, &vecToRotate);
 
         effect = ssinfo->hyperspaceEffect;
-        effect->posinfo.position = ship->collInfo.collPosition;
-        vecAddTo(effect->posinfo.position, vecRotated);
+        effect->obj.posinfo.position = ship->impactable.collInfo.collPosition;
+        vecAddTo(effect->obj.posinfo.position, vecRotated);
 
         //manhandle the effect into position
         for (index = 0; index < effect->iParticleBlock; index++)
@@ -385,7 +385,7 @@ void hsContinue(Ship* ship, bool32 displayEffect)
             {
                 system = (psysPtr) effect->particleBlock[index];
                 part = (particle*)((ubyte*)system + partHeaderSize(system));
-                part->position = effect->posinfo.position;
+                part->position = effect->obj.posinfo.position;
             }
         }
     }
@@ -617,7 +617,7 @@ noupdateHSMPOUT:
 void hsEnd(Ship* ship, bool32 displayEffect)
 {
     vector origin = {0.0f, 0.0f, 0.0f};
-    StaticCollInfo* sinfo = &ship->staticinfo->staticheader.staticCollInfo;
+    StaticCollInfo* sinfo = &ship->staticinfo->common.staticCollInfo;
     real32 t;
     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
     bool32 lightEnabled, hasEffect;
@@ -652,17 +652,17 @@ void hsEnd(Ship* ship, bool32 displayEffect)
 
     //setup our coordinate system so the rectangles agree w/ the ETG effect
     glPushMatrix();
-    hmatMakeHMatFromMat(&hcoordsys, &ship->rotinfo.coordsys);
+    hmatMakeHMatFromMat(&hcoordsys, &ship->rotatable.rotinfo.coordsys);
     if (ssinfo->hyperspaceEffect != NULL)
     {
         hasEffect = TRUE;
-    //    hmatPutVectIntoHMatrixCol4(ssinfo->hyperspaceEffect->posinfo.position, hcoordsys);
-        hmatPutVectIntoHMatrixCol4(ship->collInfo.collPosition, hcoordsys);
+    //    hmatPutVectIntoHMatrixCol4(ssinfo->hyperspaceEffect->obj.posinfo.position, hcoordsys);
+        hmatPutVectIntoHMatrixCol4(ship->impactable.collInfo.collPosition, hcoordsys);
     }
     else
     {
         hasEffect = FALSE;
-        hmatPutVectIntoHMatrixCol4(ship->collInfo.collPosition, hcoordsys);
+        hmatPutVectIntoHMatrixCol4(ship->impactable.collInfo.collPosition, hcoordsys);
     }
     glMultMatrixf((GLfloat*)&hcoordsys);
 
@@ -701,9 +701,9 @@ void hsEnd(Ship* ship, bool32 displayEffect)
         {
             //monkey effect position
             vector vecTemp;
-            matMultiplyMatByVec(&vecTemp, &ship->rotinfo.coordsys, &origin);
-            ssinfo->hyperspaceEffect->posinfo.position = ship->collInfo.collPosition;
-            vecAddTo(ssinfo->hyperspaceEffect->posinfo.position, vecTemp);
+            matMultiplyMatByVec(&vecTemp, &ship->rotatable.rotinfo.coordsys, &origin);
+            ssinfo->hyperspaceEffect->obj.posinfo.position = ship->impactable.collInfo.collPosition;
+            vecAddTo(ssinfo->hyperspaceEffect->obj.posinfo.position, vecTemp);
         }
 
 #if SECOND_RECT
@@ -850,7 +850,7 @@ void hsStaticInit(sdword nVectors)
                 pGate->counter = 0;
                 memStrncpy(pGate->label,LabelledVectors[i]->label,HSGATE_LABEL_LEN-1);
                 pGate->derelict = univAddHyperspaceGateAsDerelict(LabelledVectors[i]->hvector);
-                aivarValueSet(aivarCreate(pGate->label),(sdword)pGate->derelict->health);
+                aivarValueSet(aivarCreate(pGate->label),(sdword)pGate->derelict->targetable.health);
                 pGate++;
             }
             i++;
@@ -916,8 +916,8 @@ void hsStaticGateRender(hsStaticGate* gate)
     {
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
-        hmatMakeHMatFromMat(&hmat, &derelict->rotinfo.coordsys);
-        hmatPutVectIntoHMatrixCol4(derelict->collInfo.collPosition, hmat);
+        hmatMakeHMatFromMat(&hmat, &derelict->rotatable.rotinfo.coordsys);
+        hmatPutVectIntoHMatrixCol4(derelict->impactable.collInfo.collPosition, hmat);
         glMultMatrixf((GLfloat*)&hmat);
     }
 
@@ -975,7 +975,7 @@ void hsDerelictTakesDamage(Derelict *derelict)
     {
         if (pGate->derelict == derelict)
         {
-            aivarValueSet(aivarFind(pGate->label),(sdword)derelict->health);
+            aivarValueSet(aivarFind(pGate->label),(sdword)derelict->targetable.health);
             break;
         }
     }

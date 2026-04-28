@@ -190,7 +190,6 @@ void toFieldSphereDrawGeneral(vector position, real32 radius,color passedColour)
 void toAllShipsDraw(void)
 {
     Node *objnode = universe.RenderList.head;
-    Ship *ship = NULL;
     real32 radius = 0.0, scale = 0.0;
     sdword index = 0, player = 0;
     toicon *icon = NULL;
@@ -212,29 +211,31 @@ void toAllShipsDraw(void)
 
     while (objnode != NULL)
     {
-          ship = (Ship *) listGetStructOfNode(objnode);
+        SpaceObjRotImp* impactable = (SpaceObjRotImp *) listGetStructOfNode(objnode);
 
-        if (ship->flags & SOF_Dead)
+        if (impactable->header.flags & SOF_Dead)
         {
             goto nextnode;
         }
 
-        if (ship->collInfo.selCircleRadius <= 0.0f)
+        CollInfo* collInfo = &impactable->collInfo;
+        radius = collInfo->selCircleRadius;
+        if (radius <= 0.0f)
         {                                                   //if behind camera
             goto nextnode;                                  //don't draw it
         }
 
-        if(ship->flags & SOF_Slaveable)
+        if(impactable->header.flags & SOF_Slaveable)
         {
-            if(ship->slaveinfo->flags & SF_SLAVE)
+            if(((Ship*)impactable)->slaveinfo->flags & SF_SLAVE)
             {
                 goto nextnode;          //don't draw TO for SLAVES of some master ship
             }
         }
 
-        if (ship->objtype == OBJ_MissileType)
+        if (impactable->header.objtype == OBJ_MissileType)
         {
-#define mine ((Missile *)ship)
+            Missile* mine = (Missile*)impactable;
             if (mine->missileType != MISSILE_Mine)
             {
                 goto nextnode;
@@ -244,8 +245,6 @@ void toAllShipsDraw(void)
             {
                 goto nextnode;      // only show player's own mines
             }
-
-            radius = mine->collInfo.selCircleRadius;
 
             if (radius < TO_MaxFadeSize)
             {
@@ -284,17 +283,18 @@ void toAllShipsDraw(void)
 
                 for (index = icon->nPoints - 1; index >= 0; index--)
                 {
-                    primLineLoopPoint3F(mine->collInfo.selCircleX + icon->loc[index].x * radius,
-                                        mine->collInfo.selCircleY + icon->loc[index].y * radius);
+                    primLineLoopPoint3F(collInfo->selCircleX + icon->loc[index].x * radius,
+                                        collInfo->selCircleY + icon->loc[index].y * radius);
                 }
 
                 primLineLoopEnd2();
             }
 
         }
-        else if (ship->objtype == OBJ_ShipType)
+        else if (impactable->header.objtype == OBJ_ShipType)
         {
-            if (bitTest(ship->flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
+            Ship* ship = (Ship*)impactable;
+            if (bitTest(ship->header.flags,SOF_Cloaked) && ship->playerowner != universe.curPlayerPtr)
             {                                                   //if cloaked, and doesn't belong to current player
                 if(!proximityCanPlayerSeeShip(universe.curPlayerPtr,ship))
                 {
@@ -308,7 +308,7 @@ void toAllShipsDraw(void)
             }
 
             // tactical overlay (fades out when the ship gets large enough)
-            radius = ship->collInfo.selCircleRadius * ship->staticinfo->tacticalSelectionScale;
+            radius = collInfo->selCircleRadius * ship->staticinfo->tacticalSelectionScale;
 
             if (radius < TO_MaxFadeSize)
             {
@@ -345,14 +345,14 @@ void toAllShipsDraw(void)
 
                 for (index = icon->nPoints - 1; index >= 0; index--)
                 {
-                    primLineLoopPoint3F(ship->collInfo.selCircleX + icon->loc[index].x * radius,
-                                        ship->collInfo.selCircleY + icon->loc[index].y * radius);
+                    primLineLoopPoint3F(collInfo->selCircleX + icon->loc[index].x * radius,
+                                        collInfo->selCircleY + icon->loc[index].y * radius);
                 }
 
                 primLineLoopEnd2();
 
                      // mark class as used for this player (for legend)
-                     toClassUsed[((ShipStaticInfo *)ship->staticinfo)->shipclass][ship->playerowner->playerIndex] = 1;
+                     toClassUsed[ship->staticinfo->shipclass][ship->playerowner->playerIndex] = 1;
             }
 
             //for moving ships that belong to the current player, draw the moveline

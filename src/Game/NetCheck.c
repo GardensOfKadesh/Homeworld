@@ -199,34 +199,34 @@ void syncDebugDump(char *filename1,sdword counter,bool32 save)
             us->ship[j] = *ship;
 
     //NULLify all ptrs...
-            us->ship[j].objlink.next=0;
-            us->ship[j].objlink.prev=0;
-            us->ship[j].objlink.belongto=0;
-            us->ship[j].objlink.structptr=0;
+            us->ship[j].header.objlink.next=0;
+            us->ship[j].header.objlink.prev=0;
+            us->ship[j].header.objlink.belongto=0;
+            us->ship[j].header.objlink.structptr=0;
 
 
             us->ship[j].staticinfo=0;
-            us->ship[j].renderlink.next=0;
-            us->ship[j].renderlink.prev=0;
-            us->ship[j].renderlink.belongto=0;
-            us->ship[j].renderlink.structptr=0;
+            us->ship[j].obj.renderlink.next=0;
+            us->ship[j].obj.renderlink.prev=0;
+            us->ship[j].obj.renderlink.belongto=0;
+            us->ship[j].obj.renderlink.structptr=0;
 
-            us->ship[j].collMyBlob = 0;
+            us->ship[j].obj.collMyBlob = 0;
             us->ship[j].newDockWithTransfer = 0;
 
-            us->ship[j].currentLOD=0;
-            us->ship[j].renderedLODs=0;
-            us->ship[j].cameraDistanceSquared=0;
-            us->ship[j].cameraDistanceVector.x=0;
-            us->ship[j].cameraDistanceVector.y=0;
-            us->ship[j].cameraDistanceVector.z=0;
+            us->ship[j].obj.currentLOD=0;
+            us->ship[j].obj.renderedLODs=0;
+            us->ship[j].obj.cameraDistanceSquared=0;
+            us->ship[j].obj.cameraDistanceVector.x=0;
+            us->ship[j].obj.cameraDistanceVector.y=0;
+            us->ship[j].obj.cameraDistanceVector.z=0;
 
-            us->ship[j].collInfo.selCircleX=0;
-            us->ship[j].collInfo.selCircleY=0;
-            us->ship[j].collInfo.selCircleRadius=0;
-            us->ship[j].collInfo.precise=0;
+            us->ship[j].impactable.collInfo.selCircleX=0;
+            us->ship[j].impactable.collInfo.selCircleY=0;
+            us->ship[j].impactable.collInfo.selCircleRadius=0;
+            us->ship[j].impactable.collInfo.precise=0;
 
-            us->ship[j].flashtimer=0;
+            us->ship[j].targetable.flashtimer=0;
             us->ship[j].soundEventAnimationTypeFlag=0;
             us->ship[j].chatterBits=0;
             us->ship[j].hyperspacePing=0;
@@ -234,29 +234,29 @@ void syncDebugDump(char *filename1,sdword counter,bool32 save)
             us->ship[j].retaliateSpeechVar=0;
             us->ship[j].retaliateSpeechTime=0;
 
-            if(us->ship[j].flags & SOF_Dead)
+            if(us->ship[j].header.flags & SOF_Dead)
             {
-                us->ship[j].flags|=SOF_Dead;
+                us->ship[j].header.flags|=SOF_Dead;
             }
             else
             {
-                us->ship[j].flags=0;
+                us->ship[j].header.flags=0;
             }
 
-            us->ship[j].impactablelink.next=0;
-            us->ship[j].impactablelink.prev=0;
-            us->ship[j].impactablelink.belongto=0;
-            us->ship[j].impactablelink.structptr=0;
+            us->ship[j].impactable.impactablelink.next=0;
+            us->ship[j].impactable.impactablelink.prev=0;
+            us->ship[j].impactable.impactablelink.belongto=0;
+            us->ship[j].impactable.impactablelink.structptr=0;
 
-            us->ship[j].clampInfo=0;
-            us->ship[j].salvageInfo=0;
-            if(us->ship[j].dockingship != NULL)
+            us->ship[j].guidance.clampInfo=0;
+            us->ship[j].shipOrDerelict.salvageInfo=0;
+            if(us->ship[j].shipOrDerelict.dockingship != NULL)
             {
-                us->ship[j].dockingship=(Ship *)us->ship[j].dockingship->shipID.shipNumber;
+                us->ship[j].shipOrDerelict.dockingship=(Ship *)us->ship[j].shipOrDerelict.dockingship->shipID.shipNumber;
             }
             else
             {
-                us->ship[j].dockingship = (Ship *)-1;
+                us->ship[j].shipOrDerelict.dockingship = (Ship *)-1;
             }
             us->ship[j].navLightInfo=0;
 
@@ -320,7 +320,7 @@ void syncDebugDump(char *filename1,sdword counter,bool32 save)
             }
 
             //turn off this COMPUTER PLAYER specific variale!
-            us->ship[j].specialFlags &= (~(SPECIAL_Resourcing|SPECIAL_Finished_Resource));
+            us->ship[j].shipOrDerelict.specialFlags &= (~(SPECIAL_Resourcing|SPECIAL_Finished_Resource));
 
             us->ship[j].attackvars.multipleAttackTargets=0;   // only used by ships which can target multiple targets.
 

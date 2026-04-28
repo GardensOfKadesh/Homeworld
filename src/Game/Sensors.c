@@ -658,7 +658,7 @@ void makeShipsNotBeDisabled(SelectCommand *selection)
     sdword i;
     for(i=0;i<selection->numShips;i++)
     {
-        if(selection->ShipPtr[0]->flags & SOF_Disabled)
+        if(selection->ShipPtr[0]->header.flags & SOF_Disabled)
         {
             selection->numShips--;
             selection->ShipPtr[i] = selection->ShipPtr[selection->numShips];
@@ -818,7 +818,6 @@ void smBlobDrawClear(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatrix
     color c = colBlack;
     lod *level;
     hmatrix coordMatrixForGL;
-    ShipStaticInfo *shipStaticInfo;
     bool32 bFlashOn;
     SpaceObjSelection *blobObjects = thisBlob->blobObjects;
     real32 radius;
@@ -857,65 +856,65 @@ void smBlobDrawClear(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatrix
     {
         obj = *objPtr;
 //#ifdef DEBUG_COLLBLOBS
-        if (obj->flags & SOF_Targetable)
+        if (obj->header.flags & SOF_Targetable)
 //#endif
         {
             selCircleCompute(modelView, projection, (SpaceObjRotImpTarg *)obj);//compute selection circle
         }
-        switch (obj->objtype)
+        switch (obj->header.objtype)
         {
-            case OBJ_ShipType:
+            case OBJ_ShipType: {
+                Ship* ship = (Ship*)obj;
                 if (smNonResources == FALSE)
                 {
                     break;
                 }
-                if (bitTest(((Ship *)obj)->flags, SOF_Hide))
+                if (bitTest(ship->header.flags, SOF_Hide))
                 {                                           //don't show hidden ships
                     break;
                 }
                 if (smTacticalOverlay)
                 {
-                    if (((Ship *)obj)->playerowner == universe.curPlayerPtr &&
-                        bitTest(smShipTypeRenderFlags[((Ship *)obj)->shiptype], SM_TO))
+                    if (ship->playerowner == universe.curPlayerPtr &&
+                        bitTest(smShipTypeRenderFlags[ship->shiptype], SM_TO))
                     {
                         if (nShipTOs < SM_NumberTOs)
                         {
-                            shipTO[nShipTOs].x = ((Ship *)obj)->collInfo.selCircleX;
-                            shipTO[nShipTOs].y = ((Ship *)obj)->collInfo.selCircleY;
-                            shipTO[nShipTOs].radius = ((Ship *)obj)->collInfo.selCircleRadius;
+                            shipTO[nShipTOs].x = ship->impactable.collInfo.selCircleX;
+                            shipTO[nShipTOs].y = ship->impactable.collInfo.selCircleY;
+                            shipTO[nShipTOs].radius = ship->impactable.collInfo.selCircleRadius;
                             shipTO[nShipTOs].c = colRGB(colRed(c)/TO_IconColorFade, colGreen(c)/TO_IconColorFade, colBlue(c)/TO_IconColorFade);
-                            shipTO[nShipTOs].shipClass = ((Ship *)obj)->staticinfo->shipclass;
+                            shipTO[nShipTOs].shipClass = ship->staticinfo->shipclass;
                             nShipTOs++;
                         }
                     }
-                    if(((Ship *)obj)->playerowner == universe.curPlayerPtr)
+                    if(ship->playerowner == universe.curPlayerPtr)
                     {
-                        if(((Ship *)obj)->shiptype == GravWellGenerator)
+                        if(ship->shiptype == GravWellGenerator)
                         {
-                            if (((GravWellGeneratorSpec *)((Ship *)obj)->ShipSpecifics)->GravFieldOn)
+                            if (((GravWellGeneratorSpec *)ship->ShipSpecifics)->GravFieldOn)
                             {
-                                toFieldSphereDraw(((Ship *)obj),((GravWellGeneratorStatics *) ((ShipStaticInfo *)(((Ship *)obj)->staticinfo))->custstatinfo)->GravWellRadius, 1.0f, TW_GRAVWELL_SPHERE_COLOUR);
+                                toFieldSphereDraw(ship,((GravWellGeneratorStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo)->GravWellRadius, 1.0f, TW_GRAVWELL_SPHERE_COLOUR);
                             }
                         }
                     }
                 }
-                if (bitTest(smShipTypeRenderFlags[((Ship *)obj)->shiptype], SM_Mesh))
+                if (bitTest(smShipTypeRenderFlags[ship->shiptype], SM_Mesh))
                 {                                           //if it's a ship type to render as a mesh
                     level = lodLevelGet((void *)obj, &camera->eyeposition, &obj->posinfo.position);
                     if ((level->flags & LM_LODType) == LT_Mesh)
                     {
-                        if (!(bFlashOn && (((Ship *)obj)->flags & SOF_Selected)))
+                        if (!(bFlashOn && (ship->header.flags & SOF_Selected)))
                         {
-                            if(!bitTest(obj->flags,SOF_Cloaked) || ((Ship *)obj)->playerowner == universe.curPlayerPtr)
+                            if(!bitTest(ship->header.flags,SOF_Cloaked) || ship->playerowner == universe.curPlayerPtr)
                             {       //if ship isn't cloaked, draw, or if ship is players, draw
                                 glPushMatrix();
-                                shipStaticInfo = (ShipStaticInfo *)obj->staticinfo;
-                                hmatMakeHMatFromMat(&coordMatrixForGL,&((SpaceObjRot *)obj)->rotinfo.coordsys);
+                                hmatMakeHMatFromMat(&coordMatrixForGL,&ship->rotatable.rotinfo.coordsys);
                                 hmatPutVectIntoHMatrixCol4(obj->posinfo.position,coordMatrixForGL);
                                 glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
                                 rndLightingEnable(TRUE);
                                 shPushLightMatrix(&coordMatrixForGL);
-                                i = ((Ship *)obj)->colorScheme;
+                                i = ship->colorScheme;
 
                                 if (rndShipVisible(obj, camera))
                                 {
@@ -924,10 +923,10 @@ void smBlobDrawClear(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatrix
 
                                     wireOn = g_WireframeHack;
                                     g_WireframeHack = FALSE;
-                                    if (((Ship *)obj)->bindings != NULL)
+                                    if (ship->bindings != NULL)
                                     {
-                                        meshRenderShipHierarchy(((Ship *)obj)->bindings,
-                                                ((Ship *)obj)->currentLOD,
+                                        meshRenderShipHierarchy(ship->bindings,
+                                                ship->obj.currentLOD,
                                                 (meshdata *)level->pData, i);
                                     }
                                     else
@@ -950,12 +949,12 @@ void smBlobDrawClear(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatrix
                         goto justRenderAsDot;
                     }
                 }                                           //else draw it as a pixel
-                else if ( (!bitTest(obj->flags,SOF_Cloaked) || allianceIsShipAlly((Ship *)obj, universe.curPlayerPtr)) &&
+                else if ( (!bitTest(obj->header.flags,SOF_Cloaked) || allianceIsShipAlly((Ship *)obj, universe.curPlayerPtr)) &&
                           ((obj->attributes & ATTRIBUTES_SMColorField) != ATTRIBUTES_SMColorInvisible) )
                 {       //if ship isn't cloaked, draw, or if ship is players, draw
 justRenderAsDot:
 #if TO_STANDARD_COLORS
-                    if (((Ship *)obj)->playerowner == universe.curPlayerPtr)
+                    if (ship->playerowner == universe.curPlayerPtr)
                     {
                         c = teFriendlyColor;
                     }
@@ -979,26 +978,26 @@ justRenderAsDot:
                         }
                     }
 #else //SM_STANDARD_COLORS
-                    c = teColorSchemes[((Ship *)obj)->colorScheme].tacticalColor;
+                    c = teColorSchemes[ship->colorScheme].tacticalColor;
 #endif //SM_STANDARD_COLORS
                     if (smTacticalOverlay)
                     {
-                        if (((Ship *)obj)->playerowner == universe.curPlayerPtr &&
-                            bitTest(smShipTypeRenderFlags[((Ship *)obj)->shiptype], SM_TO))
-                        //if (((Ship *)obj)->shiptype == ResourceCollector)
+                        if (ship->playerowner == universe.curPlayerPtr &&
+                            bitTest(smShipTypeRenderFlags[ship->shiptype], SM_TO))
+                        //if (ship->shiptype == ResourceCollector)
                         {
                             if (nShipTOs < SM_NumberTOs)
                             {
-                                shipTO[nShipTOs].x = ((Ship *)obj)->collInfo.selCircleX;
-                                shipTO[nShipTOs].y = ((Ship *)obj)->collInfo.selCircleY;
-                                shipTO[nShipTOs].radius = ((Ship *)obj)->collInfo.selCircleRadius;
+                                shipTO[nShipTOs].x = ship->impactable.collInfo.selCircleX;
+                                shipTO[nShipTOs].y = ship->impactable.collInfo.selCircleY;
+                                shipTO[nShipTOs].radius = ship->impactable.collInfo.selCircleRadius;
                                 shipTO[nShipTOs].c = colRGB(colRed(c)/TO_IconColorFade, colGreen(c)/TO_IconColorFade, colBlue(c)/TO_IconColorFade);
-                                shipTO[nShipTOs].shipClass = ((Ship *)obj)->staticinfo->shipclass;
+                                shipTO[nShipTOs].shipClass = ship->staticinfo->shipclass;
                                 nShipTOs++;
                             }
                         }
                     }
-                    if (((Ship *)obj)->flags & SOF_Selected)
+                    if (ship->header.flags & SOF_Selected)
                     {
                         if (bFlashOn)
                         {
@@ -1006,7 +1005,7 @@ justRenderAsDot:
                         }
                     }
 
-//                    if ((((Ship *)obj)->playerowner->playerIndex == universe.curPlayerIndex))
+//                    if ((ship->playerowner->playerIndex == universe.curPlayerIndex))
 //                    {                                       //enable double-size points
                         pointSize = 2.0f;
 //                        //glPointSize(2.0f);
@@ -1017,11 +1016,11 @@ justRenderAsDot:
 //                        //glPointSize(1.0f);
 //                    }
                     rndTextureEnable(FALSE);
-                    if ((!smBigPoints) && pointSize != 1.0f && ((Ship *)obj)->collInfo.selCircleRadius > 0.0f)
+                    if ((!smBigPoints) && pointSize != 1.0f && ship->impactable.collInfo.selCircleRadius > 0.0f)
                     {
                         dbgAssertOrIgnore(nBigDots < SM_NumberBigDots);
-                        bigDot[nBigDots].x = ((Ship *)obj)->collInfo.selCircleX;
-                        bigDot[nBigDots].y = ((Ship *)obj)->collInfo.selCircleY;
+                        bigDot[nBigDots].x = ship->impactable.collInfo.selCircleX;
+                        bigDot[nBigDots].y = ship->impactable.collInfo.selCircleY;
                         bigDot[nBigDots].c = c;
                         nBigDots++;
                     }
@@ -1032,13 +1031,13 @@ justRenderAsDot:
                         glPointSize(1.0f);
                     }
                 }
-                break;
+            } break;
             case OBJ_AsteroidType:
                 if (smResources == FALSE)
                 {
                     break;
                 }
-                radius = obj->staticinfo->staticheader.staticCollInfo.collspheresize;
+                radius = obj->staticinfo->staticCollInfo.collspheresize;
 
                 if (radius > SM_LargeResourceSize)
                 {
@@ -1049,13 +1048,14 @@ justRenderAsDot:
 #if TO_STANDARD_COLORS
                 c = teResourceColor;
 #else
-                c = obj->staticinfo->staticheader.LOD->pointColor;
+                c = obj->staticinfo->LOD->pointColor;
 #endif
-                if ((!smBigPoints) && pointSize != 1.0f && ((Ship *)obj)->collInfo.selCircleRadius > 0.0f)
+                Asteroid* asteroid = (Asteroid*)obj;
+                if ((!smBigPoints) && pointSize != 1.0f && asteroid->impactable.collInfo.selCircleRadius > 0.0f)
                 {
                     dbgAssertOrIgnore(nBigDots < SM_NumberBigDots);
-                    bigDot[nBigDots].x = ((Ship *)obj)->collInfo.selCircleX;
-                    bigDot[nBigDots].y = ((Ship *)obj)->collInfo.selCircleY;
+                    bigDot[nBigDots].x = asteroid->impactable.collInfo.selCircleX;
+                    bigDot[nBigDots].y = asteroid->impactable.collInfo.selCircleY;
                     bigDot[nBigDots].c = c;
                     nBigDots++;
                 }
@@ -1076,7 +1076,7 @@ justRenderAsDot:
                 }
                 memcpy(&objectPos, &obj->posinfo.position, sizeof(vector));
                 objectPos.w = 1.0f;
-//                c = obj->staticinfo->staticheader.LOD->pointColor;
+//                c = obj->staticinfo->common.LOD->pointColor;
 //                c = colWhite;
                 hmatMultiplyHMatByHVec(&cameraSpace, modelView, &objectPos);//in camera space
                 hmatMultiplyHMatByHVec(&screenSpace, projection, &cameraSpace);//in screen space
@@ -1087,32 +1087,32 @@ justRenderAsDot:
 #if TO_STANDARD_COLORS
                     smBlurryArray[smBlurryIndex].c = teResourceColor;
 #else
-                    smBlurryArray[smBlurryIndex].c = obj->staticinfo->staticheader.LOD->pointColor;
+                    smBlurryArray[smBlurryIndex].c = obj->staticinfo->common.LOD->pointColor;
 #endif
                     smBlurryArray[smBlurryIndex].x = primGLToScreenX(screenSpace.x / screenSpace.w);
                     smBlurryArray[smBlurryIndex].y = primGLToScreenY(screenSpace.y / screenSpace.w);
                     smBlurryIndex++;
                 }
                 break;
-            case OBJ_DerelictType:
-                if (((Derelict *)obj)->derelicttype == HyperspaceGate)
+            case OBJ_DerelictType: {
+                Derelict* derelict = (Derelict*)obj;
+                if (derelict->derelicttype == HyperspaceGate)
                 {
                     goto renderDerelictAsDot;
                 }
                 level = lodLevelGet((void *)obj, &camera->eyeposition, &obj->posinfo.position);
-                if (bitTest(smDerelictTypeMesh[((Derelict *)obj)->derelicttype], SM_Mesh) && (level->flags & LM_LODType) == LT_Mesh)
+                if (bitTest(smDerelictTypeMesh[derelict->derelicttype], SM_Mesh) && (level->flags & LM_LODType) == LT_Mesh)
                 {
-                    if ( (!bitTest(obj->flags,SOF_Cloaked)) &&
+                    if ( (!bitTest(obj->header.flags,SOF_Cloaked)) &&
                          ((obj->attributes & ATTRIBUTES_SMColorField) != ATTRIBUTES_SMColorInvisible) )
                     {       //if it isn't cloaked, draw
                         glPushMatrix();
-                        shipStaticInfo = (ShipStaticInfo *)obj->staticinfo;
-                        hmatMakeHMatFromMat(&coordMatrixForGL,&((SpaceObjRot *)obj)->rotinfo.coordsys);
+                        hmatMakeHMatFromMat(&coordMatrixForGL,&derelict->rotatable.rotinfo.coordsys);
                         hmatPutVectIntoHMatrixCol4(obj->posinfo.position,coordMatrixForGL);
                         glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
                         rndLightingEnable(TRUE);
                         shPushLightMatrix(&coordMatrixForGL);
-                        i = ((Derelict *)obj)->colorScheme;
+                        i = derelict->colorScheme;
 
                         if (rndShipVisible(obj, camera))
                         {
@@ -1138,9 +1138,9 @@ renderDerelictAsDot:
 #if TO_STANDARD_COLORS
                         c = teNeutralColor;
 #else
-                        c = obj->staticinfo->staticheader.LOD->pointColor;
+                        c = obj->staticinfo->common.LOD->pointColor;
 #endif
-                    if (singlePlayerGame && (((Derelict *)obj)->derelicttype == PrisonShipOld))
+                    if (singlePlayerGame && (derelict->derelicttype == PrisonShipOld))
                     {
                         c = teFriendlyColor;
                     }
@@ -1148,7 +1148,7 @@ renderDerelictAsDot:
                     rndTextureEnable(FALSE);
                     primPoint3(&obj->posinfo.position,c);   //everything is rendered as a point
                 }
-                break;
+            } break;
 
             default:
                 break;
@@ -1375,14 +1375,14 @@ void smSensorWeirdnessInit(void)
 ----------------------------------------------------------------------------*/
 bool32 smEnemyFogOfWarBlobCallback(blob *superBlob, SpaceObj *obj)
 {
-    switch (obj->objtype)
+    switch (obj->header.objtype)
     {
         case OBJ_ShipType:                                  //make sure it's an enemy ship
             if (allianceIsShipAlly((Ship *)obj,universe.curPlayerPtr))
             {                                               //if this is an allied ship (alliance formed while in SM)
                 return(FALSE);
             }
-            if (((Ship *)obj)->flags & (SOF_Hide | SOF_Cloaked))
+            if (obj->header.flags & (SOF_Hide | SOF_Cloaked))
             {                                               //don't show hidden or cloaked ships
                 return(FALSE);
             }
@@ -1493,17 +1493,18 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
 #endif
         c = teHostileColor;
         dbgAssertOrIgnore(nBigDots < SM_NumberBigDots);
-//        bigDot[nBigDots].x = ((Ship *)obj)->collInfo->selCircleX;
-//        bigDot[nBigDots].y = ((Ship *)obj)->collInfo->selCircleY;
+//        bigDot[nBigDots].x = ((Ship *)obj)->impactable.collInfo->selCircleX;
+//        bigDot[nBigDots].y = ((Ship *)obj)->impactable.collInfo->selCircleY;
         selCircleComputeGeneral(modelView, projection, &subBlob->centre, 1.0f, &screenX, &screenY, &radius);
         for (index = subBlob->blobObjects->numSpaceObjs - 1; index >= 0 ; index--)
         {                                                   //all ships in sub-blob get selection circle of sub-blob
             obj = subBlob->blobObjects->SpaceObjPtr[index];
-            if (obj->objtype == OBJ_ShipType)
+            if (obj->header.objtype == OBJ_ShipType)
             {
-                ((Ship *)obj)->collInfo.selCircleX = screenX;
-                ((Ship *)obj)->collInfo.selCircleY = screenY;
-                ((Ship *)obj)->collInfo.selCircleRadius = radius;
+                Ship* ship = (Ship*)obj;
+                ship->impactable.collInfo.selCircleX = screenX;
+                ship->impactable.collInfo.selCircleY = screenY;
+                ship->impactable.collInfo.selCircleRadius = radius;
             }
         }
         if ((!smBigPoints) && radius > 0.0f)
@@ -1524,15 +1525,15 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
     {
         obj = *objPtr;
 //#ifdef DEBUG_COLLBLOBS
-        if (obj->flags & SOF_Targetable)
+        if (obj->header.flags & SOF_Targetable)
 //#endif
         {
             selCircleCompute(modelView, projection, (SpaceObjRotImpTarg *)obj);//compute selection circle
         }
-        switch (obj->objtype)
+        switch (obj->header.objtype)
         {
             case OBJ_ShipType:
-                if (((obj->flags & (SOF_Cloaked | SOF_Hide))) ||  //if hidden or cloaked
+                if (((obj->header.flags & (SOF_Cloaked | SOF_Hide))) ||  //if hidden or cloaked
                     ((obj->attributes & ATTRIBUTES_SMColorField) == ATTRIBUTES_SMColorInvisible))
                 {
                     thisBlob->nHiddenShips++;
@@ -1555,7 +1556,7 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
 #if TO_STANDARD_COLORS
                     smBlurryArray[smBlurryIndex].c = teResourceColor;
 #else
-                    smBlurryArray[smBlurryIndex].c = obj->staticinfo->staticheader.LOD->pointColor;
+                    smBlurryArray[smBlurryIndex].c = obj->staticinfo->common.LOD->pointColor;
 #endif
                     smBlurryArray[smBlurryIndex].x = primGLToScreenX(screenSpace.x / screenSpace.w);
                     smBlurryArray[smBlurryIndex].y = primGLToScreenY(screenSpace.y / screenSpace.w);
@@ -1566,9 +1567,9 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
 #if TO_STANDARD_COLORS
                 c = teResourceColor;
 #else
-                c = obj->staticinfo->staticheader.LOD->pointColor;
+                c = obj->staticinfo->common.LOD->pointColor;
 #endif
-                radius = obj->staticinfo->staticheader.staticCollInfo.collspheresize;
+                radius = obj->staticinfo->staticCollInfo.collspheresize;
 
                 if (radius > SM_LargeResourceSize)
                 {
@@ -1578,11 +1579,12 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
                 {
                     pointSize = 1.0f;
                 }
-                if ((!smBigPoints) && pointSize != 1.0f && ((Ship *)obj)->collInfo.selCircleRadius > 0.0f)
+                Asteroid* asteroid = (Asteroid*)obj;
+                if ((!smBigPoints) && pointSize != 1.0f && asteroid->impactable.collInfo.selCircleRadius > 0.0f)
                 {
                     dbgAssertOrIgnore(nBigDots < SM_NumberBigDots);
-                    bigDot[nBigDots].x = ((Ship *)obj)->collInfo.selCircleX;
-                    bigDot[nBigDots].y = ((Ship *)obj)->collInfo.selCircleY;
+                    bigDot[nBigDots].x = asteroid->impactable.collInfo.selCircleX;
+                    bigDot[nBigDots].y = asteroid->impactable.collInfo.selCircleY;
                     bigDot[nBigDots].c = c;
                     nBigDots++;
                 }
@@ -1593,19 +1595,20 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
                     glPointSize(1.0f);
                 }
                 break;
-            case OBJ_DerelictType:
-                if (((Derelict *)obj)->derelicttype == Crate)
+            case OBJ_DerelictType: {
+                Derelict* derelict = (Derelict*)obj;
+                if (derelict->derelicttype == Crate)
                 {                                           //crates are draw as grey dots
                     c = teCrateColor;
                 }
-                else if ((((Derelict *)obj)->derelicttype == PrisonShipOld) &&
+                else if ((derelict->derelicttype == PrisonShipOld) &&
                          spGetCurrentMission() == MISSION_8_THE_CATHEDRAL_OF_KADESH)
                 {   //!!!  Single Player game mission specific Code
                     //In Mission 8, the PrisonShipOld derelict shows up
                     //as a friendly ship
                     dbgAssertOrIgnore(nBigDots < SM_NumberBigDots);
-                    bigDot[nBigDots].x = ((Derelict *)obj)->collInfo.selCircleX;
-                    bigDot[nBigDots].y = ((Derelict *)obj)->collInfo.selCircleY;
+                    bigDot[nBigDots].x = derelict->impactable.collInfo.selCircleX;
+                    bigDot[nBigDots].y = derelict->impactable.collInfo.selCircleY;
                     bigDot[nBigDots].c = teFriendlyColor;
                     nBigDots++;
                 }
@@ -1614,11 +1617,11 @@ void smBlobDrawCloudy(Camera *camera, blob *thisBlob, hmatrix *modelView, hmatri
 #if TO_STANDARD_COLORS
                     c = teNeutralColor;
 #else
-                    c = obj->staticinfo->staticheader.LOD->pointColor;
+                    c = obj->staticinfo->common.LOD->pointColor;
 #endif
                 }
                 primPoint3(&obj->posinfo.position, c);
-                break;
+            }break;
             default:
 //#ifndef DEBUG_COLLBLOBS
 //                dbgAssertOrIgnore(FALSE);       // don't assert if DEBUG_COLLBLOBS because debug collblobs can have bullets,etc.
@@ -1657,8 +1660,7 @@ dontRenderThisResource:;
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
-int smBlobListSort(const void *p0, const void *p1)
-{
+int smBlobListSort(void const* p0, void const* p1) {
     blob *b0 = *((blob **)p0);
     blob *b1 = *((blob **)p1);
 
@@ -1881,7 +1883,7 @@ blob *smBlobsDraw(Camera *camera, LinkedList *list, hmatrix *modelView, hmatrix 
     //set the selected bit on all selected ships.  This is only a temporary flag.
     for (index = 0; index < selSelected.numShips; index++)
     {
-        bitSet(selSelected.ShipPtr[index]->flags, SOF_Selected);
+        bitSet(selSelected.ShipPtr[index]->header.flags, SOF_Selected);
     }
 
     lightPositionSet();
@@ -1982,13 +1984,13 @@ blob *smBlobsDraw(Camera *camera, LinkedList *list, hmatrix *modelView, hmatrix 
         for (node = universe.MinorSpaceObjList.head; node != NULL; node = node->next)
         {
             thisAsteroid = (Asteroid *)listGetStructOfNode(node);
-            dbgAssertOrIgnore(thisAsteroid->objtype == OBJ_AsteroidType && thisAsteroid->asteroidtype == Asteroid0);
+            dbgAssertOrIgnore(thisAsteroid->header.objtype == OBJ_AsteroidType && thisAsteroid->asteroidtype == Asteroid0);
 #if TO_STANDARD_COLORS
             c = teResourceColor;
 #else
-            c = thisAsteroid->staticinfo->staticheader.LOD->pointColor;
+            c = thisAsteroid->staticinfo->common.LOD->pointColor;
 #endif
-            primPoint3(&thisAsteroid->posinfo.position, c);
+            primPoint3(&thisAsteroid->obj.posinfo.position, c);
         }
     }
 
@@ -2057,7 +2059,7 @@ blob *smBlobsDraw(Camera *camera, LinkedList *list, hmatrix *modelView, hmatrix 
     //now remove the selected bit from all selected ships.
     for (index = 0; index < selSelected.numShips; index++)
     {
-        bitClear(selSelected.ShipPtr[index]->flags, SOF_Selected);
+        bitClear(selSelected.ShipPtr[index]->header.flags, SOF_Selected);
     }
 
     if (bClosestMove && !bPlayedSound)
@@ -2105,7 +2107,7 @@ void smBlobRenderSelected(blob *b, color c)
     {
         rndTextureEnable(FALSE);
         primPoint3(&(*obj)->posinfo.position, c);           //everything is rendered as a point
-//            (*obj)->staticinfo->staticheader.staticCollInfo.collspheresize,
+//            (*obj)->staticinfo->common.staticCollInfo.collspheresize,
 
     }
 }
@@ -2609,7 +2611,7 @@ void smCursorTextDraw(rectangle *viewportRect, blob *selectedBlob, sdword sensor
             if ((object = selClickFromArray(selectedBlob->blobObjects->SpaceObjPtr,
                 selectedBlob->blobObjects->numSpaceObjs, mouseCursorX(),mouseCursorY())) != NULL)
             {
-                switch (object->objtype)
+                switch (object->header.objtype)
                 {
                     case OBJ_ShipType:
                         if (((Ship *)object)->playerowner == universe.curPlayerPtr)
@@ -2674,7 +2676,7 @@ void smCursorTextDraw(rectangle *viewportRect, blob *selectedBlob, sdword sensor
                 if ((object = selClickFromArray(selectedBlob->blobObjects->SpaceObjPtr,
                     selectedBlob->blobObjects->numSpaceObjs, mouseCursorX(),mouseCursorY())) != NULL)
                 {
-                    switch (object->objtype)
+                    switch (object->header.objtype)
                     {
                         case OBJ_ShipType:
                             cursorText = strGetString(strEnemyUnits);
@@ -3083,7 +3085,7 @@ void smViewportRender(featom *atom, regionhandle region)
     {
         if (universe.world[index] != NULL)
         {
-            if (universe.world[index]->objtype == OBJ_DerelictType)
+            if (universe.world[index]->header.objtype == OBJ_DerelictType)
             {
                 rndRenderAHomeworld(&smCamera, universe.world[index]);
             }
@@ -3409,7 +3411,7 @@ udword smViewportProcess(regionhandle region, sdword ID, udword event, udword da
                     }
                     if (clickedOn != NULL)
                     {
-                        if(!(clickedOn->flags & SOF_Disabled))
+                        if(!(clickedOn->header.flags & SOF_Disabled))
                         {
                             selSelectionAddSingleShip((MaxSelection *)(&selSelecting), clickedOn);
                         }

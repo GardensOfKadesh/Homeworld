@@ -104,14 +104,14 @@ void cratesScanForPlayersNearCrateAndReward(Derelict *crate)
     sdword i;
     Ship *ship;
 
-    crateBlob = crate->collMyBlob;
+    crateBlob = crate->obj.collMyBlob;
 
     if(crateBlob != NULL)
     {
         for(i=0;i<crateBlob->blobShips->numShips;)
         {
             ship = crateBlob->blobShips->ShipPtr[i];
-            if(MoveReachedDestinationVariable(ship,&crate->posinfo.position,CRATES_PlayerNearRadius))
+            if(MoveReachedDestinationVariable(ship,&crate->obj.posinfo.position,CRATES_PlayerNearRadius))
             {
                 if(ship->playerowner != NULL)
                 {
@@ -155,13 +155,13 @@ void cratesReportCratePlacement(Derelict *crate)
 
         if (etgLOD != NULL)
         {
-            if (crate->currentLOD >= etgLOD->nLevels)
+            if (crate->obj.currentLOD >= etgLOD->nLevels)
             {
                 stat = NULL;
             }
             else
             {
-                stat = etgLOD->level[crate->currentLOD];
+                stat = etgLOD->level[crate->obj.currentLOD];
             }
         }
         else
@@ -174,7 +174,7 @@ void cratesReportCratePlacement(Derelict *crate)
         if (stat != NULL)
         #endif
         {
-            etgEffectCreate(stat, NULL, &crate->posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
+            etgEffectCreate(stat, NULL, &crate->obj.posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
         }
     }
     dbgAssertOrIgnore(universe.numCratesInWorld <= CRATES_MaximumCratesInTheWorldPerPlayer*MAX_MULTIPLAYER_PLAYERS);
@@ -230,13 +230,13 @@ void cratesPlayerFoundACrate(Derelict *crate, Player *player)
 
     if (etgLOD != NULL)
     {
-        if (crate->currentLOD >= etgLOD->nLevels)
+        if (crate->obj.currentLOD >= etgLOD->nLevels)
         {
             stat = NULL;
         }
         else
         {
-            stat = etgLOD->level[crate->currentLOD];
+            stat = etgLOD->level[crate->obj.currentLOD];
         }
     }
     else
@@ -249,7 +249,7 @@ void cratesPlayerFoundACrate(Derelict *crate, Player *player)
     if (stat != NULL)
     #endif
     {
-        etgEffectCreate(stat, NULL, &crate->posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
+        etgEffectCreate(stat, NULL, &crate->obj.posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
     }
 
     AddTargetToDeleteList((SpaceObjRotImpTarg *)crate,-1);
@@ -401,7 +401,7 @@ sdword cratesRewardPlayer(Derelict *crate, Player *player)
         {
             dbgMessagef("Got a mothership/carrier from crate!");
             //give player mothership
-            ship = univAddShip(Carrier,player->race,&crate->posinfo.position,player,0);
+            ship = univAddShip(Carrier,player->race,&crate->obj.posinfo.position,player,0);
             gameStatsAddShip(ship,player->playerIndex);
             unitCapCreateShip(ship,player);
             return(CRATE_SHIP);
@@ -414,9 +414,9 @@ sdword cratesRewardPlayer(Derelict *crate, Player *player)
         sdword shiptype;
         vector cratepos;
 
-        cratepos.x  = crate->posinfo.position.x;
-        cratepos.y  = crate->posinfo.position.y;
-        cratepos.z  = crate->posinfo.position.z;
+        cratepos.x  = crate->obj.posinfo.position.x;
+        cratepos.y  = crate->obj.posinfo.position.y;
+        cratepos.z  = crate->obj.posinfo.position.z;
 
         shipclasstoget = getShipClass();
         shiptype = getShipType(shipclasstoget);
@@ -426,7 +426,7 @@ sdword cratesRewardPlayer(Derelict *crate, Player *player)
 
         teststatic = GetShipStaticInfo(shiptype,player->race);
 
-        if (bitTest(teststatic->staticheader.infoFlags, IF_InfoLoaded))
+        if (bitTest(teststatic->common.infoFlags, IF_InfoLoaded))
         {
             sdword sizeofselect = sizeofSelectCommand(shipnumber);
             SelectCommand *selectcom = memAlloc(sizeofselect,"selectform",0);
@@ -447,7 +447,7 @@ sdword cratesRewardPlayer(Derelict *crate, Player *player)
 
                 selectcom->ShipPtr[i] = ship;
 
-                cratepos.z += (ship->staticinfo->staticheader.staticCollInfo.collspheresize * 2.0f);
+                cratepos.z += (ship->staticinfo->common.staticCollInfo.collspheresize * 2.0f);
             }
             //need a way to FORCE into formation INSTANTLY...could do calculations myself here...
             //but must be an easier way.
@@ -501,9 +501,9 @@ void getPlayerShipCenter(vector *shipCenter,sdword index)
         {
             if(ship->playerowner->playerIndex == index)
             {
-                shipCenter->x = ship->posinfo.position.x;
-                shipCenter->y = ship->posinfo.position.y;
-                shipCenter->z = ship->posinfo.position.z;
+                shipCenter->x = ship->obj.posinfo.position.x;
+                shipCenter->y = ship->obj.posinfo.position.y;
+                shipCenter->z = ship->obj.posinfo.position.z;
                 return;
             }
         }
@@ -532,8 +532,8 @@ sdword cratesIsLocationGood(vector *location)
             //in blob..need to do detecting
             for(i=0;i<curblob->blobShips->numShips;i++)
             {
-                vecSub(seperation,*location,curblob->blobShips->ShipPtr[i]->collInfo.collPosition);
-                if(vecMagnitudeSquared(seperation) < curblob->blobShips->ShipPtr[i]->staticinfo->staticheader.staticCollInfo.collspheresizeSqr)
+                vecSub(seperation,*location,curblob->blobShips->ShipPtr[i]->impactable.collInfo.collPosition);
+                if(vecMagnitudeSquared(seperation) < curblob->blobShips->ShipPtr[i]->staticinfo->common.staticCollInfo.collspheresizeSqr)
                 {
                     //WITHIN collision radius of ship
                     return FALSE;
@@ -574,7 +574,7 @@ void cratesGetBestCrateLocation(vector *location)
         }
         else
         {
-            vecAddTo(centerMotherShips,universe.players[i].PlayerMothership->posinfo.position);
+            vecAddTo(centerMotherShips,universe.players[i].PlayerMothership->obj.posinfo.position);
         }
     }
     //get average
@@ -590,7 +590,7 @@ void cratesGetBestCrateLocation(vector *location)
         }
         else
         {
-            mothershipcenter = universe.players[i].PlayerMothership->posinfo.position;
+            mothershipcenter = universe.players[i].PlayerMothership->obj.posinfo.position;
         }
 
         vecSub(destinationVectors[i],mothershipcenter,centerMotherShips);
@@ -738,13 +738,13 @@ void expireCrate(Derelict *crate)
 
     if (etgLOD != NULL)
     {
-        if (crate->currentLOD >= etgLOD->nLevels)
+        if (crate->obj.currentLOD >= etgLOD->nLevels)
         {
             stat = NULL;
         }
         else
         {
-            stat = etgLOD->level[crate->currentLOD];
+            stat = etgLOD->level[crate->obj.currentLOD];
         }
     }
     else
@@ -757,7 +757,7 @@ void expireCrate(Derelict *crate)
     if (stat != NULL)
     #endif
     {
-        etgEffectCreate(stat, NULL, &crate->posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
+        etgEffectCreate(stat, NULL, &crate->obj.posinfo.position, &zero, &ident, 1.0f, EAF_AllButNLips, 0);
     }
 
 }

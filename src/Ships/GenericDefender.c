@@ -125,7 +125,7 @@ void GenericDefenderAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdist)
             range = RangeToTargetGivenDist(ship,target,dist);
             if (range > newrange)
             {
-                aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FastAsPossible|AISHIP_PointInDirectionFlying,0.0f,&target->posinfo.velocity);
+                aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FastAsPossible|AISHIP_PointInDirectionFlying,0.0f,&target->obj.posinfo.velocity);
                 break;
             }
 #if DEBUG_DEFENDER
@@ -152,12 +152,12 @@ circleAlreadyCalculatedTrajectory:
 
             aitrackHeading(ship,&trajectory,FLYSHIP_ATTACKACCURACY);
 
-            matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
-            rightvelocity = vecDotProduct(right,ship->posinfo.velocity);
+            matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
+            rightvelocity = vecDotProduct(right,ship->obj.posinfo.velocity);
 
             if (rightvelocity < defenderstat->CIRCLE_RIGHT_VELOCITY)
             {
-                physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_RIGHT]*defenderstat->CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
+                physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_RIGHT]*defenderstat->CIRCLE_RIGHT_THRUST,TRANS_RIGHT);
             }
 
             if (range < defenderstat->tooCloseRange[ship->tacticstype])
@@ -218,7 +218,7 @@ void doKamikazeAttack(Ship *ship,SpaceObjRotImpTarg *target)
     vector destination,trajectory,heading,shipheading,EinsteinVelocity;
     ShipStaticInfo *shipstaticinfo = ship->staticinfo;
 
-    vecSub(trajectory,target->collInfo.collPosition,ship->posinfo.position);
+    vecSub(trajectory,target->impactable.collInfo.collPosition,ship->obj.posinfo.position);
     mag = vecMagnitudeSquared(trajectory);
     dist = fsqrt(mag);
 
@@ -230,7 +230,7 @@ void doKamikazeAttack(Ship *ship,SpaceObjRotImpTarg *target)
     //slow down as it reaches its destination
     mag = dist + 500.0f;
     vecScalarMultiply(destination,destination,mag);
-    vecAddTo(destination,target->collInfo.collPosition);
+    vecAddTo(destination,target->impactable.collInfo.collPosition);
 
     range = RangeToTargetGivenDist(ship,target,dist);
 
@@ -238,13 +238,13 @@ void doKamikazeAttack(Ship *ship,SpaceObjRotImpTarg *target)
     {
     case K_Start:
         //if within a threshold range
-        bitClear(ship->specialFlags,SPECIAL_KamikazeCrazyFast);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast);
         if(range < 500.0f)
         {
             //calculate flyby dist
-            matGetVectFromMatrixCol3(shipheading, ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(shipheading, ship->rotatable.rotinfo.coordsys);
             vecScalarMultiply(shipheading,shipheading,kamikazeFlyByDist);
-            vecAdd(ship->kamikazeVector,shipheading,target->collInfo.collPosition);
+            vecAdd(ship->kamikazeVector,shipheading,target->impactable.collInfo.collPosition);
             ship->kamikazeState = K_TurnAround;
         }
         ship->kamikazeState = K_Ram;
@@ -258,7 +258,7 @@ void doKamikazeAttack(Ship *ship,SpaceObjRotImpTarg *target)
         }
     case K_Ram2:
         //lets use...mmmmm..twister theor...no...relativity
-        vecSub(EinsteinVelocity,ship->posinfo.velocity,target->posinfo.velocity);
+        vecSub(EinsteinVelocity,ship->obj.posinfo.velocity,target->obj.posinfo.velocity);
         shipvel = fsqrt(vecMagnitudeSquared(EinsteinVelocity));
         if(ship->shiptype == MinelayerCorvette)
         {
@@ -276,7 +276,7 @@ void doKamikazeAttack(Ship *ship,SpaceObjRotImpTarg *target)
                 GenericInterceptorStatics *interceptorstat = (GenericInterceptorStatics *)shipstaticinfo->custstatinfo;
                 uword targetIndex;
 
-                if (target->objtype == OBJ_ShipType)
+                if (target->header.objtype == OBJ_ShipType)
                 {
                     targetIndex = (uword)((ShipStaticInfo *)target->staticinfo)->shipclass;
                 }
@@ -299,36 +299,36 @@ dontshoot:
         aishipFlyToPointAvoidingObjs(ship,&destination,AISHIP_PointInDirectionFlying | AISHIP_FirstPointInDirectionFlying | AISHIP_FastAsPossible,0.0f);
         if(range < 1500.0f)
         {
-            bitSet(ship->specialFlags,SPECIAL_KamikazeCrazyFast);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast);
         }
         else
         {
-            bitClear(ship->specialFlags,SPECIAL_KamikazeCrazyFast);
+            bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast);
         }
 
 /*
-        if(range < 400.0f && (shipvel < ship->staticinfo->staticheader.maxvelocity*0.7f ||
+        if(range < 400.0f && (shipvel < ship->staticinfo->common.maxvelocity*0.7f ||
                    vecDotProduct(trajectory,heading) < 0))
         {
             //ship is inside 400.0f, and isn't faceing ship, or isn't
             //going fast enough
 
             //calculate flyby dist
-            matGetVectFromMatrixCol3(shipheading, ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(shipheading, ship->rotatable.rotinfo.coordsys);
             vecScalarMultiply(shipheading,shipheading,kamikazeFlyByDist);
-            vecAdd(ship->kamikazeVector,shipheading,target->posinfo.position);
+            vecAdd(ship->kamikazeVector,shipheading,target->obj.posinfo.position);
             ship->kamikazeState = K_TurnAround;
         }
 */
         break;
     case K_TurnAround:
-        bitClear(ship->specialFlags,SPECIAL_KamikazeCrazyFast);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast);
         aishipFlyToPointAvoidingObjs(ship,&ship->kamikazeVector,AISHIP_PointInDirectionFlying | AISHIP_FirstPointInDirectionFlying | AISHIP_FastAsPossible,0.0f);
         if(MoveReachedDestinationVariable(ship,&ship->kamikazeVector,300.0f))
             ship->kamikazeState = K_TurnAround2;
         break;
     case K_TurnAround2:
-        bitClear(ship->specialFlags,SPECIAL_KamikazeCrazyFast);
+        bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_KamikazeCrazyFast);
         if(aitrackHeadingWithFlags(ship,&heading,0.90f,AITRACKHEADING_IGNOREUPVEC))
             ship->kamikazeState = K_Ram;
         break;

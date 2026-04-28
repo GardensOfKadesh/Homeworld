@@ -125,12 +125,12 @@ void P2MultiBeamFrigateAttackDoAttack(Ship *ship,SpaceObjRotImpTarg *target,real
 	{
 		aitrackZeroVelocity(ship);
 	}
-    matGetVectFromMatrixCol2(shipRightVec,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol2(shipRightVec,ship->rotatable.rotinfo.coordsys);
 
     aitrackHeadingAndUp(ship,&trajectory,&shipRightVec,0.9999f);
 
     
-	if(vecMagnitudeSquared(ship->rotinfo.rotspeed) > frigstat->AttackRotationSpeed)
+	if(vecMagnitudeSquared(ship->rotatable.rotinfo.rotspeed) > frigstat->AttackRotationSpeed)
     {
 		if(aitrackHeadingWithFlags(ship,&trajectory,0.99f,AITRACKHEADING_IGNOREUPVEC|AITRACK_DONT_ZERO_ME))
 		{

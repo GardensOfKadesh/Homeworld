@@ -167,22 +167,22 @@ void startRepairEffect(Ship *ship,SpaceObjRotImpTarg *target,vector *trajectory,
     udword intLength;
     udword intWidth;
     matrix coordsys;
-    real32 targetRadius = target->staticinfo->staticheader.staticCollInfo.collspheresize;
+    real32 targetRadius = target->staticinfo->common.staticCollInfo.collspheresize;
     vector repairBeamPosition;
 
-    matMultiplyMatByVec(&repairBeamPosition,&ship->rotinfo.coordsys,&repnozzlestatic->position);
+    matMultiplyMatByVec(&repairBeamPosition,&ship->rotatable.rotinfo.coordsys,&repnozzlestatic->position);
 
     matCreateCoordSysFromHeading(&coordsys,trajectory);
 
     intLength = Real32ToUdword(distance);
     intWidth = Real32ToUdword(targetRadius);
 
-    vecAddTo(repairBeamPosition,ship->posinfo.position);
+    vecAddTo(repairBeamPosition,ship->obj.posinfo.position);
 
     //create an effect for bullet, if applicable
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -202,7 +202,7 @@ void startRepairEffect(Ship *ship,SpaceObjRotImpTarg *target,vector *trajectory,
     if (stat != NULL && !etgFrequencyExceeded(stat))
     #endif
     {
-        ship->rceffect = etgEffectCreate(stat, ship, &repairBeamPosition, &ship->posinfo.velocity, &coordsys, 1.0f, EAF_Velocity | EAF_NLips, 2, intLength, intWidth);
+        ship->rceffect = etgEffectCreate(stat, ship, &repairBeamPosition, &ship->obj.posinfo.velocity, &coordsys, 1.0f, EAF_Velocity | EAF_NLips, 2, intLength, intWidth);
     }
     else
     {
@@ -219,7 +219,7 @@ void stopRepairEffect(Ship *ship)
     dbgAssertOrIgnore(ship->rceffect != NULL);
 #endif
 
-    if (bitTest(((etgeffectstatic *)ship->rceffect->staticinfo)->specialOps, ESO_SelfDeleting))
+    if (bitTest(ship->rceffect->staticinfo->specialOps, ESO_SelfDeleting))
     {                                                       //if the effect will delete itself
         ((real32 *)ship->rceffect->variable)[ETG_ResourceDurationParam] =
             ship->rceffect->timeElapsed;                            //time it out
@@ -228,7 +228,7 @@ void stopRepairEffect(Ship *ship)
     {                                                       //else it's a free-running effect... delete it
         etgEffectDelete(ship->rceffect);
         univRemoveObjFromRenderList((SpaceObj *)ship->rceffect);
-        listDeleteNode(&ship->rceffect->objlink);
+        listDeleteNode(&ship->rceffect->header.objlink);
     }
 
     //soundEventStop(ship->soundevent.specialHandle);
@@ -244,14 +244,14 @@ void ModifyRepairEffect(Effect *effect,Ship *ship,vector *trajectory,real32 dist
 
     dbgAssertOrIgnore(effect);
 
-    matMultiplyMatByVec(&repairBeamPosition,&ship->rotinfo.coordsys,&repnozzlestatic->position);
+    matMultiplyMatByVec(&repairBeamPosition,&ship->rotatable.rotinfo.coordsys,&repnozzlestatic->position);
 
-    vecAdd(effect->posinfo.position,repairBeamPosition,ship->posinfo.position);
+    vecAdd(effect->obj.posinfo.position,repairBeamPosition,ship->obj.posinfo.position);
 
-    matCreateCoordSysFromHeading(&effect->rotinfo.coordsys,trajectory);
+    matCreateCoordSysFromHeading(&effect->rotatable.rotinfo.coordsys,trajectory);
 
 	distance = max(200.0f,distance);
-	if(target->objtype == OBJ_ShipType)
+	if(target->header.objtype == OBJ_ShipType)
 	{
 		if(((Ship *)target)->shiptype == Mothership)
 		{
@@ -261,7 +261,7 @@ void ModifyRepairEffect(Effect *effect,Ship *ship,vector *trajectory,real32 dist
 
 
     ((real32 *)effect->variable)[ETG_ResourceLengthParam] = distance;
-    ((real32 *)effect->variable)[ETG_ResourceRadiusParam] = target->staticinfo->staticheader.staticCollInfo.collspheresize;
+    ((real32 *)effect->variable)[ETG_ResourceRadiusParam] = target->staticinfo->common.staticCollInfo.collspheresize;
 }
 
 //function will return the most heavily damaged target in the list, OR
@@ -271,7 +271,7 @@ bool32 areAllHealthy(Ship *ship,SelectAnyCommand *targets)
     sdword i;
     for(i=0;i<targets->numTargets;i++)
     {
-        if(targets->TargetPtr[i]->health != ((ShipStaticInfo *)targets->TargetPtr[i]->staticinfo)->maxhealth)
+        if(targets->TargetPtr[i]->health != targets->TargetPtr[i]->staticinfo->maxhealth)
         {
             return FALSE;
         }
@@ -293,19 +293,22 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
 
     for(i=0;i<targets->numTargets;)
     {
-        if(targets->TargetPtr[i]->objtype != OBJ_ShipType)
+        if(targets->TargetPtr[i]->header.objtype != OBJ_ShipType)
         {
             targets->numTargets--;
             targets->TargetPtr[i] = targets->TargetPtr[targets->numTargets];
             continue;
         }
-        targetCommand = getShipAndItsCommand(&universe.mainCommandLayer,(Ship *)targets->TargetPtr[i]);
+
+        //object is a ship
+        Ship* targetShip = (Ship *)targets->TargetPtr[i];
+        targetCommand = getShipAndItsCommand(&universe.mainCommandLayer, targetShip);
         if(targetCommand != NULL)
         {
             if(targetCommand->ordertype.order == COMMAND_DOCK)
             {
                 //remove docking ships from the list
-                if(((Ship *)targets->TargetPtr[i])->dockingship != NULL)
+                if(targetShip->shipOrDerelict.dockingship != NULL)
                 {
                     //only if in final stages
                     targets->numTargets--;
@@ -315,16 +318,15 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
             }
         }
 
-        //object is a ship
-        if((((Ship *)targets->TargetPtr[i])->staticinfo->shipclass != CLASS_Fighter &&
-            ((Ship *)targets->TargetPtr[i])->staticinfo->shipclass != CLASS_Corvette) ||
-            ((Ship *)targets->TargetPtr[i])->playerowner != ship->playerowner)
+        if((targetShip->staticinfo->shipclass != CLASS_Fighter &&
+            targetShip->staticinfo->shipclass != CLASS_Corvette) ||
+            targetShip->playerowner != ship->playerowner)
         {
             if(ship->staticinfo->repairBeamCapable)
             {
                 //repair corvette can repair capital ships!
                 //class doesn't matter
-                if(((Ship *)targets->TargetPtr[i])->playerowner == ship->playerowner)
+                if(targetShip->playerowner == ship->playerowner)
                 {
                     //ship is not a fighter or a corvette, but is ours, so we can fix it!
                     i++;
@@ -357,9 +359,11 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
     if(ship->staticinfo->repairBeamCapable)
     {
         //assume target is a ship!!!!
+        dbgAssertOrIgnore(target->header.objtype == OBJ_ShipType);
+        Ship* targetShip = (Ship*)target;
 
         //targets might be a capital ship
-        if(((Ship *)target)->staticinfo->shipclass != CLASS_Fighter)
+        if(targetShip->staticinfo->shipclass != CLASS_Fighter)
         {
             //target is such that it should be BEAM repaired!
             //so lets fly upto it and ZAP repair it!
@@ -370,7 +374,7 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
             vecNormalize(&trajectory);
             aitrackHeading(ship,&trajectory,0.999f);
 
-            if(((Ship *)target)->shiptype == Mothership)
+            if(targetShip->shiptype == Mothership)
             {
                 range1 = 2*ship->staticinfo->CapitalDistanceRepairStart;
                 range2 = 2*ship->staticinfo->CapitalDistanceRepairStart2;
@@ -403,7 +407,7 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
             //in range to repair this li'l ship
 
 
-            matGetVectFromMatrixCol3(curheading,ship->rotinfo.coordsys);
+            matGetVectFromMatrixCol3(curheading,ship->rotatable.rotinfo.coordsys);
             dotprod = vecDotProduct(trajectory,curheading);
 
             if(!areAllHealthy(ship,targets))
@@ -422,14 +426,14 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
                         ModifyRepairEffect(ship->rceffect,ship,&trajectory,range, target);
                     }
                     target->health+=ship->staticinfo->healthPerSecond*universe.phystimeelapsed;
-                    if(((Ship *)target)->health > ((Ship *)target)->staticinfo->maxhealth)
+                    if(targetShip->targetable.health > targetShip->staticinfo->health.maxhealth)
                     {
                         if(ship->rceffect != NULL)
                         {
                             //turn off ships effect
                             stopRepairEffect(ship);
                         }
-                        target->health = ((Ship *)target)->staticinfo->maxhealth;
+                        target->health = targetShip->staticinfo->health.maxhealth;
 
                         //fix this in a bit
                         targettemp = targets->TargetPtr[0];
@@ -474,19 +478,19 @@ bool32 refuelRepairShips(Ship *ship, SelectAnyCommand *targets,real32 rangetoRef
 
     if(range <= rangetoRefuel)
     {
+        //TODO(type safety, 2026-04-26): Make `target` a Ship* from the get-go. The for loop at the top of this function filters out anything that isn't
+        dbgAssertOrIgnore(target->header.objtype == OBJ_ShipType);
+        Ship* targetShip = (Ship*)target;
         //within repair range
         selectOne.numShips = 1;
-        selectOne.ShipPtr[0] = (Ship *) target;
-        if(target->objtype == OBJ_ShipType)
-        {
-            ((Ship *)target)->fuel += 300.0f;   //??? appropriate ammount?
-            if(((Ship *)target)->fuel > ((Ship *)target)->staticinfo->maxfuel)
-                ((Ship *)target)->fuel = ((Ship *)target)->staticinfo->maxfuel;
+        selectOne.ShipPtr[0] = targetShip;
+        targetShip->fuel += 300.0f;   //??? appropriate ammount?
+        if(targetShip->fuel > targetShip->staticinfo->maxfuel)
+            targetShip->fuel = targetShip->staticinfo->maxfuel;
 
-            //"speech event?  Switching to Emergency Docking Fuel Supply?
-            //cldock
-            clDock(&universe.mainCommandLayer,&selectOne,DOCK_AT_SPECIFIC_SHIP,ship);
-        }
+        //"speech event?  Switching to Emergency Docking Fuel Supply?
+        //cldock
+        clDock(&universe.mainCommandLayer,&selectOne,DOCK_AT_SPECIFIC_SHIP,ship);
         targets->numTargets--;
         if(targets->numTargets <= 0)
             return TRUE;

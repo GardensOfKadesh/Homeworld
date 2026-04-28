@@ -86,10 +86,10 @@ void univDFGFieldEffect(Ship *ship, Bullet *bullet,real32 totaltimeelapsed)
         return;
     }
 
-    bulletspeed = fsqrt(vecMagnitudeSquared(bullet->posinfo.velocity));
+    bulletspeed = fsqrt(vecMagnitudeSquared(bullet->obj.posinfo.velocity));
 
     //coorsys for deflection effect
-    vecSub(shiptobullet,bullet->posinfo.position,ship->posinfo.position);
+    vecSub(shiptobullet,bullet->obj.posinfo.position,ship->obj.posinfo.position);
 
     vecNormalize(&shiptobullet);
     matCreateCoordSysFromHeading(&tmpmatrix,&shiptobullet);
@@ -99,7 +99,7 @@ void univDFGFieldEffect(Ship *ship, Bullet *bullet,real32 totaltimeelapsed)
     etgLOD = etgSpecialPurposeEffectTable[EGT_BULLET_DEFLECT];
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -125,7 +125,7 @@ void univDFGFieldEffect(Ship *ship, Bullet *bullet,real32 totaltimeelapsed)
             floatDamage = (real32)bullet->damage;
             floatDamage *= ship->magnitudeSquared;
             intDamage = Real32ToUdword(floatDamage);
-            etgEffectCreate(stat, ship, &bullet->posinfo.position, NULL, &tmpmatrix, ship->magnitudeSquared, EAF_Velocity | EAF_NLips, 1, intDamage);
+            etgEffectCreate(stat, ship, &bullet->obj.posinfo.position, NULL, &tmpmatrix, ship->magnitudeSquared, EAF_Velocity | EAF_NLips, 1, intDamage);
         }
     }
 
@@ -149,8 +149,8 @@ void univDFGFieldEffect(Ship *ship, Bullet *bullet,real32 totaltimeelapsed)
 
     vecNormalize(&newbulletdir);     //maybe don't need
 
-    matCreateCoordSysFromHeading(&bullet->rotinfo.coordsys,&newbulletdir);
-    vecScalarMultiply(bullet->posinfo.velocity,newbulletdir,bulletspeed);
+    matCreateCoordSysFromHeading(&bullet->rotatable.rotinfo.coordsys,&newbulletdir);
+    vecScalarMultiply(bullet->obj.posinfo.velocity,newbulletdir,bulletspeed);
     vecScalarMultiply(bullet->lengthvec,newbulletdir,bullet->lengthmag);
     bullet->bulletheading = newbulletdir;
 

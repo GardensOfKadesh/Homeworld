@@ -923,9 +923,9 @@ void aiplayerShipLaunchedCallback(Ship *ship)
         aiplayer = ship->playerowner->aiPlayer;
         if (aiplayer != NULL)
         {
-            if (bitTest(ship->specialFlags, SPECIAL_LaunchedFromKas))
+            if (bitTest(ship->shipOrDerelict.specialFlags, SPECIAL_LaunchedFromKas))
             {
-                bitClear(ship->specialFlags, SPECIAL_LaunchedFromKas);
+                bitClear(ship->shipOrDerelict.specialFlags, SPECIAL_LaunchedFromKas);
             }
             else
             {
@@ -1263,7 +1263,7 @@ void BuildShipList(AIPlayer *aiplayer)
     {
         ship = (Ship *)listGetStructOfNode(shipnode);
 
-        if (((ship->flags & SOF_NISShip) == 0) &&
+        if (((ship->header.flags & SOF_NISShip) == 0) &&
             (ship->playerowner == aiplayer->player) && ShipNotOnTeam(aiplayer, ship))
         {
             growSelectAddShip(&aiplayer->newships, ship);
@@ -1366,7 +1366,7 @@ void aiplayerShipDied(ShipPtr ship)
 
     kasShipDied(ship);      // kas runs even when NIS running, so always report ship deaths.
 
-    if (ship->flags & SOF_NISShip)
+    if (ship->header.flags & SOF_NISShip)
     {
         return;
     }
@@ -1380,13 +1380,13 @@ void aiplayerShipDied(ShipPtr ship)
             aiCurrentAIPlayer = aiplayer;
             playerIndex = aiplayer->player->playerIndex;
 
-            if ((ship->playerowner == aiplayer->player) || (ship->attributes & ATTRIBUTES_Defector)) // do all checks for defector
+            if ((ship->playerowner == aiplayer->player) || (ship->obj.attributes & ATTRIBUTES_Defector)) // do all checks for defector
             {
                 if (ship->playerowner == aiplayer->player) ThisAIPlayerShipDiedCB(aiplayer,ship);
 
                 if (growSelectRemoveShip(&aiplayer->newships, ship))
                 {
-                    if ((aiplayer->numLeaders) && (bitTest(ship->attributes, ATTRIBUTES_TeamLeader)))
+                    if ((aiplayer->numLeaders) && (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader)))
                     {
                         aiplayer->numLeaders--;
                     }
@@ -1488,7 +1488,7 @@ void aiplayerChangeBigotry(udword newvalue)
 void aiplayerAddLeader(AIPlayer *aiplayer, ShipPtr ship)
 {
     aiplayer->numLeaders++;
-    bitSet(ship->attributes, ATTRIBUTES_TeamLeader);
+    bitSet(ship->obj.attributes, ATTRIBUTES_TeamLeader);
     aiplayerLog((aiplayer->player->playerIndex, "Added Leader to aiplayer"));
 }
 

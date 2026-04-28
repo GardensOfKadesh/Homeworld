@@ -422,7 +422,7 @@ void allianceRemovePlayerShipsFromAttackList(SelectAnyCommand *list,uword player
 
     for (index=0;index<list->numTargets;index++)
     {
-        if ((list->TargetPtr[index]->objtype == OBJ_ShipType) &&
+        if ((list->TargetPtr[index]->header.objtype == OBJ_ShipType) &&
             ( ((Ship *)list->TargetPtr[index])->playerowner->playerIndex == playerindex ) )
         {
             RemoveAttackTargetFromExtraAttackInfo(list->TargetPtr[index],todo);
@@ -493,7 +493,7 @@ void allianceBreakAll(void)
 ----------------------------------------------------------------------------*/
 bool32 allianceIsShipAlly(Ship *ship, Player *player)
 {
-    if ((ship->playerowner == player) || (bitTest(ship->attributes, ATTRIBUTES_Defector)))
+    if ((ship->playerowner == player) || (bitTest(ship->obj.attributes, ATTRIBUTES_Defector)))
     {
         return TRUE;     // always considered ally with yourself
     }

@@ -53,11 +53,11 @@ bool32 needToGoToSameVerticalPlane(Ship *ship,SpaceObjRotImpTarg *target, real32
         return TRUE;
     }
 
-    speedSqr = vecMagnitudeSquared(target->posinfo.velocity);
+    speedSqr = vecMagnitudeSquared(target->obj.posinfo.velocity);
 
     if(speedSqr > speedToleranceSqr)
     {
-        ydist = ship->posinfo.position.z - target->posinfo.position.z;
+        ydist = ship->obj.posinfo.position.z - target->obj.posinfo.position.z;
 
         if(ydist < 0.0f)
         {
@@ -91,7 +91,7 @@ void attackPassiveRotate(Ship *ship,Ship *target)
 //    CommandToDo *command;
 //    sdword i;
 
-    if (ship->specialFlags & SPECIAL_Hyperspacing)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_Hyperspacing)
         return;
 
     aishipGetTrajectory(ship,(SpaceObjRotImpTarg *)target,&trajectory);
@@ -102,7 +102,7 @@ void attackPassiveRotate(Ship *ship,Ship *target)
     }
     else if (isCapitalShip(ship))
     {
-        if (vecMagnitudeSquared(target->posinfo.velocity) > capShipLieFlatInGeneralSpeedSqrTolerance[ship->staticinfo->shipclass])
+        if (vecMagnitudeSquared(target->obj.posinfo.velocity) > capShipLieFlatInGeneralSpeedSqrTolerance[ship->staticinfo->shipclass])
         {
             trajectory.z = 0.0f;
         }
@@ -159,7 +159,7 @@ void attackPassiveRotate(Ship *ship,Ship *target)
             }
         }
         vecScalarMultiply(trajectory,trajectory,-5000.0f);
-        vecAddTo(trajectory,ship->posinfo.position);
+        vecAddTo(trajectory,ship->obj.posinfo.position);
         aishipFlyToPointAvoidingObjs(ship,&trajectory,AISHIP_FastAsPossible,0.0f);
     }
     */
@@ -206,7 +206,7 @@ void attackPassive(Ship *ship,Ship *target)
 //    CommandToDo *command;
 //    sdword i;
 
-    if (ship->specialFlags & SPECIAL_Hyperspacing)
+    if (ship->shipOrDerelict.specialFlags & SPECIAL_Hyperspacing)
         return;
 
     if (ship->attackvars.multipleAttackTargets)
@@ -259,7 +259,7 @@ void attackPassive(Ship *ship,Ship *target)
             }
         }
         vecScalarMultiply(trajectory,trajectory,-5000.0f);
-        vecAddTo(trajectory,ship->posinfo.position);
+        vecAddTo(trajectory,ship->obj.posinfo.position);
         aishipFlyToPointAvoidingObjs(ship,&trajectory,AISHIP_FastAsPossible,0.0f);
     }
     */
@@ -293,9 +293,9 @@ void attackStraightForward(Ship *ship,SpaceObjRotImpTarg *target,real32 gunRange
     if(capShipLieFlatInGeneralSpeedSqrTolerance[ship->staticinfo->shipclass] != 0.0f
        && needToGoToSameVerticalPlane(ship,target,capShipLieFlatInGeneralDistanceTolerance[ship->staticinfo->shipclass],capShipLieFlatInGeneralSpeedSqrTolerance[ship->staticinfo->shipclass]))
     {
-        destination.x = ship->posinfo.position.x;
-        destination.z = target->posinfo.position.z;
-        destination.y = ship->posinfo.position.y;
+        destination.x = ship->obj.posinfo.position.x;
+        destination.z = target->obj.posinfo.position.z;
+        destination.y = ship->obj.posinfo.position.y;
 
         //aishipFlyToPointAvoidingObjs(ship,&destination,AISHIP_FastAsPossible,0.0f);
 
@@ -303,11 +303,11 @@ void attackStraightForward(Ship *ship,SpaceObjRotImpTarg *target,real32 gunRange
         if (range > tooCloseRange)
         {
             // about right range
-            vecAddTo(destination,target->posinfo.position);
+            vecAddTo(destination,target->obj.posinfo.position);
             vecMultiplyByScalar(destination,0.5f);      // avg of target position and previous destination
         }
 
-        if(target->objtype == OBJ_ShipType)
+        if(target->header.objtype == OBJ_ShipType)
         {
             if( ((Ship *)target)->staticinfo->shipclass == CLASS_Fighter ||
                 ((Ship *)target)->staticinfo->shipclass == CLASS_Corvette)
@@ -330,7 +330,7 @@ void attackStraightForward(Ship *ship,SpaceObjRotImpTarg *target,real32 gunRange
             }
         }
 
-        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&target->posinfo.velocity);
+        aishipFlyToPointAvoidingObjsWithVel(ship,&destination,0,0.0f,&target->obj.posinfo.velocity);
 dontgotosameplane:
 
         newHeading.y = trajectory.y;
@@ -350,12 +350,12 @@ dontgotosameplane:
         {
             // too far away, so fly in
 
-            aishipFlyToShipAvoidingObjsWithVel(ship,target,0,0.0f,&target->posinfo.velocity);
+            aishipFlyToShipAvoidingObjsWithVel(ship,target,0,0.0f,&target->obj.posinfo.velocity);
         }
         else if (range > tooCloseRange)
         {
             // about right range
-            aishipFlyToShipAvoidingObjsWithVel(ship,target,0,0.0f,&target->posinfo.velocity);
+            aishipFlyToShipAvoidingObjsWithVel(ship,target,0,0.0f,&target->obj.posinfo.velocity);
             shootguns = TRUE;
         }
         else
@@ -449,7 +449,7 @@ void attackSideStep(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *attack
                 }
                 else
                 {
-                    if (ship->specialFlags & SPECIAL_AttackFromAbove)
+                    if (ship->shipOrDerelict.specialFlags & SPECIAL_AttackFromAbove)
                         attacksidestep->aidirection = (gamerand() & 3) ? TRANS_UP : TRANS_DOWN;
                     else
                         attacksidestep->aidirection = (gamerand() & 3) ? TRANS_RIGHT : TRANS_LEFT;
@@ -471,14 +471,14 @@ void attackSideStep(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *attack
 
             dist = fsqrt(vecMagnitudeSquared(trajectory));
             vecDivideByScalar(trajectory,dist,temp);
-            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_HEADINGACCURACY,shipstaticinfo->sinbank);
+            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_HEADINGACCURACY,shipstaticinfo->shipOrDerelict.sinbank);
 
             range = RangeToTargetGivenDist(ship,target,dist);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*0.5f,TRANS_FORWARD);
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[attacksidestep->aidirection],(uword)attacksidestep->aidirection);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*0.5f,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[attacksidestep->aidirection],(uword)attacksidestep->aidirection);
 
-            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->posinfo.velocity);     // just avoid objects
+            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->obj.posinfo.velocity);     // just avoid objects
 
             if (ship->attackvars.multipleAttackTargets)
             {
@@ -508,9 +508,9 @@ void attackSideStep(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *attack
             dist = fsqrt(vecMagnitudeSquared(trajectory));
             vecDivideByScalar(trajectory,dist,temp);
 
-            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->posinfo.velocity);     // just avoid objects
+            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->obj.posinfo.velocity);     // just avoid objects
 
-            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_ATTACKACCURACY,shipstaticinfo->sinbank);
+            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_ATTACKACCURACY,shipstaticinfo->shipOrDerelict.sinbank);
 
             range = RangeToTargetGivenDist(ship,target,dist);
 
@@ -537,7 +537,7 @@ void attackSideStep(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *attack
                 }
                 else
                 {
-                    if (ship->specialFlags & SPECIAL_AttackFromAbove)
+                    if (ship->shipOrDerelict.specialFlags & SPECIAL_AttackFromAbove)
                         attacksidestep->aidirection = (gamerand() & 3) ? TRANS_UP : TRANS_DOWN;
                     else
                         attacksidestep->aidirection = (gamerand() & 3) ? TRANS_RIGHT : TRANS_LEFT;
@@ -560,12 +560,12 @@ void attackSideStep(Ship *ship,SpaceObjRotImpTarg *target,AttackSideStep *attack
 
             dist = fsqrt(vecMagnitudeSquared(trajectory));
             vecDivideByScalar(trajectory,dist,temp);
-            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_HEADINGACCURACY,shipstaticinfo->sinbank);
+            aitrackHeadingWithBank(ship,&trajectory,FLYSHIP_HEADINGACCURACY,shipstaticinfo->shipOrDerelict.sinbank);
 
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[attacksidestep->aidirection],(uword)attacksidestep->aidirection);
-            physApplyForceToObj((SpaceObj *)ship,ship->nonstatvars.thruststrength[TRANS_FORWARD]*0.5f,TRANS_FORWARD);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[attacksidestep->aidirection],(uword)attacksidestep->aidirection);
+            physApplyForceToObj(&ship->obj,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]*0.5f,TRANS_FORWARD);
 
-            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->posinfo.velocity);     // just avoid objects
+            aishipFlyToPointAvoidingObjsWithVel(ship,NULL,0,0.0f,&ship->obj.posinfo.velocity);     // just avoid objects
 
             range = RangeToTargetGivenDist(ship,target,dist);
 

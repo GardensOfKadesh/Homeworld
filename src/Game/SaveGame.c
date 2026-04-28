@@ -175,7 +175,7 @@ Ship *SpaceObjRegistryGetShip(sdword id)
 
         dbgAssertOrIgnore(id < SpaceObjRegistry.selection->numShips);
         ship = SpaceObjRegistry.selection->ShipPtr[id];
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
         return ship;
     }
     
@@ -190,7 +190,7 @@ Resource *SpaceObjRegistryGetResource(sdword id)
 
         dbgAssertOrIgnore(id < SpaceObjRegistry.selection->numShips);
         resource = (Resource *)SpaceObjRegistry.selection->ShipPtr[id];
-        dbgAssertOrIgnore(resource->flags & SOF_Resource);
+        dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
         return resource;
     }
     
@@ -205,7 +205,7 @@ Bullet *SpaceObjRegistryGetBullet(sdword id)
 
         dbgAssertOrIgnore(id < SpaceObjRegistry.selection->numShips);
         bullet = (Bullet *)SpaceObjRegistry.selection->ShipPtr[id];
-        dbgAssertOrIgnore(bullet->objtype == OBJ_BulletType);
+        dbgAssertOrIgnore(bullet->header.objtype == OBJ_BulletType);
         return bullet;
     }
     
@@ -220,7 +220,7 @@ TargetPtr SpaceObjRegistryGetTarget(sdword id)
 
         dbgAssertOrIgnore(id < SpaceObjRegistry.selection->numShips);
         target = (TargetPtr)SpaceObjRegistry.selection->ShipPtr[id];
-        dbgAssertOrIgnore(target->flags & SOF_Targetable);
+        dbgAssertOrIgnore(target->header.flags & SOF_Targetable);
         return target;
     }
     
@@ -900,8 +900,8 @@ void RegisterAllSpaceObjsInsideMe(ShipsInsideMe *shipsInsideMe)
     while (insidenode != NULL)
     {
         insideship = (InsideShip *)listGetStructOfNode(insidenode);
-        dbgAssertOrIgnore(insideship->ship->objtype == OBJ_ShipType);
-        if ((insideship->ship->flags & SOF_Dead) == 0)
+        dbgAssertOrIgnore(insideship->ship->header.objtype == OBJ_ShipType);
+        if ((insideship->ship->header.flags & SOF_Dead) == 0)
         {
             SpaceObjRegistryRegister((SpaceObj *)insideship->ship);
         }
@@ -919,17 +919,17 @@ void RegisterAllSpaceObjs(void)
     {
         obj = (SpaceObj *)listGetStructOfNode(node);
 
-        if (obj->objtype == OBJ_EffectType)
+        if (obj->header.objtype == OBJ_EffectType)
         {
             goto nextnode;
         }
-        if (obj->flags & SOF_Dead)
+        if (obj->header.flags & SOF_Dead)
         {
             goto nextnode;
         }
 
         SpaceObjRegistryRegister(obj);
-        if (obj->objtype == OBJ_ShipType)
+        if (obj->header.objtype == OBJ_ShipType)
         {
             if (((Ship *)obj)->shipsInsideMe != NULL)
             {
@@ -947,7 +947,7 @@ nextnode:
     {
         obj = (SpaceObj *)listGetStructOfNode(node);
 
-        if ((obj->flags & SOF_Dead) == 0)
+        if ((obj->header.flags & SOF_Dead) == 0)
         {
             SpaceObjRegistryRegister(obj);
         }
@@ -964,8 +964,8 @@ nextnode:
         {
             insideship = (InsideShip *)listGetStructOfNode(node);
             ship = insideship->ship;
-            dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
-            dbgAssertOrIgnore((ship->flags & SOF_Dead) == 0);
+            dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
+            dbgAssertOrIgnore((ship->header.flags & SOF_Dead) == 0);
 
             SpaceObjRegistryRegister((SpaceObj *)ship);
             if (ship->shipsInsideMe != NULL)
@@ -1320,7 +1320,7 @@ void FixDockInfo(Ship *ship)
     }
 }
 
-void SaveSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *ship)
+void SaveSalvageInfo(ShipOrDerelict *ship)
 {
     SalvageInfo *originalSalvageInfo = ship->salvageInfo;
     SalvageInfo *savecontents;
@@ -1346,7 +1346,7 @@ void SaveSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *ship)
     memFree(chunk);
 }
 
-void LoadSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *ship)
+void LoadSalvageInfo(ShipOrDerelict *ship)
 {
     SalvageInfo *loadedSalvageInfo;
     SalvageInfo *originalSalvageInfo;
@@ -1367,7 +1367,7 @@ void LoadSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *ship)
     ship->salvageInfo = loadedSalvageInfo;
 }
 
-void FixSalvageInfo(SpaceObjRotImpTargGuidanceShipDerelict *ship)
+void FixSalvageInfo(ShipOrDerelict *ship)
 {
     SalvageInfo *salvageInfo = ship->salvageInfo;
     SalvagePoint *salvagePoint;
@@ -1632,7 +1632,7 @@ void FixShipsInsideMe(Ship *ship)
     FixLinkedListOfInsideShips(&ship->shipsInsideMe->insideList);
 }
 
-void CopyPointersFromRealStaticHeader(StaticHeader *dynamicstaticheader,StaticHeader *realstaticheader)
+void CopyPointersFromRealStaticHeader(StaticInfo *dynamicstaticheader,StaticInfo *realstaticheader)
 {
     dynamicstaticheader->LOD = realstaticheader->LOD;
     dynamicstaticheader->pMexData = realstaticheader->pMexData;
@@ -1640,21 +1640,21 @@ void CopyPointersFromRealStaticHeader(StaticHeader *dynamicstaticheader,StaticHe
 
 void CopyPointersFromRealAsteroidStaticInfo(AsteroidStaticInfo *dynamicstaticinfo,AsteroidStaticInfo *realstaticinfo)
 {
-    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->staticheader,&realstaticinfo->staticheader);
+    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->common,&realstaticinfo->common);
 }
 
 void CopyPointersFromRealDustCloudStaticInfo(DustCloudStaticInfo *dynamicstaticinfo,DustCloudStaticInfo *realstaticinfo)
 {
-    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->staticheader,&realstaticinfo->staticheader);
+    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->common,&realstaticinfo->common);
 }
 
 void CopyPointersFromRealShipStaticInfo(ShipStaticInfo *dynamicstaticinfo,ShipStaticInfo *realstaticinfo)
 {
     sdword i;
 
-    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->staticheader,&realstaticinfo->staticheader);
+    CopyPointersFromRealStaticHeader(&dynamicstaticinfo->common,&realstaticinfo->common);
 
-    dynamicstaticinfo->salvageStaticInfo = realstaticinfo->salvageStaticInfo;
+    dynamicstaticinfo->shipOrDerelict.salvageStaticInfo = realstaticinfo->shipOrDerelict.salvageStaticInfo;
     dynamicstaticinfo->custshipheader = realstaticinfo->custshipheader;
     dynamicstaticinfo->custstatinfo = realstaticinfo->custstatinfo;
 
@@ -1716,7 +1716,7 @@ void SaveShip(Ship *ship)
         sizeship += sizespec - sizeof(udword);
     }
     totalsize = sizeship;
-    if (shipstaticinfo->staticheader.staticCollInfo.preciseSelection != 0xff)
+    if (shipstaticinfo->common.staticCollInfo.preciseSelection != 0xff)
     {
         totalsize += sizeof(PreciseSelection);
     }
@@ -1732,11 +1732,11 @@ void SaveShip(Ship *ship)
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetID(ship->collMyBlob);
-    savecontents->collInfo.precise = NULL;
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetID(ship->obj.collMyBlob);
+    savecontents->impactable.collInfo.precise = NULL;
     savecontents->playerowner = (Player*)SavePlayerToPlayerIndex(savecontents->playerowner);
 
-    savecontents->dockingship = (Ship *)SpaceObjRegistryGetID((SpaceObj *)ship->dockingship);
+    savecontents->shipOrDerelict.dockingship = (Ship *)SpaceObjRegistryGetID((SpaceObj *)ship->shipOrDerelict.dockingship);
     savecontents->rowGetOutOfWay = (Ship*)SpaceObjRegistryGetID((SpaceObj *)ship->rowGetOutOfWay);
     savecontents->gettingrocked = NULL;
     savecontents->recentAttacker = (Ship*)SpaceObjRegistryGetID((SpaceObj *)ship->recentAttacker);
@@ -1818,21 +1818,21 @@ void SaveShip(Ship *ship)
 
     SaveThisChunk(chunk);
 
-    if (ship->flags & SOF_StaticInfoIsDynamic)
+    if (ship->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = CreateChunk(BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(ShipStaticInfo),ship->staticinfo);
         SaveThisChunk(statchunk);
         memFree(statchunk);
     }
 
-    if (ship->clampInfo != NULL)
+    if (ship->guidance.clampInfo != NULL)
     {
-        SaveClampInfo(ship->clampInfo);
+        SaveClampInfo(ship->guidance.clampInfo);
     }
 
-    if (ship->salvageInfo != NULL)
+    if (ship->shipOrDerelict.salvageInfo != NULL)
     {
-        SaveSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)ship);
+        SaveSalvageInfo((ShipOrDerelict *)ship);
     }
 
     if (ship->flightmanInfo != NULL)
@@ -1856,7 +1856,7 @@ void SaveShip(Ship *ship)
         SaveStructureOfSize(ship->damageLights,ship->nDamageLights*sizeof(DamageLightStatic));
     }
 
-    if (ship->flags & SOF_Slaveable)
+    if (ship->header.flags & SOF_Slaveable)
     {
         dbgAssertOrIgnore(ship->slaveinfo);
         SaveSlaveInfo(ship);
@@ -1907,7 +1907,7 @@ Ship *LoadShip(SaveChunk *chunk)
     ship = memAlloc(chunk->contentsSize,"Ship",NonVolatile);
     memcpy(ship,chunkContents(chunk),chunk->contentsSize);
 
-    if (ship->flags & SOF_StaticInfoIsDynamic)
+    if (ship->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = LoadNextChunk();
         VerifyChunk(statchunk,BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(ShipStaticInfo));
@@ -1928,18 +1928,18 @@ Ship *LoadShip(SaveChunk *chunk)
         sizeship += sizespec - sizeof(udword);
     }
     totalsize = sizeship;
-    if (shipstaticinfo->staticheader.staticCollInfo.preciseSelection != 0xff)
+    if (shipstaticinfo->common.staticCollInfo.preciseSelection != 0xff)
     {
         totalsize += sizeof(PreciseSelection);
     }
 
-    if (shipstaticinfo->staticheader.staticCollInfo.preciseSelection != 0xff)
+    if (shipstaticinfo->common.staticCollInfo.preciseSelection != 0xff)
     {
-        ship->collInfo.precise = (PreciseSelection *)(((ubyte *)ship) + sizeship);
+        ship->impactable.collInfo.precise = (PreciseSelection *)(((ubyte *)ship) + sizeship);
     }
     else
     {
-        ship->collInfo.precise = NULL;
+        ship->impactable.collInfo.precise = NULL;
     }
 
     if (ship->madBindings)
@@ -1955,14 +1955,14 @@ Ship *LoadShip(SaveChunk *chunk)
     // re-initialize engine trails
     InitializeEngineTrails(ship);
 
-    if (ship->clampInfo != NULL)
+    if (ship->guidance.clampInfo != NULL)
     {
-        ship->clampInfo = LoadClampInfo();
+        ship->guidance.clampInfo = LoadClampInfo();
     }
 
-    if (ship->salvageInfo != NULL)
+    if (ship->shipOrDerelict.salvageInfo != NULL)
     {
-        LoadSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)ship);
+        LoadSalvageInfo((ShipOrDerelict *)ship);
     }
 
     if (ship->flightmanInfo != NULL)
@@ -1986,7 +1986,7 @@ Ship *LoadShip(SaveChunk *chunk)
         ship->damageLights = LoadStructureOfSize(ship->nDamageLights*sizeof(DamageLightStatic));
     }
 
-    if (ship->flags & SOF_Slaveable)
+    if (ship->header.flags & SOF_Slaveable)
     {
         LoadSlaveInfo(ship);
     }
@@ -2035,11 +2035,11 @@ void FixShip(Ship *ship)
 {
     ShipStaticInfo *shipstaticinfo = ship->staticinfo;
 
-    ship->collMyBlob = BlobRegistryGetBlob((sdword)ship->collMyBlob);
+    ship->obj.collMyBlob = BlobRegistryGetBlob((sdword)ship->obj.collMyBlob);
 
     ship->playerowner = SavePlayerIndexToPlayer(ship->playerowner);
 
-    ship->dockingship = SpaceObjRegistryGetShip((sdword)ship->dockingship);
+    ship->shipOrDerelict.dockingship = SpaceObjRegistryGetShip((sdword)ship->shipOrDerelict.dockingship);
 
     ship->rowGetOutOfWay = SpaceObjRegistryGetShip((sdword)ship->rowGetOutOfWay);
     ship->recentAttacker = SpaceObjRegistryGetShip((sdword)ship->recentAttacker);
@@ -2048,14 +2048,14 @@ void FixShip(Ship *ship)
     ship->formationcommand = ConvertNumToPointerInList(&universe.mainCommandLayer.todolist,(sdword)ship->formationcommand);
     ship->command = ConvertNumToPointerInList(&universe.mainCommandLayer.todolist,(sdword)ship->command);
 
-    if (ship->clampInfo)
+    if (ship->guidance.clampInfo)
     {
-        FixClampInfo(ship->clampInfo);
+        FixClampInfo(ship->guidance.clampInfo);
     }
 
-    if (ship->salvageInfo)
+    if (ship->shipOrDerelict.salvageInfo)
     {
-        FixSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)ship);
+        FixSalvageInfo((ShipOrDerelict *)ship);
     }
 
     if (ship->attackvars.multipleAttackTargets)
@@ -2083,7 +2083,7 @@ void FixShip(Ship *ship)
     if (ship->dockvars.dockship)
         ship->dockvars.launchpoints = GetLaunchPoints(shipstaticinfo,ship->dockvars.dockship->staticinfo);
 
-    if (ship->flags & SOF_Slaveable)
+    if (ship->header.flags & SOF_Slaveable)
     {
         FixSlaveInfo(ship);
     }
@@ -2124,15 +2124,15 @@ void SaveAsteroid(Asteroid *asteroid)
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetIDNoBlobOkay(asteroid->collMyBlob);
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetIDNoBlobOkay(asteroid->obj.collMyBlob);
 
-    savecontents->resourceVolume = (ResourceVolume *)ConvertPointerInListToNum(&universe.ResourceVolumeList,asteroid->resourceVolume);
+    savecontents->resource.resourceVolume = (ResourceVolume *)ConvertPointerInListToNum(&universe.ResourceVolumeList,asteroid->resource.resourceVolume);
 
     SaveThisChunk(chunk);
     memFree(chunk);
 
     dbgAssertOrIgnore(asteroid->staticinfo != NULL);
-    if (asteroid->flags & SOF_StaticInfoIsDynamic)
+    if (asteroid->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = CreateChunk(BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(AsteroidStaticInfo),asteroid->staticinfo);
         SaveThisChunk(statchunk);
@@ -2152,7 +2152,7 @@ Asteroid *LoadAsteroid(SaveChunk *chunk)
 
     memFree(chunk);
 
-    if (asteroid->flags & SOF_StaticInfoIsDynamic)
+    if (asteroid->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = LoadNextChunk();
         VerifyChunk(statchunk,BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(AsteroidStaticInfo));
@@ -2161,22 +2161,22 @@ Asteroid *LoadAsteroid(SaveChunk *chunk)
         memcpy(asteroid->staticinfo,chunkContents(statchunk),statchunk->contentsSize);
         memFree(statchunk);
 
-        CopyPointersFromRealAsteroidStaticInfo((AsteroidStaticInfo *)asteroid->staticinfo,&asteroidStaticInfos[asteroid->asteroidtype]);
+        CopyPointersFromRealAsteroidStaticInfo(asteroid->staticinfo,&asteroidStaticInfos[asteroid->asteroidtype]);
     }
     else
     {
-        asteroid->staticinfo = (ResourceStaticInfo *)&asteroidStaticInfos[asteroid->asteroidtype];
+        asteroid->staticinfo = &asteroidStaticInfos[asteroid->asteroidtype];
     }
 
-    // asteroid->collMyBlob gets fixed in FixAllSpaceObjs
+    // asteroid->obj.collMyBlob gets fixed in FixAllSpaceObjs
 
     return asteroid;
 }
 
 void FixAsteroid(Asteroid *asteroid)
 {
-    asteroid->collMyBlob = BlobRegistryGetBlob((sdword)asteroid->collMyBlob);
-    asteroid->resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)asteroid->resourceVolume);
+    asteroid->obj.collMyBlob = BlobRegistryGetBlob((sdword)asteroid->obj.collMyBlob);
+    asteroid->resource.resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)asteroid->resource.resourceVolume);
 }
 
 void SaveCloudSystem(DustCloud *dustcloud)
@@ -2217,8 +2217,8 @@ void LoadCloudSystem(DustCloud *dustcloud)
     memFree(chunk);
 
     dustcloud->stub = stub;
-    stub->position = &dustcloud->posinfo.position;
-    stub->rotation = &dustcloud->rotinfo.coordsys;
+    stub->position = &dustcloud->obj.posinfo.position;
+    stub->rotation = &dustcloud->rotatable.rotinfo.coordsys;
 }
 
 void SaveDustCloud(DustCloud *dustcloud)
@@ -2230,15 +2230,15 @@ void SaveDustCloud(DustCloud *dustcloud)
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetID(dustcloud->collMyBlob);
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetID(dustcloud->obj.collMyBlob);
 
-    savecontents->resourceVolume = (ResourceVolume *)ConvertPointerInListToNum(&universe.ResourceVolumeList,dustcloud->resourceVolume);
+    savecontents->resource.resourceVolume = (ResourceVolume *)ConvertPointerInListToNum(&universe.ResourceVolumeList,dustcloud->resource.resourceVolume);
 
     SaveThisChunk(chunk);
     memFree(chunk);
 
     dbgAssertOrIgnore(dustcloud->staticinfo != NULL);
-    if (dustcloud->flags & SOF_StaticInfoIsDynamic)
+    if (dustcloud->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = CreateChunk(BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(DustCloudStaticInfo),dustcloud->staticinfo);
         SaveThisChunk(statchunk);
@@ -2263,7 +2263,7 @@ DustCloud *LoadDustCloud(SaveChunk *chunk)
 
     memFree(chunk);
 
-    if (dustcloud->flags & SOF_StaticInfoIsDynamic)
+    if (dustcloud->header.flags & SOF_StaticInfoIsDynamic)
     {
         SaveChunk *statchunk = LoadNextChunk();
         VerifyChunk(statchunk,BASIC_STRUCTURE|SAVE_STATICINFO,sizeof(DustCloudStaticInfo));
@@ -2276,10 +2276,10 @@ DustCloud *LoadDustCloud(SaveChunk *chunk)
     }
     else
     {
-        dustcloud->staticinfo = (ResourceStaticInfo *)&dustcloudStaticInfos[dustcloud->dustcloudtype];
+        dustcloud->staticinfo = &dustcloudStaticInfos[dustcloud->dustcloudtype];
     }
 
-    // dustcloud->collMyBlob gets fixed in FixAllSpaceObjs
+    // dustcloud->obj.collMyBlob gets fixed in FixAllSpaceObjs
 
     if (dustcloud->stub != NULL)
     {
@@ -2291,8 +2291,8 @@ DustCloud *LoadDustCloud(SaveChunk *chunk)
 
 void FixDustCloud(DustCloud *dustcloud)
 {
-    dustcloud->collMyBlob = BlobRegistryGetBlob((sdword)dustcloud->collMyBlob);
-    dustcloud->resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)dustcloud->resourceVolume);
+    dustcloud->obj.collMyBlob = BlobRegistryGetBlob((sdword)dustcloud->obj.collMyBlob);
+    dustcloud->resource.resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)dustcloud->resource.resourceVolume);
 }
 
 void SaveNebula(Nebula *nebula)
@@ -2304,13 +2304,13 @@ void SaveNebula(Nebula *nebula)
 
     chunk = CreateChunk(BASIC_STRUCTURE|SAVE_SPACEOBJ|OBJ_NebulaType,sizeof(Nebula),nebula);
 
-    dbgAssertOrIgnore((nebula->flags & SOF_StaticInfoIsDynamic) == 0);
+    dbgAssertOrIgnore((nebula->header.flags & SOF_StaticInfoIsDynamic) == 0);
 
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetID(nebula->collMyBlob);
-    savecontents->resourceVolume = (ResourceVolume*)ConvertPointerInListToNum(&universe.ResourceVolumeList,nebula->resourceVolume);
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetID(nebula->obj.collMyBlob);
+    savecontents->resource.resourceVolume = (ResourceVolume*)ConvertPointerInListToNum(&universe.ResourceVolumeList,nebula->resource.resourceVolume);
     nebchunk = (nebChunk*)nebula->stub;
     neb = (nebulae_t*)nebchunk->nebulae;
     savecontents->stub = (nebChunk*)nebChunkPtrToNum(neb, nebula->stub);
@@ -2331,7 +2331,7 @@ Nebula *LoadNebula(SaveChunk *chunk)
 
     memFree(chunk);
 
-    nebula->staticinfo = (ResourceStaticInfo *)&nebulaStaticInfos[nebula->nebulatype];
+    nebula->staticinfo = &nebulaStaticInfos[nebula->nebulatype];
 
     return nebula;
 }
@@ -2340,8 +2340,8 @@ void FixNebula(Nebula *nebula)
 {
     nebulae_t* neb;
 
-    nebula->collMyBlob = BlobRegistryGetBlob((sdword)nebula->collMyBlob);
-    nebula->resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)nebula->resourceVolume);
+    nebula->obj.collMyBlob = BlobRegistryGetBlob((sdword)nebula->obj.collMyBlob);
+    nebula->resource.resourceVolume = ConvertNumToPointerInList(&universe.ResourceVolumeList,(sdword)nebula->resource.resourceVolume);
 
     neb = &nebNebulae[nebula->nebNebulaeIndex];
     nebula->stub = nebNumToChunkPtr(neb, (sdword)nebula->stub);
@@ -2355,8 +2355,8 @@ void SaveBullet(Bullet *bullet)
 
     savecontents = chunkContents(chunk);
 
-    dbgAssertOrIgnore(savecontents->staticinfo == NULL);
-    savecontents->collMyBlob = (blob*)BlobRegistryGetID(bullet->collMyBlob);
+    dbgAssertOrIgnore(savecontents->obj.staticinfo == NULL);
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetID(bullet->obj.collMyBlob);
 
     savecontents->owner = (Ship*)SpaceObjRegistryGetID((SpaceObj *)bullet->owner);
     if (bullet->gunowner != NULL)
@@ -2391,13 +2391,13 @@ Bullet *LoadBullet(SaveChunk *chunk)
 
     memFree(chunk);
 
-    // bullet->collMyBlob gets fixed in FixAllSpaceObjs
+    // bullet->obj.collMyBlob gets fixed in FixAllSpaceObjs
     return bullet;
 }
 
 void FixBullet(Bullet *bullet)
 {
-    bullet->collMyBlob = BlobRegistryGetBlob((sdword)bullet->collMyBlob);
+    bullet->obj.collMyBlob = BlobRegistryGetBlob((sdword)bullet->obj.collMyBlob);
 
     bullet->owner = SpaceObjRegistryGetShip((sdword)bullet->owner);
     if (bullet->gunowner != (Gun*)-1)
@@ -2423,9 +2423,9 @@ void SaveDerelict(Derelict *derelict)
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetIDNoBlobOkay(derelict->collMyBlob);       // planets aren't in blobs
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetIDNoBlobOkay(derelict->obj.collMyBlob);       // planets aren't in blobs
 
-    savecontents->dockingship = (Ship*)SpaceObjRegistryGetID((SpaceObj *)derelict->dockingship);
+    savecontents->shipOrDerelict.dockingship = (Ship*)SpaceObjRegistryGetID((SpaceObj *)derelict->shipOrDerelict.dockingship);
     savecontents->tractorbeam_playerowner = (Player*)SavePlayerToPlayerIndex(derelict->tractorbeam_playerowner);
 
     savecontents->newDockWithTransfer = (Ship*)SpaceObjRegistryGetID((SpaceObj *)derelict->newDockWithTransfer);
@@ -2434,14 +2434,14 @@ void SaveDerelict(Derelict *derelict)
 
     memFree(chunk);
 
-    if (derelict->clampInfo != NULL)
+    if (derelict->guidance.clampInfo != NULL)
     {
-        SaveClampInfo(derelict->clampInfo);
+        SaveClampInfo(derelict->guidance.clampInfo);
     }
 
-    if (derelict->salvageInfo != NULL)
+    if (derelict->shipOrDerelict.salvageInfo != NULL)
     {
-        SaveSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)derelict);
+        SaveSalvageInfo((ShipOrDerelict *)derelict);
     }
 }
 
@@ -2462,14 +2462,14 @@ Derelict *LoadDerelict(SaveChunk *chunk)
 
     InitializeNavLights((Ship *)derelict);
 
-    if (derelict->clampInfo != NULL)
+    if (derelict->guidance.clampInfo != NULL)
     {
-        derelict->clampInfo = LoadClampInfo();
+        derelict->guidance.clampInfo = LoadClampInfo();
     }
 
-    if (derelict->salvageInfo != NULL)
+    if (derelict->shipOrDerelict.salvageInfo != NULL)
     {
-        LoadSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)derelict);
+        LoadSalvageInfo((ShipOrDerelict *)derelict);
     }
 
     return derelict;
@@ -2477,21 +2477,21 @@ Derelict *LoadDerelict(SaveChunk *chunk)
 
 void FixDerelict(Derelict *derelict)
 {
-    derelict->collMyBlob = BlobRegistryGetBlob((sdword)derelict->collMyBlob);
+    derelict->obj.collMyBlob = BlobRegistryGetBlob((sdword)derelict->obj.collMyBlob);
 
-    derelict->dockingship = SpaceObjRegistryGetShip((sdword)derelict->dockingship);
+    derelict->shipOrDerelict.dockingship = SpaceObjRegistryGetShip((sdword)derelict->shipOrDerelict.dockingship);
     derelict->tractorbeam_playerowner = SavePlayerIndexToPlayer(derelict->tractorbeam_playerowner);
 
     derelict->newDockWithTransfer = SpaceObjRegistryGetShip((sdword)derelict->newDockWithTransfer);
 
-    if (derelict->clampInfo)
+    if (derelict->guidance.clampInfo)
     {
-        FixClampInfo(derelict->clampInfo);
+        FixClampInfo(derelict->guidance.clampInfo);
     }
 
-    if (derelict->salvageInfo)
+    if (derelict->shipOrDerelict.salvageInfo)
     {
-        FixSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)derelict);
+        FixSalvageInfo((ShipOrDerelict *)derelict);
     }
 }
 
@@ -2504,7 +2504,7 @@ void SaveMissile(Missile *missile)
     savecontents = chunkContents(chunk);
 
     savecontents->staticinfo = NULL;
-    savecontents->collMyBlob = (blob*)BlobRegistryGetID(missile->collMyBlob);
+    savecontents->obj.collMyBlob = (blob*)BlobRegistryGetID(missile->obj.collMyBlob);
 
     savecontents->trail = NULL;
 
@@ -2521,9 +2521,9 @@ void SaveMissile(Missile *missile)
 
     memFree(chunk);
 
-    if (missile->clampInfo != NULL)
+    if (missile->guidance.clampInfo != NULL)
     {
-        SaveClampInfo(missile->clampInfo);
+        SaveClampInfo(missile->guidance.clampInfo);
     }
 }
 
@@ -2549,9 +2549,9 @@ Missile *LoadMissile(SaveChunk *chunk)
         missile->staticinfo = &mineStaticInfos[missile->race];
     }
 
-    if (missile->clampInfo != NULL)
+    if (missile->guidance.clampInfo != NULL)
     {
-        missile->clampInfo = LoadClampInfo();
+        missile->guidance.clampInfo = LoadClampInfo();
     }
 
     return missile;
@@ -2559,7 +2559,7 @@ Missile *LoadMissile(SaveChunk *chunk)
 
 void FixMissile(Missile *missile)
 {
-    missile->collMyBlob = BlobRegistryGetBlob((sdword)missile->collMyBlob);
+    missile->obj.collMyBlob = BlobRegistryGetBlob((sdword)missile->obj.collMyBlob);
 
     missile->playerowner = SavePlayerIndexToPlayer(missile->playerowner);
 
@@ -2570,15 +2570,15 @@ void FixMissile(Missile *missile)
 
     missile->formationinfo = ConvertNumToPointerInList(&universe.MineFormationList,(sdword)missile->formationinfo);
 
-    if (missile->clampInfo)
+    if (missile->guidance.clampInfo)
     {
-        FixClampInfo(missile->clampInfo);
+        FixClampInfo(missile->guidance.clampInfo);
     }
 }
 
 void SaveSpaceObj(SpaceObj *obj)
 {
-    switch (obj->objtype)
+    switch (obj->header.objtype)
     {
         case OBJ_ShipType:
             SaveShip((Ship *)obj);
@@ -2624,7 +2624,7 @@ void SaveSpaceObj(SpaceObj *obj)
 
 void FixSpaceObj(SpaceObj *obj)
 {
-    switch (obj->objtype)
+    switch (obj->header.objtype)
     {
         case OBJ_ShipType:
             FixShip((Ship *)obj);
@@ -2667,7 +2667,7 @@ void FixSpaceObj(SpaceObj *obj)
             break;
     }
 
-    if (obj->flags & SOF_Targetable)
+    if (obj->header.flags & SOF_Targetable)
     {
         ((SpaceObjRotImpTarg *)obj)->flashtimer = 0.0f;
     }
@@ -2840,7 +2840,7 @@ void RenderListAddCB(LinkedList *list,SpaceObj *obj)
 
 void SpaceObjListAddCB(LinkedList *list,SpaceObj *obj)
 {
-    listAddNode(list,&obj->objlink,obj);
+    listAddNode(list,&obj->header.objlink,obj);
 }
 
 #define MinorRenderListAddCB RenderListAddCB
@@ -2849,7 +2849,7 @@ void SpaceObjListAddCB(LinkedList *list,SpaceObj *obj)
 void ShipListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define ship ((Ship *)obj)
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
     listAddNode(list,&ship->shiplink,obj);
 #undef ship
 }
@@ -2857,7 +2857,7 @@ void ShipListAddCB(LinkedList *list,SpaceObj *obj)
 void BulletListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define bullet ((Bullet *)obj)
-    dbgAssertOrIgnore(bullet->objtype == OBJ_BulletType);
+    dbgAssertOrIgnore(bullet->header.objtype == OBJ_BulletType);
     listAddNode(list,&bullet->bulletlink,obj);
 #undef bullet
 }
@@ -2865,7 +2865,7 @@ void BulletListAddCB(LinkedList *list,SpaceObj *obj)
 void ResourceListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define resource ((Resource *)obj)
-    dbgAssertOrIgnore(resource->flags & SOF_Resource);
+    dbgAssertOrIgnore(resource->header.flags & SOF_Resource);
     listAddNode(list,&resource->resourcelink,obj);
 #undef resource
 }
@@ -2873,7 +2873,7 @@ void ResourceListAddCB(LinkedList *list,SpaceObj *obj)
 void DerelictListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define derelict ((Derelict *)obj)
-    dbgAssertOrIgnore(derelict->objtype == OBJ_DerelictType);
+    dbgAssertOrIgnore(derelict->header.objtype == OBJ_DerelictType);
     listAddNode(list,&derelict->derelictlink,obj);
 #undef derelict
 }
@@ -2881,7 +2881,7 @@ void DerelictListAddCB(LinkedList *list,SpaceObj *obj)
 void ImpactableListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define impactable ((SpaceObjRotImp *)obj)
-    dbgAssertOrIgnore(impactable->flags & SOF_Impactable);
+    dbgAssertOrIgnore(impactable->header.flags & SOF_Impactable);
     listAddNode(list,&impactable->impactablelink,obj);
 #undef impactable
 }
@@ -2889,7 +2889,7 @@ void ImpactableListAddCB(LinkedList *list,SpaceObj *obj)
 void MissileListAddCB(LinkedList *list,SpaceObj *obj)
 {
 #define missile ((Missile *)obj)
-    dbgAssertOrIgnore(missile->objtype == OBJ_MissileType);
+    dbgAssertOrIgnore(missile->header.objtype == OBJ_MissileType);
     listAddNode(list,&missile->missilelink,obj);
 #undef missile
 }
@@ -2897,7 +2897,7 @@ void MissileListAddCB(LinkedList *list,SpaceObj *obj)
 void MineAddToMineListCB(LinkedList *list,SpaceObj *obj)
 {
 #define mine ((Missile *)obj)
-    dbgAssertOrIgnore(mine->objtype == OBJ_MissileType);
+    dbgAssertOrIgnore(mine->header.objtype == OBJ_MissileType);
     listAddNode(list,&mine->formationLink,obj);
 #undef mine
 }
@@ -2905,7 +2905,7 @@ void MineAddToMineListCB(LinkedList *list,SpaceObj *obj)
 void SlaveAddToSlaveListCB(LinkedList *list,SpaceObj *obj)
 {
 #define ship ((Ship *)obj)
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
     listAddNode(list,&ship->slavelink,obj);
 #undef ship
 }
@@ -3681,7 +3681,7 @@ void SaveLinkedListOfInsideShips(LinkedList *list)
     while (node != NULL)
     {
         ship = ((InsideShip *)listGetStructOfNode(node))->ship;
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         savecontents->id[cur] = SpaceObjRegistryGetID((SpaceObj *)ship);
         dbgAssertOrIgnore(savecontents->id[cur] != -1);
@@ -3738,7 +3738,7 @@ void FixLinkedListOfInsideShips(LinkedList *list)
         insideShip = (InsideShip *)listGetStructOfNode(node);
         insideShip->ship = SpaceObjRegistryGetShip((sdword)insideShip->ship);
         dbgAssertOrIgnore(insideShip->ship != NULL);
-        dbgAssertOrIgnore(insideShip->ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(insideShip->ship->header.objtype == OBJ_ShipType);
         node = node->next;
     }
 }

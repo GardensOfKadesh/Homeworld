@@ -161,7 +161,7 @@ void Carrier_PreFix(Ship *ship)
     sdword i;
     for(i=0;i<MAX_NUM_DROP;i++)
     {
-        spec->droptarget[i] = (SpaceObjRotImpTargGuidanceShipDerelict*)SpaceObjRegistryGetID((SpaceObj *)spec->droptarget[i]);
+        spec->droptarget[i] = (ShipOrDerelict*)SpaceObjRegistryGetID((SpaceObj *)spec->droptarget[i]);
     }
 }
 
@@ -171,7 +171,7 @@ void Carrier_Fix(Ship *ship)
     sdword i;
     for(i=0;i<MAX_NUM_DROP;i++)
     {
-        spec->droptarget[i] = (SpaceObjRotImpTargGuidanceShipDerelict *)SpaceObjRegistryGetObj((sdword)spec->droptarget[i]);
+        spec->droptarget[i] = (ShipOrDerelict *)SpaceObjRegistryGetObj((sdword)spec->droptarget[i]);
     }
 }
 
@@ -184,14 +184,14 @@ void CarrierDied(Ship *ship)
 
         if(spec->droptarget[i] != NULL)
         {
-            if(spec->droptarget[i]->objtype == OBJ_ShipType)
+            if(spec->droptarget[i]->header.objtype == OBJ_ShipType)
             {
                 //undisabled and make selectable
-                if(!bitTest(((Ship *)spec->droptarget[i])->specialFlags2,SPECIAL_2_DisabledForever))
+                if(!bitTest(spec->droptarget[i]->specialFlags2,SPECIAL_2_DisabledForever))
                 {
-                    bitClear(spec->droptarget[i]->flags,SOF_Disabled);
+                    bitClear(spec->droptarget[i]->header.flags,SOF_Disabled);
                     bitClear(spec->droptarget[i]->specialFlags,SPECIAL_SalvagedTargetGoingIntoDockWithShip);
-                    bitSet(spec->droptarget[i]->flags,SOF_Selectable);
+                    bitSet(spec->droptarget[i]->header.flags,SOF_Selectable);
                 }
             }
 

@@ -783,7 +783,7 @@ void btgLoad(char* filename)
             *swap = SDL_SwapLE64( *swap );
             swap = ( Uint64 *)&outstarp->y;
             *swap = SDL_SwapLE64( *swap );
-            outstarp->flags = FIX_ENDIAN_INT_32( outstarp->flags );
+            outstarp->header.flags = FIX_ENDIAN_INT_32( outstarp->header.flags );
             outstarp->red   = FIX_ENDIAN_INT_32( outstarp->red );
             outstarp->green = FIX_ENDIAN_INT_32( outstarp->green );
             outstarp->blue  = FIX_ENDIAN_INT_32( outstarp->blue );

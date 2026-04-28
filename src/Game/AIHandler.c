@@ -127,16 +127,16 @@ void aihSwarmerEmptyFuelHandler(AITeam *team)
     {
         ship = team->shipList.selection->ShipPtr[i];
 
-        if (!bitTest(ship->flags, SOF_Crazy) &&
+        if (!bitTest(ship->header.flags, SOF_Crazy) &&
             (100.0 * ship->fuel / ship->staticinfo->maxfuel
                   < team->curMove->events.fuelLow.watchPercentage))
         {
-            bitSet(ship->flags, SOF_Crazy);
+            bitSet(ship->header.flags, SOF_Crazy);
             ship->deathtime = universe.totaltimeelapsed + frandyrandombetween(RANDOM_AI_PLAYER, 14.0, 20.0);
             ApplyCareenRotationDirectly(ship);
-            ship->rotinfo.rotspeed.x *= 1.5;
-            ship->rotinfo.rotspeed.y *= 1.5;
-            ship->rotinfo.rotspeed.z *= 1.5;
+            ship->rotatable.rotinfo.rotspeed.x *= 1.5;
+            ship->rotatable.rotinfo.rotspeed.y *= 1.5;
+            ship->rotatable.rotinfo.rotspeed.z *= 1.5;
         }
     }
 }
@@ -200,7 +200,7 @@ void aihHarassNumbersLowHandler(AITeam *team)
     //        this isn't all that "generic"
     if (aiCurrentAIPlayer->player->PlayerMothership)
     {
-        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->posinfo.position;
+        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->obj.posinfo.position;
     }
     else
     {
@@ -296,8 +296,8 @@ void aihKamikazeHealthLowHandler(AITeam *team)
         ship = team->shipList.selection->ShipPtr[i];
 
         if ((isShipOfClass(ship, CLASS_Fighter) || isShipOfClass(ship, CLASS_Corvette)) &&
-            ((100 * ship->health) <
-             (team->curMove->events.healthLow.watchPercentage * ship->staticinfo->maxhealth)))
+            ((100 * ship->targetable.health) <
+             (team->curMove->events.healthLow.watchPercentage * ship->staticinfo->health.maxhealth)))
         {
             selSelectionAddSingleShip(&shipsToDie, ship);
         }
@@ -329,7 +329,7 @@ void aihFastDefenseNumbersLowHandler(AITeam *team)
     //of there to attack someone else.
     if (aiCurrentAIPlayer->player->PlayerMothership)
     {
-        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->posinfo.position;
+        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->obj.posinfo.position;
     }
     else
     {
@@ -398,7 +398,7 @@ void aihSlowDefenseNumbersLowHandler(AITeam *team)
     //of there to attack someone else.
     if (aiCurrentAIPlayer->player->PlayerMothership)
     {
-        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->posinfo.position;
+        gathering_point = aiCurrentAIPlayer->player->PlayerMothership->obj.posinfo.position;
     }
     else
     {
@@ -466,7 +466,7 @@ void aihGenericGettingRockedHandler(AITeam *team, SelectCommand *ships)
         dbgAssertOrIgnore(team->shipList.selection->numShips > 0);
         if (thisMove->params.attack.ships->numShips > 0)
         {
-            if (team->shipList.selection->ShipPtr[0]->collMyBlob == thisMove->params.attack.ships->ShipPtr[0]->collMyBlob)
+            if (team->shipList.selection->ShipPtr[0]->obj.collMyBlob == thisMove->params.attack.ships->ShipPtr[0]->obj.collMyBlob)
             {
                 // we're very close to target, so soldier on without worrying about other attacking ships
                 return;
@@ -752,8 +752,8 @@ void aihSlowDefenseDistressHandler(AITeam *team, udword *intvar)
         {
             enemyShips = aiuFindNearbyDangerousEnemyShips(invadingShips.ShipPtr[i], AIH_SLOWDEF_INVADER_ENEMYDIST);
             selSelectionAddSingleShip((MaxSelection *)enemyShips, invadingShips.ShipPtr[i]);
-            distsq_to_ships = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->posinfo.position,
-                                                     invadingShips.ShipPtr[i]->posinfo.position);
+            distsq_to_ships = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->obj.posinfo.position,
+                                                     invadingShips.ShipPtr[i]->obj.posinfo.position);
 
             //if other teams need help and if the enemy is less than 10 km away...
             if ((aitCheckIfOtherDefTeamAnsweringSignalNeedsHelp(team, enemyShips)) &&

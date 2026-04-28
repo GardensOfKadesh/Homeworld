@@ -745,7 +745,7 @@ void makeShipsControllable(SelectCommand *selection,sdword newCommand)
                 command->ordertype.order == COMMAND_LAUNCH_SHIP)
             {
                 //if docking ship is NULL, we can assume some stuff...
-                if (selection->ShipPtr[i]->dockingship != NULL)
+                if (selection->ShipPtr[i]->shipOrDerelict.dockingship != NULL)
                 {
                     // to remove ShipPtr from list, decrement numShips and put last member
                     // of array into slot being deleted.
@@ -758,9 +758,9 @@ void makeShipsControllable(SelectCommand *selection,sdword newCommand)
                     //event num: COMM_CannotComply
                     //BCE_CannotComply
                     ///////////////////////
-                    if (battleCanChatterAtThisTime(BCE_CannotComply, selection->ShipPtr[i]->dockingship))
+                    if (battleCanChatterAtThisTime(BCE_CannotComply, selection->ShipPtr[i]->shipOrDerelict.dockingship))
                     {
-                        battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_CannotComply, selection->ShipPtr[i]->dockingship, SOUND_EVENT_DEFAULT);
+                        battleChatterAttempt(SOUND_EVENT_DEFAULT, BCE_CannotComply, selection->ShipPtr[i]->shipOrDerelict.dockingship, SOUND_EVENT_DEFAULT);
                     }
 
                     if(selection->ShipPtr[i]->shiptype != ResearchShip)
@@ -882,7 +882,7 @@ bool32 AreShipsMobile(SelectCommand *selection)
     for (i=0;i<selection->numShips;i++)
     {
         shipstatic = (ShipStaticInfo *)selection->ShipPtr[i]->staticinfo;
-        if (shipstatic->staticheader.immobile)
+        if (shipstatic->common.immobile)
         {
             return FALSE;
         }
@@ -907,7 +907,7 @@ void MakeShipsMobile(SelectCommand *selection)
     for (i=0;i<selection->numShips;)
     {
         shipstatic = (ShipStaticInfo *)selection->ShipPtr[i]->staticinfo;
-        if (shipstatic->staticheader.immobile)
+        if (shipstatic->common.immobile)
         {
             if ((shipstatic->shiptype == Mothership) && (selection->ShipPtr[i]->playerowner == universe.curPlayerPtr))
             {
@@ -1090,7 +1090,7 @@ void MakeTargetsNotIncludeMissiles(SelectAnyCommand *selection)
 
     for (i=0;i<selection->numTargets;)
     {
-        if ((selection->TargetPtr[i])->objtype == OBJ_MissileType)
+        if ((selection->TargetPtr[i])->header.objtype == OBJ_MissileType)
         {
             // to remove ShipPtr from list, decrement numShips and put last member
             // of array into slot being deleted.
@@ -1119,7 +1119,7 @@ void MakeTargetsOnlyEnemyShips(SelectAnyCommand *selection,Player *curplayer)
     {
         target = selection->TargetPtr[i];
 
-        if ((target->objtype != OBJ_ShipType) ||
+        if ((target->header.objtype != OBJ_ShipType) ||
             (((Ship *)target)->shiptype == Drone) ||   // Drones not considered ships in this case
             (((Ship *)target)->playerowner == curplayer) ||
             allianceIsShipAlly((Ship *)target, curplayer))
@@ -1150,17 +1150,17 @@ void MakeTargetsOnlyNonForceAttackTargets(SelectAnyCommand *selection,Player *cu
     for (i=0;i<selection->numTargets;)
     {
         target = selection->TargetPtr[i];
-        if ((target->objtype == OBJ_DerelictType) && (((Derelict *)target)->derelicttype == HyperspaceGate))
+        if ((target->header.objtype == OBJ_DerelictType) && (((Derelict *)target)->derelicttype == HyperspaceGate))
         {
             goto dontremove;
         }
 
-        if (target->attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
+        if (target->obj.attributes & (ATTRIBUTES_KillerCollDamage|ATTRIBUTES_HeadShotKillerCollDamage))
         {
             goto dontremove;
         }
 
-        if ((target->objtype != OBJ_ShipType) ||
+        if ((target->header.objtype != OBJ_ShipType) ||
             (((Ship *)target)->shiptype == Drone) ||   // Drones not considered ships in this case
 			(((Ship *)target)->shiptype == JunkYardHQ) ||
             (((Ship *)target)->playerowner == curplayer) ||
@@ -1195,7 +1195,7 @@ void MakeTargetsSalvageable(SelectAnyCommand *selection, Player *curplayer)
     {
         target = selection->TargetPtr[i];
 
-        if (target->objtype == OBJ_DerelictType)
+        if (target->header.objtype == OBJ_DerelictType)
         {
             /*switch (((Derelict *)target)->derelicttype)
             {
@@ -1229,14 +1229,15 @@ void MakeTargetsSalvageable(SelectAnyCommand *selection, Player *curplayer)
         //and it's not the players or an allies
         //exceptions to the rule are CryoTrays - they can always be salvaged
         //except for single player Mission 1
-        else if (target->objtype == OBJ_ShipType)
+        else if (target->header.objtype == OBJ_ShipType)
         {
-            if  ((((Ship *)target)->shiptype == Drone) ||     // Drones not considered ships in this case
-                ( ( (((Ship *)target)->shiptype != CryoTray) ||
+            Ship* ship = (Ship*)target;
+            if  ((ship->shiptype == Drone) ||     // Drones not considered ships in this case
+                ( ( (ship->shiptype != CryoTray) ||
                     (spGetCurrentMission() == MISSION_1_KHARAK_SYSTEM) ) && // Don't salvage player's or ally's shis, unless they are CryoTrays
-                (( (((Ship *)target)->playerowner == curplayer) ||
+                (( (ship->playerowner == curplayer) ||
                    allianceIsShipAlly((Ship *)target, curplayer) )
-                 && !bitTest(((Ship *)target)->flags, SOF_Disabled))    ))
+                 && !bitTest(ship->header.flags, SOF_Disabled))    ))
             {
                 selection->numTargets--;
                 selection->TargetPtr[i] = selection->TargetPtr[selection->numTargets];
@@ -1273,7 +1274,7 @@ void MakeSelectionNotHaveCloakedEnemyShips(SelectCommand *selection, Player *cur
     {
         ship = selection->ShipPtr[i];
 
-        if ((ship->playerowner != curplayer) && (bitTest(ship->flags, SOF_Cloaked)))
+        if ((ship->playerowner != curplayer) && (bitTest(ship->header.flags, SOF_Cloaked)))
         {
             // to remove ShipPtr from list, decrement numShips and put last member
             // of array into slot being deleted.
@@ -1341,7 +1342,7 @@ void MakeSelectionNotHaveNonVisibleEnemyShips(SelectCommand *selection, Player *
         ship = selection->ShipPtr[i];
 
         if ((ship->playerowner != curplayer) &&
-            (bitTest(ship->flags, SOF_Cloaked)) &&
+            (bitTest(ship->header.flags, SOF_Cloaked)) &&
             (!proximityCanPlayerSeeShip(curplayer, ship)))
         {
             // to remove ShipPtr from list, decrement numShips and put last member
@@ -1375,7 +1376,7 @@ void MakeTargetsOnlyBeWithinRangeAndNotIncludeMe(SelectAnyCommand *selection,Spa
     {
         target = selection->TargetPtr[i];
 
-        vecSub(diff,target->posinfo.position,comparewith->posinfo.position);
+        vecSub(diff,target->obj.posinfo.position,comparewith->obj.posinfo.position);
         if ((target == comparewith) ||
             !isBetweenExclusive(diff.x,negrange,range) ||
             !isBetweenExclusive(diff.y,negrange,range) ||
@@ -1409,7 +1410,7 @@ void MakeShipsFriendlyShips(SelectCommand *selection,Player *curplayer)
     {
         ship = selection->ShipPtr[i];
 
-        if ((ship->objtype != OBJ_ShipType) ||
+        if ((ship->header.objtype != OBJ_ShipType) ||
             (ship->playerowner != curplayer) )
         {
             // to remove ShipPtr from list, decrement numShips and put last member
@@ -1437,7 +1438,7 @@ void MakeShipsFriendlyAndAlliesShips(SelectCommand *selection,struct Player *cur
 
     for (i=0;i<selection->numShips;)
     {
-        if  ((selection->ShipPtr[i]->objtype != OBJ_ShipType)
+        if  ((selection->ShipPtr[i]->header.objtype != OBJ_ShipType)
             || ( ((selection->ShipPtr[i])->playerowner != curplayer) &&
                (!allianceIsShipAlly(selection->ShipPtr[i], curplayer)) ) )
         {
@@ -1468,7 +1469,7 @@ void MakeShipMastersIncludeSlaves(SelectCommand *selection)
 
     for (i=0;i < count;)
     {
-        if ((selection->ShipPtr[i])->flags & SOF_Slaveable)
+        if ((selection->ShipPtr[i])->header.flags & SOF_Slaveable)
         {   //ship is a most likely a master...
             if ((selection->ShipPtr[i])->slaveinfo->flags & SF_MASTER)
             {
@@ -1513,11 +1514,11 @@ SelectCommand *selectAllCurrentPlayersNonHyperspacingShips(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr))
         {
-            if(!(ship->flags & SOF_Disabled))
+            if(!(ship->header.flags & SOF_Disabled))
             {
                 if ((!ShipCanHyperspace(ship)) && (ship->shiptype != Drone) && (ship->shiptype != CryoTray) && (ship->shiptype != Probe))
                 {
@@ -1555,11 +1556,11 @@ SelectCommand *selectAllCurrentPlayersHyperspacingShips(void)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (allianceIsShipAlly(ship,universe.curPlayerPtr))
         {
-            if(!(ship->flags & SOF_Disabled))
+            if(!(ship->header.flags & SOF_Disabled))
             {
                 if (ShipCanHyperspace(ship))
                 {
@@ -1597,7 +1598,7 @@ SelectCommand *selectAllPlayersShips(struct Player *player)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         if (ship->playerowner == player)
         {
@@ -1687,7 +1688,7 @@ sdword MakeShipsNotHidden(SelectCommand *dest, SelectCommand *source)
 
     for (index = 0; index < source->numShips; index++)
     {
-        if (!bitTest(source->ShipPtr[index]->flags, SOF_Hide))
+        if (!bitTest(source->ShipPtr[index]->header.flags, SOF_Hide))
         {
             dest->ShipPtr[numShips] = source->ShipPtr[index];
             numShips++;
@@ -1978,7 +1979,7 @@ SelectCommand * shipLinkedListAsSelectCommand(LinkedList *list, char *label)
     while (objnode != NULL)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         selection->ShipPtr[i++] = ship;
 

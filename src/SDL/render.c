@@ -758,11 +758,11 @@ DEFINE_TASK(rndPolyStatsTaskFunction)
                 }
                 else
                 {
-                    lodIndex = ship->currentLOD;
+                    lodIndex = ship->obj.currentLOD;
                 }
-                if (lodIndex < ship->staticinfo->staticheader.LOD->nLevels)
+                if (lodIndex < ship->staticinfo->common.LOD->nLevels)
                 {
-                    lodInfo = &ship->staticinfo->staticheader.LOD->level[lodIndex];
+                    lodInfo = &ship->staticinfo->common.LOD->level[lodIndex];
                     if ((lodInfo->flags & LM_LODType) == LT_Mesh)
                     {                                       //if it's a mesh type lod
                         mesh = (meshdata *)lodInfo->pData;  //get the mesh pointer
@@ -1418,12 +1418,12 @@ void rndBackgroundRender(real32 radius, Camera* camera, bool32 bDrawStars)
 ----------------------------------------------------------------------------*/
 bool32 rndCameraInside(SpaceObj* spaceobj, Camera* camera)
 {
-    if ((spaceobj->flags & SOF_Rotatable) && (spaceobj->flags & SOF_Impactable))
+    if ((spaceobj->header.flags & SOF_Rotatable) && (spaceobj->header.flags & SOF_Impactable))
     {
         vector dist;
         real32 collspheresize;
 
-        collspheresize = spaceobj->staticinfo->staticheader.staticCollInfo.collspheresize;
+        collspheresize = spaceobj->staticinfo->staticCollInfo.collspheresize;
         collspheresize *= collspheresize;
 
         //sphere test
@@ -1480,10 +1480,10 @@ bool32 rndShipVisible(SpaceObj* spaceobj, Camera* camera)
     vecSub(veye, camera->eyeposition, camera->lookatpoint);
     vecSub(vobj, camera->eyeposition, spaceobj->posinfo.position);
 
-    if ((spaceobj->flags & SOF_Rotatable) && (spaceobj->flags & SOF_Impactable))
+    if ((spaceobj->header.flags & SOF_Rotatable) && (spaceobj->header.flags & SOF_Impactable))
     {
         //bbox frustum culling
-        StaticCollInfo* sinfo = &((SpaceObjRotImp*)spaceobj)->staticinfo->staticheader.staticCollInfo;
+        StaticCollInfo* sinfo = &spaceobj->staticinfo->staticCollInfo;
 
         return !clipBBoxIsClipped((real32*)&sinfo->collrectoffset,
                                   sinfo->uplength, sinfo->rightlength,
@@ -1493,10 +1493,10 @@ bool32 rndShipVisible(SpaceObj* spaceobj, Camera* camera)
     {
         //sphere test
 
-        if (spaceobj->objtype == OBJ_ShipType)
+        if (spaceobj->header.objtype == OBJ_ShipType)
         {
             //account for ship's radius
-            real32 radius = ((Ship*)spaceobj)->staticinfo->staticheader.staticCollInfo.approxcollspheresize;
+            real32 radius = spaceobj->staticinfo->staticCollInfo.approxcollspheresize;
             return (vecDotProduct(veye, vobj) > -radius);
         }
         else
@@ -1534,6 +1534,7 @@ bool32 rndShipVisibleUsingCoordSys(SpaceObj* spaceobj, Camera* camera)
                camera->lookatpoint.x, camera->lookatpoint.y, camera->lookatpoint.z,
                camera->upvector.x, camera->upvector.y, camera->upvector.z);
 
+    //TODO(type safety, 2026-04-24): Take SpaceObjRot* as argument instead of SpaceObj*
     hmatMakeHMatFromMat(&coordMatrixForGL, &((SpaceObjRot*)spaceobj)->rotinfo.coordsys);
     hmatPutVectIntoHMatrixCol4(spaceobj->posinfo.position, coordMatrixForGL);
     glMultMatrixf((GLfloat*)&coordMatrixForGL);
@@ -1577,7 +1578,7 @@ bool32 rndFade(SpaceObj* spaceobj, Camera* camera)
 
     distsqr = (distsqr0 < distsqr1) ? distsqr0 : distsqr1;
 
-    if (spaceobj->objtype == OBJ_ShipType)
+    if (spaceobj->header.objtype == OBJ_ShipType)
     {
         switch (((ShipStaticInfo*)spaceobj->staticinfo)->shipclass)
         {
@@ -1631,14 +1632,14 @@ bool32 rndFade(SpaceObj* spaceobj, Camera* camera)
         fadedist *= mult;
         maxdist = mult * fsqrt(maxdist);
     }
-    else if (spaceobj->objtype == OBJ_DerelictType)
+    else if (spaceobj->header.objtype == OBJ_DerelictType)
     {
         if (((DerelictStaticInfo*)spaceobj->staticinfo)->renderlistFade != 0.0f)
         {
             fadedist = ((DerelictStaticInfo*)spaceobj->staticinfo)->renderlistFade;
             maxdist  = ((DerelictStaticInfo*)spaceobj->staticinfo)->renderlistLimitSqr;
         }
-        else if (spaceobj->flags & SOF_BigObject)
+        else if (spaceobj->header.flags & SOF_BigObject)
         {
             fadedist = RENDER_MAXVIEWABLE_FADE;
             maxdist  = RENDER_MAXVIEWABLE_DISTANCE_SQR;
@@ -1654,7 +1655,7 @@ bool32 rndFade(SpaceObj* spaceobj, Camera* camera)
     }
     else
     {
-        if (spaceobj->flags & SOF_BigObject)
+        if (spaceobj->header.flags & SOF_BigObject)
         {
             fadedist = mult * RENDER_MAXVIEWABLE_FADE;
             maxdist  = mult * fsqrt(RENDER_MAXVIEWABLE_DISTANCE_SQR);
@@ -1727,6 +1728,7 @@ void rndUnFade()
     Outputs     :
     Return      :
 ----------------------------------------------------------------------------*/
+//TODO(type safety, 2026-04-24): Get rid of these
 #define camera ((Camera *)voidCamera)
 #define world  ((Derelict *)voidWorld)
 void rndRenderAHomeworld(void* voidCamera, void *voidWorld)
@@ -1738,15 +1740,15 @@ void rndRenderAHomeworld(void* voidCamera, void *voidWorld)
     sdword colorScheme = world->colorScheme;
 
     planetScale = world->staticinfo->scaleFactor;
-    position = &world->posinfo.position;
-    worldMesh = (meshdata *)world->staticinfo->staticheader.LOD->level[0].pData;
+    position = &world->obj.posinfo.position;
+    worldMesh = (meshdata *)world->staticinfo->common.LOD->level[0].pData;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     rgluPerspective(btgFieldOfView, rndAspectRatio, rndNear(camera->clipPlaneNear), CAMERA_CLIP_FAR_PLANET);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    hmatMakeHMatFromMat(&coordMatrixForGL,&world->rotinfo.coordsys);
+    hmatMakeHMatFromMat(&coordMatrixForGL,&world->rotatable.rotinfo.coordsys);
     hmatPutVectIntoHMatrixCol4(*position, coordMatrixForGL);
     glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
     glScalef(planetScale, planetScale, planetScale);
@@ -1886,7 +1888,7 @@ real32 rndDockScalar(Ship* ship, Ship* dockship, real32 nearVal, real32 farVal)
     vector veclen;
     real32 dist;
 
-    vecSub(veclen, dockship->posinfo.position, ship->posinfo.position);
+    vecSub(veclen, dockship->obj.posinfo.position, ship->obj.posinfo.position);
     dist = fsqrt(vecMagnitudeSquared(veclen));
     if (dist < nearVal) dist = nearVal;
     if (dist > farVal)  dist = farVal;
@@ -1970,9 +1972,9 @@ void rndPreRenderDebugStuff(Camera *camera)
         {
             vector length;
 
-            length.x = camera->eyeposition.x - selSelected.ShipPtr[0]->posinfo.position.x;
-            length.y = camera->eyeposition.y - selSelected.ShipPtr[0]->posinfo.position.y;
-            length.z = camera->eyeposition.z - selSelected.ShipPtr[0]->posinfo.position.z;
+            length.x = camera->eyeposition.x - selSelected.ShipPtr[0]->obj.posinfo.position.x;
+            length.y = camera->eyeposition.y - selSelected.ShipPtr[0]->obj.posinfo.position.y;
+            length.z = camera->eyeposition.z - selSelected.ShipPtr[0]->obj.posinfo.position.z;
             dbgMessagef("Camera distance = %f", vecMagnitudeSquared(length));
         }
         else
@@ -2025,7 +2027,7 @@ void rndPostRenderDebug3DStuff(Camera *camera)
         primLine3(&nisCamera->eyeposition, &upVector, colWhite);
 //      if (selSelected.numShips > 0)
 //      {
-//          primLine3(&nisCamera->eyeposition, &selSelected.ShipPtr[0]->posinfo.position, flashFlag ? colWhite : colFuscia);
+//          primLine3(&nisCamera->eyeposition, &selSelected.ShipPtr[0]->obj.posinfo.position, flashFlag ? colWhite : colFuscia);
 //      }
         flashFlag ^= TRUE;
     }
@@ -2051,12 +2053,12 @@ void rndPostRenderDebug2DStuff(Camera *camera)
     if (lodDrawingMode && selSelected.numShips == 1)
     {
         vector length;
-        vector shippos = selSelected.ShipPtr[0]->collInfo.collPosition;
+        vector shippos = selSelected.ShipPtr[0]->impactable.collInfo.collPosition;
         sdword nCurrentLOD;
 
         if (!lodTuningMode)
         {
-            nCurrentLOD = selSelected.ShipPtr[0]->currentLOD;
+            nCurrentLOD = selSelected.ShipPtr[0]->obj.currentLOD;
         }
         else
         {
@@ -2189,7 +2191,7 @@ void rndPostRenderDebug2DStuff(Camera *camera)
             char string[64];
 
             dockship = ship->dockvars.dockship;
-            vecSub(veclen, ship->posinfo.position, dockship->posinfo.position);
+            vecSub(veclen, ship->obj.posinfo.position, dockship->obj.posinfo.position);
             dist = fsqrt(vecMagnitudeSquared(veclen));
             sprintf(string, "%0.2f m", dist);
             fontPrint(0, 0, colWhite, string);
@@ -2240,8 +2242,8 @@ void rndPostRenderDebug2DStuff(Camera *camera)
             vector veclen;
             real32 dist;
 
-//            vecSub(veclen, ship->posinfo.position, camera->eyeposition);
-            vecSub(veclen, ship->collInfo.collPosition, camera->eyeposition);
+//            vecSub(veclen, ship->obj.posinfo.position, camera->eyeposition);
+            vecSub(veclen, ship->impactable.collInfo.collPosition, camera->eyeposition);
             dist = fsqrt(vecMagnitudeSquared(veclen));
             sprintf(string, "dist %0.2f m", dist);
             fontPrint((MAIN_WindowWidth - fontWidth(string)) / 2,
@@ -2346,7 +2348,7 @@ enum WhetherToDraw {
 static enum WhetherToDraw onRenderEffect(Effect* effect) {
     SpaceObj* effectowner = (SpaceObj*)effect->owner;
     if (effectowner == NULL) return Draw;
-    if (effectowner->objtype != OBJ_BulletType) return Draw;
+    if (effectowner->header.objtype != OBJ_BulletType) return Draw;
 
     // effect is owned by a bullet
     Bullet* bullet = (Bullet*)effectowner;
@@ -2558,13 +2560,13 @@ void rndMainViewRenderFunction(Camera *camera)
     {
         if (universe.world[i] != NULL)
         {                                                   //if this one defined
-            if (universe.world[i]->objtype == OBJ_DerelictType)
+            if (universe.world[i]->header.objtype == OBJ_DerelictType)
             {                                               //if it's a derelict
                 rndRenderAHomeworld(camera, universe.world[i]);
             }
             else
             {                                               //else it must be a world effect
-                dbgAssertOrIgnore(universe.world[i]->objtype == OBJ_EffectType);
+                dbgAssertOrIgnore(universe.world[i]->header.objtype == OBJ_EffectType);
                 rndRenderAWorldEffect(camera, (Effect *)universe.world[i]);
             }
         }
@@ -2598,7 +2600,7 @@ void rndMainViewRenderFunction(Camera *camera)
 
         g_WireframeHack = FALSE;
 
-        switch (spaceobj->objtype)
+        switch (spaceobj->header.objtype)
         {
             case OBJ_BulletType:                            //type bullet
                 if (((Bullet *)spaceobj)->effect == NULL)
@@ -2628,19 +2630,20 @@ dontdraw:
                     etgEffectDraw(effect);
                 }
             } break;
-            case OBJ_ShipType:
-                if (spaceobj->staticinfo->staticheader.LOD != NULL)
+            case OBJ_ShipType: {
+                Ship* ship = (Ship*)spaceobj;
+                if (ship->staticinfo->common.LOD != NULL)
                 {
-                    if(!bitTest(spaceobj->flags,SOF_Cloaked) ||
-                       ((Ship *)spaceobj)->playerowner == universe.curPlayerPtr ||
-                       (proximityCanPlayerSeeShip(universe.curPlayerPtr,((Ship *)spaceobj))))       //if ship isn't cloaked or it is the players
+                    if(!bitTest(ship->header.flags,SOF_Cloaked) ||
+                       ship->playerowner == universe.curPlayerPtr ||
+                       (proximityCanPlayerSeeShip(universe.curPlayerPtr,ship)))       //if ship isn't cloaked or it is the players
                     {
                         //put the ship into the mission map array
 //                        mmAddShipToMapArray((ShipPtr)spaceobj);
                         shipStaticInfo = (ShipStaticInfo *)spaceobj->staticinfo;
-                        playerIndex = (sdword)((Ship *)spaceobj)->playerowner->playerIndex;
-                        dbgAssertOrIgnore((spaceobj->flags & SOF_Rotatable) != 0);
-                        selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, (SpaceObjRotImpTarg *)spaceobj);//compute selection circle
+                        playerIndex = (sdword)ship->playerowner->playerIndex;
+                        dbgAssertOrIgnore((spaceobj->header.flags & SOF_Rotatable) != 0);
+                        selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, &ship->targetable);//compute selection circle
 
 #if RND_VISUALIZATION
     #if DEBUG_COLLISIONS
@@ -2654,9 +2657,9 @@ dontdraw:
 #endif
 
                         glPushMatrix();
-                        level = lodLevelGet((void *)spaceobj, &camera->eyeposition, &((SpaceObjRotImp *)spaceobj)->collInfo.collPosition);
+                        level = lodLevelGet((void *)spaceobj, &camera->eyeposition, &ship->impactable.collInfo.collPosition);
 
-                        if (taskTimeElapsed-((Ship *)spaceobj)->flashtimer < FLASH_TIMER)
+                        if (taskTimeElapsed-ship->targetable.flashtimer < FLASH_TIMER)
                         {
                             g_ReplaceHack = TRUE;
                         }
@@ -2666,17 +2669,17 @@ dontdraw:
                             case LT_Invalid:
                                 break;
                             case LT_Mesh:
-                                displayEffect = hsShouldDisplayEffect((Ship*)spaceobj);
+                                displayEffect = hsShouldDisplayEffect(ship);
 #if LIGHT_PLAYER_COLORS
                                 lightPlayerColorLightSet(playerIndex);
 #endif //LIGHT_PLAYER_COLORS
-                                hmatMakeHMatFromMat(&coordMatrixForGL,&((SpaceObjRot *)spaceobj)->rotinfo.coordsys);
+                                hmatMakeHMatFromMat(&coordMatrixForGL,&ship->rotatable.rotinfo.coordsys);
                                 hmatPutVectIntoHMatrixCol4(spaceobj->posinfo.position,coordMatrixForGL);
                                 glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
                                 shPushLightMatrix(&coordMatrixForGL);
                                 if (selCameraSpace.z < 0.0f)
                                 {
-                                    //((Ship *)spaceobj)->magnitudeSquared = 1.0f - selCameraSpace.z * shipStaticInfo->NLIPS;
+                                    //ship->magnitudeSquared = 1.0f - selCameraSpace.z * shipStaticInfo->NLIPS;
 #if RND_SCALECAP_TWEAK
                                     if (selSelected.numShips == 1 &&
                                         selSelected.ShipPtr[0]->staticinfo == shipStaticInfo)
@@ -2708,18 +2711,18 @@ dontdraw:
                                             dbgMessage("-- scaleFactor is NaN --");
                                         }
 #endif
-                                        ((Ship *)spaceobj)->magnitudeSquared = scaleFactor;
+                                        ship->magnitudeSquared = scaleFactor;
                                         glScalef(scaleFactor, scaleFactor, scaleFactor);
-                                        ((Ship *)spaceobj)->collInfo.selCircleRadius *= scaleFactor;
+                                        ship->impactable.collInfo.selCircleRadius *= scaleFactor;
                                     }
                                     else
                                     {
-                                        ((Ship *)spaceobj)->magnitudeSquared = 1.0f;
+                                        ship->magnitudeSquared = 1.0f;
                                     }
                                 }
                                 else                        //don't even bother rendering if behind camera
                                 {
-                                    ((Ship *)spaceobj)->magnitudeSquared = 1.0f;
+                                    ship->magnitudeSquared = 1.0f;
 //!!!                                    break;
                                 }
 #if SO_CLOOGE_SCALE
@@ -2731,9 +2734,9 @@ dontdraw:
                                 }
 #endif
 #if RND_VISUALIZATION
-                                if (dockLines) dockDrawDockInfo((Ship *)spaceobj);
-                                if (gunLines) gunDrawGunInfo((Ship *)spaceobj);
-                                if (dockLines) dockDrawSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)spaceobj);
+                                if (dockLines) dockDrawDockInfo(ship);
+                                if (gunLines) gunDrawGunInfo(ship);
+                                if (dockLines) dockDrawSalvageInfo(&ship->shipOrDerelict);
 #endif
 
  /*
@@ -2741,7 +2744,7 @@ dontdraw:
                                 {
                                     case R1:
                                     case R2:
-                                        i = ((Ship *)spaceobj)->playerowner->playerIndex;
+                                        i = ship->playerowner->playerIndex;
                                         dbgAssertOrIgnore(i >= 0 && i < 8);//!!!
                                         break;
                                     default:
@@ -2749,17 +2752,16 @@ dontdraw:
                                         break;
                                 }
 */
-                                i = ((Ship *)spaceobj)->colorScheme;
+                                i = ship->colorScheme;
                                 dbgAssertOrIgnore(i >= 0 && i < MAX_MULTIPLAYER_PLAYERS);
-                                if (bitTest(spaceobj->flags,SOF_Cloaked))
+                                if (bitTest(spaceobj->header.flags,SOF_Cloaked))
                                 {
-                                    g_WireframeHack = (bool8)((((Ship *)spaceobj)->playerowner == universe.curPlayerPtr) || proximityCanPlayerSeeShip(universe.curPlayerPtr,((Ship *)spaceobj)));
+                                    g_WireframeHack = (bool8)((ship->playerowner == universe.curPlayerPtr) || proximityCanPlayerSeeShip(universe.curPlayerPtr,ship));
                                 }
 
                                 if (rndShipVisible(spaceobj, camera))
                                 {
                                     bool32 result = rndFade(spaceobj, camera);
-                                    Ship* ship = (Ship*)spaceobj;
                                     ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
 
                                     if (ssinfo != NULL)
@@ -2788,7 +2790,7 @@ dontdraw:
                                             {
                                                 hsNoGate(TRUE);
                                             }
-                                            hsContinue((Ship*)spaceobj, displayEffect);
+                                            hsContinue(ship, displayEffect);
                                             if (ssinfo->staticHyperspaceGate)
                                             {
                                                 hsNoGate(FALSE);
@@ -2798,17 +2800,17 @@ dontdraw:
                                         //
                                         // lighting while docking
                                         //
-                                        if (((Ship*)spaceobj)->dockvars.reserveddocking != -1 &&
-                                            ((Ship*)spaceobj)->dockvars.dockship != NULL)
+                                        if (ship->dockvars.reserveddocking != -1 &&
+                                            ship->dockvars.dockship != NULL)
                                         {
                                             Ship* dockship;
                                             real32 t, nearVal, farVal;
 
-                                            dockship = ((Ship*)spaceobj)->dockvars.dockship;
+                                            dockship = ship->dockvars.dockship;
                                             nearVal = dockship->staticinfo->dockLightNear;
                                             farVal  = dockship->staticinfo->dockLightFar;
-                                            t = rndDockScalar((Ship*)spaceobj,
-                                                              ((Ship*)spaceobj)->dockvars.dockship,
+                                            t = rndDockScalar(ship,
+                                                              ship->dockvars.dockship,
                                                               nearVal, farVal);
                                             shDockLightColor(dockship->staticinfo->dockLightColor);
                                             shDockLight(t);
@@ -2823,10 +2825,10 @@ dontdraw:
                                             extern bool32 g_Points;
                                             extern bool32 g_SpecificPoly;
 #endif
-                                            if (((Ship *)spaceobj)->bindings != NULL)
+                                            if (ship->bindings != NULL)
                                             {
-                                                meshRenderShipHierarchy(((Ship *)spaceobj)->bindings,
-                                                        ((Ship *)spaceobj)->currentLOD,
+                                                meshRenderShipHierarchy(ship->bindings,
+                                                        ship->obj.currentLOD,
                                                         (meshdata *)level->pData, i);
 #if DEBUG_VISIBLE_POLYS
                                                 if (visiblePoly >= 0)
@@ -2834,14 +2836,14 @@ dontdraw:
                                                     g_SpecificPoly = TRUE;
                                                     g_WireframeHack = TRUE;
                                                     glScalef(1.02f, 1.02f, 1.02f);
-                                                    meshRenderShipHierarchy(((Ship*)spaceobj)->bindings,
-                                                                            ((Ship*)spaceobj)->currentLOD,
+                                                    meshRenderShipHierarchy(ship->bindings,
+                                                                            ship->obj.currentLOD,
                                                                             (meshdata*)level->pData, i);
                                                     g_WireframeHack = FALSE;
                                                     glScalef(1.01f, 1.01f, 1.01f);
                                                     g_Points = TRUE;
-                                                    meshRenderShipHierarchy(((Ship*)spaceobj)->bindings,
-                                                                            ((Ship*)spaceobj)->currentLOD,
+                                                    meshRenderShipHierarchy(ship->bindings,
+                                                                            ship->obj.currentLOD,
                                                                             (meshdata*)level->pData, i);
                                                     g_Points = FALSE;
                                                     g_SpecificPoly = FALSE;
@@ -2870,9 +2872,9 @@ dontdraw:
                                             spaceobj->renderedLODs |= (1 << spaceobj->currentLOD);
 
                                             //navlights
-                                            if (!bitTest(spaceobj->flags, SOF_Cloaked))
+                                            if (!bitTest(ship->header.flags, SOF_Cloaked))
                                             {
-                                                RenderNAVLights((Ship*)spaceobj);
+                                                RenderNAVLights(ship);
                                             }
                                         }
 
@@ -2907,7 +2909,7 @@ dontdraw:
                                 rndTextureEnable(FALSE);
                                 rndLightingEnable(FALSE);
                                 primPointSize3(&spaceobj->posinfo.position,
-                                    ((Ship *)spaceobj)->collInfo.selCircleRadius,
+                                    ship->impactable.collInfo.selCircleRadius,
                                     toPlayerColor[playerIndex]);
                                 rndLightingEnable(TRUE);
                                 break;
@@ -2929,16 +2931,16 @@ dontdraw:
                             udword index;
                             for (index = 0; index < 2; index++)
                             {
-                                if (((Ship*)spaceobj)->lightning[index] != NULL)
+                                if (ship->lightning[index] != NULL)
                                 {
-                                    lightning* l = (lightning*)((Ship*)spaceobj)->lightning[index];
+                                    lightning* l = (lightning*)ship->lightning[index];
                                     cloudRenderAndUpdateLightning(l, spaceobj->currentLOD);
 
                                     l->countdown--;
                                     if (l->countdown == 0)
                                     {
                                         cloudKillLightning(l);
-                                        ((Ship*)spaceobj)->lightning[index] = NULL;
+                                        ship->lightning[index] = NULL;
                                     }
                                 }
                             }
@@ -2947,7 +2949,6 @@ dontdraw:
                         glPopMatrix();
 
                         {
-                            Ship* ship = (Ship*)spaceobj;
                             ShipSinglePlayerGameInfo* ssinfo = ship->shipSinglePlayerGameInfo;
 
                             if (ssinfo != NULL &&
@@ -2958,7 +2959,7 @@ dontdraw:
                                 {
                                     hsNoGate(TRUE);
                                 }
-                                hsEnd((Ship*)spaceobj, displayEffect);
+                                hsEnd(ship, displayEffect);
                                 if (ssinfo->staticHyperspaceGate)
                                 {
                                     hsNoGate(FALSE);
@@ -2967,18 +2968,18 @@ dontdraw:
                         }
 
                         rndFade(spaceobj, camera);
-                        if (!bitTest(spaceobj->flags, SOF_Cloaked) || (((Ship*)spaceobj)->playerowner == universe.curPlayerPtr) || proximityCanPlayerSeeShip(universe.curPlayerPtr,(Ship*)spaceobj))
+                        if (!bitTest(spaceobj->header.flags, SOF_Cloaked) || (ship->playerowner == universe.curPlayerPtr) || proximityCanPlayerSeeShip(universe.curPlayerPtr,ship))
 
                         {
                             udword idx;
                             for (idx = 0; idx < MAX_NUM_TRAILS; idx++)
                             {
-                                if (((Ship*)spaceobj)->trail[idx] != NULL)
+                                if (ship->trail[idx] != NULL)
                                 {
-                                    trailDraw(&((Ship*)spaceobj)->enginePosition,
-                                              ((Ship*)spaceobj)->trail[idx],
+                                    trailDraw(&ship->enginePosition,
+                                              ship->trail[idx],
                                               spaceobj->currentLOD,
-                                              ((Ship *)spaceobj)->colorScheme);
+                                              ship->colorScheme);
                                 }
                             }
                         }
@@ -2987,45 +2988,46 @@ dontdraw:
                 }
                 else
                 {                                           //else behind camera
-                    ((Ship *)spaceobj)->collInfo.selCircleRadius = -1.0f;
+                    ship->impactable.collInfo.selCircleRadius = -1.0f;
                 }
-                break;
-            case OBJ_DerelictType:
-                if (((Derelict *)spaceobj)->staticinfo->worldRender)
+            } break;
+            case OBJ_DerelictType: {
+                Derelict* derelict = (Derelict*)spaceobj;
+                if (derelict->staticinfo->worldRender)
                 {                                           //if it's a world derelict
                     break;                                  //render as normal
                 }
 
-                if (((Derelict *)spaceobj)->derelicttype == HyperspaceGate)
+                if (derelict->derelicttype == HyperspaceGate)
                 {
-                    selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, (SpaceObjRotImpTarg *)spaceobj);//compute selection circle
+                    selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, &derelict->targetable);//compute selection circle
 
 #if RND_VISUALIZATION
                     if (RENDER_BOXES)
                     {
-                        collDrawCollisionInfo((SpaceObjRotImp *)spaceobj);
+                        collDrawCollisionInfo(&derelict->impactable);
                     }
 #endif
                     break;
                 }
-
-                //else fall through
+            } //else fall through
             case OBJ_AsteroidType:
             case OBJ_DustType:
             case OBJ_GasType:
             case OBJ_MissileType:
                 //cloaked effect hack...change later when implement 'stages maybe'
-                if(bitTest(spaceobj->flags,SOF_Cloaked))
+                if(bitTest(spaceobj->header.flags,SOF_Cloaked))
                     break;   //if it isn't cloaked, or it is and it is the local players field draw it
 
-                if (spaceobj->staticinfo->staticheader.LOD != NULL)
+                if (spaceobj->staticinfo->LOD != NULL)
                 {
-                    dbgAssertOrIgnore((spaceobj->flags & (SOF_Rotatable+SOF_Impactable+SOF_Targetable)) != 0);
+                    dbgAssertOrIgnore((spaceobj->header.flags & (SOF_Rotatable+SOF_Impactable+SOF_Targetable)) != 0);
+                    SpaceObjRotImpTarg* targetable = (SpaceObjRotImpTarg*)spaceobj;
 
                     //add this space object to the mission map array
 //                    mmAddObjToMapArray(spaceobj);
 
-                    selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, (SpaceObjRotImpTarg *)spaceobj);//compute selection circle
+                    selCircleCompute(&rndCameraMatrix, &rndProjectionMatrix, targetable);//compute selection circle
 
 #if RND_VISUALIZATION
 #if DEBUG_COLLISIONS
@@ -3033,15 +3035,15 @@ dontdraw:
 #else
                     if (RENDER_BOXES)
                     {
-                        collDrawCollisionInfo((SpaceObjRotImp *)spaceobj);
+                        collDrawCollisionInfo(&targetable->impactable);
                     }
 #endif
 #endif
 
                     glPushMatrix();
-                    level = lodLevelGet((void *)spaceobj, &camera->eyeposition, &((SpaceObjRotImp *)spaceobj)->collInfo.collPosition);
+                    level = lodLevelGet((void *)spaceobj, &camera->eyeposition, &targetable->impactable.collInfo.collPosition);
 
-                    if (taskTimeElapsed-((Ship *)spaceobj)->flashtimer < FLASH_TIMER)
+                    if (taskTimeElapsed- targetable->flashtimer < FLASH_TIMER)
                     {
                         g_ReplaceHack = TRUE;
                     }
@@ -3056,12 +3058,12 @@ dontdraw:
 //!!!                            lightSetLighting();
 #endif
                             g_RndPosition = spaceobj->posinfo.position;
-                            hmatMakeHMatFromMat(&coordMatrixForGL,&((SpaceObjRot *)spaceobj)->rotinfo.coordsys);
+                            hmatMakeHMatFromMat(&coordMatrixForGL, &targetable->rotatable.rotinfo.coordsys);
                             hmatPutVectIntoHMatrixCol4(spaceobj->posinfo.position,coordMatrixForGL);
                             glMultMatrixf((float *)&coordMatrixForGL);//ship's rotation matrix
                             shPushLightMatrix(&coordMatrixForGL);
 
-                            if (spaceobj->objtype == OBJ_AsteroidType)
+                            if (spaceobj->header.objtype == OBJ_AsteroidType)
                             {
                                 real32 scaling = ((Asteroid *)spaceobj)->scaling;
                                 if (scaling != 1.0f)
@@ -3071,12 +3073,12 @@ dontdraw:
                             }
 
 #ifdef HW_BUILD_FOR_DEBUGGING
-                            if(spaceobj->objtype == OBJ_DerelictType)
-                            if(((Derelict *)spaceobj)->derelicttype < NUM_DERELICTTYPES)
-                            if (dockLines) dockDrawSalvageInfo((SpaceObjRotImpTargGuidanceShipDerelict *)spaceobj);
+                            if (spaceobj->header.objtype == OBJ_DerelictType &&
+                                ((Derelict*)spaceobj)->derelicttype < NUM_DERELICTTYPES && dockLines)
+                                dockDrawSalvageInfo((ShipOrDerelict*)spaceobj);
 #endif
                             colorScheme = 0;
-                            switch (spaceobj->objtype)
+                            switch (spaceobj->header.objtype)
                             {
                             case OBJ_GasType:
                             case OBJ_DustType:
@@ -3104,7 +3106,7 @@ renderDefault:
                                     spaceobj->renderedLODs |= (1 << spaceobj->currentLOD);
                                     rndGLStateLog("After Derelict");
                                     //navlights
-                                    if (spaceobj->objtype == OBJ_DerelictType && !bitTest(spaceobj->flags, SOF_Cloaked))
+                                    if (spaceobj->header.objtype == OBJ_DerelictType && !bitTest(spaceobj->header.flags, SOF_Cloaked))
                                     {
                                         RenderNAVLights((Ship*)spaceobj);
                                     }
@@ -3132,8 +3134,8 @@ renderDefault:
                             rndTextureEnable(FALSE);
                             rndLightingEnable(FALSE);
                             primPointSize3(&spaceobj->posinfo.position,
-                                           ((Ship *)spaceobj)->collInfo.selCircleRadius,
-                                           spaceobj->staticinfo->staticheader.LOD->pointColor);
+                                           targetable->impactable.collInfo.selCircleRadius,
+                                           spaceobj->staticinfo->LOD->pointColor);
                             rndLightingEnable(TRUE);
                             break;
                         case LT_Function:
@@ -3152,7 +3154,7 @@ renderDefault:
 
                     glPopMatrix();
 
-                    if (spaceobj->objtype == OBJ_MissileType)
+                    if (spaceobj->header.objtype == OBJ_MissileType)
                     {
                         Missile* mis = (Missile*)spaceobj;
 
@@ -3169,7 +3171,7 @@ renderDefault:
                 //do nothing
                 break;
             default:
-                dbgFatalf(DBG_Loc, "Undefined object type %d", spaceobj->objtype);
+                dbgFatalf(DBG_Loc, "Undefined object type %d", spaceobj->header.objtype);
         }
         objnode = objnode->next;
     }
@@ -3189,10 +3191,10 @@ renderDefault:
     {
         spaceobj = (SpaceObj*)listGetStructOfNode(objnode);
 
-        switch (spaceobj->objtype)
+        switch (spaceobj->header.objtype)
         {
         case OBJ_AsteroidType:
-            asteroid0Data[asteroid0Count].c = spaceobj->staticinfo->staticheader.LOD->pointColor;
+            asteroid0Data[asteroid0Count].c = spaceobj->staticinfo->LOD->pointColor;
             asteroid0Data[asteroid0Count].position = &spaceobj->posinfo.position;
             asteroid0Count++;
             if (asteroid0Count == ASTEROID0DATA_SIZE)
@@ -3203,7 +3205,7 @@ renderDefault:
             break;
 
         default:
-            dbgFatalf(DBG_Loc, "MinorRenderList contains invalid object type %d", spaceobj->objtype);
+            dbgFatalf(DBG_Loc, "MinorRenderList contains invalid object type %d", spaceobj->header.objtype);
         }
 
         objnode = objnode->next;
@@ -3634,11 +3636,11 @@ void rndDrawOnScreenDebugInfo(void)
         static char string[256];
         if (selSelecting.numTargets == 1)
         {
-            sprintf(string, "deltaXYZ = (%.2f, %.2f, %.2f)", selSelecting.TargetPtr[0]->posinfo.position.x - selSelected.ShipPtr[0]->posinfo.position.x, selSelecting.TargetPtr[0]->posinfo.position.y - selSelected.ShipPtr[0]->posinfo.position.y, selSelecting.TargetPtr[0]->posinfo.position.z - selSelected.ShipPtr[0]->posinfo.position.z);
+            sprintf(string, "deltaXYZ = (%.2f, %.2f, %.2f)", selSelecting.TargetPtr[0]->obj.posinfo.position.x - selSelected.ShipPtr[0]->obj.posinfo.position.x, selSelecting.TargetPtr[0]->obj.posinfo.position.y - selSelected.ShipPtr[0]->obj.posinfo.position.y, selSelecting.TargetPtr[0]->obj.posinfo.position.z - selSelected.ShipPtr[0]->obj.posinfo.position.z);
         }
         else
         {
-            sprintf(string, "XYZ = (%.2f, %.2f, %.2f)", selSelected.ShipPtr[0]->posinfo.position.x, selSelected.ShipPtr[0]->posinfo.position.y, selSelected.ShipPtr[0]->posinfo.position.z);
+            sprintf(string, "XYZ = (%.2f, %.2f, %.2f)", selSelected.ShipPtr[0]->obj.posinfo.position.x, selSelected.ShipPtr[0]->obj.posinfo.position.y, selSelected.ShipPtr[0]->obj.posinfo.position.z);
         }
         fontPrint(MAIN_WindowWidth - fontWidth(string), 0, colWhite, string);
     }
@@ -4509,7 +4511,7 @@ real32 rndComputeOverlap(Ship* ship, real32 scalar)
     objnode = objnode->next;
     overlap = 0.0f;
     //make screenspace rectangle
-    acoll = &ship->collInfo;
+    acoll = &ship->impactable.collInfo;
     radius = scalar * acoll->selCircleRadius;
     arect.x0 = primGLToScreenX(acoll->selCircleX - radius);
     arect.x1 = primGLToScreenX(acoll->selCircleX + radius);
@@ -4520,7 +4522,7 @@ real32 rndComputeOverlap(Ship* ship, real32 scalar)
     while (objnode != NULL)
     {
         spaceobj = (SpaceObj*)listGetStructOfNode(objnode);
-        if (spaceobj->objtype == OBJ_ShipType)
+        if (spaceobj->header.objtype == OBJ_ShipType)
         {
             //useful stuff
             testship = (Ship*)spaceobj;
@@ -4539,7 +4541,7 @@ real32 rndComputeOverlap(Ship* ship, real32 scalar)
             vecSub(vobj, mrCamera->eyeposition, spaceobj->posinfo.position);
 
             //make screenspace rectangle
-            bcoll = &testship->collInfo;
+            bcoll = &testship->impactable.collInfo;
             radius = scalar * bcoll->selCircleRadius;
             brect.x0 = primGLToScreenX(bcoll->selCircleX - radius);
             brect.x1 = primGLToScreenX(bcoll->selCircleX + radius);

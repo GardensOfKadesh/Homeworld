@@ -1279,7 +1279,7 @@ void cmBuildTaskFunction(void)
                                 else
                                 {
                                     progress->nJobsTotal = 0;          //all jobs for this type complete
-                                    pingNewShipPingCreate(&factoryship->posinfo.position);
+                                    pingNewShipPingCreate(&factoryship->obj.posinfo.position);
                                     speechEventFleet(STAT_F_Const_CapShipComplete,
                                                      progress->info->shiptype,
                                                      universe.curPlayerIndex);
@@ -1543,7 +1543,7 @@ void cmUpdateShipAvailable(void)
         if (cmShipsAvailable[index].itemtype==ITEM_SHIP)
         {
             if (rmCanBuildShip(universe.curPlayerPtr, cmShipsAvailable[index].type) &&
-                bitTest(cmShipsAvailable[index].info->staticheader.infoFlags, IF_InfoLoaded))
+                bitTest(cmShipsAvailable[index].info->common.infoFlags, IF_InfoLoaded))
             {
                 cmShipsAvailable[index].itemstat = STAT_CANBUILD;
                 NUMBER_SHIPS_AVAILABLE++;

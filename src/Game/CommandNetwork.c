@@ -437,8 +437,8 @@ void ReceivedPacketCB(ubyte *packet,udword sizeofPacket)
 ----------------------------------------------------------------------------*/
 void SetTargetID(TargetID *targetID,SpaceObjRotImpTarg *target)
 {
-    targetID->objtype = (uword)target->objtype;
-    switch (target->objtype)
+    targetID->objtype = (uword)target->header.objtype;
+    switch (target->header.objtype)
     {
         case OBJ_ShipType:
             targetID->objNumber = ((Ship *)target)->shipID.shipNumber;

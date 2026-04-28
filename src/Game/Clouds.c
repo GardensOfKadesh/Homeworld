@@ -1513,7 +1513,7 @@ void cloudZapLoop(cloudSystem* system)
     {
         spaceobj = (SpaceObj*)listGetStructOfNode(node);
 
-        if (spaceobj->objtype == OBJ_ShipType)
+        if (spaceobj->header.objtype == OBJ_ShipType)
         {
             vector diff;
 
@@ -1539,7 +1539,7 @@ void cloudZapLoop(cloudSystem* system)
         {
             spaceobj = (SpaceObj*)listGetStructOfNode(node);
 
-            if (spaceobj->objtype == OBJ_ShipType)
+            if (spaceobj->header.objtype == OBJ_ShipType)
             {
                 vector diff;
 
@@ -1560,7 +1560,7 @@ void cloudZapLoop(cloudSystem* system)
 
                         ship->lightning[i] = cloudNewLightning(
                             (void*)ship,
-                            ship->staticinfo->staticheader.staticCollInfo.collspheresize);
+                            ship->staticinfo->common.staticCollInfo.collspheresize);
                     }
                 }
             }
@@ -1821,7 +1821,7 @@ void cloudSetFog(void)
             continue;
         }
 
-        if (spaceobj->objtype == OBJ_DustType)
+        if (spaceobj->header.objtype == OBJ_DustType)
         {
             cloudUpdateSystem((cloudSystem*)((DustCloud*)spaceobj)->stub);
         }
@@ -1840,11 +1840,11 @@ void cloudSetFog(void)
             continue;
         }
 
-        if (spaceobj->objtype == OBJ_DustType)
+        if (spaceobj->header.objtype == OBJ_DustType)
         {
             dontNebulate = TRUE;    //there's clouds here, don't do nebula fog
 
-            radius = spaceobj->staticinfo->staticheader.staticCollInfo.collspheresize;
+            radius = spaceobj->staticinfo->staticCollInfo.collspheresize;
             dist = fsqrt(spaceobj->cameraDistanceSquared);
             if (dist != 0.0f)
             {

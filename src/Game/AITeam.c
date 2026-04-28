@@ -403,7 +403,7 @@ void aitShipDied(struct AIPlayer *aiplayer,ShipPtr ship)
     Node *node;
     AITeamMove *move;
 
-//    if ((ship->playerowner == aiplayer->player) || (ship->attributes & ATTRIBUTES_Defector))  // do all checks for defector
+//    if ((ship->playerowner == aiplayer->player) || (ship->obj.attributes & ATTRIBUTES_Defector))  // do all checks for defector
 //    {
         // go through all teams & ships
         for (i = 0; i < aiplayer->teamsUsed; i++)
@@ -416,7 +416,7 @@ void aitShipDied(struct AIPlayer *aiplayer,ShipPtr ship)
                 //Note: aievents has a teamdied handler as well for each move
 
                 //recalculate the strength and value of the team
-                if ((aiplayer->numLeaders) && (bitTest(ship->attributes, ATTRIBUTES_TeamLeader)) &&
+                if ((aiplayer->numLeaders) && (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader)) &&
                     (team->teamDifficultyLevel > 0))
                 {
                     if (!aitCheckForLeaderAndMoveToFront(team))
@@ -494,7 +494,7 @@ bool32 aitCheckForLeaderAndMoveToFront(AITeam *team)
     {
         ship = team->shipList.selection->ShipPtr[i];
 
-        if (bitTest(ship->attributes, ATTRIBUTES_TeamLeader))
+        if (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader))
         {
             //found a leader, now move him to the front of the selection
             team->shipList.selection->ShipPtr[i] = team->shipList.selection->ShipPtr[0];
@@ -518,7 +518,7 @@ bool32 aitCheckAmIBeingWatched(AITeam *team, SelectCommand *sel)
     if (bitTest(team->teamFlags, TEAM_AmIBeingWatched))
     {
         bitClear(team->teamFlags, TEAM_AmIBeingWatched);
-        if (sel->numShips && bitTest(sel->ShipPtr[0]->renderedLODs, 0x7))
+        if (sel->numShips && bitTest(sel->ShipPtr[0]->obj.renderedLODs, 0x7))
         {
             return TRUE;
         }
@@ -543,7 +543,7 @@ void aitSetAmIBeingWatched(AITeam *team, SelectCommand *sel)
         bitSet(team->teamFlags, TEAM_AmIBeingWatched);
 
         //clear the RenderedLODs bitfield in one of the selections ships.
-        bitClear(sel->ShipPtr[0]->renderedLODs, 0x7);
+        bitClear(sel->ShipPtr[0]->obj.renderedLODs, 0x7);
     }
 }
 
@@ -571,7 +571,7 @@ void aitAddShip(AITeam *team, ShipPtr ship)
     {
         //if this new ship is a leader, increase the level of difficulty
         //of the team
-        if (bitTest(ship->attributes, ATTRIBUTES_TeamLeader) &&
+        if (bitTest(ship->obj.attributes, ATTRIBUTES_TeamLeader) &&
             (team->teamDifficultyLevel != TEAM_ADVANCED))
         {
            team->teamDifficultyLevel++;
@@ -606,7 +606,7 @@ void aitCheckShips(AITeam *team, ShipPtr ship)
 void aitMoveSwarmShipDefenseToAttack(AITeam *attackSwarm, AITeam *defenseSwarm, ShipPtr ship)
 {
     dbgAssertOrIgnore(ship->playerowner->playerIndex);
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
     growSelectAddShip(&attackSwarm->shipList, ship);
 
@@ -636,7 +636,7 @@ void aitMoveAllSwarmShipsAttackToDefense(AITeam *attackSwarm, AITeam *defenseSwa
         ship = attackSwarm->shipList.selection->ShipPtr[0];
 
         dbgAssertOrIgnore(ship->playerowner->playerIndex);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         //add the ship to the defense swarm's shiplist
         growSelectAddShip(&defenseSwarm->shipList, ship);
@@ -672,7 +672,7 @@ void aitMoveAllSwarmShipsDefenseToAttack(AITeam *defenseSwarm, AITeam *attackSwa
         ship = defenseSwarm->shipList.selection->ShipPtr[0];
 
         dbgAssertOrIgnore(ship->playerowner->playerIndex);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         //add the ship to the defense swarm's shiplist
         growSelectAddShip(&attackSwarm->shipList, ship);
@@ -714,7 +714,7 @@ void aitMoveAllSwarmShipsDefense(AITeam *destTeam, AITeam *sourceTeam)
         ship = sourceTeam->shipList.selection->ShipPtr[0];
 
         dbgAssertOrIgnore(ship->playerowner->playerIndex);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         growSelectAddShip(&destTeam->shipList, ship);
         growSelectAddShip(&destTeam->curMove->params.swarmdef.newSwarmers, ship);
@@ -743,7 +743,7 @@ void aitMoveAllSwarmShipsAttack(AITeam *destTeam, AITeam *sourceTeam)
         ship = sourceTeam->shipList.selection->ShipPtr[0];
 
         dbgAssertOrIgnore(ship->playerowner->playerIndex);
-        dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+        dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
 
         growSelectAddShip(&destTeam->shipList, ship);
         growSelectAddShip(&destTeam->curMove->params.swarmatt.newSwarmers, ship);
@@ -1549,7 +1549,7 @@ bool32 aitTeamIsInRange(AITeam *team, ShipPtr ship, real32 time)
         teamvelsq = tacticsGetShipsMaxVelocity(team->shipList.selection->ShipPtr[0]);
     }
 
-    distsq     = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->posinfo.position, ship->posinfo.position);
+    distsq     = aiuFindDistanceSquared(team->shipList.selection->ShipPtr[0]->obj.posinfo.position, ship->obj.posinfo.position);
     teamvelsq *= teamvelsq;
 
     if ((teamvelsq * timesq) > distsq)

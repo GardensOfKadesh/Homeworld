@@ -270,7 +270,7 @@ bool32 GenericInterceptorCanFire(Ship *ship,SpaceObjRotImpTarg *target,vector *t
         triggerHappy = 0.0f;
     }
 
-    if (bitTest(ship->flags, SOF_NISShip))
+    if (bitTest(ship->header.flags, SOF_NISShip))
     {
         triggerHappy = NIS_TriggerHappyAngle;
     }
@@ -387,10 +387,10 @@ void setupWhipStrafe(Ship *ship,GenericInterceptorSpec *spec,Ship *target)
     real32 temp;
     uword whipstrafeflags;
 
-    targetshipvec = target->posinfo.position;
-    temp = target->staticinfo->staticheader.staticCollInfo.approxcollspheresize + shipstaticinfo->bulletRange[ship->tacticstype] * WHIPSTRAFE_BULLETRANGEOPTIMUM;
+    targetshipvec = target->obj.posinfo.position;
+    temp = target->staticinfo->common.staticCollInfo.approxcollspheresize + shipstaticinfo->bulletRange[ship->tacticstype] * WHIPSTRAFE_BULLETRANGEOPTIMUM;
 
-    if (ship->posinfo.position.z > targetshipvec.z)
+    if (ship->obj.posinfo.position.z > targetshipvec.z)
     {
         whipstrafeflags = WHIPSTRAFE_ABOVE;
         targetshipvec.z += temp;
@@ -401,7 +401,7 @@ void setupWhipStrafe(Ship *ship,GenericInterceptorSpec *spec,Ship *target)
         targetshipvec.z -= temp;
     }
 
-    vecSub(tmpvec2,targetshipvec,ship->posinfo.position);
+    vecSub(tmpvec2,targetshipvec,ship->obj.posinfo.position);
 
     zsqr = tmpvec2.z * tmpvec2.z;
     rsqr = tmpvec2.x * tmpvec2.x + tmpvec2.y * tmpvec2.y;
@@ -410,7 +410,7 @@ void setupWhipStrafe(Ship *ship,GenericInterceptorSpec *spec,Ship *target)
     {
         // angle is appropriatley low, so continue
         vecMultiplyByScalar(tmpvec2,WHIPSTRAFE_FLYBYOVERSHOOT);
-        vecAdd(spec->aivec,ship->posinfo.position,tmpvec2);
+        vecAdd(spec->aivec,ship->obj.posinfo.position,tmpvec2);
 
         spec->aiAIPflightman = TRUE;
         flightmanInit(ship,FLIGHTMAN_WHIP_STRAFE);
@@ -424,9 +424,9 @@ void setupWhipStrafe(Ship *ship,GenericInterceptorSpec *spec,Ship *target)
 #define TransitionToSTATE_REAPPROACH           \
     ship->aistateattack = STATE_REAPPROACH;                                                                                \
     spec->aiAIPflightman = FALSE;                                                                                          \
-    ship->aistate = 0;                                                                                                     \
+    ship->shipOrDerelict.aistate = 0;                                                                                                     \
                                                                                                                            \
-    if ((ship->flightman == FLIGHTMAN_NULL) && (target->objtype == OBJ_ShipType) && (isCapitalShip((Ship *)target)) && (((ShipStaticInfo *)(target->staticinfo))->shipclass != CLASS_Mothership)) \
+    if ((ship->flightman == FLIGHTMAN_NULL) && (target->header.objtype == OBJ_ShipType) && (isCapitalShip((Ship *)target)) && (((ShipStaticInfo *)(target->staticinfo))->shipclass != CLASS_Mothership)) \
     {                                                                                                                      \
         if (flightmanTestRandom(&interceptorstat->flightmanProb[ship->tacticstype][targetIndex],FLIGHTMAN_AIP,FLIGHTMAN_WHIP_STRAFE))         \
         {                                                                                                                  \
@@ -507,7 +507,7 @@ FlightManProb *GenericInterceptorGetFlightManProb(Ship *ship,SpaceObjRotImpTarg 
     ShipStaticInfo *shipstaticinfo = (ShipStaticInfo *)ship->staticinfo;
     uword targetIndex;
 
-    if ((target != NULL) && (target->objtype == OBJ_ShipType))
+    if ((target != NULL) && (target->header.objtype == OBJ_ShipType))
     {
         targetIndex = (uword)((ShipStaticInfo *)target->staticinfo)->shipclass;
     }
@@ -565,7 +565,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
     real32 sintheta, costheta;
     TypeOfFormation formtype = NO_FORMATION;
 
-    if (target->objtype == OBJ_ShipType)
+    if (target->header.objtype == OBJ_ShipType)
     {
         targetIndex = (uword)((ShipStaticInfo *)target->staticinfo)->shipclass;
     }
@@ -579,7 +579,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
         case STATE_INIT:
             spec->aiAIPflightman = FALSE;
             if((ship->shiptype != AttackBomber) || (!BombersUseBombingRun) || (targetIndex > CLASS_Frigate) ||
-               ((target->objtype == OBJ_ShipType) && (((Ship *)target)->shiptype == Mothership) && (((Ship *)target)->shiprace == R1)))
+               ((target->header.objtype == OBJ_ShipType) && (((Ship *)target)->shiptype == Mothership) && (((Ship *)target)->shiprace == R1)))
             {
                 ship->aistateattack = STATE_APPROACH;
                 aishipGetTrajectory(ship,target,&trajectory);
@@ -594,7 +594,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                 break;
             }
             ship->aistateattack = STATE_START_BOMBING_RUN;
-            CalcRallyPoint(ship->posinfo.position, target->posinfo.position, (AttackBomberSpec *)ship->ShipSpecifics);
+            CalcRallyPoint(ship->obj.posinfo.position, target->obj.posinfo.position, (AttackBomberSpec *)ship->ShipSpecifics);
 
             // fall right into bombing run code
 
@@ -609,8 +609,8 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                 diveinfo->rallypoint.x = (diveinfo->orig_point.x * costheta) + (diveinfo->orig_point.y * sintheta);   // rotate rallypoint X degrees clockwise
                 diveinfo->rallypoint.y = (diveinfo->orig_point.y * costheta) - (diveinfo->orig_point.x * sintheta);
             }
-            vecAdd(rallypoint, target->posinfo.position, diveinfo->rallypoint);
-            vecSub(tmpvec, ship->posinfo.position, rallypoint);
+            vecAdd(rallypoint, target->obj.posinfo.position, diveinfo->rallypoint);
+            vecSub(tmpvec, ship->obj.posinfo.position, rallypoint);
             if(vecMagnitudeSquared(tmpvec) < 5625)  // within 75 metres
             {
                 if((gamerand() & 15) == 0)      // 1 in 16 chance of starting bombing dive
@@ -633,18 +633,18 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                 }
             }
             else
-                aishipFlyToPointAvoidingObjsWithVel(ship, &rallypoint, AISHIP_PointInDirectionFlying | AISHIP_DontFlyToObscuredPoints | AISHIP_FastAsPossible, -400.0f, &target->posinfo.velocity);
+                aishipFlyToPointAvoidingObjsWithVel(ship, &rallypoint, AISHIP_PointInDirectionFlying | AISHIP_DontFlyToObscuredPoints | AISHIP_FastAsPossible, -400.0f, &target->obj.posinfo.velocity);
 
             break;
 
         case STATE_BOMBING_DIVE:
             diveinfo = (AttackBomberSpec *)ship->ShipSpecifics;
-            vecAdd(rallypoint, target->posinfo.position, diveinfo->rallypoint);
-            vecSub(tmpvec, ship->posinfo.position, rallypoint);
+            vecAdd(rallypoint, target->obj.posinfo.position, diveinfo->rallypoint);
+            vecSub(tmpvec, ship->obj.posinfo.position, rallypoint);
             if(vecMagnitudeSquared(tmpvec) < 5625)  // within 75 metres
                 ship->aistateattack = STATE_INIT;
             else
-                aishipFlyToPointAvoidingObjsWithVel(ship, &rallypoint, AISHIP_PointInDirectionFlying | AISHIP_DontFlyToObscuredPoints | AISHIP_FastAsPossible, -400.0f, &target->posinfo.velocity);
+                aishipFlyToPointAvoidingObjsWithVel(ship, &rallypoint, AISHIP_PointInDirectionFlying | AISHIP_DontFlyToObscuredPoints | AISHIP_FastAsPossible, -400.0f, &target->obj.posinfo.velocity);
 
             if(diveinfo->bombingdelay)
                 diveinfo->bombingdelay--;
@@ -715,7 +715,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
             if (range < (shipstaticinfo->bulletRange[ship->tacticstype]*0.7f))
             {
                 aishipFlyToPointAvoidingObjs(ship,&spec->aivec,AISHIP_FastAsPossible,WHIPSTRAFE_MINVELOCITY);
-                aitrackHeadingWithBank(ship,&trajectory,0.99999f /*interceptorstat->faceTargetAccuracy[targetIndex]*/,shipstaticinfo->sinbank);
+                aitrackHeadingWithBank(ship,&trajectory,0.99999f /*interceptorstat->faceTargetAccuracy[targetIndex]*/,shipstaticinfo->shipOrDerelict.sinbank);
 
                 if (GenericInterceptorCanFire(ship,target,&trajectory,interceptorstat->triggerHappy[ship->tacticstype][targetIndex]))
                 {
@@ -750,7 +750,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
             {
                 ship->aistateattack = STATE_BREAK;
 
-                vecSub(tmpvec,ship->posinfo.position,target->posinfo.position);
+                vecSub(tmpvec,ship->obj.posinfo.position,target->obj.posinfo.position);
                 tmpvec.z = 0.0f;
                 vecNormalizeToLength(&tmpvec,interceptorstat->flyPastDist[ship->tacticstype][targetIndex]);
 
@@ -761,7 +761,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                 matMakeRotAboutZ(&tmpmat,(real32)cos(randegf),(real32)sin(randegf));
                 matMultiplyMatByVec(&spec->aivec,&tmpmat,&tmpvec);
 
-                vecAddTo(spec->aivec,target->posinfo.position);
+                vecAddTo(spec->aivec,target->obj.posinfo.position);
             }
             break;
 
@@ -777,13 +777,13 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
             dist = fsqrt(vecMagnitudeSquared(trajectory));
             vecDivideByScalar(trajectory,dist,temp);
 
-            if (vecDotProduct(trajectory,target->posinfo.velocity) < 0)     // never track a velocity of ship moving towards us,
+            if (vecDotProduct(trajectory,target->obj.posinfo.velocity) < 0)     // never track a velocity of ship moving towards us,
             {                                                               // because we don't want to back up or slow down.
-                aishipFlyToShipAvoidingObjs(ship,target,AISHIP_FastAsPossible,-shipstaticinfo->staticheader.maxvelocity);
+                aishipFlyToShipAvoidingObjs(ship,target,AISHIP_FastAsPossible,-shipstaticinfo->common.maxvelocity);
             }
             else
             {
-                aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FastAsPossible,-shipstaticinfo->staticheader.maxvelocity,&target->posinfo.velocity);
+                aishipFlyToShipAvoidingObjsWithVel(ship,target,AISHIP_FastAsPossible,-shipstaticinfo->common.maxvelocity,&target->obj.posinfo.velocity);
             }
 
             if (ship->flightman == FLIGHTMAN_BARREL_ROLL || ship->flightman == FLIGHTMAN_SWARMER_BARRELROLL || ship->flightman == FLIGHTMAN_ROLL180)
@@ -802,7 +802,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                 }
             }
 
-            aitrackHeadingWithBankFlags(ship,&trajectory,interceptorstat->faceTargetAccuracy[ship->tacticstype][targetIndex],shipstaticinfo->sinbank,flags);
+            aitrackHeadingWithBankFlags(ship,&trajectory,interceptorstat->faceTargetAccuracy[ship->tacticstype][targetIndex],shipstaticinfo->shipOrDerelict.sinbank,flags);
 
             range = RangeToTargetGivenDist(ship,target,dist);
 
@@ -862,7 +862,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                     else
                         formtype = NO_FORMATION;
 
-                    if ((target->objtype == OBJ_ShipType) && (((Ship *)target)->shiptype == Mothership) && (((Ship *)target)->shiprace == R1) )
+                    if ((target->header.objtype == OBJ_ShipType) && (((Ship *)target)->shiptype == Mothership) && (((Ship *)target)->shiprace == R1) )
                     {
                         formtype = NO_FORMATION;            // yet another R1 Mothership special consideration
                     }
@@ -927,7 +927,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
                         //vecScalarMultiply(spec->aivec,spec->aivec,tempreal);
                     }
 
-                    vecAddTo(spec->aivec,target->posinfo.position);
+                    vecAddTo(spec->aivec,target->obj.posinfo.position);
                 }
             }
             break;
@@ -945,7 +945,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
             dist = vecMagnitudeSquared(trajectory);
 
             curdistonly = TRUE;
-            if(target->objtype == OBJ_ShipType)
+            if(target->header.objtype == OBJ_ShipType)
             {
                 if( ((ShipStaticInfo *)target->staticinfo)->shipclass <= CLASS_Frigate)
                 {
@@ -956,7 +956,7 @@ void GenericInterceptorAttack(Ship *ship,SpaceObjRotImpTarg *target,real32 maxdi
             if ((dist > interceptorstat->maxFlyAwayDistSquared[ship->tacticstype][targetIndex]) || ((MoveReachedDestinationVariable(ship,&spec->aivec,INTERCEPTORBREAK_TOLERANCE) && curdistonly)) )
             {
 abortbreakafterall:
-                matGetVectFromMatrixCol3(tmpvec,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol3(tmpvec,ship->rotatable.rotinfo.coordsys);
                 if (vecDotProduct(trajectory,tmpvec) > 0.0f)
                 {
                     flighttodo = FLIGHTMAN_DONOTHING;
@@ -974,10 +974,10 @@ abortbreakafterall:
             {
                 if(!curdistonly)
 				{
-					vecSub(dest,spec->aivec,target->posinfo.position);
+					vecSub(dest,spec->aivec,target->obj.posinfo.position);
 					vecNormalize(&dest);
 					vecScalarMultiply(dest,dest,20000.0f);
-					vecAddTo(dest,target->posinfo.position);
+					vecAddTo(dest,target->obj.posinfo.position);
 					if(aishipFlyToPointAvoidingObjs(ship,&dest,AISHIP_DontFlyToObscuredPoints|AISHIP_ReturnImmedIfPointObscured|AISHIP_FastAsPossible|AISHIP_PointInDirectionFlying,INTERCEPTORBREAK_MINVELOCITY) & AISHIP_FLY_OBJECT_IN_WAY)
 					{
 						goto abortbreakafterall;
@@ -1038,7 +1038,7 @@ void SpawnCloakingEffect(Ship *ship, etglod *etgLOD)
 
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -1059,7 +1059,7 @@ void SpawnCloakingEffect(Ship *ship, etglod *etgLOD)
 #endif
     {
         etgEffectCreate(stat, ship, NULL, NULL, NULL, ship->magnitudeSquared, EAF_Full, 3,
-            ship->shiprace, ship->shiptype, ship->staticinfo->staticheader.staticCollInfo.collspheresize);
+            ship->shiprace, ship->shiptype, ship->staticinfo->common.staticCollInfo.collspheresize);
     }
 }
 
@@ -1080,18 +1080,18 @@ bool32 CloakedFighterSpecialActivate(Ship *ship)
         return TRUE;
     }
 /*
-    if(bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
+    if(bitTest(ship->header.flags,SOF_Cloaked) || bitTest(ship->header.flags,SOF_Cloaking))
     {
-        bitSet(ship->flags,SOF_DeCloaking);     //begin DeCloaking Process;
-        bitClear(ship->flags,SOF_Cloaking);     //clear in case we are cloaking right now
+        bitSet(ship->header.flags,SOF_DeCloaking);     //begin DeCloaking Process;
+        bitClear(ship->header.flags,SOF_Cloaking);     //clear in case we are cloaking right now
     }
     else
     {
-        bitSet(ship->flags,SOF_Cloaking);       //begin Cloaking Process
-        bitClear(ship->flags,SOF_DeCloaking);   //clear in case we are decloaking right now
+        bitSet(ship->header.flags,SOF_Cloaking);       //begin Cloaking Process
+        bitClear(ship->header.flags,SOF_DeCloaking);   //clear in case we are decloaking right now
     }
 */
-    if(bitTest(ship->flags,SOF_Cloaked))
+    if(bitTest(ship->header.flags,SOF_Cloaked))
     {
 
         if(universe.curPlayerIndex != ship->playerowner->playerIndex)
@@ -1107,13 +1107,13 @@ bool32 CloakedFighterSpecialActivate(Ship *ship)
             //}
             //
         }
-        bitSet(ship->flags,SOF_DeCloaking);     //begin DeCloaking Process;
+        bitSet(ship->header.flags,SOF_DeCloaking);     //begin DeCloaking Process;
         SpawnCloakingEffect(ship, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
 		soundEvent(ship, Ship_CloakOff);
     }
     else
     {
-        bitSet(ship->flags,SOF_Cloaking);       //begin Cloaking Process
+        bitSet(ship->header.flags,SOF_Cloaking);       //begin Cloaking Process
         SpawnCloakingEffect(ship, etgSpecialPurposeEffectTable[EGT_CLOAK_ON]);
 		soundEvent(ship, Ship_CloakOn);
 //        speechEvent(ship, COMM_Cloak_CloakingOn, 0);
@@ -1130,10 +1130,10 @@ void CloakedFighterFire(Ship *ship,SpaceObjRotImpTarg *target)
 {
     if(ship->shiptype == CloakedFighter)
     {
-        if (bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
+        if (bitTest(ship->header.flags,SOF_Cloaked) || bitTest(ship->header.flags,SOF_Cloaking))
         {             //ship is cloaked...make it decloak...
-            bitClear(ship->flags,SOF_Cloaking);         //if bastard is trying to cloak,
-            bitSet(ship->flags,SOF_DeCloaking);         //put an end to it pronto!
+            bitClear(ship->header.flags,SOF_Cloaking);         //if bastard is trying to cloak,
+            bitSet(ship->header.flags,SOF_DeCloaking);         //put an end to it pronto!
             ((CloakedFighterSpec *) ship->ShipSpecifics)->ReCloak = TRUE;
             ((CloakedFighterSpec *) ship->ShipSpecifics)->ReCloakTime = universe.totaltimeelapsed +
                 ((CloakedFighterStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo)->battleReCloakTime;
@@ -1149,18 +1149,18 @@ void CloakedFighterHouseKeep(Ship *ship)
     CloakedFighterStatics *cloakedfighterstatics;
     cloakedfighterstatics = (CloakedFighterStatics *) ((ShipStaticInfo *)(ship->staticinfo))->custstatinfo;
 
-    if(bitTest(ship->flags,SOF_Cloaking))           //ship is cloaking
+    if(bitTest(ship->header.flags,SOF_Cloaking))           //ship is cloaking
     {
         //decrement Cloaking Status counter based on time elapsed
 /***** calculated the inverse of CloakingTime in CloakedFighterStaticInit and multiply instead of divide *****/
         spec->CloakingStatus -= universe.phystimeelapsed*cloakedfighterstatics->CloakingTime;
         if(spec->CloakingStatus <= cloakedfighterstatics->VisibleState)
         {                                       //if ship is now past the vissible threshold
-            bitSet(ship->flags,SOF_Cloaked);    //make it invisible to everything
+            bitSet(ship->header.flags,SOF_Cloaked);    //make it invisible to everything
             if(spec->CloakingStatus <= 0.0f)    //if it is completly invisible stop decloaking
             {
                 spec->CloakingStatus = 0.0f;    //reset to 0.0
-                bitClear(ship->flags,SOF_Cloaking); //stop ship from 'cloaking'
+                bitClear(ship->header.flags,SOF_Cloaking); //stop ship from 'cloaking'
                 //Since ship is cloaked, must remove it from being targeted
                 //Note:  This probably will not let a person attack their own cloaked ships...
 
@@ -1178,22 +1178,22 @@ void CloakedFighterHouseKeep(Ship *ship)
             }
         }
     }
-    else if(bitTest(ship->flags,SOF_DeCloaking))    //Ship is decloaking
+    else if(bitTest(ship->header.flags,SOF_DeCloaking))    //Ship is decloaking
     {
         //Increment Cloaking Status counter based on time elapsed
 /***** calculated the inverse of CloakingTime in CloakedFighterStaticInit and multiply instead of divide *****/
         spec->CloakingStatus += universe.phystimeelapsed*cloakedfighterstatics->CloakingTime;
         if(spec->CloakingStatus >= cloakedfighterstatics->VisibleState)
         {    //ship is 'visible' since it is past visible threshold
-            if(ship->flags & SOF_Cloaked)
+            if(ship->header.flags & SOF_Cloaked)
             {
-                bitClear(ship->flags, SOF_Cloaked);
+                bitClear(ship->header.flags, SOF_Cloaked);
                 ship->shipDeCloakTime = universe.totaltimeelapsed;
             }
             if(spec->CloakingStatus >= 1.0f)        //done decloaking
             {
                 spec->CloakingStatus = 1.0f;
-                bitClear(ship->flags,SOF_DeCloaking);
+                bitClear(ship->header.flags,SOF_DeCloaking);
                 spec->CloakLowWarning = FALSE;  //reset flag
                 if(spec->ReCloak == FALSE)
                 {   //only play speech when really decloaking for good
@@ -1208,13 +1208,13 @@ void CloakedFighterHouseKeep(Ship *ship)
     }
 
     //Now, lets charge the guy/gal fuel for using the cloaking device
-    if(bitTest(ship->flags,SOF_Cloaked) || bitTest(ship->flags,SOF_Cloaking))
+    if(bitTest(ship->header.flags,SOF_Cloaked) || bitTest(ship->header.flags,SOF_Cloaking))
     {               //Ship is cloaked or cloaking subtract fuel
         ship->fuel -= cloakedfighterstatics->CloakFuelBurnRate*universe.phystimeelapsed;
         if(ship->fuel <= cloakedfighterstatics->DeCloakFuelLevel)
         {                                           //if fuel reaches a certain level, DeCloak
-            bitSet(ship->flags,SOF_DeCloaking);     //begin DeCloaking Process;
-            bitClear(ship->flags,SOF_Cloaking);     //clear in case we are cloaking right now
+            bitSet(ship->header.flags,SOF_DeCloaking);     //begin DeCloaking Process;
+            bitClear(ship->header.flags,SOF_Cloaking);     //clear in case we are cloaking right now
             SpawnCloakingEffect(ship, etgSpecialPurposeEffectTable[EGT_CLOAK_OFF]);
 			soundEvent(ship, Ship_CloakOff);
         }
@@ -1234,7 +1234,7 @@ void CloakedFighterHouseKeep(Ship *ship)
         if(universe.totaltimeelapsed > spec->ReCloakTime)
         {
             spec->ReCloak = FALSE;
-            bitSet(ship->flags,SOF_Cloaking);
+            bitSet(ship->header.flags,SOF_Cloaking);
 			soundEvent(ship, Ship_CloakOn);
         }
     }
@@ -1250,7 +1250,7 @@ bool32 InterceptorInRange(Ship *ship,SpaceObjRotImpTarg *target)
 
     range = RangeToTarget(ship,target,&trajectory);
 
-    if (target->objtype == OBJ_ShipType)
+    if (target->header.objtype == OBJ_ShipType)
     {
         targetIndex = (uword)((ShipStaticInfo *)target->staticinfo)->shipclass;
     }
@@ -1271,9 +1271,9 @@ bool32 GenericInterceptorSpecialActivate(Ship *ship)
 {
     if(ship->shiptype == LightInterceptor)
     {
-        if(!bitTest(ship->specialFlags,SPECIAL_SpeedBurst))
+        if(!bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst))
         {
-            bitSet(ship->specialFlags,SPECIAL_SpeedBurst);
+            bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_SpeedBurst);
             ship->speedBurstTime = universe.totaltimeelapsed+speedBurstDuration;
         }
 

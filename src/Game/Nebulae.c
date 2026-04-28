@@ -2301,7 +2301,7 @@ void nebSetFog(void)
     while (node != NULL)
     {
         spaceobj = (SpaceObj*)listGetStructOfNode(node);
-        if (spaceobj->objtype == OBJ_NebulaType)
+        if (spaceobj->header.objtype == OBJ_NebulaType)
         {
             dist = fsqrt(spaceobj->cameraDistanceSquared);
             if (dist != 0.0f)

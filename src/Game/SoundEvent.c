@@ -916,12 +916,12 @@ void soundEventStopSFX(real32 fadetime)
 		{
 			ship = (Ship *)listGetStructOfNode(objnode);
 	
-			if (ship->objtype == OBJ_DerelictType)
+			if (ship->header.objtype == OBJ_DerelictType)
 			{
 				pDerelict = (Derelict *)ship;
                 soundEventDerelictRemove(pDerelict);
 			}
-			else if (ship->objtype == OBJ_ShipType)
+			else if (ship->header.objtype == OBJ_ShipType)
 			{
 				soundEventShipRemove(ship);
 			}
@@ -1003,7 +1003,7 @@ void soundEventUpdateNew(void)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
 
-        if (ship->objtype != OBJ_ShipType)
+        if (ship->header.objtype != OBJ_ShipType)
         {
             goto nextship;
         }
@@ -1093,12 +1093,12 @@ void soundEventUpdate(void)
 		}
 
 		// deal with derelicts first
-        if (ship->objtype == OBJ_DerelictType)
+        if (ship->header.objtype == OBJ_DerelictType)
         {
             // play the derelict ambience here
             pDerelict = (Derelict *)ship;
 
-            dist = (real32)fsqrt(pDerelict->cameraDistanceSquared);
+            dist = fsqrt(pDerelict->obj.cameraDistanceSquared);
 
             if (dist < nearestShipDistance)
             {
@@ -1108,7 +1108,7 @@ void soundEventUpdate(void)
             if (SEinrange(DerelictAmbience, dist))
             {
                 vol = SEequalize(DerelictAmbience, dist, tempEQ);
-				pan = getPanAngle(pDerelict->posinfo.position, pDerelict->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+				pan = getPanAngle(pDerelict->obj.posinfo.position, pDerelict->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 
                 if ((pDerelict->ambientSoundHandle == SOUND_NOTINITED) ||
 					soundover(pDerelict->ambientSoundHandle))
@@ -1161,7 +1161,7 @@ void soundEventUpdate(void)
 
             goto nextship;
         }
-        else if (ship->objtype != OBJ_ShipType)
+        else if (ship->header.objtype != OBJ_ShipType)
         {
 			// if this wasn't a Derelict or a Ship then skip it
             goto nextship;
@@ -1169,7 +1169,7 @@ void soundEventUpdate(void)
 
 		// ok, now we're into the SHIP stuff
         shipclass = ship->staticinfo->shipclass;
-        dist = (real32)fsqrt(ship->cameraDistanceSquared);
+        dist = fsqrt(ship->obj.cameraDistanceSquared);
 		
 		// a little hack here so that these ships have reasonable volume curves
 		if (ship->shiptype == MiningBase)
@@ -1240,10 +1240,10 @@ void soundEventUpdate(void)
 		}
 
 		// figure out all the variables
-		pan = getPanAngle(ship->enginePosition, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+		pan = getPanAngle(ship->enginePosition, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 		vol = SEequalize(shipclass, dist, tempEQ);
 		shipangle = SEgetAngleToCamera(ship);
-		velocity = fsqrt(vecMagnitudeSquared(ship->posinfo.velocity));
+		velocity = fsqrt(vecMagnitudeSquared(ship->obj.posinfo.velocity));
 		
 		// need this for setting the music volume
 		if (dist < nearestShipDistance)
@@ -1260,7 +1260,7 @@ void soundEventUpdate(void)
 		if (shipclass == CLASS_Fighter)
 		{
 			vol = (sword)(vol * (1.0f - ship->soundevent.coverage));
-			velratio = FIGHTER_VELOCITY_LOWPITCH; //+ (velocity / ship->staticinfo->staticheader.maxvelocity * FIGHTER_VELOCITY_SCALE);
+			velratio = FIGHTER_VELOCITY_LOWPITCH; //+ (velocity / ship->staticinfo->common.maxvelocity * FIGHTER_VELOCITY_SCALE);
 			if (velratio > FIGHTER_VELOCITY_HIGHPITCH)
 			{
 				velratio = FIGHTER_VELOCITY_HIGHPITCH;
@@ -1269,7 +1269,7 @@ void soundEventUpdate(void)
 		else if (shipclass == CLASS_Corvette)
 		{
 			vol = (sword)(vol * (1.0f - ship->soundevent.coverage));
-			velratio = CORVETTE_VELOCITY_LOWPITCH; //+ (velocity / ship->staticinfo->staticheader.maxvelocity * CORVETTE_VELOCITY_SCALE);
+			velratio = CORVETTE_VELOCITY_LOWPITCH; //+ (velocity / ship->staticinfo->common.maxvelocity * CORVETTE_VELOCITY_SCALE);
 			if (velratio > CORVETTE_VELOCITY_HIGHPITCH)
 			{
 				velratio = CORVETTE_VELOCITY_HIGHPITCH;
@@ -1473,7 +1473,7 @@ othersounds:
 					{
 						if (command->ordertype.order == COMMAND_COLLECT_RESOURCES)
 						{
-							if (command->collect.resource->objtype == OBJ_AsteroidType)
+							if (command->collect.resource->header.objtype == OBJ_AsteroidType)
 							{
 								ship->soundevent.specialHandle = splayEPRVL(ShipBank, ShipEventsLUT->lookup[GetPatch(ShipEventsLUT, 0, Ship_ResourceAsteroid)],
 																			  tempEQ, pan, SOUND_PRIORITY_MAX, vol, TRUE);
@@ -1560,7 +1560,7 @@ othersounds:
 				if (SFX_DAMAGERATIO_ENABLE && !damageOn)
 				{
 					// if the damage ambient stuff is enabled
-					damageratio = (real32)ship->health * (real32)((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+					damageratio = (real32)ship->targetable.health * (real32)ship->staticinfo->health.oneOverMaxHealth;
 
 					if (damageratio < SFX_DAMAGERATIO_LIGHT)
 					{
@@ -1591,7 +1591,7 @@ othersounds:
 				if (SFX_DAMAGERATIO_ENABLE && !damageOn)
 				{
 					// this is the closest damaged ship
-					damageratio = (real32)ship->health * (real32)((ShipStaticInfo *)ship->staticinfo)->oneOverMaxHealth;
+					damageratio = (real32)ship->targetable.health * (real32)ship->staticinfo->health.oneOverMaxHealth;
 
 					if (damageratio < SFX_DAMAGERATIO_LIGHT)
 					{
@@ -1762,7 +1762,7 @@ playgimbles:
 
 playloopingguns:
 		// get the pan from the center of the ship
-		pan = getPanAngle(ship->posinfo.position, ship->staticinfo->staticheader.staticCollInfo.approxcollspheresize, dist);
+		pan = getPanAngle(ship->obj.posinfo.position, ship->staticinfo->common.staticCollInfo.approxcollspheresize, dist);
 
 		// check the burst fire guns
 		if (ship->soundevent.burstfiring)
@@ -1846,7 +1846,7 @@ void soundEventUpdate(void)
 		{
 			if (ship->soundevent.engineState == SOUND_STARTING)
 			{
-				if (vecMagnitudeSquared(ship->posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
+				if (vecMagnitudeSquared(ship->obj.posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
 				{
 					ship->soundevent.engineState = SOUND_PLAYING;
 				}
@@ -1881,7 +1881,7 @@ void soundEventUpdate(void)
 			{
 				if (ship->soundevent.engineState == SOUND_STARTING)
 				{
-					if (vecMagnitudeSquared(ship->posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
+					if (vecMagnitudeSquared(ship->obj.posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
 					{
 						ship->soundevent.engineState = SOUND_PLAYING;
 					}
@@ -1918,7 +1918,7 @@ void soundEventUpdate(void)
 			{
 				if (ship->soundevent.engineState == SOUND_STARTING)
 				{
-					if (vecMagnitudeSquared(ship->posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
+					if (vecMagnitudeSquared(ship->obj.posinfo.velocity) > SFX_FLOAT_VELOCITYSQR)
 					{
 						ship->soundevent.engineState = SOUND_PLAYING;
 					}
@@ -1949,14 +1949,14 @@ void soundEventUpdate(void)
 
 	shipangle = SEgetAngleToCamera(ship);
 
-	velocity = fsqrt(vecMagnitudeSquared(ship->posinfo.velocity));
+	velocity = fsqrt(vecMagnitudeSquared(ship->obj.posinfo.velocity));
 
 	if (ship->staticinfo->maxfuel > 0.0)
 	{
 		/* this is a fighter */
 		if (shipclass == CLASS_Fighter)
 		{
-			velratio = FIGHTER_VELOCITY_LOWPITCH; + (velocity / ship->staticinfo->staticheader.maxvelocity * FIGHTER_VELOCITY_SCALE);
+			velratio = FIGHTER_VELOCITY_LOWPITCH; + (velocity / ship->staticinfo->common.maxvelocity * FIGHTER_VELOCITY_SCALE);
 			if (velratio > FIGHTER_VELOCITY_HIGHPITCH)
 			{
 				velratio = FIGHTER_VELOCITY_HIGHPITCH;
@@ -1966,7 +1966,7 @@ void soundEventUpdate(void)
 		/* this is a corvette */
 		else if (shipclass == CLASS_Corvette)
 		{
-			velratio = CORVETTE_VELOCITY_LOWPITCH; + (velocity / ship->staticinfo->staticheader.maxvelocity * CORVETTE_VELOCITY_SCALE);
+			velratio = CORVETTE_VELOCITY_LOWPITCH; + (velocity / ship->staticinfo->common.maxvelocity * CORVETTE_VELOCITY_SCALE);
 			if (velratio > CORVETTE_VELOCITY_HIGHPITCH)
 			{
 				velratio = CORVETTE_VELOCITY_HIGHPITCH;
@@ -2086,16 +2086,16 @@ void SEupdateShipRange(void)
     {
         ship = (Ship *)listGetStructOfNode(objnode);
 
-        if (ship->objtype != OBJ_ShipType)
+        if (ship->header.objtype != OBJ_ShipType)
         {
 			goto next;
         }
 
         shipclass = ship->staticinfo->shipclass;
 
-        if (SEinrangeSqr(shipclass, ship->cameraDistanceSquared))
+        if (SEinrangeSqr(shipclass, ship->obj.cameraDistanceSquared))
 		{
-			ship->soundevent.distance = (real32)fsqrt(ship->cameraDistanceSquared);
+			ship->soundevent.distance = fsqrt(ship->obj.cameraDistanceSquared);
 			
 			ship->soundevent.coverage = rndComputeOverlap(ship, 1.0);	// make 1.0 tweakable in a script
 	
@@ -3068,13 +3068,13 @@ sword SEgetAngleToCamera(Ship *ship)
     real32 dotprod;
     real32 angle;
 
-    matGetVectFromMatrixCol3(head,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(head,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
 
-    vecAdd(heading,ship->posinfo.position,head);
+    vecAdd(heading,ship->obj.posinfo.position,head);
 
-    vecSub(ShipToCamera, mrCamera->eyeposition, ship->posinfo.position);
-    vecSub(ShipDest, heading, ship->posinfo.position);
+    vecSub(ShipToCamera, mrCamera->eyeposition, ship->obj.posinfo.position);
+    vecSub(ShipDest, heading, ship->obj.posinfo.position);
 
     vecNormalize(&ShipToCamera);
     vecNormalize(&ShipDest);

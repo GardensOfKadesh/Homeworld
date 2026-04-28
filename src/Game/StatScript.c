@@ -1548,13 +1548,13 @@ done:
 
 void scriptSetSalvageStatCB(char *directory,char *field,void *dataToFillIn)
 {
-    StaticInfoHealthGuidanceShipDerelict *statinfo = (StaticInfoHealthGuidanceShipDerelict *)dataToFillIn;
+    StaticInfoShipOrDerelict *statinfo = (StaticInfoShipOrDerelict *)dataToFillIn;
 
     scriptSetSalvageStatics(directory,globalScriptFileName,statinfo);
 
     if (statinfo->salvageStaticInfo != NULL)
     {
-        mexGetSalvageStaticInfo(statinfo->salvageStaticInfo,statinfo->staticheader.pMexData);
+        mexGetSalvageStaticInfo(statinfo->salvageStaticInfo,statinfo->common.pMexData);
     }
 }
 
@@ -1591,7 +1591,7 @@ void scriptSetSalvagePointCB(char *directory,char *field,void *dataToFillIn)
     Return      :
 ----------------------------------------------------------------------------*/
 
-void scriptSetSalvageStatics(char *directory,char *filename,struct StaticInfoHealthGuidanceShipDerelict *statinfo)
+void scriptSetSalvageStatics(char *directory,char *filename,struct StaticInfoShipOrDerelict *statinfo)
 {
     filehandle fh;
     char line[MAX_LINE_CHARS];

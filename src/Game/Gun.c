@@ -271,7 +271,7 @@ bool32 gunOrientGimbleGun(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
 
     bool32 updateguncoordsys;
 
-    if (bitTest(ship->flags, SOF_NISShip))
+    if (bitTest(ship->header.flags, SOF_NISShip))
     {
         triggerHappy = NIS_TriggerHappyAngle;
         maxAngle = NIS_TriggerHappyAngle;
@@ -282,7 +282,7 @@ bool32 gunOrientGimbleGun(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
         triggerHappy = gunstatic->triggerHappy;
         maxAngle = gunstatic->cosmaxAngleFromNorm;
         maxAngleSpeed = gunstatic->maxanglespeed;
-        if ((gunstatic->bulletType == BULLET_Beam) && (target->objtype == OBJ_ShipType))
+        if ((gunstatic->bulletType == BULLET_Beam) && (target->header.objtype == OBJ_ShipType))
         {
             ShipClass sclass = ((Ship *)target)->staticinfo->shipclass;
             if (sclass == CLASS_Fighter)
@@ -316,9 +316,9 @@ bool32 gunOrientGimbleGun(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     if (gunstatic->guntype == GUN_Gimble)
     {
         aishipGetTrajectoryWithVelPrediction(ship,target,bulletspeed,&targetInWorldCoordSys);
-//        vecSub(targetInWorldCoordSys,target->posinfo.position,ship->posinfo.position);
+//        vecSub(targetInWorldCoordSys,target->obj.posinfo.position,ship->obj.posinfo.position);
 
-        matMultiplyVecByMat(&targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotinfo.coordsys);
+        matMultiplyVecByMat(&targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotatable.rotinfo.coordsys);
 
         vecSubFrom(targetInShipCoordSys,gunstatic->position);
 
@@ -354,9 +354,9 @@ bool32 gunOrientGimbleGun(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
         }
 
         aishipGetTrajectoryWithVelPrediction(ship,target,bulletspeed,&targetInWorldCoordSys);
-//        vecSub(targetInWorldCoordSys,target->posinfo.position,ship->posinfo.position);
+//        vecSub(targetInWorldCoordSys,target->obj.posinfo.position,ship->obj.posinfo.position);
 
-        matMultiplyVecByMat(&targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotinfo.coordsys);
+        matMultiplyVecByMat(&targetInShipCoordSys,&targetInWorldCoordSys,&ship->rotatable.rotinfo.coordsys);
 
         // we have targetInShipCoordSys.  Now change to gun's coordinate system
 
@@ -503,9 +503,9 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     {
         vector gunDirection, gunPosition;
 
-        matMultiplyMatByVec(&gunDirection, &ship->rotinfo.coordsys, &gun->gunheading);
-        matMultiplyMatByVec(&gunPosition, &ship->rotinfo.coordsys, &gunstatic->position);
-        vecAddTo(gunPosition, ship->posinfo.position);
+        matMultiplyMatByVec(&gunDirection, &ship->rotatable.rotinfo.coordsys, &gun->gunheading);
+        matMultiplyMatByVec(&gunPosition, &ship->rotatable.rotinfo.coordsys, &gunstatic->position);
+        vecAddTo(gunPosition, ship->obj.posinfo.position);
         if (!collCheckLineOfSight(ship, (Ship*)target, &gunPosition, &gunDirection))
         {
 #if GUN_VERBOSE_LEVEL > 1
@@ -521,8 +521,8 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     missile = memAlloc(sizeof(Missile),"Missile",0);
     memset(missile,0,sizeof(Missile));
 
-    missile->objtype = OBJ_MissileType;
-    missile->flags = SOF_Rotatable + SOF_Impactable + SOF_NotBumpable + SOF_Targetable;
+    missile->header.objtype = OBJ_MissileType;
+    missile->header.flags = SOF_Rotatable + SOF_Impactable + SOF_NotBumpable + SOF_Targetable;
 
     missile->enginePosition.x = 0.0f;
     missile->enginePosition.y = 0.0f;
@@ -532,7 +532,7 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     if(gunstatic->guntype == GUN_MissileLauncher)
     {   //specific definitions for MISSILES
         missile->staticinfo = &missileStaticInfos[shiprace];
-        missile->maxtraveldist = missile->staticinfo->staticheader.maxvelocity * universe.phystimeelapsed;
+        missile->maxtraveldist = missile->staticinfo->common.maxvelocity * universe.phystimeelapsed;
         missile->missileType = MISSILE_Regular;
         missile->FORCE_DROPPED = FALSE;
         missile->formationinfo = NULL;
@@ -559,37 +559,37 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
         {
             missile->FORCE_DROPPED = FALSE;                                  //set flag
             missile->formationinfo = NULL;
-            missile->maxtraveldist = missile->staticinfo->staticheader.maxvelocity * universe.phystimeelapsed;
+            missile->maxtraveldist = missile->staticinfo->common.maxvelocity * universe.phystimeelapsed;
         }
     }
     missile->haveCheckedForLoss = 0;    //init target loss variable
 
     missile->colorScheme = ship->colorScheme;
-    missile->health = ((MissileStaticInfo *)missile->staticinfo)->maxhealth;
+    missile->targetable.health = missile->staticinfo->health.maxhealth;
 
-    ClearNode(missile->renderlink);
-    missile->currentLOD = ship->currentLOD;
-    missile->collMyBlob = NULL;
-    missile->cameraDistanceSquared = ship->cameraDistanceSquared;
-    missile->flashtimer = 0;
-    missile->lasttimecollided = 0;
-    missile->attributes = 0;
-    missile->attributesParam = 0;
+    ClearNode(missile->obj.renderlink);
+    missile->obj.currentLOD = ship->obj.currentLOD;
+    missile->obj.collMyBlob = NULL;
+    missile->obj.cameraDistanceSquared = ship->obj.cameraDistanceSquared;
+    missile->targetable.flashtimer = 0;
+    missile->targetable.lasttimecollided = 0;
+    missile->obj.attributes = 0;
+    missile->obj.attributesParam = 0;
 
-    vecZeroVector(missile->posinfo.force);
-    vecZeroVector(missile->rotinfo.torque);
+    vecZeroVector(missile->obj.posinfo.force);
+    vecZeroVector(missile->rotatable.rotinfo.torque);
 
     for (i=0;i<NUM_TRANS_DEGOFFREEDOM;i++)
     {
-       missile->nonstatvars.thruststrength[i] = missile->staticinfo->thruststrengthstat[i];
+       missile->guidance.nonstatvars.thruststrength[i] = missile->staticinfo->guidance.thruststrengthstat[i];
     }
     for(i=0;i< NUM_ROT_DEGOFFREEDOM;i++)
     {
-       missile->nonstatvars.rotstrength[i] = missile->staticinfo->rotstrengthstat[i];
+       missile->guidance.nonstatvars.rotstrength[i] = missile->staticinfo->guidance.rotstrengthstat[i];
     }
     for(i=0;i< NUM_TURN_TYPES;i++)
     {
-       missile->nonstatvars.turnspeed[i] = missile->staticinfo->turnspeedstat[i];
+       missile->guidance.nonstatvars.turnspeed[i] = missile->staticinfo->guidance.turnspeedstat[i];
     }
 
 
@@ -613,7 +613,7 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     }
 
     //test to see if needs damage modifier
-    if(bitTest(ship->specialFlags,SPECIAL_KasSpecialDamageModifier))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_KasSpecialDamageModifier))
     {
         //ship is being 'beefed' up by KAS...add value to damagemultiplier
         missile->damage*=ship->damageModifier;
@@ -623,25 +623,25 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     if (multiPlayerGame) IDToPtrTableAdd(&MissileIDToPtr,universe.missileNumber,(SpaceObj *)missile);
     universe.missileNumber++;
 
-    // now fill in missile->posinfo
+    // now fill in missile->obj.posinfo
 
     // heading
-    matMultiplyMatByVec(&gunheadingInWorldCoordSys,&ship->rotinfo.coordsys,&gun->gunheading);
+    matMultiplyMatByVec(&gunheadingInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gun->gunheading);
 
     // position
-    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotinfo.coordsys,&gunstatic->position);
+    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gunstatic->position);
 
-    vecAdd(missile->posinfo.position,positionInWorldCoordSys,ship->posinfo.position);
-    missile->posinfo.position.x += gunheadingInWorldCoordSys.x * gunstatic->barrelLength;
-    missile->posinfo.position.y += gunheadingInWorldCoordSys.y * gunstatic->barrelLength;
-    missile->posinfo.position.z += gunheadingInWorldCoordSys.z * gunstatic->barrelLength;
+    vecAdd(missile->obj.posinfo.position,positionInWorldCoordSys,ship->obj.posinfo.position);
+    missile->obj.posinfo.position.x += gunheadingInWorldCoordSys.x * gunstatic->barrelLength;
+    missile->obj.posinfo.position.y += gunheadingInWorldCoordSys.y * gunstatic->barrelLength;
+    missile->obj.posinfo.position.z += gunheadingInWorldCoordSys.z * gunstatic->barrelLength;
 
-    SET_MOVING_LINEARLY(missile->posinfo.isMoving);
-    missile->posinfo.haventCalculatedDist = TRUE;
+    SET_MOVING_LINEARLY(missile->obj.posinfo.isMoving);
+    missile->obj.posinfo.haventCalculatedDist = TRUE;
 
-    vecScalarMultiply(missile->posinfo.velocity,gunheadingInWorldCoordSys,gunstatic->bulletspeed);
+    vecScalarMultiply(missile->obj.posinfo.velocity,gunheadingInWorldCoordSys,gunstatic->bulletspeed);
 
-    // now fill in missile->rotinfo
+    // now fill in missile->rotatable.rotinfo
     if (gunstatic->guntype == GUN_MineLauncher)
     {   //mine launcher so fix mine rotation depending on gun launched from...and race?
         //hard coded fix to a special exception :)
@@ -651,54 +651,54 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
             //build mine coordinate system from the ships...BIG savings...
             if(((Gun *) &(ship->gunInfo->guns[0])) == gun)
             {
-                matGetVectFromMatrixCol1(mineright,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol2(mineup,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol3(minehead,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol1(mineright,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol2(mineup,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol3(minehead,ship->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(mineup,mineup,-1.0f);
             }
             else
             {
-                matGetVectFromMatrixCol1(mineright,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol2(mineup,ship->rotinfo.coordsys);
-                matGetVectFromMatrixCol3(minehead,ship->rotinfo.coordsys);
+                matGetVectFromMatrixCol1(mineright,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol2(mineup,ship->rotatable.rotinfo.coordsys);
+                matGetVectFromMatrixCol3(minehead,ship->rotatable.rotinfo.coordsys);
                 vecScalarMultiply(mineright,mineright, -1.0f);
             }
-            matPutVectIntoMatrixCol1(mineup,missile->rotinfo.coordsys);
-            matPutVectIntoMatrixCol2(mineright,missile->rotinfo.coordsys);
-            matPutVectIntoMatrixCol3(minehead,missile->rotinfo.coordsys);
+            matPutVectIntoMatrixCol1(mineup,missile->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol2(mineright,missile->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol3(minehead,missile->rotatable.rotinfo.coordsys);
         }
         else
         {
             // LM: what is this stranded code doing?
-            matGetVectFromMatrixCol1(mineup,ship->rotinfo.coordsys);
-            matGetVectFromMatrixCol2(mineright,ship->rotinfo.coordsys);
-            matGetVectFromMatrixCol3(minehead,ship->rotinfo.coordsys);
-            matPutVectIntoMatrixCol1(mineup,missile->rotinfo.coordsys);
-            matPutVectIntoMatrixCol2(mineright,missile->rotinfo.coordsys);
-            matPutVectIntoMatrixCol3(minehead,missile->rotinfo.coordsys);
-            //            matCreateCoordSysFromHeading(&missile->rotinfo.coordsys,&gunheadingInWorldCoordSys);
+            matGetVectFromMatrixCol1(mineup,ship->rotatable.rotinfo.coordsys);
+            matGetVectFromMatrixCol2(mineright,ship->rotatable.rotinfo.coordsys);
+            matGetVectFromMatrixCol3(minehead,ship->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol1(mineup,missile->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol2(mineright,missile->rotatable.rotinfo.coordsys);
+            matPutVectIntoMatrixCol3(minehead,missile->rotatable.rotinfo.coordsys);
+            //            matCreateCoordSysFromHeading(&missile->rotatable.rotinfo.coordsys,&gunheadingInWorldCoordSys);
         }
     }
     else
     {
-        matCreateCoordSysFromHeading(&missile->rotinfo.coordsys,&gunheadingInWorldCoordSys);
+        matCreateCoordSysFromHeading(&missile->rotatable.rotinfo.coordsys,&gunheadingInWorldCoordSys);
     }
 
     univUpdateObjRotInfo((SpaceObjRot *)missile);
 
-    if ((target != NULL) && (target->collMyBlob != NULL))
+    if ((target != NULL) && (target->obj.collMyBlob != NULL))
     {
-        collAddSpaceObjToSpecificBlob(target->collMyBlob,(SpaceObj *)missile);
+        collAddSpaceObjToSpecificBlob(target->obj.collMyBlob,(SpaceObj *)missile);
     }
     else
     {
         collAddSpaceObjToCollBlobs((SpaceObj *)missile);
     }
-    listAddNode(&universe.SpaceObjList,&(missile->objlink),missile);
-    listAddNode(&universe.ImpactableList,&(missile->impactablelink),missile);
+    listAddNode(&universe.SpaceObjList,&(missile->header.objlink),missile);
+    listAddNode(&universe.ImpactableList,&(missile->impactable.impactablelink),missile);
     listAddNode(&universe.MissileList,&(missile->missilelink),missile);
 
-    univAddObjToRenderListIf((SpaceObj *)missile,(SpaceObj *)ship);     // add missile to render list if parent ship is in render list
+    univAddObjToRenderListIf((SpaceObj *)missile,&ship->obj);     // add missile to render list if parent ship is in render list
 
 //    if (gunstatic->burstFireTime == 0.0f)
     {
@@ -711,7 +711,7 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     etgLOD = etgGunEventTable[shipstatic->shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get pointer to bullet effect
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -727,7 +727,7 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
     }
 //    stat = etgGunEventTable[shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get gun effect
 
-    if (univSpaceObjInRenderList((SpaceObj *)ship))
+    if (univSpaceObjInRenderList(&ship->obj))
     {
 #if ETG_DISABLEABLE
         if (stat != NULL && etgFireEffectsEnabled && etgEffectsEnabled && !etgFrequencyExceeded(stat))
@@ -739,20 +739,20 @@ void missileShoot(Ship *ship,Gun *gun,SpaceObjRotImpTarg *target)
             floatDamage = (real32)missile->damage;
             floatDamage *= ship->magnitudeSquared;
             intDamage = Real32ToUdword(floatDamage);
-            etgEffectCreate(stat, ship, &missile->posinfo.position, NULL, &newCoordsys, 1.0f, EAF_Velocity | EAF_NLips, 1, SCALECAST(intDamage));
+            etgEffectCreate(stat, ship, &missile->obj.posinfo.position, NULL, &newCoordsys, 1.0f, EAF_Velocity | EAF_NLips, 1, SCALECAST(intDamage));
         }
     }
-    if(bitTest(ship->flags,SOF_CloakGenField))
+    if(bitTest(ship->header.flags,SOF_CloakGenField))
     {   //dang decloakage...
-        bitSet(ship->flags,SOF_DeCloaking);
-        if(bitTest(ship->flags,SOF_Cloaked))
+        bitSet(ship->header.flags,SOF_DeCloaking);
+        if(bitTest(ship->header.flags,SOF_Cloaked))
         {
-            bitClear(ship->flags,SOF_Cloaked);
+            bitClear(ship->header.flags,SOF_Cloaked);
             ship->shipDeCloakTime = universe.totaltimeelapsed;
         }
-        bitClear(ship->flags,SOF_Cloaking);
+        bitClear(ship->header.flags,SOF_Cloaking);
     }
-    if (target != NULL && target->objtype == OBJ_ShipType)
+    if (target != NULL && target->header.objtype == OBJ_ShipType)
     {                                                       //if we succeeded in shooting at enemy
         ((Ship *)target)->firingAtUs = ship;
         ((Ship *)target)->recentlyFiredUpon = RECENT_ATTACK_DURATION;
@@ -860,9 +860,9 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
         case CLASS_Destroyer:
         case CLASS_Carrier:
         case CLASS_Frigate:
-            matMultiplyMatByVec(&gunDirection, &ship->rotinfo.coordsys, &gun->gunheading);
-            matMultiplyMatByVec(&gunPosition, &ship->rotinfo.coordsys, &gunstatic->position);
-            vecAddTo(gunPosition, ship->posinfo.position);
+            matMultiplyMatByVec(&gunDirection, &ship->rotatable.rotinfo.coordsys, &gun->gunheading);
+            matMultiplyMatByVec(&gunPosition, &ship->rotatable.rotinfo.coordsys, &gunstatic->position);
+            vecAddTo(gunPosition, ship->obj.posinfo.position);
             if (!collCheckLineOfSight(ship, (Ship*)target, &gunPosition, &gunDirection))
             {
 #if GUN_VERBOSE_LEVEL > 1
@@ -885,7 +885,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
         ship->attackvars.myWingmanIs->shipisattacking = TRUE;
         //dbgMessagef("Ship %i is attacking (gun - wingman)", ship->attackvars.myWingmanIs->shipID.shipNumber);
     }
-    if(ship->specialFlags2 & SPECIAL_2_ShipInGravwell)
+    if(ship->shipOrDerelict.specialFlags2 & SPECIAL_2_ShipInGravwell)
     {
         //ship is in gravwell
         return; //don't let it fire.
@@ -898,13 +898,13 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
 
     bullet = memAlloc(sizeof(Bullet),"Bu(Bullet)",Pyrophoric);
 
-    bullet->objtype = OBJ_BulletType;
-    bullet->flags = 0;
-    bullet->staticinfo = NULL;
-    ClearNode(bullet->renderlink);
-    bullet->currentLOD = ship->currentLOD;
-    bullet->collMyBlob = NULL;
-    bullet->cameraDistanceSquared = ship->cameraDistanceSquared;
+    bullet->header.objtype = OBJ_BulletType;
+    bullet->header.flags = 0;
+    bullet->obj.staticinfo = NULL;
+    ClearNode(bullet->obj.renderlink);
+    bullet->obj.currentLOD = ship->obj.currentLOD;
+    bullet->obj.collMyBlob = NULL;
+    bullet->obj.cameraDistanceSquared = ship->obj.cameraDistanceSquared;
 
 
     //calculate a damage multipler based on several variables
@@ -915,7 +915,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     case CLASS_Corvette:
         //optimize 'healthfactor' for all game operations
         //by calculating it once a frame?
-        healthFactor = ship->health*ship->staticinfo->oneOverMaxHealth;
+        healthFactor = ship->targetable.health*ship->staticinfo->health.oneOverMaxHealth;
         if (healthFactor < selShipHealthYellowFactor)
         {
             //in the red
@@ -946,13 +946,13 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
         break;
     }
 
-    if(bitTest(ship->specialFlags,SPECIAL_KasSpecialDamageModifier))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_KasSpecialDamageModifier))
     {
         //ship is being 'beefed' up by KAS...add value to damagemultiplier
         damagemult*=ship->damageModifier;
     }
     //set gun damage based on ships tactical state.
-    if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring))
     {
         bullet->damageFull = bullet->damage = frandombetween(burstDamageLo[ship->shiprace],burstDamageHi[ship->shiprace])*damagemult;
         bullet->bulletType = BULLET_SpecialBurst;
@@ -968,9 +968,9 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     bullet->owner = ship;
     bullet->playerowner = ship->playerowner;
     bullet->gunowner = gun;
-    if ((target != NULL))// && (target->objtype != OBJ_MissileType))
+    if ((target != NULL))// && (target->header.objtype != OBJ_MissileType))
     {
-        if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
+        if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring))
             bullet->target = NULL;
         else
             bullet->target = target;
@@ -984,7 +984,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     bullet->lengthmag = gunstatic->bulletlength;
 
     bullet->timelived = 0.0f;
-    if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring))
     {
         HeavyCorvetteSpec *spec = (HeavyCorvetteSpec *)ship->ShipSpecifics;
         bullet->totallifetime = spec->bulletLifeTime;
@@ -1008,30 +1008,30 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     bullet->SpecialEffectFlag = 0;
     bullet->DFGFieldEntryTime = 0.0f;
 
-    // now fill in bullet->posinfo
+    // now fill in bullet->obj.posinfo
 
-    memset(&(bullet->posinfo),0,sizeof(bullet->posinfo));
+    memset(&(bullet->obj.posinfo),0,sizeof(bullet->obj.posinfo));
 
     // heading
-    matMultiplyMatByVec(&gunheadingInWorldCoordSys,&ship->rotinfo.coordsys,&gun->gunheading);
+    matMultiplyMatByVec(&gunheadingInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gun->gunheading);
     bullet->bulletheading = gunheadingInWorldCoordSys;
 
     // length of bullet
     vecScalarMultiply(bullet->lengthvec,gunheadingInWorldCoordSys,gunstatic->bulletlength);
 
-    matCreateCoordSysFromHeading(&bullet->rotinfo.coordsys,&gunheadingInWorldCoordSys);
+    matCreateCoordSysFromHeading(&bullet->rotatable.rotinfo.coordsys,&gunheadingInWorldCoordSys);
 
     switch (bullet->bulletType)
     {
         case BULLET_Beam:
-            vecZeroVector(bullet->posinfo.velocity);
+            vecZeroVector(bullet->obj.posinfo.velocity);
             bullet->traveldist = gunstatic->bulletlength;
             bullet->beamtraveldist = gunstatic->bulletlength;
             break;
 
         default:
             // velocity
-            if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
+            if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring))
             {
                 //fix later
                 bulletspeed = burstSpeed;
@@ -1052,7 +1052,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
                 }
             }
 
-            vecScalarMultiply(bullet->posinfo.velocity,gunheadingInWorldCoordSys,bulletspeed);
+            vecScalarMultiply(bullet->obj.posinfo.velocity,gunheadingInWorldCoordSys,bulletspeed);
                 // bullettravel
             bullet->traveldist = bulletspeed * universe.phystimeelapsed;
             break;
@@ -1060,10 +1060,10 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
 
     if (opShipRecoil)
     {
-        if (!shipstatic->staticheader.immobile)     // if ship isn't immobile, apply recoil (opposite force)
+        if (!shipstatic->common.immobile)     // if ship isn't immobile, apply recoil (opposite force)
         {
             massovertime = -bullet->bulletmass / universe.phystimeelapsed;
-            recoil = bullet->posinfo.velocity;
+            recoil = bullet->obj.posinfo.velocity;
             vecMultiplyByScalar(recoil,massovertime);
             physApplyForceVectorToObj(ship,recoil);
 
@@ -1071,35 +1071,35 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     }
 
     // position
-    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotinfo.coordsys,&gunstatic->position);
+    matMultiplyMatByVec(&positionInWorldCoordSys,&ship->rotatable.rotinfo.coordsys,&gunstatic->position);
 
     //add barrel length
     if (gunstatic->offset.x != 0.0f)
     {                                                       //if there is an offset vector
         matMultiplyMatByVec(&offset0, &gun->curgunorientation, &gunstatic->offset);//offset in gun space
-        matMultiplyMatByVec(&offset1, &ship->rotinfo.coordsys, &offset0);//offset in world space
+        matMultiplyMatByVec(&offset1, &ship->rotatable.rotinfo.coordsys, &offset0);//offset in world space
         vecAdd(positionInWorldCoordSys, positionInWorldCoordSys, offset1);//add to position
     }
-    vecAdd(bullet->posinfo.position,positionInWorldCoordSys,ship->posinfo.position);
-    bullet->posinfo.position.x += gunheadingInWorldCoordSys.x * gunstatic->barrelLength;
-    bullet->posinfo.position.y += gunheadingInWorldCoordSys.y * gunstatic->barrelLength;
-    bullet->posinfo.position.z += gunheadingInWorldCoordSys.z * gunstatic->barrelLength;
+    vecAdd(bullet->obj.posinfo.position,positionInWorldCoordSys,ship->obj.posinfo.position);
+    bullet->obj.posinfo.position.x += gunheadingInWorldCoordSys.x * gunstatic->barrelLength;
+    bullet->obj.posinfo.position.y += gunheadingInWorldCoordSys.y * gunstatic->barrelLength;
+    bullet->obj.posinfo.position.z += gunheadingInWorldCoordSys.z * gunstatic->barrelLength;
 
-    SET_MOVING_LINEARLY(bullet->posinfo.isMoving);
-    bullet->posinfo.haventCalculatedDist = TRUE;
+    SET_MOVING_LINEARLY(bullet->obj.posinfo.isMoving);
+    bullet->obj.posinfo.haventCalculatedDist = TRUE;
 
-    if ((target != NULL) && (target->collMyBlob != NULL))
+    if ((target != NULL) && (target->obj.collMyBlob != NULL))
     {
-        collAddSpaceObjToSpecificBlob(target->collMyBlob,(SpaceObj *)bullet);
+        collAddSpaceObjToSpecificBlob(target->obj.collMyBlob,(SpaceObj *)bullet);
     }
     else
     {
         collAddSpaceObjToCollBlobs((SpaceObj *)bullet);
     }
-    listAddNode(&universe.SpaceObjList,&(bullet->objlink),bullet);
+    listAddNode(&universe.SpaceObjList,&(bullet->header.objlink),bullet);
     listAddNode(&universe.BulletList,&(bullet->bulletlink),bullet);
 
-    univAddObjToRenderListIf((SpaceObj *)bullet,(SpaceObj *)ship);     // add to render list if parent ship is in render list
+    univAddObjToRenderListIf((SpaceObj *)bullet,&ship->obj);     // add to render list if parent ship is in render list
 
 //    if (gunstatic->burstFireTime == 0.0f)
     {
@@ -1120,7 +1120,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     intVelocity = Real32ToUdword(bulletspeed);
     intLength = Real32ToUdword(gunstatic->bulletlength);
     //create an effect for bullet, if applicable
-    if(bitTest(ship->specialFlags,SPECIAL_BurstFiring))
+    if(bitTest(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring))
     {
         etgLOD = etgSpecialPurposeEffectTable[EGT_BURST_BULLET_EFFECT];
     }
@@ -1133,11 +1133,11 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     {
         if (target != NULL)
         {
-            LOD = min(ship->currentLOD, target->currentLOD);
+            LOD = min(ship->obj.currentLOD, target->obj.currentLOD);
         }
         else
         {
-            LOD = ship->currentLOD;
+            LOD = ship->obj.currentLOD;
         }
         if (LOD >= etgLOD->nLevels)
         {
@@ -1152,7 +1152,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     {
         stat = NULL;
     }
-    if (univSpaceObjInRenderList((SpaceObj *)ship))
+    if (univSpaceObjInRenderList(&ship->obj))
     {
 #if ETG_DISABLEABLE
         if (stat != NULL && etgBulletEffectsEnabled && etgEffectsEnabled && !etgFrequencyExceeded(stat))
@@ -1160,7 +1160,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
         if (stat != NULL && etgBulletEffectsEnabled && !etgFrequencyExceeded(stat))
 #endif
         {
-            bullet->effect = etgEffectCreate(stat, (Ship *)bullet, NULL, &ship->posinfo.velocity, NULL, 1.0f, EAF_AllButNLips, 3, SCALECAST(intDamage), SCALECAST(intVelocity), SCALECAST(intLength));
+            bullet->effect = etgEffectCreate(stat, (Ship *)bullet, NULL, &ship->obj.posinfo.velocity, NULL, 1.0f, EAF_AllButNLips, 3, SCALECAST(intDamage), SCALECAST(intVelocity), SCALECAST(intLength));
         }
         else
         {
@@ -1178,7 +1178,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     etgLOD = etgGunEventTable[shipstatic->shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get pointer to bullet effect
     if (etgLOD != NULL)
     {
-        LOD = ship->currentLOD;
+        LOD = ship->obj.currentLOD;
         if (LOD >= etgLOD->nLevels)
         {
             stat = NULL;
@@ -1194,7 +1194,7 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
     }
 //    stat = etgGunEventTable[ship->shiprace][gunstatic->gunsoundtype][EGT_GunFire];//get gun effect
 
-    if (univSpaceObjInRenderList((SpaceObj *)ship))
+    if (univSpaceObjInRenderList(&ship->obj))
     {
 #if ETG_DISABLEABLE
         if (stat != NULL && etgFireEffectsEnabled && etgEffectsEnabled && !etgFrequencyExceeded(stat))
@@ -1202,20 +1202,20 @@ void gunShoot(Ship *ship, Gun *gun, SpaceObjRotImpTarg *target)
         if (stat != NULL && etgFireEffectsEnabled && !etgFrequencyExceeded(stat))
 #endif
         {                                                       //if there is a gun fire effect
-            etgEffectCreate(stat, ship, &bullet->posinfo.position, &ship->posinfo.velocity, &bullet->rotinfo.coordsys, 1.0f, EAF_Velocity, 1, SCALECAST(intDamage));
+            etgEffectCreate(stat, ship, &bullet->obj.posinfo.position, &ship->obj.posinfo.velocity, &bullet->rotatable.rotinfo.coordsys, 1.0f, EAF_Velocity, 1, SCALECAST(intDamage));
         }
     }
-    if(bitTest(ship->flags,SOF_CloakGenField))
+    if(bitTest(ship->header.flags,SOF_CloakGenField))
     {
-        bitSet(ship->flags,SOF_DeCloaking);
-        if(bitTest(ship->flags,SOF_Cloaked))
+        bitSet(ship->header.flags,SOF_DeCloaking);
+        if(bitTest(ship->header.flags,SOF_Cloaked))
         {
-            bitClear(ship->flags,SOF_Cloaked);
+            bitClear(ship->header.flags,SOF_Cloaked);
             ship->shipDeCloakTime = universe.totaltimeelapsed;
         }
-        bitClear(ship->flags,SOF_Cloaking);
+        bitClear(ship->header.flags,SOF_Cloaking);
     }
-    if (target != NULL && target->objtype == OBJ_ShipType)
+    if (target != NULL && target->header.objtype == OBJ_ShipType)
     {                                                       //if we succeeded in shooting at enemy
         ((Ship *)target)->firingAtUs = ship;
         ((Ship *)target)->recentlyFiredUpon = RECENT_ATTACK_DURATION;
@@ -1269,7 +1269,7 @@ bool32 gunShootGunsAtTarget(Ship *ship,SpaceObjRotImpTarg *target,real32 range,v
     {
         gun = &gunInfo->guns[i];
         gunstatic = gun->gunstatic;
-        if (bitTest(ship->flags, SOF_NISShip))
+        if (bitTest(ship->header.flags, SOF_NISShip))
         {
             triggerHappy = NIS_TriggerHappyAngle;
         }
@@ -1307,7 +1307,7 @@ bool32 gunShootGunsAtTarget(Ship *ship,SpaceObjRotImpTarg *target,real32 range,v
                     case GUN_MissileLauncher:
                         if (gunHasMissiles(gun))
                         {
-                            matGetVectFromMatrixCol3(shipheading,ship->rotinfo.coordsys);
+                            matGetVectFromMatrixCol3(shipheading,ship->rotatable.rotinfo.coordsys);
                             dotprod = vecDotProduct(*trajectory,shipheading);
 
                             if (dotprod >= triggerHappy)
@@ -1320,7 +1320,7 @@ bool32 gunShootGunsAtTarget(Ship *ship,SpaceObjRotImpTarg *target,real32 range,v
                     case GUN_MineLauncher:
                         if (gunHasMissiles(gun))
                         {
-                            matGetVectFromMatrixCol3(shipheading,ship->rotinfo.coordsys);
+                            matGetVectFromMatrixCol3(shipheading,ship->rotatable.rotinfo.coordsys);
                             dotprod = vecDotProduct(*trajectory,shipheading);
 
                             if (dotprod >= triggerHappy)
@@ -1331,7 +1331,7 @@ bool32 gunShootGunsAtTarget(Ship *ship,SpaceObjRotImpTarg *target,real32 range,v
                         }
                     break;
                     case GUN_Fixed:
-                        matGetVectFromMatrixCol3(shipheading,ship->rotinfo.coordsys);
+                        matGetVectFromMatrixCol3(shipheading,ship->rotatable.rotinfo.coordsys);
                         dotprod = vecDotProduct(*trajectory,shipheading);
 
                         if (dotprod >= triggerHappy)
@@ -1358,7 +1358,7 @@ bool32 gunShootGunsAtTarget(Ship *ship,SpaceObjRotImpTarg *target,real32 range,v
         }
     }
 /*
-    if (shotguns && target->objtype == OBJ_ShipType)
+    if (shotguns && target->header.objtype == OBJ_ShipType)
     {                                                       //if we succeeded in shooting at enemy
         ((Ship *)target)->firingAtUs = ship;
         ((Ship *)target)->recentlyFiredUpon = RECENT_ATTACK_DURATION;
@@ -1397,7 +1397,7 @@ bool32 gunShootGunsAtMultipleTargets(Ship *ship)
     {
         gun = &gunInfo->guns[i];
         gunstatic = gun->gunstatic;
-        if (bitTest(ship->flags, SOF_NISShip))
+        if (bitTest(ship->header.flags, SOF_NISShip))
         {
             triggerHappy = NIS_TriggerHappyAngle;
         }
@@ -1452,7 +1452,7 @@ bool32 gunShootGunsAtMultipleTargets(Ship *ship)
                         dist = fsqrt(vecMagnitudeSquared(trajectory));
                         vecDivideByScalar(trajectory,dist,temp);
 
-                        matGetVectFromMatrixCol3(shipheading,ship->rotinfo.coordsys);
+                        matGetVectFromMatrixCol3(shipheading,ship->rotatable.rotinfo.coordsys);
 
                         dotprod = vecDotProduct(trajectory,shipheading);
 
@@ -1484,7 +1484,7 @@ bool32 gunShootGunsAtMultipleTargets(Ship *ship)
         }
     }
 /*
-    if (shotguns && target->objtype == OBJ_ShipType)
+    if (shotguns && target->header.objtype == OBJ_ShipType)
     {                                                       //if we succeeded in shooting at enemy
         ((Ship *)target)->firingAtUs = ship;
         ((Ship *)target)->recentlyFiredUpon = RECENT_ATTACK_DURATION;
@@ -1513,7 +1513,7 @@ bool32 gunMatrixUpdate(udword flags, hmatrix *startMatrix, hmatrix *matrix, void
     vector recoilVector;
 
     ship = (Ship *)ID;
-    dbgAssertOrIgnore(ship->objtype == OBJ_ShipType);
+    dbgAssertOrIgnore(ship->header.objtype == OBJ_ShipType);
     gun = (Gun *)data;
     gunstatic = gun->gunstatic;
 
@@ -1574,7 +1574,7 @@ bool32 gunMatrixUpdate(udword flags, hmatrix *startMatrix, hmatrix *matrix, void
     {
         hmatGetVectFromHMatrixCol3(recoilVector, *matrix);
         gunRecoilVectorCompute(&recoilVector, gunstatic->recoilLength, gun->lasttimefired, gunstatic->firetime);
-//        vecAddTo(bullet->posinfo.position, offset0);
+//        vecAddTo(bullet->obj.posinfo.position, offset0);
         matrix->m14 += recoilVector.x;
         matrix->m24 += recoilVector.y;
         matrix->m34 += recoilVector.z;

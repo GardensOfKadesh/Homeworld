@@ -56,11 +56,11 @@ bool32 aitrackIsStabilizeShip(Ship *ship)
 {
     vector heading,up,right;
     bool32 stabilizedpitch;
-    real32 rotx = ship->rotinfo.rotspeed.x;
+    real32 rotx = ship->rotatable.rotinfo.rotspeed.x;
 
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
 
     stabilizedpitch = isBetweenExclusive(heading.z,STABILIZE_Z_LO,STABILIZE_Z_HI);
     if (stabilizedpitch)
@@ -88,9 +88,9 @@ bool32 aitrackIsStabilizeShip(Ship *ship)
 ----------------------------------------------------------------------------*/
 bool32 aitrackStabilizeGuidance(SpaceObjRotImpTargGuidance *ship)
 {
-    real32 rotx = ship->rotinfo.rotspeed.x;
-    real32 roty = ship->rotinfo.rotspeed.y;
-    real32 rotz = ship->rotinfo.rotspeed.z;
+    real32 rotx = ship->rotatable.rotinfo.rotspeed.x;
+    real32 roty = ship->rotatable.rotinfo.rotspeed.y;
+    real32 rotz = ship->rotatable.rotinfo.rotspeed.z;
     vector heading;
     vector up;
     vector right;
@@ -100,14 +100,14 @@ bool32 aitrackStabilizeGuidance(SpaceObjRotImpTargGuidance *ship)
 
     StaticInfoHealthGuidance *shipstaticinfo;
 
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
 
     stabilizedpitch = isBetweenExclusive(heading.z,STABILIZE_Z_LO,STABILIZE_Z_HI);
     if (stabilizedpitch)
     {
-        roty = ship->rotinfo.rotspeed.y = 0.0f;
+        roty = ship->rotatable.rotinfo.rotspeed.y = 0.0f;
     }
 
     if (isBetweenExclusive(rotx,STILL_ROT_LO,STILL_ROT_HI) &&
@@ -129,36 +129,36 @@ bool32 aitrackStabilizeGuidance(SpaceObjRotImpTargGuidance *ship)
 
     if (rotx > 0)
     {
-        rotstr = rotx * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+        rotstr = rotx * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
     }
     else
     {
-        rotstr = -rotx * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+        rotstr = -rotx * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
     }
 
     if (stabilizedpitch)
     {
         if (rotz > 1.0f)
         {
-            rotstr = rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+            rotstr = rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         }
         else if (rotz < -1.0f)
         {
-            rotstr = -rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+            rotstr = -rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         }
         else
         {
             if (right.z > 0)
             {
-                physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ROLLRIGHT]*right.z,ROT_ROLLRIGHT);
+                physApplyRotToObj(&ship->rotatable,ship->nonstatvars.rotstrength[ROT_ROLLRIGHT]*right.z,ROT_ROLLRIGHT);
             }
             else
             {
-                physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ROLLLEFT]*(-right.z),ROT_ROLLLEFT);
+                physApplyRotToObj(&ship->rotatable,ship->nonstatvars.rotstrength[ROT_ROLLLEFT]*(-right.z),ROT_ROLLLEFT);
             }
         }
     }
@@ -166,34 +166,34 @@ bool32 aitrackStabilizeGuidance(SpaceObjRotImpTargGuidance *ship)
     {
         if (rotz > 0.0f)
         {
-            rotstr = rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+            rotstr = rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         }
         else
         {
-            rotstr = -rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+            rotstr = -rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         }
 
         if (roty > 1.0f)
         {
-            rotstr = roty * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+            rotstr = roty * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
         }
         else if (roty < -1.0f)
         {
-            rotstr = -roty * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+            rotstr = -roty * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
         }
         else
         {
             if (heading.z < 0)
             {
-                physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_PITCHUP]*(-heading.z),ROT_PITCHUP);
+                physApplyRotToObj(&ship->rotatable,ship->nonstatvars.rotstrength[ROT_PITCHUP]*(-heading.z),ROT_PITCHUP);
             }
             else
             {
-                physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_PITCHDOWN]*heading.z,ROT_PITCHDOWN);
+                physApplyRotToObj(&ship->rotatable,ship->nonstatvars.rotstrength[ROT_PITCHDOWN]*heading.z,ROT_PITCHDOWN);
             }
         }
     }
@@ -210,9 +210,9 @@ bool32 aitrackStabilizeGuidance(SpaceObjRotImpTargGuidance *ship)
 ----------------------------------------------------------------------------*/
 bool32 aitrackIsZeroRotation(Ship *ship)
 {
-    real32 rotx = ship->rotinfo.rotspeed.x;
-    real32 roty = ship->rotinfo.rotspeed.y;
-    real32 rotz = ship->rotinfo.rotspeed.z;
+    real32 rotx = ship->rotatable.rotinfo.rotspeed.x;
+    real32 roty = ship->rotatable.rotinfo.rotspeed.y;
+    real32 rotz = ship->rotatable.rotinfo.rotspeed.z;
 
     if (isBetweenExclusive(rotx,STILL_ROT_LO,STILL_ROT_HI) &&
         isBetweenExclusive(roty,STILL_ROT_LO,STILL_ROT_HI) &&
@@ -235,9 +235,9 @@ bool32 aitrackIsZeroRotation(Ship *ship)
 ----------------------------------------------------------------------------*/
 bool32 aitrackZeroRotationAnywhere(Ship *ship)
 {
-    real32 rotx = ship->rotinfo.rotspeed.x;
-    real32 roty = ship->rotinfo.rotspeed.y;
-    real32 rotz = ship->rotinfo.rotspeed.z;
+    real32 rotx = ship->rotatable.rotinfo.rotspeed.x;
+    real32 roty = ship->rotatable.rotinfo.rotspeed.y;
+    real32 rotz = ship->rotatable.rotinfo.rotspeed.z;
     vector heading;
     vector up;
     vector right;
@@ -246,9 +246,9 @@ bool32 aitrackZeroRotationAnywhere(Ship *ship)
 
     ShipStaticInfo *shipstaticinfo;
 
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol2(right,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol2(right,ship->rotatable.rotinfo.coordsys);
 
     if (isBetweenExclusive(rotx,STILL_ROT_LO,STILL_ROT_HI) &&
         isBetweenExclusive(roty,STILL_ROT_LO,STILL_ROT_HI) &&
@@ -262,34 +262,34 @@ bool32 aitrackZeroRotationAnywhere(Ship *ship)
 
     if (rotx > 0)
     {
-        rotstr = rotx * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+        rotstr = rotx * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
     }
     else
     {
-        rotstr = -rotx * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+        rotstr = -rotx * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
     }
 
     if (roty > 0)
     {
-        rotstr = roty * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+        rotstr = roty * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
     }
     else
     {
-        rotstr = -roty * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+        rotstr = -roty * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
     }
     if (rotz > 0)
     {
-        rotstr = rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+        rotstr = rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
     }
     else
     {
-        rotstr = -rotz * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+        rotstr = -rotz * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
     }
 
     return FALSE;
@@ -322,15 +322,15 @@ bool32 aitrackHeadingAndUp(Ship *ship,vector *desiredHeading,vector *desiredUp,r
     real32 rotstr;
     real32 oneovertime;
 
-    if(ship->objtype == OBJ_ShipType)
+    if(ship->header.objtype == OBJ_ShipType)
     {
         if(ship->dontrotateever)
         {
             return TRUE;
         }
     }
-    matGetVectFromMatrixCol3(curheading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(curup,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(curheading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(curup,ship->rotatable.rotinfo.coordsys);
 
     dotProdCheckHeading = vecDotProduct(*desiredHeading,curheading);
     dotProdCheckUp = vecDotProduct(*desiredUp,curup);
@@ -342,14 +342,14 @@ bool32 aitrackHeadingAndUp(Ship *ship,vector *desiredHeading,vector *desiredUp,r
     if (dotProdCheckHeading <= -1.0f)   // use <= in case inaccuraces cause number slightly less than 1.0
     {
         // Exactly opposite direction, so arbitrarily chose a direction and rotate that way
-        physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
+        physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
         return FALSE;
     }
 
     if (dotProdCheckUp <= -1.0f)   // use <= in case inaccuraces cause number slightly less than 1.0
     {
         // Exactly opposite direction, so arbitrarily chose a direction and rotate that way
-        physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ABOUTZCW],ROT_ABOUTZCW);
+        physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW],ROT_ABOUTZCW);
         return FALSE;
     }
 
@@ -367,11 +367,11 @@ bool32 aitrackHeadingAndUp(Ship *ship,vector *desiredHeading,vector *desiredUp,r
 
     // transform desiredHeading into desiredHeading in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredHeadingInShipCoordSys,desiredHeading,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredHeadingInShipCoordSys,desiredHeading,&ship->rotatable.rotinfo.coordsys);
 
     // transform desiredUp into desiredUp in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredUpInShipCoordSys,desiredUp,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredUpInShipCoordSys,desiredUp,&ship->rotatable.rotinfo.coordsys);
 
     oneovertime = 1.0f / universe.phystimeelapsed;
 
@@ -382,47 +382,47 @@ bool32 aitrackHeadingAndUp(Ship *ship,vector *desiredHeading,vector *desiredUp,r
         {
             if (desiredHeadingInShipCoordSys.y < 0.0f)
             {
-                desiredrotspeed = ship->nonstatvars.turnspeed[TURN_ABOUTX];
+                desiredrotspeed = ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
             }
             else
             {
-                desiredrotspeed = -ship->nonstatvars.turnspeed[TURN_ABOUTX];
+                desiredrotspeed = -ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
             }
         }
         else
         {
-            desiredrotspeed = -desiredHeadingInShipCoordSys.y * ship->nonstatvars.turnspeed[TURN_ABOUTX];
+            desiredrotspeed = -desiredHeadingInShipCoordSys.y * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
         }
 
-        rotspeed = ship->rotinfo.rotspeed.x;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.x;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
         }
     }
 
     // Check if we need to rotate about y axis (pitch)
     if (desiredHeadingInShipCoordSys.x != 0)
     {
-        desiredrotspeed = desiredHeadingInShipCoordSys.x * ship->nonstatvars.turnspeed[TURN_ABOUTY];
-        rotspeed = ship->rotinfo.rotspeed.y;
+        desiredrotspeed = desiredHeadingInShipCoordSys.x * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTY];
+        rotspeed = ship->rotatable.rotinfo.rotspeed.y;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
         }
     }
 
@@ -431,18 +431,18 @@ bool32 aitrackHeadingAndUp(Ship *ship,vector *desiredHeading,vector *desiredUp,r
 
     if (desiredUpInShipCoordSys.y != 0.0f)
     {
-        desiredrotspeed = desiredUpInShipCoordSys.y * ship->nonstatvars.turnspeed[TURN_ABOUTZ];
-        rotspeed = ship->rotinfo.rotspeed.z;
+        desiredrotspeed = desiredUpInShipCoordSys.y * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTZ];
+        rotspeed = ship->rotatable.rotinfo.rotspeed.z;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         }
     }
 
@@ -479,7 +479,7 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
 
     real32 yawcloseness = 0.0f;
 
-    if(ship->objtype == OBJ_ShipType)
+    if(ship->header.objtype == OBJ_ShipType)
     {
         if(((Ship *)ship)->dontrotateever)    //if this flag is set we don't want to rotate the ship at all
         {
@@ -493,8 +493,8 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
         vecNormalize(desiredHeading);       // renormalize
     }
 
-    matGetVectFromMatrixCol3(curheading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(curup,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(curheading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(curup,ship->rotatable.rotinfo.coordsys);
 
     aishipStatsDesiredHeading(*desiredHeading);
     aishipStatsActualHeading(curheading);
@@ -509,7 +509,7 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
     if (dotProdCheckHeading <= -1.0f)
     {
         // Exactly opposite direction, so arbitrarily chose a direction and rotate that way
-        physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
+        physApplyRotToObj(&ship->rotatable,ship->nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
         return FALSE;
     }
 
@@ -531,11 +531,11 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
 
     // transform desiredHeading into desiredHeading in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredHeadingInShipCoordSys,desiredHeading,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredHeadingInShipCoordSys,desiredHeading,&ship->rotatable.rotinfo.coordsys);
 
     // transform desiredUp into desiredUp in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredUpInShipCoordSys,&desiredUp,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredUpInShipCoordSys,&desiredUp,&ship->rotatable.rotinfo.coordsys);
 
     oneovertime = 1.0f / universe.phystimeelapsed;
 
@@ -576,17 +576,17 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
                 yawcloseness = -desiredHeadingInShipCoordSys.y * sinbank;
             }
         }
-        rotspeed = ship->rotinfo.rotspeed.x;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.x;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
         }
     }
 
@@ -594,17 +594,17 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
     if (desiredHeadingInShipCoordSys.x != 0)
     {
         desiredrotspeed = desiredHeadingInShipCoordSys.x * ship->nonstatvars.turnspeed[TURN_ABOUTY];
-        rotspeed = ship->rotinfo.rotspeed.y;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.y;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
         }
     }
 
@@ -619,17 +619,17 @@ bool32 aitrackHeadingFunc(SpaceObjRotImpTargGuidance *ship,vector *desiredHeadin
     if (desiredUpInShipCoordSys.y != yawcloseness)
     {
         desiredrotspeed = (desiredUpInShipCoordSys.y - yawcloseness) * ship->nonstatvars.turnspeed[TURN_ABOUTZ];
-        rotspeed = ship->rotinfo.rotspeed.z;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.z;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         }
     }
 
@@ -653,7 +653,7 @@ bool32 aitrackHeadingWithBankPitchFunc(Ship *ship,vector *desiredHeading,real32 
 
     real32 temp1,temp2;
 
-    if(ship->objtype == OBJ_ShipType)
+    if(ship->header.objtype == OBJ_ShipType)
     {
         if(ship->dontrotateever)
         {
@@ -661,8 +661,8 @@ bool32 aitrackHeadingWithBankPitchFunc(Ship *ship,vector *desiredHeading,real32 
             return TRUE;
         }
     }
-    matGetVectFromMatrixCol3(curheading,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(curup,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol3(curheading,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(curup,ship->rotatable.rotinfo.coordsys);
 
     // I will treat curheading.z as = 0, but will not set it.
 
@@ -704,9 +704,9 @@ bool32 aitrackHeadingWithBankPitchFunc(Ship *ship,vector *desiredHeading,real32 
 #if DEBUG_AITRACK
         dbgMessage("Capital ship on correct heading...");
 #endif
-        ship->rotinfo.rotspeed.x = 0.0f;
-        ship->rotinfo.rotspeed.y = 0.0f;
-        ship->rotinfo.rotspeed.z = 0.0f;
+        ship->rotatable.rotinfo.rotspeed.x = 0.0f;
+        ship->rotatable.rotinfo.rotspeed.y = 0.0f;
+        ship->rotatable.rotinfo.rotspeed.z = 0.0f;
         return TRUE;     // heading close enough to desired heading, so return
     }
 
@@ -777,7 +777,7 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
     real32 rotstr;
     real32 oneovertime;
 
-    if(ship->objtype == OBJ_ShipType)
+    if(ship->header.objtype == OBJ_ShipType)
     {
         if(ship->dontrotateever)
         {
@@ -785,8 +785,8 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
             return TRUE;
         }
     }
-    matGetVectFromMatrixCol2(curright,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol1(curup,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol2(curright,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol1(curup,ship->rotatable.rotinfo.coordsys);
 
     dotProdCheckRight = vecDotProduct(*desiredRightVector,curright);
     dotProdCheckUp = curup.z; //vecDotProduct(desiredUp,curup)
@@ -798,7 +798,7 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
     if (dotProdCheckRight <= -1.0f)
     {
         // Exactly opposite direction, so arbitrarily chose a direction and rotate that way
-        physApplyRotToObj((SpaceObjRot *)ship,ship->nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
+        physApplyRotToObj(&ship->rotatable,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW],ROT_ABOUTXCW);
         return FALSE;
     }
 
@@ -816,11 +816,11 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
 
     // transform desiredRightVector into desiredRightVector in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredRightInShipCoordSys,desiredRightVector,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredRightInShipCoordSys,desiredRightVector,&ship->rotatable.rotinfo.coordsys);
 
     // transform desiredUp into desiredUp in Ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredUpInShipCoordSys,&desiredUp,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredUpInShipCoordSys,&desiredUp,&ship->rotatable.rotinfo.coordsys);
 
     oneovertime = 1.0f / universe.phystimeelapsed;
 
@@ -831,29 +831,29 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
         {
             if (desiredRightInShipCoordSys.z > 0.0f)
             {
-                desiredrotspeed = ship->nonstatvars.turnspeed[TURN_ABOUTX];
+                desiredrotspeed = ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
             }
             else
             {
-                desiredrotspeed = -ship->nonstatvars.turnspeed[TURN_ABOUTX];
+                desiredrotspeed = -ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
             }
         }
         else
         {
-            desiredrotspeed = desiredRightInShipCoordSys.z * ship->nonstatvars.turnspeed[TURN_ABOUTX];
+            desiredrotspeed = desiredRightInShipCoordSys.z * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTX];
         }
 
-        rotspeed = ship->rotinfo.rotspeed.x;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.x;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCCW]),ROT_ABOUTXCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaX * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaX * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTXCW]),ROT_ABOUTXCW);
         }
     }
 
@@ -866,29 +866,29 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
         {
             if (desiredUpInShipCoordSys.z < 0.0f)
             {
-                desiredrotspeed = ship->nonstatvars.turnspeed[TURN_ABOUTY];
+                desiredrotspeed = ship->guidance.nonstatvars.turnspeed[TURN_ABOUTY];
             }
             else
             {
-                desiredrotspeed = -ship->nonstatvars.turnspeed[TURN_ABOUTY];
+                desiredrotspeed = -ship->guidance.nonstatvars.turnspeed[TURN_ABOUTY];
             }
         }
         else
         {
-            desiredrotspeed = -desiredUpInShipCoordSys.z * ship->nonstatvars.turnspeed[TURN_ABOUTY];
+            desiredrotspeed = -desiredUpInShipCoordSys.z * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTY];
         }
 
-        rotspeed = ship->rotinfo.rotspeed.y;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.y;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCCW]),ROT_ABOUTYCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaY * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaY * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTYCW]),ROT_ABOUTYCW);
         }
     }
 
@@ -899,29 +899,29 @@ bool32 aitrackRightVector(Ship *ship,vector *desiredRightVector,real32 accuracy)
         {
             if (desiredRightInShipCoordSys.x < 0.0f)
             {
-                desiredrotspeed = ship->nonstatvars.turnspeed[TURN_ABOUTZ];
+                desiredrotspeed = ship->guidance.nonstatvars.turnspeed[TURN_ABOUTZ];
             }
             else
             {
-                desiredrotspeed = -ship->nonstatvars.turnspeed[TURN_ABOUTZ];
+                desiredrotspeed = -ship->guidance.nonstatvars.turnspeed[TURN_ABOUTZ];
             }
         }
         else
         {
-            desiredrotspeed = -desiredRightInShipCoordSys.x * ship->nonstatvars.turnspeed[TURN_ABOUTZ];
+            desiredrotspeed = -desiredRightInShipCoordSys.x * ship->guidance.nonstatvars.turnspeed[TURN_ABOUTZ];
         }
 
-        rotspeed = ship->rotinfo.rotspeed.z;
+        rotspeed = ship->rotatable.rotinfo.rotspeed.z;
 
         if (rotspeed < desiredrotspeed)
         {
-            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
+            rotstr = (desiredrotspeed - rotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCCW]),ROT_ABOUTZCCW);
         }
         else
         {
-            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->staticheader.momentOfInertiaZ * oneovertime;
-            physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
+            rotstr = (rotspeed - desiredrotspeed) * shipstaticinfo->common.momentOfInertiaZ * oneovertime;
+            physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW]),ROT_ABOUTZCW);
         }
     }
 
@@ -950,7 +950,7 @@ void aitrackVelocityVectorGuidance(SpaceObjRotImpTargGuidance *ship,vector *desi
 
     // check if desiredVelocity is approximately the same as current velocity
 
-    vecSub(errorDifference,*desiredVelocity,ship->posinfo.velocity); // later is there a faster way to do this?
+    vecSub(errorDifference,*desiredVelocity,ship->obj.posinfo.velocity); // later is there a faster way to do this?
     errorMagSquared = vecMagnitudeSquared(errorDifference);
 
 #if DEBUG_AITRACK
@@ -971,42 +971,42 @@ void aitrackVelocityVectorGuidance(SpaceObjRotImpTargGuidance *ship,vector *desi
     // transfrom desiredVelocity into desiredVelocity in ship co-ordinate system
     // transfrom shipVelocity into shipVelocity in ship co-ordinate system
 
-    matMultiplyVecByMat(&desiredVelocityInShipCoordSys,desiredVelocity,&ship->rotinfo.coordsys);
-    matMultiplyVecByMat(&shipVelocityInShipCoordSys,&ship->posinfo.velocity,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&desiredVelocityInShipCoordSys,desiredVelocity,&ship->rotatable.rotinfo.coordsys);
+    matMultiplyVecByMat(&shipVelocityInShipCoordSys,&ship->obj.posinfo.velocity,&ship->rotatable.rotinfo.coordsys);
 
-    massOverTime = shipstaticinfo->staticheader.mass / universe.phystimeelapsed;
+    massOverTime = shipstaticinfo->common.mass / universe.phystimeelapsed;
 
     if (shipVelocityInShipCoordSys.x < desiredVelocityInShipCoordSys.x)
     {
         thruststr = (desiredVelocityInShipCoordSys.x - shipVelocityInShipCoordSys.x) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_UP]),TRANS_UP);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_UP]),TRANS_UP);
     }
     else if (shipVelocityInShipCoordSys.x > desiredVelocityInShipCoordSys.x)
     {
         thruststr = (shipVelocityInShipCoordSys.x - desiredVelocityInShipCoordSys.x) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_DOWN]),TRANS_DOWN);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_DOWN]),TRANS_DOWN);
     }
 
     if (shipVelocityInShipCoordSys.y < desiredVelocityInShipCoordSys.y)
     {
         thruststr = (desiredVelocityInShipCoordSys.y - shipVelocityInShipCoordSys.y) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_RIGHT]),TRANS_RIGHT);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_RIGHT]),TRANS_RIGHT);
     }
     else if (shipVelocityInShipCoordSys.y > desiredVelocityInShipCoordSys.y)
     {
         thruststr = (shipVelocityInShipCoordSys.y - desiredVelocityInShipCoordSys.y) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_LEFT]),TRANS_LEFT);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_LEFT]),TRANS_LEFT);
     }
 
     if (shipVelocityInShipCoordSys.z < desiredVelocityInShipCoordSys.z)
     {
         thruststr = (desiredVelocityInShipCoordSys.z - shipVelocityInShipCoordSys.z) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
     }
     else if (shipVelocityInShipCoordSys.z > desiredVelocityInShipCoordSys.z)
     {
         thruststr = (shipVelocityInShipCoordSys.z - desiredVelocityInShipCoordSys.z) * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
     }
 
 }
@@ -1022,7 +1022,7 @@ bool32 aitrackIsZeroVelocity(Ship *ship)
 {
     vector shipVelocity;
 
-    shipVelocity = ship->posinfo.velocity;
+    shipVelocity = ship->obj.posinfo.velocity;
 
     if (isBetweenExclusive(shipVelocity.x,STILL_VELOCITY_LO,STILL_VELOCITY_HI) &&
         isBetweenExclusive(shipVelocity.y,STILL_VELOCITY_LO,STILL_VELOCITY_HI) &&
@@ -1044,25 +1044,25 @@ bool32 aitrackZeroForwardVelocity(Ship *ship)
     real32 forwardvelocity;
     vector heading;
 
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
-    forwardvelocity = vecDotProduct(heading,ship->posinfo.velocity);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
+    forwardvelocity = vecDotProduct(heading,ship->obj.posinfo.velocity);
 
     if (isBetweenExclusive(forwardvelocity,STILL_VELOCITY_LO,STILL_VELOCITY_HI))
     {
         return TRUE;    // ship velocity close enought to desired velocity, so return
     }
 
-    massOverTime = shipstaticinfo->staticheader.mass / universe.phystimeelapsed;
+    massOverTime = shipstaticinfo->common.mass / universe.phystimeelapsed;
 
     if (forwardvelocity < 0)
     {
         thruststr = -forwardvelocity * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
     }
     else
     {
         thruststr = forwardvelocity * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
     }
 
     return FALSE;
@@ -1083,7 +1083,7 @@ bool32 aitrackZeroVelocity(Ship *ship)
     real32 thruststr;
     real32 massOverTime;
 
-    shipVelocity = ship->posinfo.velocity;
+    shipVelocity = ship->obj.posinfo.velocity;
 
     if (isBetweenExclusive(shipVelocity.x,STILL_VELOCITY_LO,STILL_VELOCITY_HI) &&
         isBetweenExclusive(shipVelocity.y,STILL_VELOCITY_LO,STILL_VELOCITY_HI) &&
@@ -1097,40 +1097,40 @@ bool32 aitrackZeroVelocity(Ship *ship)
 #endif
 
     // transfrom shipVelocity into shipVelocity in ship co-ordinate system
-    matMultiplyVecByMat(&shipVelocityInShipCoordSys,&shipVelocity,&ship->rotinfo.coordsys);
+    matMultiplyVecByMat(&shipVelocityInShipCoordSys,&shipVelocity,&ship->rotatable.rotinfo.coordsys);
 
-    massOverTime = shipstaticinfo->staticheader.mass / universe.phystimeelapsed;
+    massOverTime = shipstaticinfo->common.mass / universe.phystimeelapsed;
     if (shipVelocityInShipCoordSys.x < 0)
     {
         thruststr = -shipVelocityInShipCoordSys.x * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_UP]),TRANS_UP);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_UP]),TRANS_UP);
     }
     else
     {
         thruststr = shipVelocityInShipCoordSys.x * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_DOWN]),TRANS_DOWN);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_DOWN]),TRANS_DOWN);
     }
 
     if (shipVelocityInShipCoordSys.y < 0)
     {
         thruststr = -shipVelocityInShipCoordSys.y * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_RIGHT]),TRANS_RIGHT);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_RIGHT]),TRANS_RIGHT);
     }
     else
     {
         thruststr = shipVelocityInShipCoordSys.y * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_LEFT]),TRANS_LEFT);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_LEFT]),TRANS_LEFT);
     }
 
     if (shipVelocityInShipCoordSys.z < 0)
     {
         thruststr = -shipVelocityInShipCoordSys.z * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_FORWARD]),TRANS_FORWARD);
     }
     else
     {
         thruststr = shipVelocityInShipCoordSys.z * massOverTime;
-        physApplyForceToObj((SpaceObj *)ship,capNumber(thruststr,ship->nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
+        physApplyForceToObj(&ship->obj,capNumber(thruststr,ship->guidance.nonstatvars.thruststrength[TRANS_BACKWARD]),TRANS_BACKWARD);
     }
 
     return FALSE;
@@ -1254,18 +1254,18 @@ bool32 aitrackSteadyShip(Ship *ship)
 ----------------------------------------------------------------------------*/
 void aitrackForceSteadyShip(Ship *ship)
 {
-    if (ship->flags & SOF_Crazy)
+    if (ship->header.flags & SOF_Crazy)
     {
         return;     // ship is crazy, so return
     }
 
-    ship->posinfo.velocity.x = 0.0f;
-    ship->posinfo.velocity.y = 0.0f;
-    ship->posinfo.velocity.z = 0.0f;
+    ship->obj.posinfo.velocity.x = 0.0f;
+    ship->obj.posinfo.velocity.y = 0.0f;
+    ship->obj.posinfo.velocity.z = 0.0f;
 
-    ship->rotinfo.rotspeed.x = 0.0f;
-    ship->rotinfo.rotspeed.y = 0.0f;
-    ship->rotinfo.rotspeed.z = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.x = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.y = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.z = 0.0f;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1277,14 +1277,14 @@ void aitrackForceSteadyShip(Ship *ship)
 ----------------------------------------------------------------------------*/
 void aitrackForceGuidanceZeroRotation(SpaceObjRotImpTargGuidance *ship)
 {
-    if (ship->flags & SOF_Crazy)
+    if (ship->header.flags & SOF_Crazy)
     {
         return;     // ship is crazy, so return
     }
 
-    ship->rotinfo.rotspeed.x = 0.0f;
-    ship->rotinfo.rotspeed.y = 0.0f;
-    ship->rotinfo.rotspeed.z = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.x = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.y = 0.0f;
+    ship->rotatable.rotinfo.rotspeed.z = 0.0f;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1296,14 +1296,14 @@ void aitrackForceGuidanceZeroRotation(SpaceObjRotImpTargGuidance *ship)
 ----------------------------------------------------------------------------*/
 void aitrackForceZeroVelocity(Ship *ship)
 {
-    if (ship->flags & SOF_Crazy)
+    if (ship->header.flags & SOF_Crazy)
     {
         return;     // ship is crazy, so return
     }
 
-    ship->posinfo.velocity.x = 0.0f;
-    ship->posinfo.velocity.y = 0.0f;
-    ship->posinfo.velocity.z = 0.0f;
+    ship->obj.posinfo.velocity.x = 0.0f;
+    ship->obj.posinfo.velocity.y = 0.0f;
+    ship->obj.posinfo.velocity.z = 0.0f;
 }
 
 /*-----------------------------------------------------------------------------
@@ -1316,24 +1316,24 @@ void aitrackForceZeroVelocity(Ship *ship)
 void aitrackForceHeading(Ship *ship, vector *heading, vector *upvector)
 {
     vector rightvec;
-    if (ship->flags & SOF_Crazy)
+    if (ship->header.flags & SOF_Crazy)
     {
         return;     // ship is crazy, so return
     }
 
     vecCrossProduct(rightvec,*heading,*upvector);
     // set up vector
-    ship->rotinfo.coordsys.m11 = upvector->x;
-    ship->rotinfo.coordsys.m21 = upvector->y;
-    ship->rotinfo.coordsys.m31 = upvector->z;
+    ship->rotatable.rotinfo.coordsys.m11 = upvector->x;
+    ship->rotatable.rotinfo.coordsys.m21 = upvector->y;
+    ship->rotatable.rotinfo.coordsys.m31 = upvector->z;
     // set right vector
-    ship->rotinfo.coordsys.m12 = rightvec.x;
-    ship->rotinfo.coordsys.m22 = rightvec.y;
-    ship->rotinfo.coordsys.m32 = rightvec.z;
+    ship->rotatable.rotinfo.coordsys.m12 = rightvec.x;
+    ship->rotatable.rotinfo.coordsys.m22 = rightvec.y;
+    ship->rotatable.rotinfo.coordsys.m32 = rightvec.z;
     // set heading vector
-    ship->rotinfo.coordsys.m13 = heading->x;
-    ship->rotinfo.coordsys.m23 = heading->y;
-    ship->rotinfo.coordsys.m33 = heading->z;
+    ship->rotatable.rotinfo.coordsys.m13 = heading->x;
+    ship->rotatable.rotinfo.coordsys.m23 = heading->y;
+    ship->rotatable.rotinfo.coordsys.m33 = heading->z;
 }
 
 
@@ -1349,7 +1349,7 @@ bool32 MoveReachedDestinationVariable(Ship *ship,vector *destination,real32 boun
     vector lefttogo;
     real32 negbounds = -bounds;
 
-    vecSub(lefttogo,*destination,ship->posinfo.position);
+    vecSub(lefttogo,*destination,ship->obj.posinfo.position);
 
     if ((isBetweenExclusive(lefttogo.x,negbounds,bounds)) &&
         (isBetweenExclusive(lefttogo.y,negbounds,bounds)) &&
@@ -1378,9 +1378,9 @@ bool32 MoveReachedDestinationVariable(Ship *ship,vector *destination,real32 boun
 ----------------------------------------------------------------------------*/
 real32 MoveLeftToGo(Ship *ship,vector *destination)
 {
-    real32 absx = ABS(destination->x - ship->posinfo.position.x);
-    real32 absy = ABS(destination->y - ship->posinfo.position.y);
-    real32 absz = ABS(destination->z - ship->posinfo.position.z);
+    real32 absx = ABS(destination->x - ship->obj.posinfo.position.x);
+    real32 absy = ABS(destination->y - ship->obj.posinfo.position.y);
+    real32 absz = ABS(destination->z - ship->obj.posinfo.position.z);
 
     return max(max(absx,absy),absz);
 }
@@ -1405,42 +1405,42 @@ bool32 aitrackRotationSpeed(Ship *ship, real32 desiredrotspeed, uword track)
     {
         case ROT_ABOUTXCCW :
         case ROT_ABOUTXCW  :
-            if (isBetweenExclusive(ship->rotinfo.rotspeed.x,
+            if (isBetweenExclusive(ship->rotatable.rotinfo.rotspeed.x,
                 desiredrotspeed+STILL_ROT_LO,
                 desiredrotspeed+STILL_ROT_HI))
                 return(TRUE);
-            rotspeed = ship->rotinfo.rotspeed.x;
-            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->staticheader.momentOfInertiaX * oneovertime;
+            rotspeed = ship->rotatable.rotinfo.rotspeed.x;
+            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->common.momentOfInertiaX * oneovertime;
         break;
         case ROT_ABOUTYCCW :
         case ROT_ABOUTYCW  :
-            if (isBetweenExclusive(ship->rotinfo.rotspeed.y,
+            if (isBetweenExclusive(ship->rotatable.rotinfo.rotspeed.y,
                 desiredrotspeed+STILL_ROT_LO,
                 desiredrotspeed+STILL_ROT_HI))
                 return(TRUE);
-            rotspeed = ship->rotinfo.rotspeed.y;
-            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->staticheader.momentOfInertiaY * oneovertime;
+            rotspeed = ship->rotatable.rotinfo.rotspeed.y;
+            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->common.momentOfInertiaY * oneovertime;
         break;
         case ROT_ABOUTZCCW :
         case ROT_ABOUTZCW  :
-            if (isBetweenExclusive(ship->rotinfo.rotspeed.z,
+            if (isBetweenExclusive(ship->rotatable.rotinfo.rotspeed.z,
                 desiredrotspeed+STILL_ROT_LO,
                 desiredrotspeed+STILL_ROT_HI))
                 return(TRUE);
-            rotspeed = ship->rotinfo.rotspeed.z;
-            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->staticheader.momentOfInertiaZ * oneovertime;
+            rotspeed = ship->rotatable.rotinfo.rotspeed.z;
+            rotstr = (desiredrotspeed - rotspeed) * ship->staticinfo->common.momentOfInertiaZ * oneovertime;
         break;
     }
 
     if (rotspeed < desiredrotspeed)
     {
-        physApplyRotToObj((SpaceObjRot *)ship,capNumber(rotstr,ship->nonstatvars.rotstrength[track]),track);
+        physApplyRotToObj(&ship->rotatable,capNumber(rotstr,ship->guidance.nonstatvars.rotstrength[track]),track);
         return(FALSE);
     }
     else
     {
-        rotstr = -capNumber(-rotstr,ship->nonstatvars.rotstrength[ROT_ABOUTZCW]);
-        physApplyRotToObj((SpaceObjRot *)ship,rotstr,track);
+        rotstr = -capNumber(-rotstr,ship->guidance.nonstatvars.rotstrength[ROT_ABOUTZCW]);
+        physApplyRotToObj(&ship->rotatable,rotstr,track);
         return(FALSE);
     }
 }

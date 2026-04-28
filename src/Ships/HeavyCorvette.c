@@ -104,7 +104,7 @@ bool32 HeavyCorvetteSpecialTarget(Ship *ship, void *custom)
         vecSet(Av,0.0f,0.0f,0.0f);
         for(i=0;i<targets->numTargets;i++)
         {
-            vecAddTo(Av,targets->TargetPtr[i]->collInfo.collPosition);
+            vecAddTo(Av,targets->TargetPtr[i]->impactable.collInfo.collPosition);
         }
         tempreal = 1.0f/((real32)i);
         vecScalarMultiply(spec->burstFireVector,Av,tempreal);
@@ -210,7 +210,7 @@ bool32 flytoBurstPosition(Ship *ship)
     vector heading;
     bool32 ready = FALSE;
     //maybe track to within gun gimbleness
-    vecSub(heading,spec->burstFireVector,ship->posinfo.position);
+    vecSub(heading,spec->burstFireVector,ship->obj.posinfo.position);
     vecNormalize(&heading);
     if(aitrackHeadingWithFlags(ship,&heading,0.99f,AITRACKHEADING_IGNOREUPVEC))
     {
@@ -233,23 +233,23 @@ bool32 doBurstFire(Ship *ship)
     sdword done;
     vector trajectory,heading;
     real32 range,one_over_range;
-    Ship dummyTarg;
+    SpaceObjRotImpTarg dummyTarg;
 
-    vecSub(trajectory,spec->burstFireVector,ship->posinfo.position);
+    vecSub(trajectory,spec->burstFireVector,ship->obj.posinfo.position);
     range = vecMagnitudeSquared(trajectory);
     range = fsqrt(range);
     one_over_range = 1.0f/range;
     vecScalarMultiply(trajectory,trajectory,one_over_range);
 
-    dummyTarg.objtype = OBJ_ShipType;
-    dummyTarg.posinfo.position = spec->burstFireVector;
-    dummyTarg.collInfo.collPosition = spec->burstFireVector;
-    dummyTarg.currentLOD = ship->currentLOD;
-    dummyTarg.collMyBlob = ship->collMyBlob;
-    vecSet(dummyTarg.posinfo.velocity,0.0f,0.0f,0.0f);
+    dummyTarg.header.objtype = OBJ_ShipType;
+    dummyTarg.obj.posinfo.position = spec->burstFireVector;
+    dummyTarg.impactable.collInfo.collPosition = spec->burstFireVector;
+    dummyTarg.obj.currentLOD = ship->obj.currentLOD;
+    dummyTarg.obj.collMyBlob = ship->obj.collMyBlob;
+    vecSet(dummyTarg.obj.posinfo.velocity,0.0f,0.0f,0.0f);
 
     //track target even more precisely
-    vecSub(heading,spec->burstFireVector,ship->posinfo.position);
+    vecSub(heading,spec->burstFireVector,ship->obj.posinfo.position);
     vecNormalize(&heading);
     aitrackHeadingWithFlags(ship,&heading,0.9999f,AITRACKHEADING_IGNOREUPVEC);
 
@@ -259,9 +259,9 @@ bool32 doBurstFire(Ship *ship)
     //fix later
     spec->bulletLifeTime = range*oneOverburstSpeed;
 
-    bitSet(ship->specialFlags,SPECIAL_BurstFiring);
-    done = gunShootGunsAtTarget(ship,(SpaceObjRotImpTarg *)&dummyTarg,0.0f,&trajectory);
-    bitClear(ship->specialFlags,SPECIAL_BurstFiring);
+    bitSet(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring);
+    done = gunShootGunsAtTarget(ship,&dummyTarg,0.0f,&trajectory);
+    bitClear(ship->shipOrDerelict.specialFlags,SPECIAL_BurstFiring);
     if(done == TRUE)
     {
         spec->cooldown = TRUE;

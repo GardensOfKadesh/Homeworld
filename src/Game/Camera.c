@@ -266,7 +266,7 @@ real32 cameraMinimumZoom(Camera* camera)
     for (i = 0; i < focus->numShips; i++)
     {
         ship = focus->ShipPtr[i];
-        if (ship->objtype == OBJ_ShipType)
+        if (ship->header.objtype == OBJ_ShipType)
         {
             shipstaticinfo = (ShipStaticInfo*)ship->staticinfo;
             if (shipstaticinfo->minimumZoomDistance > dist)
@@ -274,7 +274,7 @@ real32 cameraMinimumZoom(Camera* camera)
                 dist = shipstaticinfo->minimumZoomDistance;
             }
         }
-        else if (ship->objtype == OBJ_DerelictType)
+        else if (ship->header.objtype == OBJ_DerelictType)
         {
             derelictstaticinfo = (DerelictStaticInfo*)ship->staticinfo;
             if (derelictstaticinfo->minimumZoomDistance > dist)
@@ -642,8 +642,8 @@ void cameraSetEyePositionBasedOnShip(Camera *camera,struct Ship *ship)
     real32 d;
     real32 upoffset = 0.5f;
 
-    matGetVectFromMatrixCol1(up,ship->rotinfo.coordsys);
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
+    matGetVectFromMatrixCol1(up,ship->rotatable.rotinfo.coordsys);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
 
     if ((ship->shiptype >= 0) && (ship->shiptype < TOTAL_NUM_SHIPS))
     {
@@ -662,12 +662,12 @@ void cameraSetEyePositionBasedOnShip(Camera *camera,struct Ship *ship)
         upoffset = pilotupoffset;
     }
 #endif
-    d = ship->staticinfo->staticheader.staticCollInfo.uplength * upoffset;
+    d = ship->staticinfo->common.staticCollInfo.uplength * upoffset;
 
     vecScalarMultiply(offset,up,d);
 
-    vecAdd(camera->eyeposition,ship->posinfo.position,offset);
-    matGetVectFromMatrixCol3(heading,ship->rotinfo.coordsys);
+    vecAdd(camera->eyeposition,ship->obj.posinfo.position,offset);
+    matGetVectFromMatrixCol3(heading,ship->rotatable.rotinfo.coordsys);
     vecAdd(camera->lookatpoint,camera->eyeposition,heading);
 
     camera->upvector = up;
