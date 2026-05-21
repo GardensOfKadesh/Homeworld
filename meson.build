@@ -84,6 +84,19 @@ if host_machine.system() == 'emscripten'
 		'-Wno-sometimes-uninitialized',
 		'-Wno-non-literal-null-conversion', # 1 occurrence
 	]
+elif meson.get_compiler('c').get_id() == 'clang'
+	c_base_args += [
+		'-Wno-unknown-warning-option',
+		'-Wno-deprecated-non-prototype',
+		'-Wno-pointer-sign',
+		'-Wno-constant-logical-operand',
+		'-Wno-invalid-source-encoding',
+		'-Wno-sometimes-uninitialized',
+		'-Wno-non-literal-null-conversion',
+	]
+	if host_machine.system() == 'darwin'
+		c_base_args += ['-D_MACOSX']
+	endif
 endif
 
 if host_machine.cpu_family() != 'x86'

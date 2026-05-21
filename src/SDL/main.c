@@ -2283,12 +2283,52 @@ int main (int argc, char* argv[])
 
         bool32 breakMainLoop = FALSE;
 
+        // Track mouse button presses that got released in the same event batch.
+        // SDL queues events; a quick click can produce both DOWN and UP before
+        // the game task loop runs, making the click invisible to the region system.
+        // We defer these same-frame releases to the next iteration.
+        static bool32 deferMouseLeftUp   = FALSE;
+        static bool32 deferMouseRightUp  = FALSE;
+        static bool32 deferMouseMiddleUp = FALSE;
+
         while (TRUE) {
             // Give sound a break :)
             SDL_Delay(0);
 
+            // Apply deferred mouse-button releases from the previous frame.
+            if (deferMouseLeftUp)   { keyPressUp(LMOUSE_BUTTON);   keyPressUp(LMOUSE_DOUBLE);   deferMouseLeftUp   = FALSE; }
+            if (deferMouseRightUp)  { keyPressUp(RMOUSE_BUTTON);   keyPressUp(RMOUSE_DOUBLE);   deferMouseRightUp  = FALSE; }
+            if (deferMouseMiddleUp) { keyPressUp(MMOUSE_BUTTON);   keyPressUp(MMOUSE_DOUBLE);   deferMouseMiddleUp = FALSE; }
+
+            bool32 mouseLeftPressedThisFrame   = FALSE;
+            bool32 mouseRightPressedThisFrame  = FALSE;
+            bool32 mouseMiddlePressedThisFrame = FALSE;
+
             SDL_Event event;
             while (SDL_PollEvent(&event)) {
+                // Intercept MOUSEBUTTONUP for buttons that were pressed this frame,
+                // deferring the release so the task loop can see the press.
+                if (event.type == SDL_MOUSEBUTTONUP && !mouseDisabled) {
+                    switch (event.button.button) {
+                        case SDL_BUTTON_LEFT:
+                            if (mouseLeftPressedThisFrame) { deferMouseLeftUp = TRUE; continue; }
+                            break;
+                        case SDL_BUTTON_RIGHT:
+                            if (mouseRightPressedThisFrame) { deferMouseRightUp = TRUE; continue; }
+                            break;
+                        case SDL_BUTTON_MIDDLE:
+                            if (mouseMiddlePressedThisFrame) { deferMouseMiddleUp = TRUE; continue; }
+                            break;
+                    }
+                }
+                if (event.type == SDL_MOUSEBUTTONDOWN && !mouseDisabled) {
+                    switch (event.button.button) {
+                        case SDL_BUTTON_LEFT:   mouseLeftPressedThisFrame   = TRUE; break;
+                        case SDL_BUTTON_RIGHT:  mouseRightPressedThisFrame  = TRUE; break;
+                        case SDL_BUTTON_MIDDLE: mouseMiddlePressedThisFrame = TRUE; break;
+                    }
+                }
+
                 HandleEvent(&event);
 
                 if (event.type == SDL_QUIT) {

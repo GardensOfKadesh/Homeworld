@@ -6964,7 +6964,7 @@ sdword etgDetatchThisOwner(Effect *effect, Ship *owner, sdword nToFind)
 {
     Node *fNode, *bNode;
     Effect *thisEffect;
-    sdword nDetached;
+    sdword nDetached = 0;
 #if ETG_DETATCH_STATS
     static int nDetachRequests = 0;
     static int nTotalDetached = 0;

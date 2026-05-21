@@ -10,6 +10,7 @@
 #define ___RENDER_H
 
 #include "glinc.h"
+#include <SDL2/SDL.h>
 #include "Camera.h"
 #include "Color.h"
 #include "Matrix.h"
@@ -114,6 +115,8 @@ extern sdword rndNumberLines;
 #endif
 
 extern renderfunction rndMainViewRender;
+
+extern SDL_Window *sdlwindow;
 
 /*=============================================================================
     Functions:
