@@ -876,7 +876,7 @@ void soundEventRestart(void)
 {
 	if (enableSFX || enableSpeech)
 	{
-		soundreinit();
+		soundpause(FALSE);
 		soundEventPlayMusic(SOUND_FRONTEND_TRACK);
 	}
 
