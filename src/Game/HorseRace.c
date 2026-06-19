@@ -756,11 +756,27 @@ void hrInitBackground(void)
 
     dbgAssertOrIgnore(strcasecmp(CurDir,NewDir) == 0);
 
+    if (hrImageName[0] == 0)
+    {
+        return;
+    }
+
     if (fileExists(hrImageName, 0))
     {
         uint32_t fileSize = fileLoadAlloc(hrImageName, (void**)&fileData, 0);
 
+        if (fileSize == 0 || fileData == NULL)
+        {
+            return;
+        }
+
         unsigned char *pixels = stbi_load_from_memory(fileData, fileSize, &width, &height, &channels, 3);
+
+        if (pixels == NULL || width <= 0 || height <= 0)
+        {
+            memFree(fileData);
+            return;
+        }
         
         hrBackXSize = width;
         hrBackYSize = height;
