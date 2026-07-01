@@ -684,6 +684,21 @@ bool8 fileMakeDirectory(char const* directoryName) {
     /* Reduce the path name. */
     fileNameReducePath(directoryCopy);
 
+#ifdef _WIN32
+    /*
+     * fileNameReducePath normalizes separators to '/', but the Windows
+     * directory walker below splits on '\'. Convert back so nested save
+     * folders are created one component at a time.
+     */
+    for (pChar = directoryCopy; *pChar; pChar++)
+    {
+        if (*pChar == '/')
+        {
+            *pChar = '\\';
+        }
+    }
+#endif
+
     directoryLen = strlen(directoryCopy);
     if (directoryLen == 0)
         return TRUE;
