@@ -16,6 +16,9 @@ There MUST be at least one path from this page to any piece of documentation per
     - [How to contribute to the project's documentation](#helping-with-documentation)
   - [Community](/documentation/community/README.md)
     - How to [open an issue]
+  - Contributors
+    - [Design and Architecture](/documentation/contributors/design-and-architecture.md)
+      - [`Warp.script`](/documentation/contributors/design-and-architecture.md#warpscript)
 - [Old Documentation][archive]
 
 ## Helping with Documentation
