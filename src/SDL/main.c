@@ -242,9 +242,7 @@ bool32 noMinimizeAltTab = FALSE;
 //options altered by a password function:
 bool32 mainCDCheckEnabled = TRUE;
 
-char networkVersion[MAX_NETWORKVERSION_STRING_LEN] = "HomeworldSDL";
-
-char minorBuildVersion[] = "1.2.0";
+char networkVersion[MAX_NETWORKVERSION_STRING_LEN] = "GardensOfKadesh";
 
 char languageVersion[50] = "";    // constructed at beginning of program
 

@@ -5,6 +5,10 @@
 #include "MaxMultiplayer.h"
 #include "Types.h"
 
+#ifndef HOMEWORLD_BUILD_VERSION
+#define HOMEWORLD_BUILD_VERSION "UNSUPPORTED_BUILD"
+#endif
+
 #ifndef STATVIEWER_PROGRAM
 //statviewer program is compiling this bitch...lets not do this
 #endif
@@ -60,7 +64,6 @@ extern bool32 ShortCircuitWON;
 extern char versionString[];
 extern char networkVersion[];
 extern char languageVersion[];
-extern char minorBuildVersion[];
 
 extern bool32 autoSaveDebug;
 
@@ -75,4 +78,3 @@ extern bool32 pilotView;
 extern bool32 vanillaMode;
 
 #endif
-

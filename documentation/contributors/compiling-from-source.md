@@ -43,3 +43,8 @@ Regardless of your OS, you should expect to install the following to build GoK:
  - ffmpeg (to play the video cut-scenes of the singleplayer campaign.)
  - yacc & flex (domain-specific parsers and translators for the scripts of the single-player campaign)
  - ASan and UBSan (**A**ddress **San**itizer and **U**ndefined **B**ehaviour **San**itizer; They're debugging tools to help generate useful crash reports)
+
+## Note to Packagers
+
+If you build and package this software, your feedback is welcome.
+Please tell us how we can make packaging easier.

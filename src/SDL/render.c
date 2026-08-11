@@ -3945,12 +3945,15 @@ DEFINE_TASK(rndRenderTask)
         mouseSetCursorSetting();
         
         mouseDraw();                                        //draw mouse atop everything
-      
-        if (universePause || !gameIsRunning)
-        {
+
+        if (universePause || !gameIsRunning) {
             fontMakeCurrent(selGroupFont2);
-        	fontPrint(MAIN_WindowWidth - fontWidth(minorBuildVersion) - 2, MAIN_WindowHeight - fontHeight(" ") - 2, colWhite, minorBuildVersion);
-            fontPrint(MAIN_WindowWidth - fontWidth(networkVersion) - fontWidth(minorBuildVersion) - 8, MAIN_WindowHeight - fontHeight(" ") - 2, colWhite, networkVersion);
+            char buildVersion[] = HOMEWORLD_BUILD_VERSION;
+            sdword x = MAIN_WindowWidth - fontWidthN(buildVersion, sizeof(buildVersion)) - 2;
+            sdword y = MAIN_WindowHeight - fontHeight(" ") - 2;
+            fontPrint(x, y, colWhite, buildVersion);
+            x -= fontWidthN(networkVersion, MAX_NETWORKVERSION_STRING_LEN) + 6;
+            fontPrint(x, y, colWhite, networkVersion);
         }
 
         //take a screenshot or sequence thereof

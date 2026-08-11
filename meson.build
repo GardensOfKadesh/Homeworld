@@ -1,15 +1,43 @@
-project('homeworld',
-        'c',
-        version: '1.2.0',
-        default_options: ['warning_level=3', 'c_std=gnu11', 'b_sanitize=address,undefined'])
+project(
+	'homeworld',
+	'c',
+	# The "real" version displayed in-game is determined below. This is a fallback string that can be lazily updated whenever you feel like it.
+	version: 'unspecified-1.2.2+',
+	default_options: ['warning_level=3', 'c_std=gnu11', 'b_sanitize=address,undefined'],
+)
+
+build_version = get_option('build_version')
+if build_version == ''
+	git = find_program('git', required: false)
+	if git.found()
+		git_describe = run_command(
+			git,
+			'-C', meson.project_source_root(),
+			'describe',
+			'--always',
+			'--tags',
+			'--dirty=+',
+			check: false,
+		)
+		if git_describe.returncode() == 0
+			build_version = git_describe.stdout().strip()
+		endif
+	endif
+endif
+if build_version == ''
+	build_version = meson.project_version()
+endif
+message('Build version: ' + build_version)
 
 if get_option('b_sanitize') != 'none'
-	warning('Building with memory sanitizers on. If linking fails, try disabling them with `meson configure -Db_sanitize=none`.')
+	warning(
+		'Building with memory sanitizers on. If linking fails, try disabling them with `meson configure -Db_sanitize=none`.',
+	)
 endif
 
 dep_sdl = dependency('sdl2')
 
-base_deps = [ ]
+base_deps = []
 
 if host_machine.system() != 'emscripten'
 	base_deps += [
@@ -131,13 +159,15 @@ else
 endif
 
 if get_option('movies')
-	warning('Building with video cutscenes support. This requires a handful of extra dependencies (usually provided by FFMPEG). Disable with `meson configure -Dmovies=false`')
+	warning(
+		'Building with video cutscenes support. This requires a handful of extra dependencies (usually provided by FFMPEG). Disable with `meson configure -Dmovies=false`',
+	)
 
 	base_deps += [
 		dependency('libavutil'),
 		dependency('libswscale'),
 		dependency('libavcodec'),
-		dependency('libavformat')
+		dependency('libavformat'),
 	]
 	c_args += ['-DHW_ENABLE_MOVIES']
 endif
@@ -149,7 +179,7 @@ if host_machine.system() == 'emscripten'
 		'-pthread',
 		'-gsource-map',
 	]
-	
+
 	emscripten_compile_args = emscripten_shared_args
 	emscripten_link_args = emscripten_shared_args + [
 		'-lidbfs.js',
@@ -166,10 +196,9 @@ if host_machine.system() == 'emscripten'
 		'-o', 'homeworld.html',
 	]
 
-    add_project_arguments(emscripten_compile_args, language: ['c', 'cpp'])
-    add_project_link_arguments(emscripten_link_args, language: ['c', 'cpp'])
+	add_project_arguments(emscripten_compile_args, language: ['c', 'cpp'])
+	add_project_link_arguments(emscripten_link_args, language: ['c', 'cpp'])
 endif
-
 
 subdir('tools')
 subdir('src')
@@ -186,18 +215,22 @@ if host_machine.system() == 'emscripten'
 endif
 
 if host_machine.system() == 'emscripten'
-	executable(meson.project_name(),
-			src,
-			include_directories: inc_src,
-			link_with: [lib_sdl],
-			c_args: c_args,
-			install: true)
+	executable(
+		meson.project_name(),
+		src,
+		include_directories: inc_src,
+		link_with: [lib_sdl],
+		c_args: c_args,
+		install: true,
+	)
 else
-	executable(meson.project_name(),
-			src,
-			include_directories: inc_src,
-			link_with: [lib_sdl],
-			dependencies: base_deps,
-			c_args: c_args,
-			install: true)
+	executable(
+		meson.project_name(),
+		src,
+		include_directories: inc_src,
+		link_with: [lib_sdl],
+		dependencies: base_deps,
+		c_args: c_args,
+		install: true,
+	)
 endif

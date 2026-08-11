@@ -835,7 +835,7 @@ void versionNumDraw(featom *atom, regionhandle region)
     strcat(versionstr, " ");
     strcat(versionstr, networkVersion);
     strcat(versionstr, ".");
-    strcat(versionstr, minorBuildVersion);
+    strcat(versionstr, HOMEWORLD_BUILD_VERSION);
 
     dbgAssertOrIgnore(strlen(versionstr) < 70);
 
@@ -3399,7 +3399,7 @@ void utyGetFirstCDPath(char *szPath)
 
 /*-----------------------------------------------------------------------------
     Name        : PrepareVersionStringStuff
-    Description : makes sure that networkVersion, languageVersion, minorBuildVersion and the combined versionString are all set
+    Description : makes sure that networkVersion, languageVersion and the combined versionString are all set
     Inputs      :
     Outputs     :
     Return      :
@@ -3421,7 +3421,7 @@ void PrepareVersionStringStuff()
     strcat(versionString,"\t");
     strcat(versionString,languageVersion);
     strcat(versionString,"\t");
-    strcat(versionString,minorBuildVersion);
+    strcat(versionString,HOMEWORLD_BUILD_VERSION);
 }
 
 /*-----------------------------------------------------------------------------
@@ -5070,5 +5070,4 @@ void utyDrawDroppedPlayer(featom *atom, regionhandle region)
         fontMakeCurrent(fhsave);
     }
 }
-
 
