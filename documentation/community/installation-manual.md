@@ -48,7 +48,7 @@ Which changes the signature of 2 of the above files (since their content is diff
 
 #### Remaster (2015)
 
-- [ ] `homeworld.big` (You might have to rename it to `Homeworld.big`, with a capital `H`)
+- [ ] `homeworld.big` (⚠️ Rename this to `Homeworld.big`, with a capital `H` ⚠️)
     > sha256: e38c0528c1d4bd9d9195d26d5231ae29bef18f57d9bd1fe2eed33fb2b9b172a8
 - [ ] `HW_Comp.vce`  
     > sha256: 15c4b988adb09b0969b0dc288b21ddc10ca9d42a2064d15b46b53dcf02fc2e44
