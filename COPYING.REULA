@@ -1,26 +1,5 @@
-Homeworld � 1999-2000 Sierra On-Line, Inc.  All Rights Reserved.
-Homeworld is a registered trademark, and Sierra and Sierra Studios are
-registered trademarks of Sierra On-Line, Inc.  Relic is a trademark of Relic
-Entertainment, Inc.
-
-------------------------------------------------------------------------------
-
-This port of Homeworld is based on the original Homeworld source code released
-by Relic Entertainment through the Relic Developers Network.  It has been
-edited for content and formatted to fit your OS.
-
-The original Homeworld source code in its entirety is available from the Relic
-Developers Network website at http://www.relic.com/rdn/
-
 This file contains a copy of the end-user license agreement presented with the
-Homeworld source code from the Relic Developers Network.  If you are using a
-pre-built version of Homeworld, other pre-built libraries have been included
-with the distribution which utilize their own licenses (particularly the GPL
-and LGPL).  Copies of these licenses have been included in additional
-"COPYING_*" files with the pre-built package.
-
-Simple DirectMedia Layer (SDL) is licensed under the LGPL.  The source code to
-SDL is available at http://www.libsdl.org/
+Homeworld source code from the Relic Developers Network. 
 
 ------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 # Contributing Code to the Project
 
 > [!caution]
-> Please read the [license agreement](./contributors/license-agreement.md#read-this-before-contributing) before contributing anything
+> Please sign the [license agreement](./contributors/license-agreement.md#read-this-before-contributing) before contributing anything (include it in your first contribution)
 
 ## Overview
 

@@ -1,0 +1,18 @@
+Homeworld © 1999-2000 Sierra On-Line, Inc.  All Rights Reserved.
+Homeworld is a registered trademark, and Sierra and Sierra Studios are
+registered trademarks of Sierra On-Line, Inc.  Relic is a trademark of Relic
+Entertainment, Inc.
+
+------------------------------------------------------------------------------
+
+This port of Homeworld is based on the original Homeworld source code released
+by Relic Entertainment through the Relic Developers Network. That source code
+is protected by the Relic End-User License Agreement (REULA), a copy of which
+you can find in the file "COPYING.REULA".
+
+Some code is contributed under the MIT license, which permits inclusion within
+more restrictively licensed code bases. Any code contributed by the copyright
+holders listed in "COPYING.MIT" can therefore be (re-)used as MIT.
+
+The project, as a whole, remains bound by the terms of the REULA and is
+therefore distributed under those terms.

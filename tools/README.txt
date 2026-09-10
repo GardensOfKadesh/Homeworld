@@ -1,17 +1,15 @@
 The following tools are located in the "tools/win32" directory of the original Homeworld source code. (Relic's pre-compiled Windows versions of these tools live in "tools/bin".) A number of these tools are miscellaneous utilities that don't have any specific relevance to Homeworld, so the aim here is to work out what we need and, more importantly, what we don't... 
+You can find what is left to import in `zarchive/original-release-snapshot`.
 
 -----------------------------------------------------------------------------
-[A]lready imported into HomeworldSDL
 [Y]es, this tool should be imported
 [N]o, it should not be imported 
 [?] not sure if this is useful or not
 
-We need to convert [?]s to one of [Y] or [N] and [Y]s to [A]s. Then get the [A]s compiled and working.
+We need to convert [?]s to one of [Y] or [N]. Then get the [Y]s compiling and working.
 -----------------------------------------------------------------------------
 
-[A] Biggie           .BIG file extractor utility
 [N] BigTree          Windows equivalent of: `find <path> -not -type d`
-[A] BTG              .BTG background editor
 [N] builder          wraps lots of scripts to generate release candidate
 [N] CDKeyer          CD registration key checker/registration?
 [Y] FEMan            Front End manager; interface editor for menus etc
@@ -23,8 +21,6 @@ We need to convert [?]s to one of [Y] or [N] and [Y]s to [A]s. Then get the [A]s
 [?] HWDetect         Direct3d detection?
 [?] HWVideoTweaker   not sure what video it tweaks...
 [?] IniScript        .ini script validation?
-[A] KAS              .KAS -> C converter
-[A] LiFList          creates a list of .LiFs
 [?] LWExport         converts <something> to LightWave?
 [?] Mission          Mission(Man) editor but doesn't look like it's complete...
 [?] NetLogView       network debugging tool?

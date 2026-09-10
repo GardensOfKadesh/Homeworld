@@ -1,10 +1,9 @@
 # Welcome to the Gardens of Kadesh
 
-Gardens of Kadesh (GoK) is a fan project to maintain and improve the 1999 classics RTS game [Homeworld].
+Gardens of Kadesh (GoK) is a fan project to maintain and improve the 1999 classics RTS game [Homeworld]™.
 
 - [How do I play it?](/documentation/community/players-manual.md)
 - [How do I help?](/CONTRIBUTING.md)
-- [Is it Open-Source?](/documentation/contributors/license-agreement.md#this-project-is-not-open-source)
 - [How do I hack on it?](/documentation/contributors/contributing-code.md#hacking)
 - [Where is the full documentation?](/documentation/README.md)
 - [What does the game look like?](https://gitlab.com/gardens-of-kadesh/gardens-of-kadesh/-/wikis/Gallery)
@@ -26,9 +25,8 @@ If they're not specific to a fork, please [report issues](/documentation/communi
 - 1999-09-28: [Homeworld] (first of its name) is released to worldwide acclaim, winning multiple awards for its novel gameplay and strong single-player story.
 
 - 2003: The source code for Homeworld 1 is [made available][source code release] with the release of Homeworld 2.
-A small but dedicated community of fans starts an effort to port it to [SDL].
-The original goal was a port to MacOS, but later also enabled native versions for Linux, and more recently, web browsers.
-The project is named "Homeworld SDL".
+In an effort to port the game to Linux and MacOS, a small, but dedicated, community of fans assemble and starts porting the code to [SDL].
+The project is simply named "Homeworld SDL".
 
 - 2012: Homeworld SDL's source code is [saved to GitHub][tim detering's fork].
 
@@ -44,3 +42,37 @@ They decide to rename the project "Gardens of Kadesh" after [Mission 07] of the 
 [tim detering's fork]: https://github.com/timdetering/HomeworldSDL
 [homeworldsdl.org]: https://web.archive.org/web/20160912032212/http://www.homeworldsdl.org/
 [Mission 07]: https://homeworld.fandom.com/wiki/HW_Campaign:_Gardens_of_Kadesh
+
+## Acknowledgements
+
+The Gardens of Kadesh contributors would like to thank the following people for their work on the Homeworld SDL project.
+**Please, if you know any way to contact any of them, tell them we would love to chat!**
+
+ - Laurence "lmop" Passmore
+ - nova
+ - aunxx
+ - zapkitty
+ - shevek
+ - Aaron "aaron" Plattner
+ - azurief
+ - lauriebradshaw
+ - Matija "mnalis" Nalis
+ - Theodore "ted" Cipicchio
+ - alankilla
+ - andrewcolchagoff
+ - markunderwood
+ - andreipopescu
+ - bugfood
+ - gregkennedy
+ - tigriss
+
+## License
+
+In short: [MIT on top of REULA](documentation/contributors/license-agreement.md#sign-this-before-contributing).
+
+This project is distributed under the terms of the [Relic End-User License Agreement (REULA)](documentation/contributors/license-agreement.md#short-explainer-of-the-reula), with some contributed code additionally distributed under the [Massachusetts Institute of Technology (MIT) license](COPYING.MIT).
+
+Third-party components retain their own licenses, which you can review in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+This project is not affiliated, nor endorsed in anyway by Relic, Sierra, Gearbox, 2K, or Take Two.  
+Homeworld is a registered trademark of Gearbox Enterprises, LLC.
