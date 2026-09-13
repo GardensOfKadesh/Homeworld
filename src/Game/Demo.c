@@ -266,7 +266,10 @@ void demStateSave(void)
 
     for (index = state.nKeys = 0; index < KEY_TOTAL_KEYS; index++)
     {                                                       //for all keys
-	memcpy(&keyScanCodeCopy, &keyScanCode[index], sizeof(ubyte));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+        memcpy(&keyScanCodeCopy, &keyScanCode[index], sizeof(ubyte));
+#pragma GCC diagnostic pop
         if (keyScanCodeCopy != 0)
         {                                                   //if this scan code has some activity
             state.key[state.nKeys].index = (ubyte)index;    //save it
@@ -624,4 +627,3 @@ sdword demNumberTicksLoad(sdword initial)
     //else, let's set it back to the actual view rendering function.
     return(nTicks);
 }
-

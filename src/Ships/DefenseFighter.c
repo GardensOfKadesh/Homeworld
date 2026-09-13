@@ -566,7 +566,7 @@ void DefenseFighterHouseKeep(Ship *ship)
 {
     DefenseFighterSpec *spec = (DefenseFighterSpec *)ship->ShipSpecifics;
     DefenseFighterStatics *defensefighterstatics;
-    Node const* bulletnode;
+    Node* bulletnode;
     Node *tempnode;
     DefenseStruct *defensestruct;
     vector seperationvector;
@@ -896,8 +896,8 @@ void DefenseFighterBulletRemoval(Bullet *bullettogoByeBye)
 void DefenseFighterDied(Ship *ship)
 {
     DefenseFighterSpec *spec = (DefenseFighterSpec *)ship->ShipSpecifics;
-    Node const* bulletnode;
-    Node const* tempnode;
+    Node* bulletnode;
+    Node* tempnode;
     DefenseStruct *defensestruct;
 
     bulletnode = spec->DefenseList.head;

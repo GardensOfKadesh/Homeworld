@@ -1429,9 +1429,12 @@ void *kasConvertOffsetToFuncPtr(sdword offset)
             ? FunctionListSize(spGetCurrentMission())
             : 0);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
         return ((udword)offset < func_list_size
             ? func_list[offset]
             : NULL);
+#pragma GCC diagnostic pop
     }
 }
 

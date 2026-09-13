@@ -2344,12 +2344,12 @@ enum WhetherToDraw {
 };
 
 static enum WhetherToDraw onRenderEffect(Effect* effect) {
-    SpaceObj const* const effectowner = (SpaceObj const*)effect->owner;
+    SpaceObj* effectowner = (SpaceObj*)effect->owner;
     if (effectowner == NULL) return Draw;
     if (effectowner->objtype != OBJ_BulletType) return Draw;
 
     // effect is owned by a bullet
-    Bullet* const bullet = (Bullet const*)effectowner;
+    Bullet* bullet = (Bullet*)effectowner;
     if (bullet->bulletType == BULLET_Beam && bullet->timelived <= UNIVERSE_UPDATE_PERIOD) {
         return DontDraw;
     }
